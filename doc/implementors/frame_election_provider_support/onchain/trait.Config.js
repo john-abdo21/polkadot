@@ -1,0 +1,6 @@
+(function() {var implementors = {};
+implementors["kusama_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"kusama_runtime/struct.OnChainSeqPhragmen.html\" title=\"struct kusama_runtime::OnChainSeqPhragmen\">OnChainSeqPhragmen</a>","synthetic":false,"types":["kusama_runtime::OnChainSeqPhragmen"]}];
+implementors["polkadot_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"polkadot_runtime/struct.OnChainSeqPhragmen.html\" title=\"struct polkadot_runtime::OnChainSeqPhragmen\">OnChainSeqPhragmen</a>","synthetic":false,"types":["polkadot_runtime::OnChainSeqPhragmen"]}];
+implementors["polkadot_test_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"polkadot_test_runtime/struct.OnChainSeqPhragmen.html\" title=\"struct polkadot_test_runtime::OnChainSeqPhragmen\">OnChainSeqPhragmen</a>","synthetic":false,"types":["polkadot_test_runtime::OnChainSeqPhragmen"]}];
+implementors["westend_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"westend_runtime/struct.OnChainSeqPhragmen.html\" title=\"struct westend_runtime::OnChainSeqPhragmen\">OnChainSeqPhragmen</a>","synthetic":false,"types":["westend_runtime::OnChainSeqPhragmen"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

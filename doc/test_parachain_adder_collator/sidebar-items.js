@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Collator","The collator of the adder parachain."]]};

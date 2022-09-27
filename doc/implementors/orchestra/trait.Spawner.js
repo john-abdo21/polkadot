@@ -1,0 +1,5 @@
+(function() {var implementors = {};
+implementors["polkadot_node_subsystem"] = [];
+implementors["polkadot_node_subsystem_util"] = [];
+implementors["polkadot_overseer"] = [{"text":"impl&lt;S:&nbsp;SpawnNamed + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html\" title=\"trait core::marker::Sync\">Sync</a>&gt; <a class=\"trait\" href=\"polkadot_overseer/trait.Spawner.html\" title=\"trait polkadot_overseer::Spawner\">Spawner</a> for <a class=\"struct\" href=\"polkadot_overseer/struct.SpawnGlue.html\" title=\"struct polkadot_overseer::SpawnGlue\">SpawnGlue</a>&lt;S&gt;","synthetic":false,"types":["polkadot_overseer::SpawnGlue"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

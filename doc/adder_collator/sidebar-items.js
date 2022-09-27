@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["DEFAULT_PARA_ID","The parachain ID to collate for in case it wasn’t set explicitly through CLI."]],"fn":[["main",""]],"mod":[["cli","Polkadot CLI library."]]};

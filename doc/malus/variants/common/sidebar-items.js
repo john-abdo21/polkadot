@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["FakeCandidateValidation",""],["FakeCandidateValidationError","Candidate invalidity details"]],"fn":[["create_fake_candidate_commitments",""],["create_validation_response",""]],"struct":[["ReplaceValidationResult","An interceptor which fakes validation result with a preconfigured result. Replaces `CandidateValidationSubsystem`."]]};
