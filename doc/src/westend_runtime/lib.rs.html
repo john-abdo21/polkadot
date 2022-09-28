@@ -1834,6 +1834,21 @@
 <span id="1828">1828</span>
 <span id="1829">1829</span>
 <span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -2353,6 +2368,14 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">weights::pallet_staking::WeightInfo</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
+<span class="kw">impl</span> <span class="ident">pallet_fast_unstake::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+	<span class="kw">type</span> <span class="ident">RuntimeEvent</span> <span class="op">=</span> <span class="ident">RuntimeEvent</span>;
+	<span class="kw">type</span> <span class="ident">DepositCurrency</span> <span class="op">=</span> <span class="ident">Balances</span>;
+	<span class="kw">type</span> <span class="ident">Deposit</span> <span class="op">=</span> <span class="ident">frame_support::traits::ConstU128</span><span class="op">&lt;</span>{ <span class="ident">UNITS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">ControlOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">weights::pallet_fast_unstake::WeightInfo</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+}
+
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxAuthorities</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100_000</span>;
 }
@@ -2640,12 +2663,15 @@
 				<span class="ident">RuntimeCall::Slots</span>(..) <span class="op">|</span>
 				<span class="ident">RuntimeCall::Auctions</span>(..) <span class="op">|</span> <span class="comment">// Specifically omitting the entire XCM Pallet</span>
 				<span class="ident">RuntimeCall::VoterList</span>(..) <span class="op">|</span>
-				<span class="ident">RuntimeCall::NominationPools</span>(..)
+				<span class="ident">RuntimeCall::NominationPools</span>(..) <span class="op">|</span>
+				<span class="ident">RuntimeCall::FastUnstake</span>(..)
 			),
 			<span class="ident">ProxyType::Staking</span> =&gt; {
 				<span class="macro">matches!</span>(
 					<span class="ident">c</span>,
-					<span class="ident">RuntimeCall::Staking</span>(..) <span class="op">|</span> <span class="ident">RuntimeCall::Session</span>(..) <span class="op">|</span> <span class="ident">RuntimeCall::Utility</span>(..)
+					<span class="ident">RuntimeCall::Staking</span>(..) <span class="op">|</span>
+						<span class="ident">RuntimeCall::Session</span>(..) <span class="op">|</span> <span class="ident">RuntimeCall::Utility</span>(..) <span class="op">|</span>
+						<span class="ident">RuntimeCall::FastUnstake</span>(..)
 				)
 			},
 			<span class="ident">ProxyType::SudoBalances</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
@@ -2962,6 +2988,9 @@
 		<span class="comment">// Nomination pools for staking.</span>
 		<span class="ident">NominationPools</span>: <span class="ident">pallet_nomination_pools</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">29</span>,
 
+		<span class="comment">// Fast unstake pallet: extension to staking.</span>
+		<span class="ident">FastUnstake</span>: <span class="ident">pallet_fast_unstake</span> <span class="op">=</span> <span class="number">30</span>,
+
 		<span class="comment">// Parachains pallets. Start indices at 40 to leave room.</span>
 		<span class="ident">ParachainsOrigin</span>: <span class="ident">parachains_origin</span>::{<span class="ident">Pallet</span>, <span class="ident">Origin</span>} <span class="op">=</span> <span class="number">41</span>,
 		<span class="ident">Configuration</span>: <span class="ident">parachains_configuration</span>::{<span class="ident">Pallet</span>, <span class="ident">Call</span>, <span class="ident">Storage</span>, <span class="ident">Config</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>} <span class="op">=</span> <span class="number">42</span>,
@@ -3069,6 +3098,7 @@
 		[<span class="ident">pallet_balances</span>, <span class="ident">Balances</span>]
 		[<span class="ident">pallet_election_provider_multi_phase</span>, <span class="ident">ElectionProviderMultiPhase</span>]
 		[<span class="ident">frame_election_provider_support</span>, <span class="ident">ElectionProviderBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>]
+		[<span class="ident">pallet_fast_unstake</span>, <span class="ident">FastUnstake</span>]
 		[<span class="ident">pallet_identity</span>, <span class="ident">Identity</span>]
 		[<span class="ident">pallet_im_online</span>, <span class="ident">ImOnline</span>]
 		[<span class="ident">pallet_indices</span>, <span class="ident">Indices</span>]
