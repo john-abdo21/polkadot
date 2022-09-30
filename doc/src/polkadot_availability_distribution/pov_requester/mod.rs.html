@@ -228,6 +228,13 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -260,7 +267,9 @@
 	<span class="ident">overseer</span>,
 };
 <span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::runtime::RuntimeInfo</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">CandidateHash</span>, <span class="ident">Hash</span>, <span class="ident">ValidatorIndex</span>};
+<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
+	<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">CandidateHash</span>, <span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>, <span class="ident">ValidatorIndex</span>,
+};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
 	<span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">FatalError</span>, <span class="ident">JfyiError</span>, <span class="prelude-ty">Result</span>},
@@ -275,6 +284,7 @@
 	<span class="ident">runtime</span>: <span class="kw-2">&amp;mut</span> <span class="ident">RuntimeInfo</span>,
 	<span class="ident">parent</span>: <span class="ident">Hash</span>,
 	<span class="ident">from_validator</span>: <span class="ident">ValidatorIndex</span>,
+	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
 	<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
 	<span class="ident">pov_hash</span>: <span class="ident">Hash</span>,
 	<span class="ident">tx</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">PoV</span><span class="op">&gt;</span>,
@@ -300,10 +310,12 @@
 
 	<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">jaeger::Span::new</span>(<span class="ident">candidate_hash</span>, <span class="string">&quot;fetch-pov&quot;</span>)
 		.<span class="ident">with_validator_index</span>(<span class="ident">from_validator</span>)
-		.<span class="ident">with_relay_parent</span>(<span class="ident">parent</span>);
+		.<span class="ident">with_relay_parent</span>(<span class="ident">parent</span>)
+		.<span class="ident">with_para_id</span>(<span class="ident">para_id</span>);
 	<span class="ident">ctx</span>.<span class="ident">spawn</span>(
 		<span class="string">&quot;pov-fetcher&quot;</span>,
-		<span class="ident">fetch_pov_job</span>(<span class="ident">pov_hash</span>, <span class="ident">authority_id</span>, <span class="ident">pending_response</span>.<span class="ident">boxed</span>(), <span class="ident">span</span>, <span class="ident">tx</span>, <span class="ident">metrics</span>).<span class="ident">boxed</span>(),
+		<span class="ident">fetch_pov_job</span>(<span class="ident">para_id</span>, <span class="ident">pov_hash</span>, <span class="ident">authority_id</span>, <span class="ident">pending_response</span>.<span class="ident">boxed</span>(), <span class="ident">span</span>, <span class="ident">tx</span>, <span class="ident">metrics</span>)
+			.<span class="ident">boxed</span>(),
 	)
 	.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FatalError::SpawnTask</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
 	<span class="prelude-val">Ok</span>(())
@@ -311,6 +323,7 @@
 
 <span class="doccomment">/// Future to be spawned for taking care of handling reception and sending of PoV.</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">fetch_pov_job</span>(
+	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
 	<span class="ident">pov_hash</span>: <span class="ident">Hash</span>,
 	<span class="ident">authority_id</span>: <span class="ident">AuthorityDiscoveryId</span>,
 	<span class="ident">pending_response</span>: <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">PoVFetchingResponse</span>, <span class="ident">RequestError</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -319,7 +332,7 @@
 	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
 ) {
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">do_fetch_pov</span>(<span class="ident">pov_hash</span>, <span class="ident">pending_response</span>, <span class="ident">span</span>, <span class="ident">tx</span>, <span class="ident">metrics</span>).<span class="kw">await</span> {
-		<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">err</span>, <span class="question-mark">?</span><span class="ident">pov_hash</span>, <span class="question-mark">?</span><span class="ident">authority_id</span>, <span class="string">&quot;fetch_pov_job&quot;</span>);
+		<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">err</span>, <span class="question-mark">?</span><span class="ident">para_id</span>, <span class="question-mark">?</span><span class="ident">pov_hash</span>, <span class="question-mark">?</span><span class="ident">authority_id</span>, <span class="string">&quot;fetch_pov_job&quot;</span>);
 	}
 }
 
@@ -401,6 +414,7 @@
 				<span class="kw-2">&amp;mut</span> <span class="ident">runtime</span>,
 				<span class="ident">Hash::default</span>(),
 				<span class="ident">ValidatorIndex</span>(<span class="number">0</span>),
+				<span class="ident">ParaId::default</span>(),
 				<span class="ident">CandidateHash::default</span>(),
 				<span class="ident">pov_hash</span>,
 				<span class="ident">tx</span>,

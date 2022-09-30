@@ -1343,6 +1343,15 @@
 <span id="1337">1337</span>
 <span id="1338">1338</span>
 <span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1966,6 +1975,7 @@
 	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">overseer::CandidateBackingSenderTrait</span>,
 	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
 	<span class="ident">from_validator</span>: <span class="ident">ValidatorIndex</span>,
+	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
 	<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
 	<span class="ident">pov_hash</span>: <span class="ident">Hash</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">PoV</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
@@ -1974,6 +1984,7 @@
 		.<span class="ident">send_message</span>(<span class="ident">AvailabilityDistributionMessage::FetchPoV</span> {
 			<span class="ident">relay_parent</span>,
 			<span class="ident">from_validator</span>,
+			<span class="ident">para_id</span>,
 			<span class="ident">candidate_hash</span>,
 			<span class="ident">pov_hash</span>,
 			<span class="ident">tx</span>,
@@ -2042,8 +2053,15 @@
 		<span class="ident">PoVData::Ready</span>(<span class="ident">pov</span>) =&gt; <span class="ident">pov</span>,
 		<span class="ident">PoVData::FetchFromValidator</span> { <span class="ident">from_validator</span>, <span class="ident">candidate_hash</span>, <span class="ident">pov_hash</span> } =&gt; {
 			<span class="kw">let</span> <span class="ident">_span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">child</span>(<span class="string">&quot;request-pov&quot;</span>));
-			<span class="kw">match</span> <span class="ident">request_pov</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sender</span>, <span class="ident">relay_parent</span>, <span class="ident">from_validator</span>, <span class="ident">candidate_hash</span>, <span class="ident">pov_hash</span>)
-				.<span class="kw">await</span>
+			<span class="kw">match</span> <span class="ident">request_pov</span>(
+				<span class="kw-2">&amp;mut</span> <span class="ident">sender</span>,
+				<span class="ident">relay_parent</span>,
+				<span class="ident">from_validator</span>,
+				<span class="ident">candidate</span>.<span class="ident">descriptor</span>.<span class="ident">para_id</span>,
+				<span class="ident">candidate_hash</span>,
+				<span class="ident">pov_hash</span>,
+			)
+			.<span class="kw">await</span>
 			{
 				<span class="prelude-val">Err</span>(<span class="ident">Error::FetchPoV</span>) =&gt; {
 					<span class="ident">tx_command</span>
