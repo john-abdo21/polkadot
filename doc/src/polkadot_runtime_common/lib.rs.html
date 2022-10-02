@@ -267,6 +267,7 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -312,7 +313,7 @@
 	<span class="ident">weights</span>::{<span class="ident">constants::WEIGHT_PER_SECOND</span>, <span class="ident">Weight</span>},
 };
 <span class="kw">use</span> <span class="ident">frame_system::limits</span>;
-<span class="kw">use</span> <span class="ident">primitives::v2</span>::{<span class="ident">AssignmentId</span>, <span class="ident">Balance</span>, <span class="ident">BlockNumber</span>, <span class="ident">ValidatorId</span>};
+<span class="kw">use</span> <span class="ident">primitives::v2</span>::{<span class="ident">AssignmentId</span>, <span class="ident">Balance</span>, <span class="ident">BlockNumber</span>, <span class="ident">ValidatorId</span>, <span class="ident">MAX_POV_SIZE</span>};
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Perquintill</span>};
 <span class="kw">use</span> <span class="ident">static_assertions::const_assert</span>;
 
@@ -337,8 +338,9 @@
 <span class="doccomment">/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used</span>
 <span class="doccomment">/// by  Operational  extrinsics.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NORMAL_DISPATCH_RATIO</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">75</span>);
-<span class="doccomment">/// We allow for 2 seconds of compute with a 6 second average block time.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">WEIGHT_PER_SECOND</span>.<span class="ident">saturating_mul</span>(<span class="number">2</span>);
+<span class="doccomment">/// The storage proof size is not limited so far.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span>
+	<span class="ident">WEIGHT_PER_SECOND</span>.<span class="ident">saturating_mul</span>(<span class="number">2</span>).<span class="ident">set_proof_size</span>(<span class="ident">MAX_POV_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>);
 
 <span class="macro">const_assert!</span>(<span class="ident">NORMAL_DISPATCH_RATIO</span>.<span class="ident">deconstruct</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">AVERAGE_ON_INITIALIZE_RATIO</span>.<span class="ident">deconstruct</span>());
 

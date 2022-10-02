@@ -762,6 +762,9 @@
 <span id="756">756</span>
 <span id="757">757</span>
 <span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1288,7 +1291,10 @@
 			<span class="kw">let</span> <span class="ident">max_weight</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">weight_used</span> <span class="op">==</span> <span class="ident">Weight::zero</span>() {
 				<span class="comment">// we increase the amount of weight that we&#39;re allowed to use on the first message to try to prevent</span>
 				<span class="comment">// the possibility of blockage of the queue.</span>
-				<span class="ident">config</span>.<span class="ident">ump_service_total_weight</span> <span class="op">*</span> <span class="ident">T::FirstMessageFactorPercent::get</span>() <span class="op">/</span> <span class="number">100</span>
+				<span class="ident">config</span>
+					.<span class="ident">ump_service_total_weight</span>
+					.<span class="ident">saturating_mul</span>(<span class="ident">T::FirstMessageFactorPercent::get</span>()) <span class="op">/</span>
+					<span class="number">100</span>
 			} <span class="kw">else</span> {
 				<span class="ident">config</span>.<span class="ident">ump_service_total_weight</span> <span class="op">-</span> <span class="ident">weight_used</span>
 			};

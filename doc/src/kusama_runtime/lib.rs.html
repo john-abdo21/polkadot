@@ -2237,6 +2237,13 @@
 <span id="2231">2231</span>
 <span id="2232">2232</span>
 <span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -3979,6 +3986,13 @@
 			<span class="prelude-val">Err</span>(<span class="ident">mmr::Error::PalletNotIncluded</span>)
 		}
 
+		<span class="kw">fn</span> <span class="ident">generate_historical_batch_proof</span>(
+			<span class="ident">_leaf_indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+			<span class="ident">_leaves_count</span>: <span class="ident">u64</span>,
+		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mmr::EncodableOpaqueLeaf</span><span class="op">&gt;</span>, <span class="ident">mmr::BatchProof</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>), <span class="ident">mmr::Error</span><span class="op">&gt;</span> {
+			<span class="prelude-val">Err</span>(<span class="ident">mmr::Error::PalletNotIncluded</span>)
+		}
+
 		<span class="kw">fn</span> <span class="ident">verify_batch_proof</span>(<span class="ident">_leaves</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">mmr::EncodableOpaqueLeaf</span><span class="op">&gt;</span>, <span class="ident">_proof</span>: <span class="ident">mmr::BatchProof</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>)
 			-&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">mmr::Error</span><span class="op">&gt;</span>
 		{
@@ -4340,7 +4354,7 @@
 			<span class="ident">BlockWeights::get</span>().<span class="ident">get</span>(<span class="ident">DispatchClass::Normal</span>).<span class="ident">max_total</span>.<span class="ident">unwrap</span>();
 		<span class="comment">// if the min is too small, then this will not change, and we are doomed forever.</span>
 		<span class="comment">// the weight is 1/100th bigger than target.</span>
-		<span class="ident">run_with_system_weight</span>(<span class="ident">target</span> <span class="op">*</span> <span class="number">101</span> <span class="op">/</span> <span class="number">100</span>, <span class="op">|</span><span class="op">|</span> {
+		<span class="ident">run_with_system_weight</span>(<span class="ident">target</span>.<span class="ident">saturating_mul</span>(<span class="number">101</span>) <span class="op">/</span> <span class="number">100</span>, <span class="op">|</span><span class="op">|</span> {
 			<span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">SlowAdjustingFeeUpdate</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::convert</span>(<span class="ident">minimum_multiplier</span>);
 			<span class="macro">assert!</span>(<span class="ident">next</span> <span class="op">&gt;</span> <span class="ident">minimum_multiplier</span>, <span class="string">&quot;{:?} !&gt;= {:?}&quot;</span>, <span class="ident">next</span>, <span class="ident">minimum_multiplier</span>);
 		})
