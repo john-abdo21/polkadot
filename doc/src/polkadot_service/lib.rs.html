@@ -1563,6 +1563,24 @@
 <span id="1557">1557</span>
 <span id="1558">1558</span>
 <span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -2414,13 +2432,24 @@
 		.<span class="ident">extra_sets</span>
 		.<span class="ident">push</span>(<span class="ident">grandpa::grandpa_peers_set_config</span>(<span class="ident">grandpa_protocol_name</span>.<span class="ident">clone</span>()));
 
-	<span class="kw">let</span> <span class="ident">beefy_protocol_name</span> <span class="op">=</span>
-		<span class="ident">beefy_gadget::protocol_standard_name</span>(<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>, <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">chain_spec</span>);
+	<span class="kw">let</span> <span class="ident">beefy_gossip_proto_name</span> <span class="op">=</span>
+		<span class="ident">beefy_gadget::gossip_protocol_name</span>(<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>, <span class="ident">config</span>.<span class="ident">chain_spec</span>.<span class="ident">fork_id</span>());
+	<span class="comment">// `beefy_on_demand_justifications_handler` is given to `beefy-gadget` task to be run,</span>
+	<span class="comment">// while `beefy_req_resp_cfg` is added to `config.network.request_response_protocols`.</span>
+	<span class="kw">let</span> (<span class="ident">beefy_on_demand_justifications_handler</span>, <span class="ident">beefy_req_resp_cfg</span>) <span class="op">=</span>
+		<span class="ident">beefy_gadget::communication::request_response::BeefyJustifsRequestHandler::new</span>(
+			<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
+			<span class="ident">config</span>.<span class="ident">chain_spec</span>.<span class="ident">fork_id</span>(),
+			<span class="ident">client</span>.<span class="ident">clone</span>(),
+		);
 	<span class="kw">if</span> <span class="ident">enable_beefy</span> {
 		<span class="ident">config</span>
 			.<span class="ident">network</span>
 			.<span class="ident">extra_sets</span>
-			.<span class="ident">push</span>(<span class="ident">beefy_gadget::beefy_peers_set_config</span>(<span class="ident">beefy_protocol_name</span>.<span class="ident">clone</span>()));
+			.<span class="ident">push</span>(<span class="ident">beefy_gadget::communication::beefy_peers_set_config</span>(
+				<span class="ident">beefy_gossip_proto_name</span>.<span class="ident">clone</span>(),
+			));
+		<span class="ident">config</span>.<span class="ident">network</span>.<span class="ident">request_response_protocols</span>.<span class="ident">push</span>(<span class="ident">beefy_req_resp_cfg</span>);
 	}
 
 	<span class="kw">let</span> <span class="ident">peerset_protocol_names</span> <span class="op">=</span>
@@ -2739,16 +2768,23 @@
 		<span class="kw">if</span> <span class="ident">role</span>.<span class="ident">is_authority</span>() { <span class="prelude-val">Some</span>(<span class="ident">keystore_container</span>.<span class="ident">sync_keystore</span>()) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
 
 	<span class="kw">if</span> <span class="ident">enable_beefy</span> {
+		<span class="kw">let</span> <span class="ident">justifications_protocol_name</span> <span class="op">=</span> <span class="ident">beefy_on_demand_justifications_handler</span>.<span class="ident">protocol_name</span>();
+		<span class="kw">let</span> <span class="ident">network_params</span> <span class="op">=</span> <span class="ident">beefy_gadget::BeefyNetworkParams</span> {
+			<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
+			<span class="ident">gossip_protocol_name</span>: <span class="ident">beefy_gossip_proto_name</span>,
+			<span class="ident">justifications_protocol_name</span>,
+			<span class="ident">_phantom</span>: <span class="ident">core::marker::PhantomData</span>::<span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
+		};
 		<span class="kw">let</span> <span class="ident">beefy_params</span> <span class="op">=</span> <span class="ident">beefy_gadget::BeefyParams</span> {
 			<span class="ident">client</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">backend</span>: <span class="ident">backend</span>.<span class="ident">clone</span>(),
 			<span class="ident">runtime</span>: <span class="ident">client</span>.<span class="ident">clone</span>(),
 			<span class="ident">key_store</span>: <span class="ident">keystore_opt</span>.<span class="ident">clone</span>(),
-			<span class="ident">network</span>: <span class="ident">network</span>.<span class="ident">clone</span>(),
+			<span class="ident">network_params</span>,
 			<span class="ident">min_block_delta</span>: <span class="kw">if</span> <span class="ident">chain_spec</span>.<span class="ident">is_wococo</span>() { <span class="number">4</span> } <span class="kw">else</span> { <span class="number">8</span> },
 			<span class="ident">prometheus_registry</span>: <span class="ident">prometheus_registry</span>.<span class="ident">clone</span>(),
-			<span class="ident">protocol_name</span>: <span class="ident">beefy_protocol_name</span>,
 			<span class="ident">links</span>: <span class="ident">beefy_links</span>,
+			<span class="ident">on_demand_justifications_handler</span>: <span class="ident">beefy_on_demand_justifications_handler</span>,
 		};
 
 		<span class="kw">let</span> <span class="ident">gadget</span> <span class="op">=</span> <span class="ident">beefy_gadget::start_beefy_gadget</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">beefy_params</span>);
