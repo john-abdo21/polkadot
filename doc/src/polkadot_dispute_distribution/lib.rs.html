@@ -270,6 +270,30 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -296,7 +320,7 @@
 <span class="doccomment">//! The sender is responsible for getting our vote out, see [`sender`]. The receiver handles</span>
 <span class="doccomment">//! incoming [`DisputeRequest`]s and offers spam protection, see [`receiver`].</span>
 
-<span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">num::NonZeroUsize</span>, <span class="ident">time::Duration</span>};
 
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">channel::mpsc</span>, <span class="ident">FutureExt</span>, <span class="ident">StreamExt</span>, <span class="ident">TryFutureExt</span>};
 
@@ -338,15 +362,18 @@
 <span class="doccomment">///	via a dedicated channel and forwarding them to the dispute coordinator via</span>
 <span class="doccomment">///	`DisputeCoordinatorMessage::ImportStatements`. Being the interface to the network and untrusted</span>
 <span class="doccomment">///	nodes, the reality is not that simple of course. Before importing statements the receiver will</span>
-<span class="doccomment">///	make sure as good as it can to filter out malicious/unwanted/spammy requests. For this it does</span>
-<span class="doccomment">///	the following:</span>
+<span class="doccomment">///	batch up imports as well as possible for efficient imports while maintaining timely dispute</span>
+<span class="doccomment">///	resolution and handling of spamming validators:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///	- Drop all messages from non validator nodes, for this it requires the [`AuthorityDiscovery`]</span>
 <span class="doccomment">///	service.</span>
-<span class="doccomment">///	- Drop messages from a node, if we are already importing a message from that node (flood).</span>
-<span class="doccomment">///	- Drop messages from nodes, that provided us messages where the statement import failed.</span>
+<span class="doccomment">///	- Drop messages from a node, if it sends at a too high rate.</span>
+<span class="doccomment">///	- Filter out duplicate messages (over some period of time).</span>
 <span class="doccomment">///	- Drop any obviously invalid votes (invalid signatures for example).</span>
 <span class="doccomment">///	- Ban peers whose votes were deemed invalid.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///	In general dispute-distribution works on limiting the work the dispute-coordinator will have to</span>
+<span class="doccomment">///	do, while at the same time making it aware of new disputes as fast as possible.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For successfully imported votes, we will confirm the receipt of the message back to the sender.</span>
 <span class="doccomment">/// This way a received confirmation guarantees, that the vote has been stored to disk by the</span>
@@ -366,6 +393,20 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">metrics::Metrics</span>;
 
 <span class="kw">const</span> <span class="ident">LOG_TARGET</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;parachain::dispute-distribution&quot;</span>;
+
+<span class="doccomment">/// Rate limit on the `receiver` side.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If messages from one peer come in at a higher rate than every `RECEIVE_RATE_LIMIT` on average, we</span>
+<span class="doccomment">/// start dropping messages from that peer to enforce that limit.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RECEIVE_RATE_LIMIT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">100</span>);
+
+<span class="doccomment">/// Rate limit on the `sender` side.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// In order to not hit the `RECEIVE_RATE_LIMIT` on the receiving side, we limit out sending rate as</span>
+<span class="doccomment">/// well.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// We add 50ms extra, just to have some save margin to the `RECEIVE_RATE_LIMIT`.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SEND_RATE_LIMIT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">RECEIVE_RATE_LIMIT</span>.<span class="ident">saturating_add</span>(<span class="ident">Duration::from_millis</span>(<span class="number">50</span>));
 
 <span class="doccomment">/// The dispute distribution subsystem.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisputeDistributionSubsystem</span><span class="op">&lt;</span><span class="ident">AD</span><span class="op">&gt;</span> {
@@ -447,6 +488,12 @@
 		<span class="ident">ctx</span>.<span class="ident">spawn</span>(<span class="string">&quot;disputes-receiver&quot;</span>, <span class="ident">receiver</span>.<span class="ident">run</span>().<span class="ident">boxed</span>())
 			.<span class="ident">map_err</span>(<span class="ident">FatalError::SpawnTask</span>)<span class="question-mark">?</span>;
 
+		<span class="comment">// Process messages for sending side.</span>
+		<span class="comment">//</span>
+		<span class="comment">// Note: We want the sender to be rate limited and we are currently taking advantage of the</span>
+		<span class="comment">// fact that the root task of this subsystem is only concerned with sending: Functions of</span>
+		<span class="comment">// `DisputeSender` might back pressure if the rate limit is hit, which will slow down this</span>
+		<span class="comment">// loop. If this fact ever changes, we will likely need another task.</span>
 		<span class="kw">loop</span> {
 			<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">MuxedMessage::receive</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">sender_rx</span>).<span class="kw">await</span>;
 			<span class="kw">match</span> <span class="ident">message</span> {
@@ -522,9 +569,10 @@
 		<span class="comment">// ends.</span>
 		<span class="kw">let</span> <span class="ident">from_overseer</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">recv</span>().<span class="ident">fuse</span>();
 		<span class="macro">futures::pin_mut!</span>(<span class="ident">from_overseer</span>, <span class="ident">from_sender</span>);
-		<span class="macro">futures::select!</span>(
-			<span class="ident">msg</span> <span class="op">=</span> <span class="ident">from_overseer</span> =&gt; <span class="ident">MuxedMessage::Subsystem</span>(<span class="ident">msg</span>.<span class="ident">map_err</span>(<span class="ident">FatalError::SubsystemReceive</span>)),
+		<span class="comment">// We select biased to make sure we finish up loose ends, before starting new work.</span>
+		<span class="macro">futures::select_biased!</span>(
 			<span class="ident">msg</span> <span class="op">=</span> <span class="ident">from_sender</span>.<span class="ident">next</span>() =&gt; <span class="ident">MuxedMessage::Sender</span>(<span class="ident">msg</span>),
+			<span class="ident">msg</span> <span class="op">=</span> <span class="ident">from_overseer</span> =&gt; <span class="ident">MuxedMessage::Subsystem</span>(<span class="ident">msg</span>.<span class="ident">map_err</span>(<span class="ident">FatalError::SubsystemReceive</span>)),
 		)
 	}
 }

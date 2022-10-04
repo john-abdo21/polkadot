@@ -5233,6 +5233,12 @@ be aware of a dispute and have the relevant votes.</p>
 <li>be simple and boring: We want disputes to work when they happen</li>
 </ul>
 <h2 id="protocol-11"><a class="header" href="#protocol-11">Protocol</a></h2>
+<p>Distributing disputes needs to be a reliable protocol. We would like to make as
+sure as possible that our vote got properly delivered to all concerned
+validators. For this to work, this subsystem won't be gossip based, but instead
+will use a request/response protocol for application level confirmations. The
+request will be the payload (the actual votes/statements), the response will
+be the confirmation. See [below][#wire-format].</p>
 <h3 id="input"><a class="header" href="#input">Input</a></h3>
 <p><a href="node/disputes/../../types/overseer-protocol.html#dispute-distribution-message"><code>DisputeDistributionMessage</code></a></p>
 <h3 id="output"><a class="header" href="#output">Output</a></h3>
@@ -5319,14 +5325,7 @@ pub struct ValidDisputeVote {
 }
 <span class="boring">}
 </span></code></pre></pre>
-<h2 id="functionality-11"><a class="header" href="#functionality-11">Functionality</a></h2>
-<p>Distributing disputes needs to be a reliable protocol. We would like to make as
-sure as possible that our vote got properly delivered to all concerned
-validators. For this to work, this subsystem won't be gossip based, but instead
-will use a request/response protocol for application level confirmations. The
-request will be the payload (the actual votes/statements), the response will
-be the confirmation. See [above][#wire-format].</p>
-<h3 id="starting-a-dispute"><a class="header" href="#starting-a-dispute">Starting a Dispute</a></h3>
+<h2 id="starting-a-dispute"><a class="header" href="#starting-a-dispute">Starting a Dispute</a></h2>
 <p>A dispute is initiated once a node sends the first <code>DisputeRequest</code> wire message,
 which must contain an &quot;invalid&quot; vote and a &quot;valid&quot; vote.</p>
 <p>The dispute distribution subsystem can get instructed to send that message out to
@@ -5338,7 +5337,7 @@ with the chain or not or has seen backing/approval vote can see that there are
 conflicting votes available, hence we have a valid dispute. Nodes will still
 need to check whether the disputing votes are somewhat current and not some
 stale ones.</p>
-<h3 id="participating-in-a-dispute"><a class="header" href="#participating-in-a-dispute">Participating in a Dispute</a></h3>
+<h2 id="participating-in-a-dispute"><a class="header" href="#participating-in-a-dispute">Participating in a Dispute</a></h2>
 <p>Upon receiving a <code>DisputeRequest</code> message, a dispute distribution will trigger the
 import of the received votes via the dispute coordinator
 (<code>DisputeCoordinatorMessage::ImportStatements</code>). The dispute coordinator will
@@ -5348,11 +5347,11 @@ distribution. From here, everything is the same as for starting a dispute,
 except that if the local node deemed the candidate valid, the <code>SendDispute</code>
 message will contain a valid vote signed by our node and will contain the
 initially received <code>Invalid</code> vote.</p>
-<p>Note, that we rely on the coordinator to check availability for spam protection
-(see below).</p>
-<h3 id="sending-of-messages"><a class="header" href="#sending-of-messages">Sending of messages</a></h3>
+<p>Note, that we rely on <code>dispute-coordinator</code> to check validity of a dispute for spam
+protection (see below).</p>
+<h2 id="sending-of-messages"><a class="header" href="#sending-of-messages">Sending of messages</a></h2>
 <p>Starting and participating in a dispute are pretty similar from the perspective
-of dispute distribution. Once we receive a <code>SendDispute</code> message we try to make
+of dispute distribution. Once we receive a <code>SendDispute</code> message, we try to make
 sure to get the data out. We keep track of all the parachain validators that
 should see the message, which are all the parachain validators of the session
 where the dispute happened as they will want to participate in the dispute.  In
@@ -5360,100 +5359,158 @@ addition we also need to get the votes out to all authorities of the current
 session (which might be the same or not and may change during the dispute).
 Those authorities will not participate in the dispute, but need to see the
 statements so they can include them in blocks.</p>
-<p>We keep track of connected parachain validators and authorities and will issue
-warnings in the logs if connected nodes are less than two thirds of the
-corresponding sets. We also only consider a message transmitted, once we
-received a confirmation message. If not, we will keep retrying getting that
-message out as long as the dispute is deemed alive. To determine whether a
-dispute is still alive we will issue a
+<h3 id="reliability"><a class="header" href="#reliability">Reliability</a></h3>
+<p>We only consider a message transmitted, once we received a confirmation message.
+If not, we will keep retrying getting that message out as long as the dispute is
+deemed alive. To determine whether a dispute is still alive we will ask the
+<code>dispute-coordinator</code> for a list of all still active disputes via a
 <code>DisputeCoordinatorMessage::ActiveDisputes</code> message before each retry run. Once
 a dispute is no longer live, we will clean up the state accordingly.</p>
-<h3 id="reception--spam-considerations"><a class="header" href="#reception--spam-considerations">Reception &amp; Spam Considerations</a></h3>
-<p>Because we are not forwarding foreign statements, spam is less of an issue in
-comparison to gossip based systems. Rate limiting should be implemented at the
-substrate level, see
-<a href="https://github.com/paritytech/substrate/issues/7750">#7750</a>. Still we should
-make sure that it is not possible via spamming to prevent a dispute concluding
-or worse from getting noticed.</p>
-<p>Considered attack vectors:</p>
+<h3 id="order"><a class="header" href="#order">Order</a></h3>
+<p>We assume <code>SendDispute</code> messages are coming in an order of importance, hence
+<code>dispute-distribution</code> will make sure to send out network messages in the same
+order, even on retry.</p>
+<h3 id="rate-limit"><a class="header" href="#rate-limit">Rate Limit</a></h3>
+<p>For spam protection (see below), we employ an artificial rate limiting on sending
+out messages in order to not hit the rate limit at the receiving side, which
+would result in our messages getting dropped and our reputation getting reduced.</p>
+<h2 id="reception"><a class="header" href="#reception">Reception</a></h2>
+<p>As we shall see the receiving side is mostly about handling spam and ensuring
+the dispute-coordinator learns about disputes as fast as possible.</p>
+<p>Goals for the receiving side:</p>
 <ol>
-<li>Invalid disputes (candidate does not exist) could make us
-run out of resources. E.g. if we recorded every statement, we could run out
-of disk space eventually.</li>
-<li>An attacker can just flood us with notifications on any notification
-protocol, assuming flood protection is not effective enough, our unbounded
-buffers can fill up and we will run out of memory eventually.</li>
-<li>An attacker could participate in a valid dispute, but send its votes multiple
-times.</li>
-<li>Attackers could spam us at a high rate with invalid disputes. Our incoming
-queue of requests could get monopolized by those malicious requests and we
-won't be able to import any valid disputes and we could run out of resources,
-if we tried to process them all in parallel.</li>
+<li>Get new disputes to the dispute-coordinator as fast as possible, so
+prioritization can happen properly.</li>
+<li>Batch votes per disputes as much as possible for good import performance.</li>
+<li>Prevent malicious nodes exhausting node resources by sending lots of messages.</li>
+<li>Prevent malicious nodes from sending so many messages/(fake) disputes,
+preventing us from concluding good ones.</li>
+<li>Limit ability of malicious nodes of delaying the vote import due to batching
+logic.</li>
 </ol>
-<p>For tackling 1, we make sure to not occupy resources before we don't know a
-candidate is available. So we will not record statements to disk until we
-recovered availability for the candidate or know by some other means that the
-dispute is legit.</p>
-<p>For 2, we will pick up on any dispute on restart, so assuming that any realistic
-memory filling attack will take some time, we should be able to participate in a
-dispute under such attacks.</p>
-<p>Importing/discarding redundant votes should be pretty quick, so measures with
-regards to 4 should suffice to prevent 3, from doing any real harm.</p>
-<p>For 4, full monopolization of the incoming queue should not be possible assuming
-substrate handles incoming requests in a somewhat fair way. Still we want some
-defense mechanisms, at the very least we need to make sure to not exhaust
-resources.</p>
-<p>The dispute coordinator will notify us on import about unavailable candidates or
-otherwise invalid imports and we can disconnect from such peers/decrease their
-reputation drastically. This alone should get us quite far with regards to queue
-monopolization, as availability recovery is expected to fail relatively quickly
-for unavailable data.</p>
-<p>Still if those spam messages come at a very high rate, we might still run out of
-resources if we immediately call <code>DisputeCoordinatorMessage::ImportStatements</code>
-on each one of them. Secondly with our assumption of 1/3 dishonest validators,
-getting rid of all of them will take some time, depending on reputation timeouts
-some of them might even be able to reconnect eventually.</p>
-<p>To mitigate those issues we will process dispute messages with a maximum
-parallelism <code>N</code>. We initiate import processes for up to <code>N</code> candidates in
-parallel. Once we reached <code>N</code> parallel requests we will start back pressuring on
-the incoming requests. This saves us from resource exhaustion.</p>
-<p>To reduce impact of malicious nodes further, we can keep track from which nodes the
-currently importing statements came from and will drop requests from nodes that
-already have imports in flight.</p>
-<p>Honest nodes are not expected to send dispute statements at a high rate, but
-even if they did:</p>
+<p>Goal 1 and 2 seem to be conflicting, but an easy compromise is possible: When
+learning about a new dispute, we will import the vote immediately, making the
+dispute coordinator aware and also getting immediate feedback on the validity.
+Then if valid we can batch further incoming votes, with less time constraints as
+the dispute-coordinator already knows about the dispute.</p>
+<p>Goal 3 and 4 are obviously very related and both can easily be solved via rate
+limiting as we shall see below. Rate limits should already be implemented at the
+substrate level, but <a href="https://github.com/paritytech/substrate/issues/7750">are not</a>
+at the time of writing. But even if they were, the enforced substrate limits would
+likely not be configurable and thus would still be to high for our needs as we can
+rely on the following observations:</p>
+<ol>
+<li>Each honest validator will only send one message (apart from duplicates on
+timeout) per candidate/dispute.</li>
+<li>An honest validator needs to fully recover availability and validate the
+candidate for casting a vote.</li>
+</ol>
+<p>With these two observations, we can conclude that honest validators will usually
+not send messages at a high rate. We can therefore enforce conservative rate
+limits and thus minimize harm spamming malicious nodes can have.</p>
+<p>Before we dive into how rate limiting solves all spam issues elegantly, let's
+discuss that honest behaviour further:</p>
+<p>What about session changes? Here we might have to inform a new validator set of
+lots of already existing disputes at once.</p>
+<p>With observation 1) and a rate limit that is per peer, we are still good:</p>
+<p>Let's assume a rate limit of one message per 200ms per sender. This means 5
+messages from each validator per second. 5 messages means 5 disputes!
+Conclusively, we will be able to conclude 5 disputes per second - no matter what
+malicious actors are doing. This is assuming dispute messages are sent ordered,
+but even if not perfectly ordered: On average it will be 5 disputes per second.</p>
+<p>This is good enough! All those disputes are valid ones and will result in
+slashing and disabling of validators. Let's assume all of them conclude <code>valid</code>,
+and we disable validators only after 100 raised concluding valid disputes, we
+would still start disabling misbehaving validators in only 20 seconds.</p>
+<p>One could also think that in addition participation is expected to take longer,
+which means on average we can import/conclude disputes faster than they are
+generated - regardless of dispute spam. Unfortunately this is not necessarily
+true: There might be parachains with very light load where recovery and
+validation can be accomplished very quickly - maybe faster than we can import
+those disputes.</p>
+<p>This is probably an argument for not imposing a too low rate limit, although the
+issue is more general: Even without any rate limit, if an attacker generates
+disputes at a very high rate, nodes will be having trouble keeping participation
+up, hence the problem should be mitigated at a <a href="https://github.com/paritytech/polkadot/issues/5898">more fundamental
+layer</a>.</p>
+<p>For nodes that have been offline for a while, the same argument as for session
+changes holds, but matters even less: We assume 2/3 of nodes to be online, so
+even if the worst case 1/3 offline happens and they could not import votes fast
+enough (as argued above, they in fact can) it would not matter for consensus.</p>
+<h3 id="rate-limiting"><a class="header" href="#rate-limiting">Rate Limiting</a></h3>
+<p>As suggested previously, rate limiting allows to mitigate all threats that come
+from malicious actors trying to overwhelm the system in order to get away without
+a slash, when it comes to dispute-distribution. In this section we will explain
+how in greater detail.</p>
+<p>The idea is to open a queue with limited size for each peer. We will process
+incoming messages as fast as we can by doing the following:</p>
+<ol>
+<li>Check that the sending peer is actually a valid authority - otherwise drop
+message and decrease reputation/disconnect.</li>
+<li>Put message on the peer's queue, if queue is full - drop it.</li>
+</ol>
+<p>Every <code>RATE_LIMIT</code> seconds (or rather milliseconds), we pause processing
+incoming requests to go a full circle and process one message from each queue.
+Processing means <code>Batching</code> as explained in the next section.</p>
+<h3 id="batching"><a class="header" href="#batching">Batching</a></h3>
+<p>To achieve goal 2 we will batch incoming votes/messages together before passing
+them on as a single batch to the <code>dispute-coordinator</code>. To adhere to goal 1 as
+well, we will do the following:</p>
+<ol>
+<li>For an incoming message, we check whether we have an existing batch for that
+candidate, if not we import directly to the dispute-coordinator, as we have
+to assume this is concerning a new dispute.</li>
+<li>We open a batch and start collecting incoming messages for that candidate,
+instead of immediately forwarding.</li>
+<li>We keep collecting votes in the batch until we receive less than
+<code>MIN_KEEP_BATCH_ALIVE_VOTES</code> unique votes in the last <code>BATCH_COLLECTING_INTERVAL</code>. This is
+important to accommodate for goal 5 and also 3.</li>
+<li>We send the whole batch to the dispute-coordinator.</li>
+</ol>
+<p>This together with rate limiting explained above ensures we will be able to
+process valid disputes: We can limit the number of simultaneous existing batches
+to some high value, but can be rather certain that this limit will never be
+reached - hence we won't drop valid disputes:</p>
+<p>Let's assume <code>MIN_KEEP_BATCH_ALIVE_VOTES</code> is 10, <code>BATCH_COLLECTING_INTERVAL</code>
+is <code>500ms</code> and above <code>RATE_LIMIT</code> is <code>100ms</code>. 1/3 of validators are malicious,
+so for 1000 this means around 330 malicious actors worst case.</p>
+<p>All those actors can send a message every <code>100ms</code>, that is 10 per second. This
+means at the begining of an attack they can open up around 3300 batches. Each
+containing two votes. So memory usage is still negligible. In reality it is even
+less, as we also demand 10 new votes to trickle in per batch in order to keep it
+alive, every <code>500ms</code>. Hence for the first second, each batch requires 20 votes
+each. Each message is 2 votes, so this means 10 messages per batch. Hence to
+keep those batches alive 10 attackers are needed for each batch. This reduces
+the number of opened batches by a factor of 10: So we only have 330 batches in 1
+second - each containing 20 votes.</p>
+<p>The next second: In order to further grow memory usage, attackers have to
+maintain 10 messages per batch and second. Number of batches equals the number
+of attackers, each has 10 messages per second, all are needed to maintain the
+batches in memory. Therefore we have a hard cap of around 330 (number of
+malicious nodes) open batches. Each can be filled with number of malicious
+actor's votes. So 330 batches with each 330 votes: Let's assume approximately 100
+bytes per signature/vote. This results in a worst case memory usage of 330 * 330</p>
 <ul>
-<li>we will import at least the first one and if it is valid it will trigger a
-dispute, preventing finality.</li>
-<li>Chances are good that the first sent candidate from a peer is indeed the
-oldest one (if they differ in age at all).</li>
-<li>for the dropped request any honest node will retry sending.</li>
-<li>there will be other nodes notifying us about that dispute as well.</li>
-<li>honest votes have a speed advantage on average. Apart from the very first
-dispute statement for a candidate, which might cause the availability recovery
-process, imports of honest votes will be super fast, while for spam imports
-they will always take some time as we have to wait for availability to fail.</li>
+<li>100 ~= 10 MiB.</li>
 </ul>
-<p>So this general rate limit, that we drop requests from same peers if they come
-faster than we can import the statements should not cause any problems for
-honest nodes and is in their favor.</p>
-<p>Size of <code>N</code>: The larger <code>N</code> the better we can handle distributed flood attacks
-(see previous paragraph), but we also get potentially more availability recovery
-processes happening at the same time, which slows down the individual processes.
-And we rather want to have one finish quickly than lots slowly at the same time.
-On the other hand, valid disputes are expected to be rare, so if we ever exhaust
-<code>N</code> it is very likely that this is caused by spam and spam recoveries don't cost
-too much bandwidth due to empty responses.</p>
-<p>Considering that an attacker would need to attack many nodes in parallel to have
-any effect, an <code>N</code> of 10 seems to be a good compromise. For honest requests, most
-of those imports will likely concern the same candidate, and for dishonest ones
-we get to disconnect from up to ten colluding adversaries at a time.</p>
-<p>For the size of the channel for incoming requests: Due to dropping of repeated
-requests from same nodes we can make the channel relatively large without fear
-of lots of spam requests sitting there wasting our time, even after we already
-blocked a peer. For valid disputes, incoming requests can become bursty. On the
-other hand we will also be very quick in processing them. A channel size of 100
-requests seems plenty and should be able to handle bursts adequately.</p>
+<p>For 10_000 validators, we are already in the Gigabyte range, which means that
+with a validator set that large we might want to be more strict with the rate limit or
+require a larger rate of incoming votes per batch to keep them alive.</p>
+<p>For a thousand validators a limit on batches of around 1000 should never be
+reached in practice. Hence due to rate limiting we have a very good chance to
+not ever having to drop a potential valid dispute due to some resource limit.</p>
+<p>Further safe guards are possible: The dispute-coordinator actually
+confirms/denies imports. So once we receive a denial by the dispute-coordinator
+for the initial imported votes, we can opt into flushing the batch immediately
+and importing the votes. This swaps memory usage for more CPU usage, but if that
+import is deemed invalid again we can immediately decrease the reputation of the
+sending peers, so this should be a net win. For the time being we punt on this
+for simplicity.</p>
+<p>Instead of filling batches to maximize memory usage, attackers could also try to
+overwhelm the dispute coordinator by only sending votes for new candidates all
+the time. This attack vector is mitigated also by above rate limit and
+decreasing the peer's reputation on denial of the invalid imports by the
+coordinator.</p>
 <h3 id="node-startup"><a class="header" href="#node-startup">Node Startup</a></h3>
 <p>On startup we need to check with the dispute coordinator for any ongoing
 disputes and assume we have not yet sent our statement for those. In case we
@@ -5610,7 +5667,7 @@ enum State {
 <ul>
 <li><a href="node/utility/../../types/overseer-protocol.html#runtime-api-message"><code>RuntimeApiMessage</code></a></li>
 </ul>
-<h2 id="functionality-12"><a class="header" href="#functionality-12">Functionality</a></h2>
+<h2 id="functionality-11"><a class="header" href="#functionality-11">Functionality</a></h2>
 <p>For each head in the <code>activated</code> list:</p>
 <ul>
 <li>Load all ancestors of the head back to the finalized block so we don't miss anything if import notifications are missed. If a <code>StoreChunk</code> message is received for a candidate which has no entry, then we will prematurely lose the data.</li>
@@ -5766,7 +5823,7 @@ to be run very often.</p>
 <h2 id="protocol-13"><a class="header" href="#protocol-13">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#validation-request-type"><code>CandidateValidationMessage</code></a></p>
 <p>Output: Validation result via the provided response side-channel.</p>
-<h2 id="functionality-13"><a class="header" href="#functionality-13">Functionality</a></h2>
+<h2 id="functionality-12"><a class="header" href="#functionality-12">Functionality</a></h2>
 <p>This subsystem groups the requests it handles in two categories:  <em>candidate validation</em> and <em>PVF pre-checking</em>. </p>
 <p>The first category can be further subdivided in two request types: one which draws out validation data from the state, and another which accepts all validation data exhaustively. Validation returns three possible outcomes on the response channel: the candidate is valid, the candidate is invalid, or an internal error occurred. </p>
 <p>Parachain candidates are validated against their validation function: A piece of Wasm code that describes the state-transition of the parachain. Validation function execution is not metered. This means that an execution which is an infinite loop or simply takes too long must be forcibly exited by some other means. For this reason, we recommend dispatching candidate validation to be done on subprocesses which can be killed if they time-out.</p>
@@ -5871,7 +5928,7 @@ to be run very often.</p>
 </ul>
 <h3 id="notes"><a class="header" href="#notes">Notes</a></h3>
 <p>See also: <a href="node/utility/../../runtime/scheduler.html#availability-cores">Scheduler Module: Availability Cores</a>.</p>
-<h2 id="functionality-14"><a class="header" href="#functionality-14">Functionality</a></h2>
+<h2 id="functionality-13"><a class="header" href="#functionality-13">Functionality</a></h2>
 <p>The subsystem should maintain a set of handles to Block Authorship Provisioning Jobs that are currently live.</p>
 <h3 id="on-overseer-signal-1"><a class="header" href="#on-overseer-signal-1">On Overseer Signal</a></h3>
 <ul>
@@ -5914,7 +5971,7 @@ to be run very often.</p>
 - <a href="node/utility/../../types/overseer-protocol.html#bitfield-distribution-message"><code>BitfieldDistributionMessage</code></a><code>::NetworkBridgeUpdate</code>
 - <a href="node/utility/../../types/overseer-protocol.html#collator-protocol-message"><code>CollatorProtocolMessage</code></a><code>::NetworkBridgeUpdate</code>
 - <a href="node/utility/../../types/overseer-protocol.html#statement-distribution-message"><code>StatementDistributionMessage</code></a><code>::NetworkBridgeUpdate</code></p>
-<h2 id="functionality-15"><a class="header" href="#functionality-15">Functionality</a></h2>
+<h2 id="functionality-14"><a class="header" href="#functionality-14">Functionality</a></h2>
 <p>This network bridge sends messages of these types over the network.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -6019,14 +6076,14 @@ and handle view updates.</p>
 <p>TODO</p>
 </blockquote>
 <h2 id="protocol-16"><a class="header" href="#protocol-16">Protocol</a></h2>
-<h2 id="functionality-16"><a class="header" href="#functionality-16">Functionality</a></h2>
+<h2 id="functionality-15"><a class="header" href="#functionality-15">Functionality</a></h2>
 <h2 id="jobs-if-any"><a class="header" href="#jobs-if-any">Jobs, if any</a></h2>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-api"><a class="header" href="#runtime-api">Runtime API</a></h1>
 <p>The Runtime API subsystem is responsible for providing a single point of access to runtime state data via a set of pre-determined queries. This prevents shared ownership of a blockchain client resource by providing</p>
 <h2 id="protocol-17"><a class="header" href="#protocol-17">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#runtime-api-message"><code>RuntimeApiMessage</code></a></p>
 <p>Output: None</p>
-<h2 id="functionality-17"><a class="header" href="#functionality-17">Functionality</a></h2>
+<h2 id="functionality-16"><a class="header" href="#functionality-16">Functionality</a></h2>
 <p>On receipt of <code>RuntimeApiMessage::Request(relay_parent, request)</code>, answer the request using the post-state of the <code>relay_parent</code> provided and provide the response to the side-channel embedded within the request.</p>
 <h2 id="jobs"><a class="header" href="#jobs">Jobs</a></h2>
 <blockquote>
@@ -6037,7 +6094,7 @@ and handle view updates.</p>
 <h2 id="protocol-18"><a class="header" href="#protocol-18">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#chain-api-message"><code>ChainApiMessage</code></a></p>
 <p>Output: None</p>
-<h2 id="functionality-18"><a class="header" href="#functionality-18">Functionality</a></h2>
+<h2 id="functionality-17"><a class="header" href="#functionality-17">Functionality</a></h2>
 <p>On receipt of <code>ChainApiMessage</code>, answer the request and provide the response to the side-channel embedded within the request.</p>
 <p>Currently, the following requests are supported:</p>
 <ul>
@@ -6075,7 +6132,7 @@ Iterate over all leaves, returning the first leaf containing the required block 
 <h2 id="protocol-19"><a class="header" href="#protocol-19">Protocol</a></h2>
 <p>There is no dedicated input mechanism for PVF pre-checker. Instead, PVF pre-checker looks on the <code>ActiveLeavesUpdate</code> event stream for work.</p>
 <p>This subsytem does not produce any output messages either. The subsystem will, however, send messages to the <a href="node/utility/runtime-api.html">Runtime API</a> subsystem to query for the pending PVFs and to submit votes. In addition to that, it will also communicate with <a href="node/utility/candidate-validation.html">Candidate Validation</a> Subsystem to request PVF pre-check.</p>
-<h2 id="functionality-19"><a class="header" href="#functionality-19">Functionality</a></h2>
+<h2 id="functionality-18"><a class="header" href="#functionality-18">Functionality</a></h2>
 <p>If the node is running in a collator mode, this subsystem will be disabled. The PVF pre-checker subsystem keeps track of the PVFs that are relevant for the subsystem. </p>
 <p>To be relevant for the subsystem, a PVF must be returned by <code>pvfs_require_precheck</code> <a href="node/utility/../../runtime-api/pvf-prechecking.html"><code>pvfs_require_precheck</code> runtime API</a> in any of the active leaves. If the PVF is not present in any of the active leaves, it ceases to be relevant.</p>
 <p>When a PVF just becomes relevant, the subsystem will send a message to the <a href="node/utility/candidate-validation.html">Candidate Validation</a> subsystem asking for the pre-check.</p>

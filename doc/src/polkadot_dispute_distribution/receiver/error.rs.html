@@ -86,6 +86,21 @@
 <span id="80">80</span>
 <span id="81">81</span>
 <span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -107,8 +122,10 @@
 
 <span class="kw">use</span> <span class="ident">fatality::Nested</span>;
 
+<span class="kw">use</span> <span class="ident">gum::CandidateHash</span>;
 <span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{<span class="ident">request_response::incoming</span>, <span class="ident">PeerId</span>};
 <span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::runtime</span>;
+<span class="kw">use</span> <span class="ident">polkadot_primitives::v2::AuthorityDiscoveryId</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LOG_TARGET</span>;
 
@@ -123,8 +140,8 @@
 	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Retrieving next incoming request failed.&quot;</span>)]</span>
 	<span class="ident">IncomingRequest</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">incoming::Error</span>),
 
-	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Sending back response to peer {0} failed.&quot;</span>)]</span>
-	<span class="ident">SendResponse</span>(<span class="ident">PeerId</span>),
+	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Sending back response to peers {0:#?} failed.&quot;</span>)]</span>
+	<span class="ident">SendResponses</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>),
 
 	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Changing peer&#39;s ({0}) reputation failed.&quot;</span>)]</span>
 	<span class="ident">SetPeerReputation</span>(<span class="ident">PeerId</span>),
@@ -132,16 +149,29 @@
 	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Dispute request with invalid signatures, from peer {0}.&quot;</span>)]</span>
 	<span class="ident">InvalidSignature</span>(<span class="ident">PeerId</span>),
 
-	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Import of dispute got canceled for peer {0} - import failed for some reason.&quot;</span>)]</span>
-	<span class="ident">ImportCanceled</span>(<span class="ident">PeerId</span>),
+	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Received votes from peer {0} have been completely redundant.&quot;</span>)]</span>
+	<span class="ident">RedundantMessage</span>(<span class="ident">PeerId</span>),
+
+	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Import of dispute got canceled for candidate {0} - import failed for some reason.&quot;</span>)]</span>
+	<span class="ident">ImportCanceled</span>(<span class="ident">CandidateHash</span>),
 
 	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Peer {0} attempted to participate in dispute and is not a validator.&quot;</span>)]</span>
 	<span class="ident">NotAValidator</span>(<span class="ident">PeerId</span>),
+
+	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Force flush for batch that could not be found attempted, candidate hash: {0}&quot;</span>)]</span>
+	<span class="ident">ForceFlushBatchDoesNotExist</span>(<span class="ident">CandidateHash</span>),
+
+	<span class="comment">// Should never happen in practice:</span>
+	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;We needed to drop messages, because we reached limit on concurrent batches.&quot;</span>)]</span>
+	<span class="ident">MaxBatchLimitReached</span>,
+
+	<span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Authority {0} sent messages at a too high rate.&quot;</span>)]</span>
+	<span class="ident">AuthorityFlooding</span>(<span class="ident">AuthorityDiscoveryId</span>),
 }
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">JfyiErrorResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">JfyiError</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">JfyiResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">JfyiError</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Utility for eating top level errors and log them.</span>
 <span class="doccomment">///</span>

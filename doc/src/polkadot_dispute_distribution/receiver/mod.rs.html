@@ -401,6 +401,130 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -418,21 +542,21 @@
 <span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections::HashSet</span>,
 	<span class="ident">num::NonZeroUsize</span>,
 	<span class="ident">pin::Pin</span>,
 	<span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
+	<span class="ident">time::Duration</span>,
 };
 
 <span class="kw">use</span> <span class="ident">futures</span>::{
 	<span class="ident">channel::oneshot</span>,
-	<span class="ident">future</span>::{<span class="ident">poll_fn</span>, <span class="ident">BoxFuture</span>},
+	<span class="ident">future::poll_fn</span>,
 	<span class="ident">pin_mut</span>,
-	<span class="ident">stream</span>::{<span class="ident">FusedStream</span>, <span class="ident">FuturesUnordered</span>, <span class="ident">StreamExt</span>},
-	<span class="ident">Future</span>, <span class="ident">FutureExt</span>, <span class="ident">Stream</span>,
+	<span class="ident">stream</span>::{<span class="ident">FuturesUnordered</span>, <span class="ident">StreamExt</span>},
+	<span class="ident">Future</span>,
 };
-<span class="kw">use</span> <span class="ident">lru::LruCache</span>;
 
+<span class="kw">use</span> <span class="ident">gum::CandidateHash</span>;
 <span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
 	<span class="ident">authority_discovery::AuthorityDiscovery</span>,
 	<span class="ident">request_response</span>::{
@@ -455,25 +579,47 @@
 };
 
 <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::error</span>::{<span class="ident">log_error</span>, <span class="ident">JfyiError</span>, <span class="ident">JfyiErrorResult</span>, <span class="prelude-ty">Result</span>};
+
+<span class="doccomment">/// Rate limiting queues for incoming requests by peers.</span>
+<span class="kw">mod</span> <span class="ident">peer_queues</span>;
+
+<span class="doccomment">/// Batch imports together.</span>
+<span class="kw">mod</span> <span class="ident">batches</span>;
+
+<span class="kw">use</span> <span class="self">self</span>::{
+	<span class="ident">batches</span>::{<span class="ident">Batches</span>, <span class="ident">FoundBatch</span>, <span class="ident">PreparedImport</span>},
+	<span class="ident">error</span>::{<span class="ident">log_error</span>, <span class="ident">JfyiError</span>, <span class="ident">JfyiResult</span>, <span class="prelude-ty">Result</span>},
+	<span class="ident">peer_queues::PeerQueues</span>,
+};
 
 <span class="kw">const</span> <span class="ident">COST_INVALID_REQUEST</span>: <span class="ident">Rep</span> <span class="op">=</span> <span class="ident">Rep::CostMajor</span>(<span class="string">&quot;Received message could not be decoded.&quot;</span>);
 <span class="kw">const</span> <span class="ident">COST_INVALID_SIGNATURE</span>: <span class="ident">Rep</span> <span class="op">=</span> <span class="ident">Rep::Malicious</span>(<span class="string">&quot;Signatures were invalid.&quot;</span>);
-<span class="kw">const</span> <span class="ident">COST_INVALID_CANDIDATE</span>: <span class="ident">Rep</span> <span class="op">=</span> <span class="ident">Rep::Malicious</span>(<span class="string">&quot;Reported candidate was not available.&quot;</span>);
+<span class="kw">const</span> <span class="ident">COST_INVALID_IMPORT</span>: <span class="ident">Rep</span> <span class="op">=</span>
+	<span class="ident">Rep::Malicious</span>(<span class="string">&quot;Import was deemed invalid by dispute-coordinator.&quot;</span>);
 <span class="kw">const</span> <span class="ident">COST_NOT_A_VALIDATOR</span>: <span class="ident">Rep</span> <span class="op">=</span> <span class="ident">Rep::CostMajor</span>(<span class="string">&quot;Reporting peer was not a validator.&quot;</span>);
+<span class="doccomment">/// Mildly punish peers exceeding their rate limit.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For honest peers this should rarely happen, but if it happens we would not want to disconnect</span>
+<span class="doccomment">/// too quickly. Minor cost should suffice for disconnecting any real flooder.</span>
+<span class="kw">const</span> <span class="ident">COST_APPARENT_FLOOD</span>: <span class="ident">Rep</span> <span class="op">=</span> <span class="ident">Rep::CostMinor</span>(<span class="string">&quot;Peer exceeded the rate limit.&quot;</span>);
 
-<span class="doccomment">/// How many statement imports we want to issue in parallel:</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_PARALLEL_IMPORTS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="doccomment">/// How many votes must have arrived in the last `BATCH_COLLECTING_INTERVAL`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// in order for a batch to stay alive and not get flushed/imported to the dispute-coordinator.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This ensures a timely import of batches.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIN_KEEP_BATCH_ALIVE_VOTES</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIN_KEEP_BATCH_ALIVE_VOTES</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span>;
 
-<span class="kw">const</span> <span class="ident">BANNED_PEERS_CACHE_SIZE</span>: <span class="ident">NonZeroUsize</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonZeroUsize::new</span>(<span class="ident">MAX_PARALLEL_IMPORTS</span>) {
-	<span class="prelude-val">Some</span>(<span class="ident">cap</span>) =&gt; <span class="ident">cap</span>,
-	<span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Banned peers cache size should not be 0.&quot;</span>),
-};
+<span class="doccomment">/// Time we allow to pass for new votes to trickle in.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See `MIN_KEEP_BATCH_ALIVE_VOTES` above.</span>
+<span class="doccomment">/// Should be greater or equal to `RECEIVE_RATE_LIMIT` (there is no point in checking any faster).</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BATCH_COLLECTING_INTERVAL</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">500</span>);
 
 <span class="doccomment">/// State for handling incoming `DisputeRequest` messages.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is supposed to run as its own task in order to easily impose back pressure on the incoming</span>
-<span class="doccomment">/// request channel and at the same time to drop flood messages as fast as possible.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisputesReceiver</span><span class="op">&lt;</span><span class="ident">Sender</span>, <span class="ident">AD</span><span class="op">&gt;</span> {
 	<span class="doccomment">/// Access to session information.</span>
 	<span class="ident">runtime</span>: <span class="ident">RuntimeInfo</span>,
@@ -484,18 +630,17 @@
 	<span class="doccomment">/// Channel to retrieve incoming requests from.</span>
 	<span class="ident">receiver</span>: <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>,
 
+	<span class="doccomment">/// Rate limiting queue for each peer (only authorities).</span>
+	<span class="ident">peer_queues</span>: <span class="ident">PeerQueues</span>,
+
+	<span class="doccomment">/// Currently active batches of imports per candidate.</span>
+	<span class="ident">batches</span>: <span class="ident">Batches</span>,
+
 	<span class="doccomment">/// Authority discovery service:</span>
 	<span class="ident">authority_discovery</span>: <span class="ident">AD</span>,
 
-	<span class="doccomment">/// Imports currently being processed.</span>
-	<span class="ident">pending_imports</span>: <span class="ident">PendingImports</span>,
-
-	<span class="doccomment">/// We keep record of the last banned peers.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is needed because once we ban a peer, we will very likely still have pending requests</span>
-	<span class="doccomment">/// in the incoming channel - we should not waste time recovering availability for those, as we</span>
-	<span class="doccomment">/// already know the peer is malicious.</span>
-	<span class="ident">banned_peers</span>: <span class="ident">LruCache</span><span class="op">&lt;</span><span class="ident">PeerId</span>, ()<span class="op">&gt;</span>,
+	<span class="doccomment">/// Imports currently being processed by the `dispute-coordinator`.</span>
+	<span class="ident">pending_imports</span>: <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">PendingImport</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// Log received requests.</span>
 	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
@@ -509,36 +654,24 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// - We need to make sure responses are actually sent (therefore we need to await futures</span>
 	<span class="doccomment">/// promptly).</span>
-	<span class="doccomment">/// - We need to update `banned_peers` accordingly to the result.</span>
-	<span class="ident">ConfirmedImport</span>(<span class="ident">JfyiErrorResult</span><span class="op">&lt;</span>(<span class="ident">PeerId</span>, <span class="ident">ImportStatementsResult</span>)<span class="op">&gt;</span>),
+	<span class="doccomment">/// - We need to punish peers whose import got rejected.</span>
+	<span class="ident">ConfirmedImport</span>(<span class="ident">ImportResult</span>),
 
 	<span class="doccomment">/// A new request has arrived and should be handled.</span>
 	<span class="ident">NewRequest</span>(<span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>),
-}
 
-<span class="kw">impl</span> <span class="ident">MuxedMessage</span> {
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">receive</span>(
-		<span class="ident">pending_imports</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PendingImports</span>,
-		<span class="ident">pending_requests</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MuxedMessage</span><span class="op">&gt;</span> {
-		<span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">next_req</span> <span class="op">=</span> <span class="ident">pending_requests</span>.<span class="ident">recv</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="ident">COST_INVALID_REQUEST</span>]);
-			<span class="macro">pin_mut!</span>(<span class="ident">next_req</span>);
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="ident">next_req</span>.<span class="ident">poll</span>(<span class="ident">ctx</span>) {
-				<span class="kw">return</span> <span class="kw">match</span> <span class="ident">r</span> {
-					<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">incoming::Error::from</span>(<span class="ident">e</span>).<span class="ident">into</span>())),
-					<span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::NewRequest</span>(<span class="ident">v</span>))),
-				}
-			}
-			<span class="comment">// In case of Ready(None) return `Pending` below - we want to wait for the next request</span>
-			<span class="comment">// in that case.</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">v</span>)) <span class="op">=</span> <span class="ident">pending_imports</span>.<span class="ident">poll_next_unpin</span>(<span class="ident">ctx</span>) {
-				<span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::ConfirmedImport</span>(<span class="ident">v</span>)))
-			}
-			<span class="ident">Poll::Pending</span>
-		})
-		.<span class="kw">await</span>
-	}
+	<span class="doccomment">/// Rate limit timer hit - is is time to process one row of messages.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// This is the result of calling `self.peer_queues.pop_reqs()`.</span>
+	<span class="ident">WakePeerQueuesPopReqs</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+
+	<span class="doccomment">/// It is time to check batches.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Every `BATCH_COLLECTING_INTERVAL` we check whether less than `MIN_KEEP_BATCH_ALIVE_VOTES`</span>
+	<span class="doccomment">/// new votes arrived, if so the batch is ready for import.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// This is the result of calling `self.batches.check_batches()`.</span>
+	<span class="ident">WakeCheckBatches</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PreparedImport</span><span class="op">&gt;</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Sender</span>, <span class="ident">AD</span><span class="op">&gt;</span> <span class="ident">DisputesReceiver</span><span class="op">&lt;</span><span class="ident">Sender</span>, <span class="ident">AD</span><span class="op">&gt;</span>
@@ -562,11 +695,10 @@
 			<span class="ident">runtime</span>,
 			<span class="ident">sender</span>,
 			<span class="ident">receiver</span>,
+			<span class="ident">peer_queues</span>: <span class="ident">PeerQueues::new</span>(),
+			<span class="ident">batches</span>: <span class="ident">Batches::new</span>(),
 			<span class="ident">authority_discovery</span>,
-			<span class="ident">pending_imports</span>: <span class="ident">PendingImports::new</span>(),
-			<span class="comment">// Size of MAX_PARALLEL_IMPORTS ensures we are going to immediately get rid of any</span>
-			<span class="comment">// malicious requests still pending in the incoming queue.</span>
-			<span class="ident">banned_peers</span>: <span class="ident">LruCache::new</span>(<span class="ident">BANNED_PEERS_CACHE_SIZE</span>),
+			<span class="ident">pending_imports</span>: <span class="ident">FuturesUnordered::new</span>(),
 			<span class="ident">metrics</span>,
 		}
 	}
@@ -590,60 +722,132 @@
 		}
 	}
 
-	<span class="doccomment">/// Actual work happening here.</span>
+	<span class="doccomment">/// Actual work happening here in three phases:</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// 1. Receive and queue incoming messages until the rate limit timer hits.</span>
+	<span class="doccomment">/// 2. Do import/batching for the head of all queues.</span>
+	<span class="doccomment">/// 3. Check and flush any ready batches.</span>
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_inner</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">MuxedMessage::receive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">pending_imports</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">receiver</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">receive_message</span>().<span class="kw">await</span><span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">incoming</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">msg</span> {
-			<span class="comment">// We need to clean up futures, to make sure responses are sent:</span>
-			<span class="ident">MuxedMessage::ConfirmedImport</span>(<span class="ident">m_bad</span>) =&gt; {
-				<span class="self">self</span>.<span class="ident">ban_bad_peer</span>(<span class="ident">m_bad</span>)<span class="question-mark">?</span>;
-				<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+		<span class="kw">match</span> <span class="ident">msg</span> {
+			<span class="ident">MuxedMessage::NewRequest</span>(<span class="ident">req</span>) =&gt; {
+				<span class="comment">// Phase 1:</span>
+				<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_received_request</span>();
+				<span class="self">self</span>.<span class="ident">dispatch_to_queues</span>(<span class="ident">req</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 			},
-			<span class="ident">MuxedMessage::NewRequest</span>(<span class="ident">req</span>) =&gt; <span class="ident">req</span>,
-		};
+			<span class="ident">MuxedMessage::WakePeerQueuesPopReqs</span>(<span class="ident">reqs</span>) =&gt; {
+				<span class="comment">// Phase 2:</span>
+				<span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="ident">reqs</span> {
+					<span class="comment">// No early return - we cannot cancel imports of one peer, because the import of</span>
+					<span class="comment">// another failed:</span>
+					<span class="kw">match</span> <span class="ident">log_error</span>(<span class="self">self</span>.<span class="ident">start_import_or_batch</span>(<span class="ident">req</span>).<span class="kw">await</span>) {
+						<span class="prelude-val">Ok</span>(()) =&gt; {},
+						<span class="prelude-val">Err</span>(<span class="ident">fatal</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">fatal</span>.<span class="ident">into</span>()),
+					}
+				}
+			},
+			<span class="ident">MuxedMessage::WakeCheckBatches</span>(<span class="ident">ready_imports</span>) =&gt; {
+				<span class="comment">// Phase 3:</span>
+				<span class="self">self</span>.<span class="ident">import_ready_batches</span>(<span class="ident">ready_imports</span>).<span class="kw">await</span>;
+			},
+			<span class="ident">MuxedMessage::ConfirmedImport</span>(<span class="ident">import_result</span>) =&gt; {
+				<span class="self">self</span>.<span class="ident">update_imported_requests_metrics</span>(<span class="kw-2">&amp;</span><span class="ident">import_result</span>);
+				<span class="comment">// Confirm imports to requesters/punish them on invalid imports:</span>
+				<span class="ident">send_responses_to_requesters</span>(<span class="ident">import_result</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+			},
+		}
 
-		<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_received_request</span>();
+		<span class="prelude-val">Ok</span>(())
+	}
 
-		<span class="kw">let</span> <span class="ident">peer</span> <span class="op">=</span> <span class="ident">incoming</span>.<span class="ident">peer</span>;
+	<span class="doccomment">/// Receive one `MuxedMessage`.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Dispatching events to messages as they happen.</span>
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">receive_message</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MuxedMessage</span><span class="op">&gt;</span> {
+		<span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
+			<span class="comment">// In case of Ready(None), we want to wait for pending requests:</span>
+			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">v</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_imports</span>.<span class="ident">poll_next_unpin</span>(<span class="ident">ctx</span>) {
+				<span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">MuxedMessage::ConfirmedImport</span>(<span class="ident">v</span><span class="question-mark">?</span>)))
+			}
 
-		<span class="comment">// Only accept messages from validators:</span>
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">authority_discovery</span>.<span class="ident">get_authority_ids_by_peer_id</span>(<span class="ident">peer</span>).<span class="kw">await</span>.<span class="ident">is_none</span>() {
-			<span class="ident">incoming</span>
-				.<span class="ident">send_outgoing_response</span>(<span class="ident">OutgoingResponse</span> {
+			<span class="kw">let</span> <span class="ident">rate_limited</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peer_queues</span>.<span class="ident">pop_reqs</span>();
+			<span class="macro">pin_mut!</span>(<span class="ident">rate_limited</span>);
+			<span class="comment">// We poll rate_limit before batches, so we don&#39;t unnecessarily delay importing to</span>
+			<span class="comment">// batches.</span>
+			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">reqs</span>) <span class="op">=</span> <span class="ident">rate_limited</span>.<span class="ident">poll</span>(<span class="ident">ctx</span>) {
+				<span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">MuxedMessage::WakePeerQueuesPopReqs</span>(<span class="ident">reqs</span>)))
+			}
+
+			<span class="kw">let</span> <span class="ident">ready_batches</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">batches</span>.<span class="ident">check_batches</span>();
+			<span class="macro">pin_mut!</span>(<span class="ident">ready_batches</span>);
+			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">ready_batches</span>) <span class="op">=</span> <span class="ident">ready_batches</span>.<span class="ident">poll</span>(<span class="ident">ctx</span>) {
+				<span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">MuxedMessage::WakeCheckBatches</span>(<span class="ident">ready_batches</span>)))
+			}
+
+			<span class="kw">let</span> <span class="ident">next_req</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">receiver</span>.<span class="ident">recv</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="ident">COST_INVALID_REQUEST</span>]);
+			<span class="macro">pin_mut!</span>(<span class="ident">next_req</span>);
+			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="ident">next_req</span>.<span class="ident">poll</span>(<span class="ident">ctx</span>) {
+				<span class="kw">return</span> <span class="kw">match</span> <span class="ident">r</span> {
+					<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">incoming::Error::from</span>(<span class="ident">e</span>).<span class="ident">into</span>())),
+					<span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">MuxedMessage::NewRequest</span>(<span class="ident">v</span>))),
+				}
+			}
+			<span class="ident">Poll::Pending</span>
+		})
+		.<span class="kw">await</span>
+	}
+
+	<span class="doccomment">/// Process incoming requests.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// - Check sender is authority</span>
+	<span class="doccomment">/// - Dispatch message to corresponding queue in `peer_queues`.</span>
+	<span class="doccomment">/// - If queue is full, drop message and change reputation of sender.</span>
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">dispatch_to_queues</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>) -&gt; <span class="ident">JfyiResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">peer</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">peer</span>;
+		<span class="comment">// Only accept messages from validators, in case there are multiple `AuthorityId`s, we</span>
+		<span class="comment">// just take the first one. On session boundaries this might allow validators to double</span>
+		<span class="comment">// their rate limit for a short period of time, which seems acceptable.</span>
+		<span class="kw">let</span> <span class="ident">authority_id</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>
+			.<span class="ident">authority_discovery</span>
+			.<span class="ident">get_authority_ids_by_peer_id</span>(<span class="ident">peer</span>)
+			.<span class="kw">await</span>
+			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>())
+		{
+			<span class="prelude-val">None</span> =&gt; {
+				<span class="ident">req</span>.<span class="ident">send_outgoing_response</span>(<span class="ident">OutgoingResponse</span> {
 					<span class="ident">result</span>: <span class="prelude-val">Err</span>(()),
 					<span class="ident">reputation_changes</span>: <span class="macro">vec!</span>[<span class="ident">COST_NOT_A_VALIDATOR</span>],
 					<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
 				})
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::SendResponse</span>(<span class="ident">peer</span>))<span class="question-mark">?</span>;
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::SendResponses</span>(<span class="macro">vec!</span>[<span class="ident">peer</span>]))<span class="question-mark">?</span>;
+				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JfyiError::NotAValidator</span>(<span class="ident">peer</span>).<span class="ident">into</span>())
+			},
+			<span class="prelude-val">Some</span>(<span class="ident">auth_id</span>) =&gt; <span class="ident">auth_id</span>,
+		};
 
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JfyiError::NotAValidator</span>(<span class="ident">peer</span>).<span class="ident">into</span>())
+		<span class="comment">// Queue request:</span>
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>((<span class="ident">authority_id</span>, <span class="ident">req</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peer_queues</span>.<span class="ident">push_req</span>(<span class="ident">authority_id</span>, <span class="ident">req</span>) {
+			<span class="ident">req</span>.<span class="ident">send_outgoing_response</span>(<span class="ident">OutgoingResponse</span> {
+				<span class="ident">result</span>: <span class="prelude-val">Err</span>(()),
+				<span class="ident">reputation_changes</span>: <span class="macro">vec!</span>[<span class="ident">COST_APPARENT_FLOOD</span>],
+				<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
+			})
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::SendResponses</span>(<span class="macro">vec!</span>[<span class="ident">peer</span>]))<span class="question-mark">?</span>;
+			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JfyiError::AuthorityFlooding</span>(<span class="ident">authority_id</span>))
 		}
-
-		<span class="comment">// Immediately drop requests from peers that already have requests in flight or have</span>
-		<span class="comment">// been banned recently (flood protection):</span>
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">pending_imports</span>.<span class="ident">peer_is_pending</span>(<span class="kw-2">&amp;</span><span class="ident">peer</span>) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">banned_peers</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">peer</span>) {
-			<span class="macro">gum::trace!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="question-mark">?</span><span class="ident">peer</span>,
-				<span class="string">&quot;Dropping message from peer (banned/pending import)&quot;</span>
-			);
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
-		}
-
-		<span class="comment">// Wait for a free slot:</span>
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">pending_imports</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MAX_PARALLEL_IMPORTS</span> {
-			<span class="comment">// Wait for one to finish:</span>
-			<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_imports</span>.<span class="ident">next</span>().<span class="kw">await</span>;
-			<span class="self">self</span>.<span class="ident">ban_bad_peer</span>(<span class="ident">r</span>.<span class="ident">expect</span>(<span class="string">&quot;pending_imports.len() is greater 0. qed.&quot;</span>))<span class="question-mark">?</span>;
-		}
-
-		<span class="comment">// All good - initiate import.</span>
-		<span class="self">self</span>.<span class="ident">start_import</span>(<span class="ident">incoming</span>).<span class="kw">await</span>
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Start importing votes for the given request.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_import</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">incoming</span>: <span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+	<span class="doccomment">/// Start importing votes for the given request or batch.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Signature check and in case we already have an existing batch we import to that batch,</span>
+	<span class="doccomment">/// otherwise import to `dispute-coordinator` directly and open a batch.</span>
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_import_or_batch</span>(
+		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+		<span class="ident">incoming</span>: <span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>,
+	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">IncomingRequest</span> { <span class="ident">peer</span>, <span class="ident">payload</span>, <span class="ident">pending_response</span> } <span class="op">=</span> <span class="ident">incoming</span>;
 
 		<span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="self">self</span>
@@ -673,130 +877,174 @@
 			<span class="prelude-val">Ok</span>(<span class="ident">votes</span>) =&gt; <span class="ident">votes</span>,
 		};
 
+		<span class="kw">let</span> <span class="ident">candidate_hash</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">valid_vote</span>.<span class="number">0</span>.<span class="ident">candidate_hash</span>();
+
+		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">batches</span>.<span class="ident">find_batch</span>(<span class="ident">candidate_hash</span>, <span class="ident">candidate_receipt</span>)<span class="question-mark">?</span> {
+			<span class="ident">FoundBatch::Created</span>(<span class="ident">batch</span>) =&gt; {
+				<span class="comment">// There was no entry yet - start import immediately:</span>
+				<span class="macro">gum::trace!</span>(
+					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+					<span class="question-mark">?</span><span class="ident">candidate_hash</span>,
+					<span class="question-mark">?</span><span class="ident">peer</span>,
+					<span class="string">&quot;No batch yet - triggering immediate import&quot;</span>
+				);
+				<span class="kw">let</span> <span class="ident">import</span> <span class="op">=</span> <span class="ident">PreparedImport</span> {
+					<span class="ident">candidate_receipt</span>: <span class="ident">batch</span>.<span class="ident">candidate_receipt</span>().<span class="ident">clone</span>(),
+					<span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">valid_vote</span>, <span class="ident">invalid_vote</span>],
+					<span class="ident">requesters</span>: <span class="macro">vec!</span>[(<span class="ident">peer</span>, <span class="ident">pending_response</span>)],
+				};
+				<span class="self">self</span>.<span class="ident">start_import</span>(<span class="ident">import</span>).<span class="kw">await</span>;
+			},
+			<span class="ident">FoundBatch::Found</span>(<span class="ident">batch</span>) =&gt; {
+				<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">candidate_hash</span>, <span class="string">&quot;Batch exists - batching request&quot;</span>);
+				<span class="kw">let</span> <span class="ident">batch_result</span> <span class="op">=</span>
+					<span class="ident">batch</span>.<span class="ident">add_votes</span>(<span class="ident">valid_vote</span>, <span class="ident">invalid_vote</span>, <span class="ident">peer</span>, <span class="ident">pending_response</span>);
+
+				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">pending_response</span>) <span class="op">=</span> <span class="ident">batch_result</span> {
+					<span class="comment">// We don&#39;t expect honest peers to send redundant votes within a single batch,</span>
+					<span class="comment">// as the timeout for retry is much higher. Still we don&#39;t want to punish the</span>
+					<span class="comment">// node as it might not be the node&#39;s fault. Some other (malicious) node could have been</span>
+					<span class="comment">// faster sending the same votes in order to harm the reputation of that honest</span>
+					<span class="comment">// node. Given that we already have a rate limit, if a validator chooses to</span>
+					<span class="comment">// waste available rate with redundant votes - so be it. The actual dispute</span>
+					<span class="comment">// resolution is unaffected.</span>
+					<span class="macro">gum::debug!</span>(
+						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+						<span class="question-mark">?</span><span class="ident">peer</span>,
+						<span class="string">&quot;Peer sent completely redundant votes within a single batch - that looks fishy!&quot;</span>,
+					);
+					<span class="ident">pending_response</span>
+						.<span class="ident">send_outgoing_response</span>(<span class="ident">OutgoingResponse</span> {
+							<span class="comment">// While we have seen duplicate votes, we cannot confirm as we don&#39;t</span>
+							<span class="comment">// know yet whether the batch is going to be confirmed, so we assume</span>
+							<span class="comment">// the worst. We don&#39;t want to push the pending response to the batch</span>
+							<span class="comment">// either as that would be unbounded, only limited by the rate limit.</span>
+							<span class="ident">result</span>: <span class="prelude-val">Err</span>(()),
+							<span class="ident">reputation_changes</span>: <span class="ident">Vec::new</span>(),
+							<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
+						})
+						.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::SendResponses</span>(<span class="macro">vec!</span>[<span class="ident">peer</span>]))<span class="question-mark">?</span>;
+					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">From::from</span>(<span class="ident">JfyiError::RedundantMessage</span>(<span class="ident">peer</span>)))
+				}
+			},
+		}
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="doccomment">/// Trigger import into the dispute-coordinator of ready batches (`PreparedImport`s).</span>
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">import_ready_batches</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ready_imports</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PreparedImport</span><span class="op">&gt;</span>) {
+		<span class="kw">for</span> <span class="ident">import</span> <span class="kw">in</span> <span class="ident">ready_imports</span> {
+			<span class="self">self</span>.<span class="ident">start_import</span>(<span class="ident">import</span>).<span class="kw">await</span>;
+		}
+	}
+
+	<span class="doccomment">/// Start import and add response receiver to `pending_imports`.</span>
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_import</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">import</span>: <span class="ident">PreparedImport</span>) {
+		<span class="kw">let</span> <span class="ident">PreparedImport</span> { <span class="ident">candidate_receipt</span>, <span class="ident">statements</span>, <span class="ident">requesters</span> } <span class="op">=</span> <span class="ident">import</span>;
+		<span class="kw">let</span> (<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
+			<span class="prelude-val">None</span> =&gt; {
+				<span class="macro">gum::debug!</span>(
+					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+					<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">candidate_receipt</span>.<span class="ident">hash</span>(),
+					<span class="string">&quot;Not importing empty batch&quot;</span>
+				);
+				<span class="kw">return</span>
+			},
+			<span class="prelude-val">Some</span>(<span class="ident">vote</span>) =&gt; (<span class="ident">vote</span>.<span class="number">0</span>.<span class="ident">session_index</span>(), <span class="ident">vote</span>.<span class="number">0</span>.<span class="ident">candidate_hash</span>().<span class="ident">clone</span>()),
+		};
+
 		<span class="kw">let</span> (<span class="ident">pending_confirmation</span>, <span class="ident">confirmation_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
 		<span class="self">self</span>.<span class="ident">sender</span>
 			.<span class="ident">send_message</span>(<span class="ident">DisputeCoordinatorMessage::ImportStatements</span> {
 				<span class="ident">candidate_receipt</span>,
-				<span class="ident">session</span>: <span class="ident">valid_vote</span>.<span class="number">0</span>.<span class="ident">session_index</span>(),
-				<span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">valid_vote</span>, <span class="ident">invalid_vote</span>],
+				<span class="ident">session</span>: <span class="ident">session_index</span>,
+				<span class="ident">statements</span>,
 				<span class="ident">pending_confirmation</span>: <span class="prelude-val">Some</span>(<span class="ident">pending_confirmation</span>),
 			})
 			.<span class="kw">await</span>;
 
-		<span class="self">self</span>.<span class="ident">pending_imports</span>.<span class="ident">push</span>(<span class="ident">peer</span>, <span class="ident">confirmation_rx</span>, <span class="ident">pending_response</span>);
-		<span class="prelude-val">Ok</span>(())
+		<span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span>
+			<span class="ident">PendingImport</span> { <span class="ident">candidate_hash</span>, <span class="ident">requesters</span>, <span class="ident">pending_response</span>: <span class="ident">confirmation_rx</span> };
+
+		<span class="self">self</span>.<span class="ident">pending_imports</span>.<span class="ident">push</span>(<span class="ident">pending</span>);
 	}
 
-	<span class="doccomment">/// Await an import and ban any misbehaving peers.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// In addition we report import metrics.</span>
-	<span class="kw">fn</span> <span class="ident">ban_bad_peer</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">result</span>: <span class="ident">JfyiErrorResult</span><span class="op">&lt;</span>(<span class="ident">PeerId</span>, <span class="ident">ImportStatementsResult</span>)<span class="op">&gt;</span>,
-	) -&gt; <span class="ident">JfyiErrorResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="ident">result</span><span class="question-mark">?</span> {
-			(<span class="kw">_</span>, <span class="ident">ImportStatementsResult::ValidImport</span>) =&gt; {
-				<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_imported</span>(<span class="ident">SUCCEEDED</span>);
-			},
-			(<span class="ident">bad_peer</span>, <span class="ident">ImportStatementsResult::InvalidImport</span>) =&gt; {
-				<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_imported</span>(<span class="ident">FAILED</span>);
-				<span class="self">self</span>.<span class="ident">banned_peers</span>.<span class="ident">put</span>(<span class="ident">bad_peer</span>, ());
-			},
-		}
-		<span class="prelude-val">Ok</span>(())
+	<span class="kw">fn</span> <span class="ident">update_imported_requests_metrics</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">result</span>: <span class="kw-2">&amp;</span><span class="ident">ImportResult</span>) {
+		<span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span>.<span class="ident">result</span> {
+			<span class="ident">ImportStatementsResult::ValidImport</span> =&gt; <span class="ident">SUCCEEDED</span>,
+			<span class="ident">ImportStatementsResult::InvalidImport</span> =&gt; <span class="ident">FAILED</span>,
+		};
+		<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_imported</span>(<span class="ident">label</span>, <span class="ident">result</span>.<span class="ident">requesters</span>.<span class="ident">len</span>());
 	}
 }
 
-<span class="doccomment">/// Manage pending imports in a way that preserves invariants.</span>
-<span class="kw">struct</span> <span class="ident">PendingImports</span> {
-	<span class="doccomment">/// Futures in flight.</span>
-	<span class="ident">futures</span>:
-		<span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, (<span class="ident">PeerId</span>, <span class="ident">JfyiErrorResult</span><span class="op">&lt;</span><span class="ident">ImportStatementsResult</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Peers whose requests are currently in flight.</span>
-	<span class="ident">peers</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
-}
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_responses_to_requesters</span>(<span class="ident">import_result</span>: <span class="ident">ImportResult</span>) -&gt; <span class="ident">JfyiResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+	<span class="kw">let</span> <span class="ident">ImportResult</span> { <span class="ident">requesters</span>, <span class="ident">result</span> } <span class="op">=</span> <span class="ident">import_result</span>;
 
-<span class="kw">impl</span> <span class="ident">PendingImports</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">futures</span>: <span class="ident">FuturesUnordered::new</span>(), <span class="ident">peers</span>: <span class="ident">HashSet::new</span>() }
-	}
-
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">peer</span>: <span class="ident">PeerId</span>,
-		<span class="ident">handled</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><span class="ident">ImportStatementsResult</span><span class="op">&gt;</span>,
-		<span class="ident">pending_response</span>: <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>,
-	) {
-		<span class="self">self</span>.<span class="ident">peers</span>.<span class="ident">insert</span>(<span class="ident">peer</span>);
-		<span class="self">self</span>.<span class="ident">futures</span>.<span class="ident">push</span>(
-			<span class="kw">async</span> <span class="kw">move</span> {
-				<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">respond_to_request</span>(<span class="ident">peer</span>, <span class="ident">handled</span>, <span class="ident">pending_response</span>).<span class="kw">await</span>;
-				(<span class="ident">peer</span>, <span class="ident">r</span>)
-			}
-			.<span class="ident">boxed</span>(),
-		)
-	}
-
-	<span class="doccomment">/// Returns the number of contained futures.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">futures</span>.<span class="ident">len</span>()
-	}
-
-	<span class="doccomment">/// Check whether a peer has a pending import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_is_pending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">peer</span>: <span class="kw-2">&amp;</span><span class="ident">PeerId</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">peers</span>.<span class="ident">contains</span>(<span class="ident">peer</span>)
-	}
-}
-
-<span class="kw">impl</span> <span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">PendingImports</span> {
-	<span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">JfyiErrorResult</span><span class="op">&lt;</span>(<span class="ident">PeerId</span>, <span class="ident">ImportStatementsResult</span>)<span class="op">&gt;</span>;
-	<span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">futures</span>).<span class="ident">poll_next</span>(<span class="ident">ctx</span>) {
-			<span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
-			<span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-			<span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>((<span class="ident">peer</span>, <span class="ident">result</span>))) =&gt; {
-				<span class="self">self</span>.<span class="ident">peers</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">peer</span>);
-				<span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">result</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> (<span class="ident">peer</span>, <span class="ident">r</span>))))
-			},
-		}
-	}
-}
-<span class="kw">impl</span> <span class="ident">FusedStream</span> <span class="kw">for</span> <span class="ident">PendingImports</span> {
-	<span class="kw">fn</span> <span class="ident">is_terminated</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">futures</span>.<span class="ident">is_terminated</span>()
-	}
-}
-
-<span class="comment">// Future for `PendingImports`</span>
-<span class="comment">//</span>
-<span class="comment">// - Wait for import</span>
-<span class="comment">// - Punish peer</span>
-<span class="comment">// - Deliver result</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">respond_to_request</span>(
-	<span class="ident">peer</span>: <span class="ident">PeerId</span>,
-	<span class="ident">handled</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><span class="ident">ImportStatementsResult</span><span class="op">&gt;</span>,
-	<span class="ident">pending_response</span>: <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">JfyiErrorResult</span><span class="op">&lt;</span><span class="ident">ImportStatementsResult</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">handled</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::ImportCanceled</span>(<span class="ident">peer</span>))<span class="question-mark">?</span>;
-
-	<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
-		<span class="ident">ImportStatementsResult::ValidImport</span> =&gt; <span class="ident">OutgoingResponse</span> {
+	<span class="kw">let</span> <span class="ident">mk_response</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
+		<span class="ident">ImportStatementsResult::ValidImport</span> =&gt; <span class="op">|</span><span class="op">|</span> <span class="ident">OutgoingResponse</span> {
 			<span class="ident">result</span>: <span class="prelude-val">Ok</span>(<span class="ident">DisputeResponse::Confirmed</span>),
 			<span class="ident">reputation_changes</span>: <span class="ident">Vec::new</span>(),
 			<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
 		},
-		<span class="ident">ImportStatementsResult::InvalidImport</span> =&gt; <span class="ident">OutgoingResponse</span> {
+		<span class="ident">ImportStatementsResult::InvalidImport</span> =&gt; <span class="op">|</span><span class="op">|</span> <span class="ident">OutgoingResponse</span> {
 			<span class="ident">result</span>: <span class="prelude-val">Err</span>(()),
-			<span class="ident">reputation_changes</span>: <span class="macro">vec!</span>[<span class="ident">COST_INVALID_CANDIDATE</span>],
+			<span class="ident">reputation_changes</span>: <span class="macro">vec!</span>[<span class="ident">COST_INVALID_IMPORT</span>],
 			<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
 		},
 	};
 
-	<span class="ident">pending_response</span>
-		.<span class="ident">send_outgoing_response</span>(<span class="ident">response</span>)
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::SendResponse</span>(<span class="ident">peer</span>))<span class="question-mark">?</span>;
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sending_failed_for</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+	<span class="kw">for</span> (<span class="ident">peer</span>, <span class="ident">pending_response</span>) <span class="kw">in</span> <span class="ident">requesters</span> {
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(()) <span class="op">=</span> <span class="ident">pending_response</span>.<span class="ident">send_outgoing_response</span>(<span class="ident">mk_response</span>()) {
+			<span class="ident">sending_failed_for</span>.<span class="ident">push</span>(<span class="ident">peer</span>);
+		}
+	}
 
-	<span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+	<span class="kw">if</span> <span class="op">!</span><span class="ident">sending_failed_for</span>.<span class="ident">is_empty</span>() {
+		<span class="prelude-val">Err</span>(<span class="ident">JfyiError::SendResponses</span>(<span class="ident">sending_failed_for</span>))
+	} <span class="kw">else</span> {
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// A future that resolves into an `ImportResult` when ready.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This future is used on `dispute-coordinator` import messages for the oneshot response receiver</span>
+<span class="doccomment">/// to:</span>
+<span class="doccomment">/// - Keep track of concerned `CandidateHash` for reporting errors.</span>
+<span class="doccomment">/// - Keep track of requesting peers so we can confirm the import/punish them on invalid imports.</span>
+<span class="kw">struct</span> <span class="ident">PendingImport</span> {
+	<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
+	<span class="ident">requesters</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">PeerId</span>, <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+	<span class="ident">pending_response</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span><span class="ident">ImportStatementsResult</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// A `PendingImport` becomes an `ImportResult` once done.</span>
+<span class="kw">struct</span> <span class="ident">ImportResult</span> {
+	<span class="doccomment">/// Requesters of that import.</span>
+	<span class="ident">requesters</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">PeerId</span>, <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">DisputeRequest</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+	<span class="doccomment">/// Actual result of the import.</span>
+	<span class="ident">result</span>: <span class="ident">ImportStatementsResult</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">PendingImport</span> {
+	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait_for_result</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JfyiResult</span><span class="op">&lt;</span><span class="ident">ImportResult</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">pending_response</span>)
+			.<span class="kw">await</span>
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JfyiError::ImportCanceled</span>(<span class="self">self</span>.<span class="ident">candidate_hash</span>))<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(<span class="ident">ImportResult</span> { <span class="ident">requesters</span>: <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">requesters</span>), <span class="ident">result</span> })
+	}
+}
+
+<span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">PendingImport</span> {
+	<span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">JfyiResult</span><span class="op">&lt;</span><span class="ident">ImportResult</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">wait_for_result</span>();
+		<span class="macro">pin_mut!</span>(<span class="ident">fut</span>);
+		<span class="ident">fut</span>.<span class="ident">poll</span>(<span class="ident">cx</span>)
+	}
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_dispute_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>

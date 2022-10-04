@@ -327,6 +327,8 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -450,6 +452,10 @@
 <span class="doccomment">/// This is `MAX_CODE_SIZE` plus some additional space for protocol overhead.</span>
 <span class="kw">const</span> <span class="ident">STATEMENT_RESPONSE_SIZE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">MAX_CODE_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">+</span> <span class="number">10_000</span>;
 
+<span class="doccomment">/// We can have relative large timeouts here, there is no value of hitting a</span>
+<span class="doccomment">/// timeout as we want to get statements through to each node in any case.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DISPUTE_REQUEST_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">12</span>);
+
 <span class="kw">impl</span> <span class="ident">Protocol</span> {
 	<span class="doccomment">/// Get a configuration for a given Request response protocol.</span>
 	<span class="doccomment">///</span>
@@ -523,9 +529,7 @@
 				<span class="doccomment">/// Responses are just confirmation, in essence not even a bit. So 100 seems</span>
 				<span class="doccomment">/// plenty.</span>
 				<span class="ident">max_response_size</span>: <span class="number">100</span>,
-				<span class="doccomment">/// We can have relative large timeouts here, there is no value of hitting a</span>
-				<span class="doccomment">/// timeout as we want to get statements through to each node in any case.</span>
-				<span class="ident">request_timeout</span>: <span class="ident">Duration::from_secs</span>(<span class="number">12</span>),
+				<span class="ident">request_timeout</span>: <span class="ident">DISPUTE_REQUEST_TIMEOUT</span>,
 				<span class="ident">inbound_queue</span>: <span class="prelude-val">Some</span>(<span class="ident">tx</span>),
 			},
 		};

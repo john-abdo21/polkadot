@@ -303,6 +303,20 @@
 <span id="297">297</span>
 <span id="298">298</span>
 <span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -347,13 +361,15 @@
 <span class="doccomment">/// Delivery status for a particular dispute.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Keeps track of all the validators that have to be reached for a dispute.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The unit of work for a `SendTask` is an authority/validator.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SendTask</span> {
-	<span class="doccomment">/// The request we are supposed to get out to all parachain validators of the dispute&#39;s session</span>
+	<span class="doccomment">/// The request we are supposed to get out to all `parachain` validators of the dispute&#39;s session</span>
 	<span class="doccomment">/// and to all current authorities.</span>
 	<span class="ident">request</span>: <span class="ident">DisputeRequest</span>,
 
 	<span class="doccomment">/// The set of authorities we need to send our messages to. This set will change at session</span>
-	<span class="doccomment">/// boundaries. It will always be at least the parachain validators of the session where the</span>
+	<span class="doccomment">/// boundaries. It will always be at least the `parachain` validators of the session where the</span>
 	<span class="doccomment">/// dispute happened and the authorities of the current sessions as determined by active heads.</span>
 	<span class="ident">deliveries</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span>, <span class="ident">DeliveryStatus</span><span class="op">&gt;</span>,
 
@@ -405,6 +421,10 @@
 <span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">DisputeDistribution</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
 <span class="kw">impl</span> <span class="ident">SendTask</span> {
 	<span class="doccomment">/// Initiates sending a dispute message to peers.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Creation of new `SendTask`s is subject to rate limiting. As each `SendTask` will trigger</span>
+	<span class="doccomment">/// sending a message to each validator, hence for employing a per-peer rate limit, we need to</span>
+	<span class="doccomment">/// limit the construction of new `SendTask`s.</span>
 	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
 		<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 		<span class="ident">runtime</span>: <span class="kw-2">&amp;mut</span> <span class="ident">RuntimeInfo</span>,
@@ -423,15 +443,22 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// This function is called at construction and should also be called whenever a session change</span>
 	<span class="doccomment">/// happens and on a regular basis to ensure we are retrying failed attempts.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// This might resend to validators and is thus subject to any rate limiting we might want.</span>
+	<span class="doccomment">/// Calls to this function for different instances should be rate limited according to</span>
+	<span class="doccomment">/// `SEND_RATE_LIMIT`.</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// Returns: `True` if this call resulted in new requests.</span>
 	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">refresh_sends</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
 		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
 		<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 		<span class="ident">runtime</span>: <span class="kw-2">&amp;mut</span> <span class="ident">RuntimeInfo</span>,
 		<span class="ident">active_sessions</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">SessionIndex</span>, <span class="ident">Hash</span><span class="op">&gt;</span>,
 		<span class="ident">metrics</span>: <span class="kw-2">&amp;</span><span class="ident">Metrics</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">new_authorities</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_relevant_validators</span>(<span class="ident">ctx</span>, <span class="ident">runtime</span>, <span class="ident">active_sessions</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
+		<span class="comment">// Note this will also contain all authorities for which sending failed previously:</span>
 		<span class="kw">let</span> <span class="ident">add_authorities</span> <span class="op">=</span> <span class="ident">new_authorities</span>
 			.<span class="ident">iter</span>()
 			.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">deliveries</span>.<span class="ident">contains_key</span>(<span class="ident">a</span>))
@@ -446,12 +473,14 @@
 			<span class="ident">send_requests</span>(<span class="ident">ctx</span>, <span class="self">self</span>.<span class="ident">tx</span>.<span class="ident">clone</span>(), <span class="ident">add_authorities</span>, <span class="self">self</span>.<span class="ident">request</span>.<span class="ident">clone</span>(), <span class="ident">metrics</span>)
 				.<span class="kw">await</span><span class="question-mark">?</span>;
 
+		<span class="kw">let</span> <span class="ident">was_empty</span> <span class="op">=</span> <span class="ident">new_statuses</span>.<span class="ident">is_empty</span>();
+
 		<span class="self">self</span>.<span class="ident">has_failed_sends</span> <span class="op">=</span> <span class="bool-val">false</span>;
 		<span class="self">self</span>.<span class="ident">deliveries</span>.<span class="ident">extend</span>(<span class="ident">new_statuses</span>.<span class="ident">into_iter</span>());
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(<span class="op">!</span><span class="ident">was_empty</span>)
 	}
 
-	<span class="doccomment">/// Whether any sends have failed since the last refreshed.</span>
+	<span class="doccomment">/// Whether any sends have failed since the last refresh.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_failed_sends</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
 		<span class="self">self</span>.<span class="ident">has_failed_sends</span>
 	}
@@ -498,9 +527,8 @@
 
 	<span class="doccomment">/// Determine all validators that should receive the given dispute requests.</span>
 	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is all parachain validators of the session the candidate occurred and all authorities</span>
+	<span class="doccomment">/// This is all `parachain` validators of the session the candidate occurred and all authorities</span>
 	<span class="doccomment">/// of all currently active sessions, determined by currently active heads.</span>
-
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_relevant_validators</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
@@ -598,7 +626,7 @@
 		<span class="macro">gum::debug!</span>(
 			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
 			<span class="op">%</span><span class="ident">err</span>,
-			<span class="string">&quot;Failed to notify susystem about dispute sending result.&quot;</span>
+			<span class="string">&quot;Failed to notify subsystem about dispute sending result.&quot;</span>
 		);
 	}
 }
