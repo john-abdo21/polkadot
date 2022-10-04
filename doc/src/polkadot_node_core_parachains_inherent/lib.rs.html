@@ -154,6 +154,16 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -213,6 +223,11 @@
 	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="kw">async</span> {
 			<span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">futures::channel::oneshot::channel</span>();
+			<span class="macro">gum::trace!</span>(
+				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+				<span class="ident">relay_parent</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">parent</span>,
+				<span class="string">&quot;Inherent data requested by Babe&quot;</span>
+			);
 			<span class="ident">overseer</span>.<span class="ident">wait_for_activation</span>(<span class="ident">parent</span>, <span class="ident">sender</span>).<span class="kw">await</span>;
 			<span class="ident">receiver</span>
 				.<span class="kw">await</span>
@@ -220,6 +235,11 @@
 				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Error::Subsystem</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
 
 			<span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">futures::channel::oneshot::channel</span>();
+			<span class="macro">gum::trace!</span>(
+				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+				<span class="ident">relay_parent</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">parent</span>,
+				<span class="string">&quot;Requesting inherent data (after having waited for activation)&quot;</span>
+			);
 			<span class="ident">overseer</span>
 				.<span class="ident">send_msg</span>(
 					<span class="ident">ProvisionerMessage::RequestInherentData</span>(<span class="ident">parent</span>, <span class="ident">sender</span>),
