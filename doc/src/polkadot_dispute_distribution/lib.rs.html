@@ -267,6 +267,9 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -292,6 +295,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The sender is responsible for getting our vote out, see [`sender`]. The receiver handles</span>
 <span class="doccomment">//! incoming [`DisputeRequest`]s and offers spam protection, see [`receiver`].</span>
+
+<span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
 
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">channel::mpsc</span>, <span class="ident">FutureExt</span>, <span class="ident">StreamExt</span>, <span class="ident">TryFutureExt</span>};
 
@@ -414,7 +419,8 @@
 	) -&gt; <span class="self">Self</span> {
 		<span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">RuntimeInfo::new_with_config</span>(<span class="ident">runtime::Config</span> {
 			<span class="ident">keystore</span>: <span class="prelude-val">Some</span>(<span class="ident">keystore</span>),
-			<span class="ident">session_cache_lru_size</span>: <span class="ident">DISPUTE_WINDOW</span>.<span class="ident">get</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+			<span class="ident">session_cache_lru_size</span>: <span class="ident">NonZeroUsize::new</span>(<span class="ident">DISPUTE_WINDOW</span>.<span class="ident">get</span>() <span class="kw">as</span> <span class="ident">usize</span>)
+				.<span class="ident">expect</span>(<span class="string">&quot;Dispute window can not be 0; qed&quot;</span>),
 		});
 		<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">sender_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">1</span>);
 		<span class="kw">let</span> <span class="ident">disputes_sender</span> <span class="op">=</span> <span class="ident">DisputeSender::new</span>(<span class="ident">tx</span>, <span class="ident">metrics</span>.<span class="ident">clone</span>());

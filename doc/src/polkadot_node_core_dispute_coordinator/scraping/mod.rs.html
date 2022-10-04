@@ -320,6 +320,12 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -336,7 +342,10 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashSet</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+	<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashSet</span>},
+	<span class="ident">num::NonZeroUsize</span>,
+};
 
 <span class="kw">use</span> <span class="ident">futures::channel::oneshot</span>;
 <span class="kw">use</span> <span class="ident">lru::LruCache</span>;
@@ -366,7 +375,10 @@
 <span class="doccomment">/// `last_observed_blocks` LRU. This means, this value should the very least be as large as the</span>
 <span class="doccomment">/// number of expected forks for keeping chain scraping efficient. Making the LRU much larger than</span>
 <span class="doccomment">/// that has very limited use.</span>
-<span class="kw">const</span> <span class="ident">LRU_OBSERVED_BLOCKS_CAPACITY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">20</span>;
+<span class="kw">const</span> <span class="ident">LRU_OBSERVED_BLOCKS_CAPACITY</span>: <span class="ident">NonZeroUsize</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonZeroUsize::new</span>(<span class="number">20</span>) {
+	<span class="prelude-val">Some</span>(<span class="ident">cap</span>) =&gt; <span class="ident">cap</span>,
+	<span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Observed blocks cache size must be non-zero&quot;</span>),
+};
 
 <span class="doccomment">/// Chain scraper</span>
 <span class="doccomment">///</span>

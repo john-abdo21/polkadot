@@ -343,6 +343,9 @@
 <span id="337">337</span>
 <span id="338">338</span>
 <span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -361,7 +364,7 @@
 
 <span class="doccomment">//! Convenient interface to runtime information.</span>
 
-<span class="kw">use</span> <span class="ident">std::cmp::max</span>;
+<span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
 
 <span class="kw">use</span> <span class="ident">lru::LruCache</span>;
 
@@ -397,7 +400,7 @@
 	<span class="kw">pub</span> <span class="ident">keystore</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SyncCryptoStorePtr</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// How many sessions should we keep in the cache?</span>
-	<span class="kw">pub</span> <span class="ident">session_cache_lru_size</span>: <span class="ident">usize</span>,
+	<span class="kw">pub</span> <span class="ident">session_cache_lru_size</span>: <span class="ident">NonZeroUsize</span>,
 }
 
 <span class="doccomment">/// Caching of session info.</span>
@@ -440,7 +443,7 @@
 		<span class="self">Self</span> {
 			<span class="ident">keystore</span>: <span class="prelude-val">None</span>,
 			<span class="comment">// Usually we need to cache the current and the last session.</span>
-			<span class="ident">session_cache_lru_size</span>: <span class="number">2</span>,
+			<span class="ident">session_cache_lru_size</span>: <span class="ident">NonZeroUsize::new</span>(<span class="number">2</span>).<span class="ident">expect</span>(<span class="string">&quot;2 is larger than 0; qed&quot;</span>),
 		}
 	}
 }
@@ -454,7 +457,10 @@
 	<span class="doccomment">/// Create with more elaborate configuration options.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_config</span>(<span class="ident">cfg</span>: <span class="ident">Config</span>) -&gt; <span class="self">Self</span> {
 		<span class="self">Self</span> {
-			<span class="ident">session_index_cache</span>: <span class="ident">LruCache::new</span>(<span class="ident">max</span>(<span class="number">10</span>, <span class="ident">cfg</span>.<span class="ident">session_cache_lru_size</span>)),
+			<span class="ident">session_index_cache</span>: <span class="ident">LruCache::new</span>(
+				<span class="ident">cfg</span>.<span class="ident">session_cache_lru_size</span>
+					.<span class="ident">max</span>(<span class="ident">NonZeroUsize::new</span>(<span class="number">10</span>).<span class="ident">expect</span>(<span class="string">&quot;10 is larger than 0; qed&quot;</span>)),
+			),
 			<span class="ident">session_info_cache</span>: <span class="ident">LruCache::new</span>(<span class="ident">cfg</span>.<span class="ident">session_cache_lru_size</span>),
 			<span class="ident">keystore</span>: <span class="ident">cfg</span>.<span class="ident">keystore</span>,
 		}
