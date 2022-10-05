@@ -2020,6 +2020,11 @@
 <span id="2014">2014</span>
 <span id="2015">2015</span>
 <span id="2016">2016</span>
+<span id="2017">2017</span>
+<span id="2018">2018</span>
+<span id="2019">2019</span>
+<span id="2020">2020</span>
+<span id="2021">2021</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -2092,8 +2097,8 @@
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{
 	<span class="ident">create_runtime_str</span>, <span class="ident">generic</span>, <span class="ident">impl_opaque_keys</span>,
 	<span class="ident">traits</span>::{
-		<span class="ident">AccountIdLookup</span>, <span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">ConvertInto</span>, <span class="ident">Extrinsic</span> <span class="kw">as</span> <span class="ident">ExtrinsicT</span>,
-		<span class="ident">Keccak256</span>, <span class="ident">OpaqueKeys</span>, <span class="ident">SaturatedConversion</span>, <span class="ident">Verify</span>,
+		<span class="ident">AccountIdLookup</span>, <span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">ConstU32</span>, <span class="ident">ConvertInto</span>,
+		<span class="ident">Extrinsic</span> <span class="kw">as</span> <span class="ident">ExtrinsicT</span>, <span class="ident">Keccak256</span>, <span class="ident">OpaqueKeys</span>, <span class="ident">SaturatedConversion</span>, <span class="ident">Verify</span>,
 	},
 	<span class="ident">transaction_validity</span>::{<span class="ident">TransactionPriority</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>},
 	<span class="ident">ApplyExtrinsicResult</span>, <span class="ident">KeyTypeId</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>,
@@ -2238,12 +2243,10 @@
 	<span class="kw">type</span> <span class="ident">MaxScheduledPerBlock</span> <span class="op">=</span> <span class="ident">MaxScheduledPerBlock</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">weights::pallet_scheduler::WeightInfo</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">OriginPrivilegeCmp</span> <span class="op">=</span> <span class="ident">OriginPrivilegeCmp</span>;
-	<span class="kw">type</span> <span class="ident">PreimageProvider</span> <span class="op">=</span> <span class="ident">Preimage</span>;
-	<span class="kw">type</span> <span class="ident">NoPreimagePostponement</span> <span class="op">=</span> <span class="ident">NoPreimagePostponement</span>;
+	<span class="kw">type</span> <span class="ident">Preimages</span> <span class="op">=</span> <span class="ident">Preimage</span>;
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageMaxSize</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4096</span> <span class="op">*</span> <span class="number">1024</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageBaseDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">deposit</span>(<span class="number">2</span>, <span class="number">64</span>);
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PreimageByteDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">deposit</span>(<span class="number">0</span>, <span class="number">1</span>);
 }
@@ -2253,7 +2256,6 @@
 	<span class="kw">type</span> <span class="ident">RuntimeEvent</span> <span class="op">=</span> <span class="ident">RuntimeEvent</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">ManagerOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">MaxSize</span> <span class="op">=</span> <span class="ident">PreimageMaxSize</span>;
 	<span class="kw">type</span> <span class="ident">BaseDeposit</span> <span class="op">=</span> <span class="ident">PreimageBaseDeposit</span>;
 	<span class="kw">type</span> <span class="ident">ByteDeposit</span> <span class="op">=</span> <span class="ident">PreimageByteDeposit</span>;
 }
@@ -2421,7 +2423,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_democracy::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">RuntimeCall</span>;
 	<span class="kw">type</span> <span class="ident">RuntimeEvent</span> <span class="op">=</span> <span class="ident">RuntimeEvent</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
 	<span class="kw">type</span> <span class="ident">EnactmentPeriod</span> <span class="op">=</span> <span class="ident">EnactmentPeriod</span>;
@@ -2463,14 +2464,15 @@
 	<span class="comment">// only do it once and it lasts only for the cooloff period.</span>
 	<span class="kw">type</span> <span class="ident">VetoOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective::EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">TechnicalCollective</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">CooloffPeriod</span> <span class="op">=</span> <span class="ident">CooloffPeriod</span>;
-	<span class="kw">type</span> <span class="ident">PreimageByteDeposit</span> <span class="op">=</span> <span class="ident">PreimageByteDeposit</span>;
-	<span class="kw">type</span> <span class="ident">OperationalPreimageOrigin</span> <span class="op">=</span> <span class="ident">pallet_collective::EnsureMember</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilCollective</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">Slash</span> <span class="op">=</span> <span class="ident">Treasury</span>;
 	<span class="kw">type</span> <span class="ident">Scheduler</span> <span class="op">=</span> <span class="ident">Scheduler</span>;
 	<span class="kw">type</span> <span class="ident">PalletsOrigin</span> <span class="op">=</span> <span class="ident">OriginCaller</span>;
 	<span class="kw">type</span> <span class="ident">MaxVotes</span> <span class="op">=</span> <span class="ident">MaxVotes</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">weights::pallet_democracy::WeightInfo</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">MaxProposals</span> <span class="op">=</span> <span class="ident">MaxProposals</span>;
+	<span class="kw">type</span> <span class="ident">Preimages</span> <span class="op">=</span> <span class="ident">Preimage</span>;
+	<span class="kw">type</span> <span class="ident">MaxDeposits</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">MaxBlacklisted</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -3475,7 +3477,15 @@
 	<span class="ident">frame_system::ChainContext</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>,
 	<span class="ident">AllPalletsWithSystem</span>,
-	(<span class="ident">parachains_configuration::migration::v3::MigrateToV3</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,),
+	(
+		<span class="comment">// &quot;Bound uses of call&quot; &lt;https://github.com/paritytech/polkadot/pull/5729&gt;</span>
+		<span class="ident">pallet_preimage::migration::v1::Migration</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="ident">pallet_scheduler::migration::v3::MigrateToV4</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="ident">pallet_democracy::migrations::v1::Migration</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="ident">pallet_multisig::migrations::v1::MigrateToV1</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+		<span class="comment">// &quot;Properly migrate weights to v2&quot; &lt;https://github.com/paritytech/polkadot/pull/6091&gt;</span>
+		<span class="ident">parachains_configuration::migration::v3::MigrateToV3</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+	),
 <span class="op">&gt;</span>;
 <span class="doccomment">/// The payload being signed in transactions.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SignedPayload</span> <span class="op">=</span> <span class="ident">generic::SignedPayload</span><span class="op">&lt;</span><span class="ident">RuntimeCall</span>, <span class="ident">SignedExtra</span><span class="op">&gt;</span>;
