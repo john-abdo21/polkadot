@@ -328,21 +328,6 @@
 <span id="322">322</span>
 <span id="323">323</span>
 <span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -361,7 +346,7 @@
 
 <span class="doccomment">//! Database trait for polkadot db.</span>
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">kvdb</span>::{<span class="ident">DBTransaction</span>, <span class="ident">DBValue</span>, <span class="ident">KeyValueDB</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">kvdb</span>::{<span class="ident">DBKeyValue</span>, <span class="ident">DBTransaction</span>, <span class="ident">DBValue</span>, <span class="ident">KeyValueDB</span>};
 
 <span class="doccomment">/// Database trait with ordered key capacity.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Database</span>: <span class="ident">KeyValueDB</span> {
@@ -372,7 +357,7 @@
 
 <span class="doccomment">/// Implementation for database supporting `KeyValueDB` already.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">kvdb_impl</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">DBTransaction</span>, <span class="ident">DBValue</span>, <span class="ident">Database</span>, <span class="ident">KeyValueDB</span>};
+	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">DBKeyValue</span>, <span class="ident">DBTransaction</span>, <span class="ident">DBValue</span>, <span class="ident">Database</span>, <span class="ident">KeyValueDB</span>};
 	<span class="kw">use</span> <span class="ident">kvdb</span>::{<span class="ident">DBOp</span>, <span class="ident">IoStats</span>, <span class="ident">IoStatsKind</span>};
 	<span class="kw">use</span> <span class="ident">parity_util_mem</span>::{<span class="ident">MallocSizeOf</span>, <span class="ident">MallocSizeOfOps</span>};
 	<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::BTreeSet</span>, <span class="ident">io::Result</span>};
@@ -431,7 +416,7 @@
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">get</span>(<span class="ident">col</span>, <span class="ident">key</span>)
 		}
 
-		<span class="kw">fn</span> <span class="ident">get_by_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">get_by_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DBValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 			<span class="self">self</span>.<span class="ident">ensure_is_indexed</span>(<span class="ident">col</span>);
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">get_by_prefix</span>(<span class="ident">col</span>, <span class="ident">prefix</span>)
 		}
@@ -441,7 +426,7 @@
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">write</span>(<span class="ident">transaction</span>)
 		}
 
-		<span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DBKeyValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
 			<span class="self">self</span>.<span class="ident">ensure_is_indexed</span>(<span class="ident">col</span>);
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">iter</span>(<span class="ident">col</span>)
 		}
@@ -450,13 +435,9 @@
 			<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
 			<span class="ident">col</span>: <span class="ident">u32</span>,
 			<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
-		) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+		) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DBKeyValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
 			<span class="self">self</span>.<span class="ident">ensure_is_indexed</span>(<span class="ident">col</span>);
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">iter_with_prefix</span>(<span class="ident">col</span>, <span class="ident">prefix</span>)
-		}
-
-		<span class="kw">fn</span> <span class="ident">restore</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_new_db</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-			<span class="macro">unimplemented!</span>(<span class="string">&quot;restore is unsupported&quot;</span>)
 		}
 
 		<span class="kw">fn</span> <span class="ident">io_stats</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">IoStatsKind</span>) -&gt; <span class="ident">IoStats</span> {
@@ -467,7 +448,7 @@
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">has_key</span>(<span class="ident">col</span>, <span class="ident">key</span>)
 		}
 
-		<span class="kw">fn</span> <span class="ident">has_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
+		<span class="kw">fn</span> <span class="ident">has_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 			<span class="self">self</span>.<span class="ident">ensure_is_indexed</span>(<span class="ident">col</span>);
 			<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">has_prefix</span>(<span class="ident">col</span>, <span class="ident">prefix</span>)
 		}
@@ -483,8 +464,8 @@
 
 <span class="doccomment">/// Utilities for using parity-db database.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">paritydb_impl</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">DBTransaction</span>, <span class="ident">DBValue</span>, <span class="ident">Database</span>, <span class="ident">KeyValueDB</span>};
-	<span class="kw">use</span> <span class="ident">kvdb</span>::{<span class="ident">DBOp</span>, <span class="ident">IoStats</span>, <span class="ident">IoStatsKind</span>};
+	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">DBKeyValue</span>, <span class="ident">DBTransaction</span>, <span class="ident">DBValue</span>, <span class="ident">Database</span>, <span class="ident">KeyValueDB</span>};
+	<span class="kw">use</span> <span class="ident">kvdb::DBOp</span>;
 	<span class="kw">use</span> <span class="ident">parity_db::Db</span>;
 	<span class="kw">use</span> <span class="ident">parking_lot::Mutex</span>;
 	<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::BTreeSet</span>, <span class="ident">io::Result</span>, <span class="ident">sync::Arc</span>};
@@ -524,18 +505,20 @@
 			<span class="ident">map_err</span>(<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">get</span>(<span class="ident">col</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">key</span>))
 		}
 
-		<span class="kw">fn</span> <span class="ident">get_by_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
-			<span class="self">self</span>.<span class="ident">iter_with_prefix</span>(<span class="ident">col</span>, <span class="ident">prefix</span>).<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>)
+		<span class="kw">fn</span> <span class="ident">get_by_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DBValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+			<span class="self">self</span>.<span class="ident">iter_with_prefix</span>(<span class="ident">col</span>, <span class="ident">prefix</span>)
+				.<span class="ident">next</span>()
+				.<span class="ident">transpose</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">mb</span><span class="op">|</span> <span class="ident">mb</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>))
 		}
 
-		<span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">handle_err</span>(<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">iter</span>(<span class="ident">col</span> <span class="kw">as</span> <span class="ident">u8</span>));
+		<span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DBKeyValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">db</span>.<span class="ident">iter</span>(<span class="ident">col</span> <span class="kw">as</span> <span class="ident">u8</span>) {
+				<span class="prelude-val">Ok</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>,
+				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">Box::new</span>(<span class="ident">std::iter::once</span>(<span class="ident">map_err</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)))),
+			};
 			<span class="ident">Box::new</span>(<span class="ident">std::iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) <span class="op">=</span> <span class="ident">handle_err</span>(<span class="ident">iter</span>.<span class="ident">next</span>()) {
-					<span class="prelude-val">Some</span>((<span class="ident">key</span>.<span class="ident">into_boxed_slice</span>(), <span class="ident">value</span>.<span class="ident">into_boxed_slice</span>()))
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				}
+				<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">map_err</span>(<span class="ident">r</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">v</span>))))
 			}))
 		}
 
@@ -543,39 +526,26 @@
 			<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>,
 			<span class="ident">col</span>: <span class="ident">u32</span>,
 			<span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
-		) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+		) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DBKeyValue</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
 			<span class="kw">if</span> <span class="ident">prefix</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
 				<span class="kw">return</span> <span class="self">self</span>.<span class="ident">iter</span>(<span class="ident">col</span>)
 			}
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">handle_err</span>(<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">iter</span>(<span class="ident">col</span> <span class="kw">as</span> <span class="ident">u8</span>));
-			<span class="ident">handle_err</span>(<span class="ident">iter</span>.<span class="ident">seek</span>(<span class="ident">prefix</span>));
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">db</span>.<span class="ident">iter</span>(<span class="ident">col</span> <span class="kw">as</span> <span class="ident">u8</span>) {
+				<span class="prelude-val">Ok</span>(<span class="ident">iter</span>) =&gt; <span class="ident">iter</span>,
+				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">Box::new</span>(<span class="ident">std::iter::once</span>(<span class="ident">map_err</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)))),
+			};
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">seek</span>(<span class="ident">prefix</span>) {
+				<span class="kw">return</span> <span class="ident">Box::new</span>(<span class="ident">std::iter::once</span>(<span class="ident">map_err</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))))
+			}
 			<span class="ident">Box::new</span>(<span class="ident">std::iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) <span class="op">=</span> <span class="ident">handle_err</span>(<span class="ident">iter</span>.<span class="ident">next</span>()) {
-					<span class="ident">key</span>.<span class="ident">starts_with</span>(<span class="ident">prefix</span>)
-						.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> (<span class="ident">key</span>.<span class="ident">into_boxed_slice</span>(), <span class="ident">value</span>.<span class="ident">into_boxed_slice</span>()))
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				}
+				<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
+					<span class="ident">map_err</span>(<span class="ident">r</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">k</span>.<span class="ident">starts_with</span>(<span class="ident">prefix</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> (<span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">v</span>))))
+						.<span class="ident">transpose</span>()
+				})
 			}))
 		}
 
-		<span class="kw">fn</span> <span class="ident">restore</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_new_db</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-			<span class="macro">unimplemented!</span>(<span class="string">&quot;restore is unsupported&quot;</span>)
-		}
-
-		<span class="kw">fn</span> <span class="ident">io_stats</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_kind</span>: <span class="ident">IoStatsKind</span>) -&gt; <span class="ident">IoStats</span> {
-			<span class="macro">unimplemented!</span>(<span class="string">&quot;io_stats not supported by parity_db&quot;</span>);
-		}
-
-		<span class="kw">fn</span> <span class="ident">has_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-			<span class="ident">map_err</span>(<span class="self">self</span>.<span class="ident">db</span>.<span class="ident">get_size</span>(<span class="ident">col</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">is_some</span>()))
-		}
-
-		<span class="kw">fn</span> <span class="ident">has_prefix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">col</span>: <span class="ident">u32</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span> {
-			<span class="self">self</span>.<span class="ident">get_by_prefix</span>(<span class="ident">col</span>, <span class="ident">prefix</span>).<span class="ident">is_some</span>()
-		}
-
-		<span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">transaction</span>: <span class="ident">DBTransaction</span>) -&gt; <span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+		<span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">transaction</span>: <span class="ident">DBTransaction</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ops</span> <span class="op">=</span> <span class="ident">transaction</span>.<span class="ident">ops</span>.<span class="ident">into_iter</span>();
 			<span class="comment">// TODO using a key iterator or native delete here would be faster.</span>
 			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_prefix_iter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">parity_db::BTreeIterator</span>, <span class="ident">u8</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
