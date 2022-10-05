@@ -140,6 +140,29 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -163,9 +186,12 @@
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">unused_crate_dependencies</span>)]</span>
 <span class="attribute">#![<span class="ident">recursion_limit</span> <span class="op">=</span> <span class="string">&quot;256&quot;</span>]</span>
 
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">FutureExt</span>, <span class="ident">TryFutureExt</span>};
+<span class="kw">use</span> <span class="ident">futures</span>::{
+	<span class="ident">stream</span>::{<span class="ident">FusedStream</span>, <span class="ident">StreamExt</span>},
+	<span class="ident">FutureExt</span>, <span class="ident">TryFutureExt</span>,
+};
 
 <span class="kw">use</span> <span class="ident">sp_keystore::SyncCryptoStorePtr</span>;
 
@@ -275,6 +301,26 @@
 	);
 
 	<span class="ident">sender</span>.<span class="ident">send_message</span>(<span class="ident">NetworkBridgeTxMessage::ReportPeer</span>(<span class="ident">peer</span>, <span class="ident">rep</span>)).<span class="kw">await</span>;
+}
+
+<span class="doccomment">/// Wait until tick and return the timestamp for the following one.</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait_until_next_tick</span>(<span class="ident">last_poll</span>: <span class="ident">Instant</span>, <span class="ident">period</span>: <span class="ident">Duration</span>) -&gt; <span class="ident">Instant</span> {
+	<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
+	<span class="kw">let</span> <span class="ident">next_poll</span> <span class="op">=</span> <span class="ident">last_poll</span> <span class="op">+</span> <span class="ident">period</span>;
+
+	<span class="kw">if</span> <span class="ident">next_poll</span> <span class="op">&gt;</span> <span class="ident">now</span> {
+		<span class="ident">futures_timer::Delay::new</span>(<span class="ident">next_poll</span> <span class="op">-</span> <span class="ident">now</span>).<span class="kw">await</span>
+	}
+
+	<span class="ident">Instant::now</span>()
+}
+
+<span class="doccomment">/// Returns an infinite stream that yields with an interval of `period`.</span>
+<span class="kw">fn</span> <span class="ident">tick_stream</span>(<span class="ident">period</span>: <span class="ident">Duration</span>) -&gt; <span class="kw">impl</span> <span class="ident">FusedStream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> ()<span class="op">&gt;</span> {
+	<span class="ident">futures::stream::unfold</span>(<span class="ident">Instant::now</span>(), <span class="kw">move</span> <span class="op">|</span><span class="ident">next_check</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
+		<span class="prelude-val">Some</span>(((), <span class="ident">wait_until_next_tick</span>(<span class="ident">next_check</span>, <span class="ident">period</span>).<span class="kw">await</span>))
+	})
+	.<span class="ident">fuse</span>()
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_collator_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>

@@ -1517,25 +1517,6 @@
 <span id="1511">1511</span>
 <span id="1512">1512</span>
 <span id="1513">1513</span>
-<span id="1514">1514</span>
-<span id="1515">1515</span>
-<span id="1516">1516</span>
-<span id="1517">1517</span>
-<span id="1518">1518</span>
-<span id="1519">1519</span>
-<span id="1520">1520</span>
-<span id="1521">1521</span>
-<span id="1522">1522</span>
-<span id="1523">1523</span>
-<span id="1524">1524</span>
-<span id="1525">1525</span>
-<span id="1526">1526</span>
-<span id="1527">1527</span>
-<span id="1528">1528</span>
-<span id="1529">1529</span>
-<span id="1530">1530</span>
-<span id="1531">1531</span>
-<span id="1532">1532</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1557,7 +1538,7 @@
 	<span class="ident">channel::oneshot</span>,
 	<span class="ident">future</span>::{<span class="ident">BoxFuture</span>, <span class="ident">Fuse</span>, <span class="ident">FusedFuture</span>},
 	<span class="ident">select</span>,
-	<span class="ident">stream</span>::{<span class="ident">FusedStream</span>, <span class="ident">FuturesUnordered</span>},
+	<span class="ident">stream::FuturesUnordered</span>,
 	<span class="ident">FutureExt</span>, <span class="ident">StreamExt</span>,
 };
 <span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
@@ -1595,7 +1576,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Result</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">modify_reputation</span>, <span class="ident">LOG_TARGET</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">modify_reputation</span>, <span class="ident">tick_stream</span>, <span class="ident">LOG_TARGET</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -1635,7 +1616,7 @@
 <span class="comment">// How often to poll collation responses.</span>
 <span class="comment">// This is a hack that should be removed in a refactoring.</span>
 <span class="comment">// See https://github.com/paritytech/polkadot/issues/4182</span>
-<span class="kw">const</span> <span class="ident">CHECK_COLLATIONS_POLL</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">5</span>);
+<span class="kw">const</span> <span class="ident">CHECK_COLLATIONS_POLL</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">50</span>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Metrics</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MetricsInner</span><span class="op">&gt;</span>);
@@ -2705,25 +2686,6 @@
 	}
 }
 
-<span class="comment">// wait until next inactivity check. returns the instant for the following check.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait_until_next_check</span>(<span class="ident">last_poll</span>: <span class="ident">Instant</span>) -&gt; <span class="ident">Instant</span> {
-	<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-	<span class="kw">let</span> <span class="ident">next_poll</span> <span class="op">=</span> <span class="ident">last_poll</span> <span class="op">+</span> <span class="ident">ACTIVITY_POLL</span>;
-
-	<span class="kw">if</span> <span class="ident">next_poll</span> <span class="op">&gt;</span> <span class="ident">now</span> {
-		<span class="ident">Delay::new</span>(<span class="ident">next_poll</span> <span class="op">-</span> <span class="ident">now</span>).<span class="kw">await</span>
-	}
-
-	<span class="ident">Instant::now</span>()
-}
-
-<span class="kw">fn</span> <span class="ident">infinite_stream</span>(<span class="ident">every</span>: <span class="ident">Duration</span>) -&gt; <span class="kw">impl</span> <span class="ident">FusedStream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> ()<span class="op">&gt;</span> {
-	<span class="ident">futures::stream::unfold</span>(<span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">every</span>, <span class="op">|</span><span class="ident">next_check</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-		<span class="prelude-val">Some</span>(((), <span class="ident">wait_until_next_check</span>(<span class="ident">next_check</span>).<span class="kw">await</span>))
-	})
-	.<span class="ident">fuse</span>()
-}
-
 <span class="doccomment">/// The main run loop.</span>
 <span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">CollatorProtocol</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
@@ -2734,10 +2696,10 @@
 ) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="kw">crate</span>::error::FatalError</span><span class="op">&gt;</span> {
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span> { <span class="ident">metrics</span>, ..<span class="ident">Default::default</span>() };
 
-	<span class="kw">let</span> <span class="ident">next_inactivity_stream</span> <span class="op">=</span> <span class="ident">infinite_stream</span>(<span class="ident">ACTIVITY_POLL</span>);
+	<span class="kw">let</span> <span class="ident">next_inactivity_stream</span> <span class="op">=</span> <span class="ident">tick_stream</span>(<span class="ident">ACTIVITY_POLL</span>);
 	<span class="macro">futures::pin_mut!</span>(<span class="ident">next_inactivity_stream</span>);
 
-	<span class="kw">let</span> <span class="ident">check_collations_stream</span> <span class="op">=</span> <span class="ident">infinite_stream</span>(<span class="ident">CHECK_COLLATIONS_POLL</span>);
+	<span class="kw">let</span> <span class="ident">check_collations_stream</span> <span class="op">=</span> <span class="ident">tick_stream</span>(<span class="ident">CHECK_COLLATIONS_POLL</span>);
 	<span class="macro">futures::pin_mut!</span>(<span class="ident">check_collations_stream</span>);
 
 	<span class="kw">loop</span> {

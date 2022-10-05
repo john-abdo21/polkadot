@@ -1063,14 +1063,6 @@
 <span id="1057">1057</span>
 <span id="1058">1058</span>
 <span id="1059">1059</span>
-<span id="1060">1060</span>
-<span id="1061">1061</span>
-<span id="1062">1062</span>
-<span id="1063">1063</span>
-<span id="1064">1064</span>
-<span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1090,7 +1082,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::{
 	<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>, <span class="ident">VecDeque</span>},
 	<span class="ident">pin::Pin</span>,
-	<span class="ident">time::Duration</span>,
+	<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>},
 };
 
 <span class="kw">use</span> <span class="ident">futures</span>::{
@@ -1117,18 +1109,24 @@
 	<span class="ident">overseer</span>, <span class="ident">FromOrchestra</span>, <span class="ident">OverseerSignal</span>, <span class="ident">PerLeafSpan</span>,
 };
 <span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util</span>::{
-	<span class="ident">metrics</span>::{<span class="self">self</span>, <span class="ident">prometheus</span>},
 	<span class="ident">runtime</span>::{<span class="ident">get_availability_cores</span>, <span class="ident">get_group_rotation_info</span>, <span class="ident">RuntimeInfo</span>},
 	<span class="ident">TimeoutExt</span>,
 };
 <span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
 	<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">CandidateHash</span>, <span class="ident">CandidateReceipt</span>, <span class="ident">CollatorPair</span>, <span class="ident">CoreIndex</span>, <span class="ident">CoreState</span>,
-	<span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>,
+	<span class="ident">GroupIndex</span>, <span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>, <span class="ident">SessionIndex</span>,
 };
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::LOG_TARGET</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">log_error</span>, <span class="ident">Error</span>, <span class="ident">FatalError</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">fatality::Split</span>;
+
+<span class="kw">mod</span> <span class="ident">metrics</span>;
+<span class="kw">mod</span> <span class="ident">validators_buffer</span>;
+
+<span class="kw">use</span> <span class="ident">validators_buffer</span>::{<span class="ident">ValidatorGroupsBuffer</span>, <span class="ident">VALIDATORS_BUFFER_CAPACITY</span>};
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">metrics::Metrics</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -1146,111 +1144,16 @@
 <span class="doccomment">/// For considerations on this value, see: https://github.com/paritytech/polkadot/issues/4386</span>
 <span class="kw">const</span> <span class="ident">MAX_UNSHARED_UPLOAD_TIME</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">150</span>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Metrics</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MetricsInner</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Ensure that collator issues a connection request at least once every this many seconds.</span>
+<span class="doccomment">/// Usually it&#39;s done when advertising new collation. However, if the core stays occupied or</span>
+<span class="doccomment">/// it&#39;s not our turn to produce a candidate, it&#39;s important to disconnect from previous</span>
+<span class="doccomment">/// peers.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Validators are obtained from [`ValidatorGroupsBuffer::validators_to_connect`].</span>
+<span class="kw">const</span> <span class="ident">RECONNECT_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">12</span>);
 
-<span class="kw">impl</span> <span class="ident">Metrics</span> {
-	<span class="kw">fn</span> <span class="ident">on_advertisment_made</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="ident">metrics</span>.<span class="ident">advertisements_made</span>.<span class="ident">inc</span>();
-		}
-	}
-
-	<span class="kw">fn</span> <span class="ident">on_collation_sent_requested</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="ident">metrics</span>.<span class="ident">collations_send_requested</span>.<span class="ident">inc</span>();
-		}
-	}
-
-	<span class="kw">fn</span> <span class="ident">on_collation_sent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="ident">metrics</span>.<span class="ident">collations_sent</span>.<span class="ident">inc</span>();
-		}
-	}
-
-	<span class="doccomment">/// Provide a timer for `process_msg` which observes on drop.</span>
-	<span class="kw">fn</span> <span class="ident">time_process_msg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">prometheus::prometheus::HistogramTimer</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">metrics</span><span class="op">|</span> <span class="ident">metrics</span>.<span class="ident">process_msg</span>.<span class="ident">start_timer</span>())
-	}
-
-	<span class="doccomment">/// Provide a timer for `distribute_collation` which observes on drop.</span>
-	<span class="kw">fn</span> <span class="ident">time_collation_distribution</span>(
-		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">prometheus::prometheus::HistogramTimer</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">metrics</span><span class="op">|</span> {
-			<span class="ident">metrics</span>.<span class="ident">collation_distribution_time</span>.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="ident">label</span>]).<span class="ident">start_timer</span>()
-		})
-	}
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">MetricsInner</span> {
-	<span class="ident">advertisements_made</span>: <span class="ident">prometheus::Counter</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
-	<span class="ident">collations_sent</span>: <span class="ident">prometheus::Counter</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
-	<span class="ident">collations_send_requested</span>: <span class="ident">prometheus::Counter</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
-	<span class="ident">process_msg</span>: <span class="ident">prometheus::Histogram</span>,
-	<span class="ident">collation_distribution_time</span>: <span class="ident">prometheus::HistogramVec</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">metrics::Metrics</span> <span class="kw">for</span> <span class="ident">Metrics</span> {
-	<span class="kw">fn</span> <span class="ident">try_register</span>(
-		<span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">prometheus::Registry</span>,
-	) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">prometheus::PrometheusError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">metrics</span> <span class="op">=</span> <span class="ident">MetricsInner</span> {
-			<span class="ident">advertisements_made</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Counter::new</span>(
-					<span class="string">&quot;polkadot_parachain_collation_advertisements_made_total&quot;</span>,
-					<span class="string">&quot;A number of collation advertisements sent to validators.&quot;</span>,
-				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
-			)<span class="question-mark">?</span>,
-			<span class="ident">collations_send_requested</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Counter::new</span>(
-					<span class="string">&quot;polkadot_parachain_collations_sent_requested_total&quot;</span>,
-					<span class="string">&quot;A number of collations requested to be sent to validators.&quot;</span>,
-				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
-			)<span class="question-mark">?</span>,
-			<span class="ident">collations_sent</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Counter::new</span>(
-					<span class="string">&quot;polkadot_parachain_collations_sent_total&quot;</span>,
-					<span class="string">&quot;A number of collations sent to validators.&quot;</span>,
-				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
-			)<span class="question-mark">?</span>,
-			<span class="ident">process_msg</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Histogram::with_opts</span>(
-					<span class="ident">prometheus::HistogramOpts::new</span>(
-						<span class="string">&quot;polkadot_parachain_collator_protocol_collator_process_msg&quot;</span>,
-						<span class="string">&quot;Time spent within `collator_protocol_collator::process_msg`&quot;</span>,
-					)
-					.<span class="ident">buckets</span>(<span class="macro">vec!</span>[
-						<span class="number">0.001</span>, <span class="number">0.002</span>, <span class="number">0.005</span>, <span class="number">0.01</span>, <span class="number">0.025</span>, <span class="number">0.05</span>, <span class="number">0.1</span>, <span class="number">0.15</span>, <span class="number">0.25</span>, <span class="number">0.35</span>, <span class="number">0.5</span>, <span class="number">0.75</span>,
-						<span class="number">1.0</span>,
-					]),
-				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
-			)<span class="question-mark">?</span>,
-			<span class="ident">collation_distribution_time</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::HistogramVec::new</span>(
-					<span class="ident">prometheus::HistogramOpts::new</span>(
-						<span class="string">&quot;polkadot_parachain_collator_protocol_collator_distribution_time&quot;</span>,
-						<span class="string">&quot;Time spent within `collator_protocol_collator::distribute_collation`&quot;</span>,
-					)
-					.<span class="ident">buckets</span>(<span class="macro">vec!</span>[
-						<span class="number">0.001</span>, <span class="number">0.002</span>, <span class="number">0.005</span>, <span class="number">0.01</span>, <span class="number">0.025</span>, <span class="number">0.05</span>, <span class="number">0.1</span>, <span class="number">0.15</span>, <span class="number">0.25</span>, <span class="number">0.35</span>, <span class="number">0.5</span>, <span class="number">0.75</span>,
-						<span class="number">1.0</span>,
-					]),
-					<span class="kw-2">&amp;</span>[<span class="string">&quot;state&quot;</span>],
-				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
-			)<span class="question-mark">?</span>,
-		};
-
-		<span class="prelude-val">Ok</span>(<span class="ident">Metrics</span>(<span class="prelude-val">Some</span>(<span class="ident">metrics</span>)))
-	}
-}
+<span class="doccomment">/// How often to check for reconnect timeout.</span>
+<span class="kw">const</span> <span class="ident">RECONNECT_POLL</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">1</span>);
 
 <span class="doccomment">/// Info about validators we are currently connected to.</span>
 <span class="doccomment">///</span>
@@ -1342,8 +1245,14 @@
 	<span class="ident">waiting_peers</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
 }
 
+<span class="kw">struct</span> <span class="ident">CollationSendResult</span> {
+	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
+	<span class="ident">peer_id</span>: <span class="ident">PeerId</span>,
+	<span class="ident">timed_out</span>: <span class="ident">bool</span>,
+}
+
 <span class="kw">type</span> <span class="ident">ActiveCollationFetches</span> <span class="op">=</span>
-	<span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> (<span class="ident">Hash</span>, <span class="ident">PeerId</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">CollationSendResult</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="kw">struct</span> <span class="ident">State</span> {
 	<span class="doccomment">/// Our network peer id.</span>
@@ -1381,6 +1290,13 @@
 	<span class="doccomment">/// by `PeerConnected` events.</span>
 	<span class="ident">peer_ids</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PeerId</span>, <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
+	<span class="doccomment">/// Tracks which validators we want to stay connected to.</span>
+	<span class="ident">validator_groups_buf</span>: <span class="ident">ValidatorGroupsBuffer</span>,
+
+	<span class="doccomment">/// Timestamp of the last connection request to a non-empty list of validators,</span>
+	<span class="doccomment">/// `None` otherwise.</span>
+	<span class="ident">last_connected_at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
+
 	<span class="doccomment">/// Metrics.</span>
 	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
 
@@ -1412,6 +1328,8 @@
 			<span class="ident">collation_result_senders</span>: <span class="ident">Default::default</span>(),
 			<span class="ident">our_validators_groups</span>: <span class="ident">Default::default</span>(),
 			<span class="ident">peer_ids</span>: <span class="ident">Default::default</span>(),
+			<span class="ident">validator_groups_buf</span>: <span class="ident">ValidatorGroupsBuffer::with_capacity</span>(<span class="ident">VALIDATORS_BUFFER_CAPACITY</span>),
+			<span class="ident">last_connected_at</span>: <span class="prelude-val">None</span>,
 			<span class="ident">waiting_collation_fetches</span>: <span class="ident">Default::default</span>(),
 			<span class="ident">active_collation_fetches</span>: <span class="ident">Default::default</span>(),
 		}
@@ -1446,6 +1364,7 @@
 	<span class="ident">result_sender</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">CollationSecondedSignal</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
 	<span class="kw">let</span> <span class="ident">relay_parent</span> <span class="op">=</span> <span class="ident">receipt</span>.<span class="ident">descriptor</span>.<span class="ident">relay_parent</span>;
+	<span class="kw">let</span> <span class="ident">candidate_hash</span> <span class="op">=</span> <span class="ident">receipt</span>.<span class="ident">hash</span>();
 
 	<span class="comment">// This collation is not in the active-leaves set.</span>
 	<span class="kw">if</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">view</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">relay_parent</span>) {
@@ -1485,10 +1404,10 @@
 	};
 
 	<span class="comment">// Determine the group on that core.</span>
-	<span class="kw">let</span> <span class="ident">current_validators</span> <span class="op">=</span>
+	<span class="kw">let</span> <span class="ident">GroupValidators</span> { <span class="ident">validators</span>, <span class="ident">session_index</span>, <span class="ident">group_index</span> } <span class="op">=</span>
 		<span class="ident">determine_our_validators</span>(<span class="ident">ctx</span>, <span class="ident">runtime</span>, <span class="ident">our_core</span>, <span class="ident">num_cores</span>, <span class="ident">relay_parent</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
-	<span class="kw">if</span> <span class="ident">current_validators</span>.<span class="ident">validators</span>.<span class="ident">is_empty</span>() {
+	<span class="kw">if</span> <span class="ident">validators</span>.<span class="ident">is_empty</span>() {
 		<span class="macro">gum::warn!</span>(
 			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
 			<span class="ident">core</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">our_core</span>,
@@ -1498,24 +1417,36 @@
 		<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
 	}
 
+	<span class="comment">// It&#39;s important to insert new collation bits **before**</span>
+	<span class="comment">// issuing a connection request.</span>
+	<span class="comment">//</span>
+	<span class="comment">// If a validator managed to fetch all the relevant collations</span>
+	<span class="comment">// but still assigned to our core, we keep the connection alive.</span>
+	<span class="ident">state</span>.<span class="ident">validator_groups_buf</span>.<span class="ident">note_collation_advertised</span>(
+		<span class="ident">relay_parent</span>,
+		<span class="ident">session_index</span>,
+		<span class="ident">group_index</span>,
+		<span class="kw-2">&amp;</span><span class="ident">validators</span>,
+	);
+
 	<span class="macro">gum::debug!</span>(
 		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
 		<span class="ident">para_id</span> <span class="op">=</span> <span class="op">%</span><span class="ident">id</span>,
 		<span class="ident">relay_parent</span> <span class="op">=</span> <span class="op">%</span><span class="ident">relay_parent</span>,
-		<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">receipt</span>.<span class="ident">hash</span>(),
+		<span class="question-mark">?</span><span class="ident">candidate_hash</span>,
 		<span class="ident">pov_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">pov</span>.<span class="ident">hash</span>(),
 		<span class="ident">core</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">our_core</span>,
-		<span class="question-mark">?</span><span class="ident">current_validators</span>,
+		<span class="ident">current_validators</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">validators</span>,
 		<span class="string">&quot;Accepted collation, connecting to validators.&quot;</span>
 	);
 
-	<span class="comment">// Issue a discovery request for the validators of the current group:</span>
-	<span class="ident">connect_to_validators</span>(<span class="ident">ctx</span>, <span class="ident">current_validators</span>.<span class="ident">validators</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>()).<span class="kw">await</span>;
+	<span class="comment">// Update a set of connected validators if necessary.</span>
+	<span class="ident">state</span>.<span class="ident">last_connected_at</span> <span class="op">=</span> <span class="ident">connect_to_validators</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">validator_groups_buf</span>).<span class="kw">await</span>;
 
 	<span class="ident">state</span>.<span class="ident">our_validators_groups</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ValidatorGroup::new</span>());
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result_sender</span>) <span class="op">=</span> <span class="ident">result_sender</span> {
-		<span class="ident">state</span>.<span class="ident">collation_result_senders</span>.<span class="ident">insert</span>(<span class="ident">receipt</span>.<span class="ident">hash</span>(), <span class="ident">result_sender</span>);
+		<span class="ident">state</span>.<span class="ident">collation_result_senders</span>.<span class="ident">insert</span>(<span class="ident">candidate_hash</span>, <span class="ident">result_sender</span>);
 	}
 
 	<span class="ident">state</span>
@@ -1556,6 +1487,9 @@
 <span class="kw">struct</span> <span class="ident">GroupValidators</span> {
 	<span class="doccomment">/// The validators of above group (their discovery keys).</span>
 	<span class="ident">validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>,
+
+	<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
+	<span class="ident">group_index</span>: <span class="ident">GroupIndex</span>,
 }
 
 <span class="doccomment">/// Figure out current group of validators assigned to the para being collated on.</span>
@@ -1589,7 +1523,11 @@
 	<span class="kw">let</span> <span class="ident">current_validators</span> <span class="op">=</span>
 		<span class="ident">current_validators</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">validators</span>[<span class="ident">i</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>()).<span class="ident">collect</span>();
 
-	<span class="kw">let</span> <span class="ident">current_validators</span> <span class="op">=</span> <span class="ident">GroupValidators</span> { <span class="ident">validators</span>: <span class="ident">current_validators</span> };
+	<span class="kw">let</span> <span class="ident">current_validators</span> <span class="op">=</span> <span class="ident">GroupValidators</span> {
+		<span class="ident">validators</span>: <span class="ident">current_validators</span>,
+		<span class="ident">session_index</span>,
+		<span class="ident">group_index</span>: <span class="ident">current_group_index</span>,
+	};
 
 	<span class="prelude-val">Ok</span>(<span class="ident">current_validators</span>)
 }
@@ -1614,13 +1552,19 @@
 	}
 }
 
-<span class="doccomment">/// Issue a connection request to a set of validators and</span>
-<span class="doccomment">/// revoke the previous connection request.</span>
+<span class="doccomment">/// Updates a set of connected validators based on their advertisement-bits</span>
+<span class="doccomment">/// in a validators buffer.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Returns current timestamp if the connection request was non-empty, `None`</span>
+<span class="doccomment">/// otherwise.</span>
 <span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">CollatorProtocol</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect_to_validators</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
 	<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-	<span class="ident">validator_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>,
-) {
+	<span class="ident">validator_groups_buf</span>: <span class="kw-2">&amp;</span><span class="ident">ValidatorGroupsBuffer</span>,
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span> {
+	<span class="kw">let</span> <span class="ident">validator_ids</span> <span class="op">=</span> <span class="ident">validator_groups_buf</span>.<span class="ident">validators_to_connect</span>();
+	<span class="kw">let</span> <span class="ident">is_disconnect</span> <span class="op">=</span> <span class="ident">validator_ids</span>.<span class="ident">is_empty</span>();
+
 	<span class="comment">// ignore address resolution failure</span>
 	<span class="comment">// will reissue a new request on new collation</span>
 	<span class="kw">let</span> (<span class="ident">failed</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
@@ -1630,6 +1574,8 @@
 		<span class="ident">failed</span>,
 	})
 	.<span class="kw">await</span>;
+
+	(<span class="op">!</span><span class="ident">is_disconnect</span>).<span class="ident">then_some</span>(<span class="ident">Instant::now</span>())
 }
 
 <span class="doccomment">/// Advertise collation to the given `peer`.</span>
@@ -1788,15 +1734,9 @@
 	<span class="ident">state</span>.<span class="ident">active_collation_fetches</span>.<span class="ident">push</span>(
 		<span class="kw">async</span> <span class="kw">move</span> {
 			<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">timeout</span>(<span class="ident">MAX_UNSHARED_UPLOAD_TIME</span>).<span class="kw">await</span>;
-			<span class="kw">if</span> <span class="ident">r</span>.<span class="ident">is_none</span>() {
-				<span class="macro">gum::debug!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">relay_parent</span>,
-					<span class="question-mark">?</span><span class="ident">peer_id</span>,
-					<span class="string">&quot;Sending collation to validator timed out, carrying on with next validator.&quot;</span>
-				);
-			}
-			(<span class="ident">relay_parent</span>, <span class="ident">peer_id</span>)
+			<span class="kw">let</span> <span class="ident">timed_out</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">is_none</span>();
+
+			<span class="ident">CollationSendResult</span> { <span class="ident">relay_parent</span>, <span class="ident">peer_id</span>, <span class="ident">timed_out</span> }
 		}
 		.<span class="ident">boxed</span>(),
 	);
@@ -2059,6 +1999,7 @@
 		<span class="ident">state</span>.<span class="ident">our_validators_groups</span>.<span class="ident">remove</span>(<span class="ident">removed</span>);
 		<span class="ident">state</span>.<span class="ident">span_per_relay_parent</span>.<span class="ident">remove</span>(<span class="ident">removed</span>);
 		<span class="ident">state</span>.<span class="ident">waiting_collation_fetches</span>.<span class="ident">remove</span>(<span class="ident">removed</span>);
+		<span class="ident">state</span>.<span class="ident">validator_groups_buf</span>.<span class="ident">remove_relay_parent</span>(<span class="ident">removed</span>);
 	}
 
 	<span class="ident">state</span>.<span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>;
@@ -2080,6 +2021,9 @@
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::new</span>(<span class="ident">local_peer_id</span>, <span class="ident">collator_pair</span>, <span class="ident">metrics</span>);
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">RuntimeInfo::new</span>(<span class="prelude-val">None</span>);
 
+	<span class="kw">let</span> <span class="ident">reconnect_stream</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::tick_stream</span>(<span class="ident">RECONNECT_POLL</span>);
+	<span class="macro">pin_mut!</span>(<span class="ident">reconnect_stream</span>);
+
 	<span class="kw">loop</span> {
 		<span class="kw">let</span> <span class="ident">recv_req</span> <span class="op">=</span> <span class="ident">req_receiver</span>.<span class="ident">recv</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="ident">COST_INVALID_REQUEST</span>]).<span class="ident">fuse</span>();
 		<span class="macro">pin_mut!</span>(<span class="ident">recv_req</span>);
@@ -2095,7 +2039,25 @@
 				<span class="ident">FromOrchestra::Signal</span>(<span class="ident">BlockFinalized</span>(..)) =&gt; {}
 				<span class="ident">FromOrchestra::Signal</span>(<span class="ident">Conclude</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
 			},
-			(<span class="ident">relay_parent</span>, <span class="ident">peer_id</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">active_collation_fetches</span>.<span class="ident">select_next_some</span>() =&gt; {
+			<span class="ident">CollationSendResult</span> {
+				<span class="ident">relay_parent</span>,
+				<span class="ident">peer_id</span>,
+				<span class="ident">timed_out</span>,
+			} <span class="op">=</span> <span class="ident">state</span>.<span class="ident">active_collation_fetches</span>.<span class="ident">select_next_some</span>() =&gt; {
+				<span class="kw">if</span> <span class="ident">timed_out</span> {
+					<span class="macro">gum::debug!</span>(
+						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+						<span class="question-mark">?</span><span class="ident">relay_parent</span>,
+						<span class="question-mark">?</span><span class="ident">peer_id</span>,
+						<span class="string">&quot;Sending collation to validator timed out, carrying on with next validator&quot;</span>,
+					);
+				} <span class="kw">else</span> {
+					<span class="kw">for</span> <span class="ident">authority_id</span> <span class="kw">in</span> <span class="ident">state</span>.<span class="ident">peer_ids</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">peer_id</span>).<span class="ident">into_iter</span>().<span class="ident">flatten</span>() {
+						<span class="comment">// Timeout not hit, this peer is no longer interested in this relay parent.</span>
+						<span class="ident">state</span>.<span class="ident">validator_groups_buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">relay_parent</span>, <span class="ident">authority_id</span>);
+					}
+				}
+
 				<span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waiting</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">waiting_collation_fetches</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">relay_parent</span>) {
 					<span class="ident">waiting</span>.<span class="ident">waiting_peers</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">peer_id</span>);
 					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">waiting</span>.<span class="ident">waiting</span>.<span class="ident">pop_front</span>() {
@@ -2115,7 +2077,29 @@
 
 					<span class="ident">send_collation</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="ident">next</span>, <span class="ident">receipt</span>, <span class="ident">pov</span>).<span class="kw">await</span>;
 				}
-			}
+			},
+			<span class="kw">_</span> <span class="op">=</span> <span class="ident">reconnect_stream</span>.<span class="ident">next</span>() =&gt; {
+				<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
+				<span class="kw">if</span> <span class="ident">state</span>
+					.<span class="ident">last_connected_at</span>
+					.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">timestamp</span><span class="op">|</span> <span class="ident">now</span> <span class="op">-</span> <span class="ident">timestamp</span> <span class="op">&gt;</span> <span class="ident">RECONNECT_TIMEOUT</span>)
+				{
+					<span class="comment">// Remove all advertisements from the buffer if the timeout was hit.</span>
+					<span class="comment">// Usually, it shouldn&#39;t be necessary as leaves get deactivated, rather</span>
+					<span class="comment">// serves as a safeguard against finality lags.</span>
+					<span class="ident">state</span>.<span class="ident">validator_groups_buf</span>.<span class="ident">clear_advertisements</span>();
+					<span class="comment">// Returns `None` if connection request is empty.</span>
+					<span class="ident">state</span>.<span class="ident">last_connected_at</span> <span class="op">=</span>
+						<span class="ident">connect_to_validators</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">validator_groups_buf</span>).<span class="kw">await</span>;
+
+					<span class="macro">gum::debug!</span>(
+						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+						<span class="ident">timeout</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">RECONNECT_TIMEOUT</span>,
+						<span class="string">&quot;Timeout hit, sent a connection request. Disconnected from all validators = {}&quot;</span>,
+						<span class="ident">state</span>.<span class="ident">last_connected_at</span>.<span class="ident">is_none</span>(),
+					);
+				}
+			},
 			<span class="ident">in_req</span> <span class="op">=</span> <span class="ident">recv_req</span> =&gt; {
 				<span class="kw">match</span> <span class="ident">in_req</span> {
 					<span class="prelude-val">Ok</span>(<span class="ident">req</span>) =&gt; {
