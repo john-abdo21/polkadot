@@ -1702,6 +1702,9 @@
 <span id="1696">1696</span>
 <span id="1697">1697</span>
 <span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -2421,7 +2424,7 @@
 		<span class="ident">assert_err</span>, <span class="ident">assert_noop</span>, <span class="ident">assert_ok</span>,
 		<span class="ident">dispatch</span>::{<span class="ident">DispatchError::BadOrigin</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">Pays</span>},
 		<span class="ident">ord_parameter_types</span>, <span class="ident">parameter_types</span>,
-		<span class="ident">traits</span>::{<span class="ident">ExistenceRequirement</span>, <span class="ident">GenesisBuild</span>},
+		<span class="ident">traits</span>::{<span class="ident">ExistenceRequirement</span>, <span class="ident">GenesisBuild</span>, <span class="ident">WithdrawReasons</span>},
 	};
 	<span class="kw">use</span> <span class="ident">pallet_balances</span>;
 	<span class="kw">use</span> <span class="ident">sp_runtime</span>::{
@@ -2494,6 +2497,8 @@
 
 	<span class="macro">parameter_types!</span> {
 		<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinVestedTransfer</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span>;
+		<span class="kw">pub</span> <span class="ident">UnvestedFundsAllowedWithdrawReasons</span>: <span class="ident">WithdrawReasons</span> <span class="op">=</span>
+			<span class="ident">WithdrawReasons::except</span>(<span class="ident">WithdrawReasons::TRANSFER</span> <span class="op">|</span> <span class="ident">WithdrawReasons::RESERVE</span>);
 	}
 
 	<span class="kw">impl</span> <span class="ident">pallet_vesting::Config</span> <span class="kw">for</span> <span class="ident">Test</span> {
@@ -2502,6 +2507,7 @@
 		<span class="kw">type</span> <span class="ident">BlockNumberToBalance</span> <span class="op">=</span> <span class="ident">Identity</span>;
 		<span class="kw">type</span> <span class="ident">MinVestedTransfer</span> <span class="op">=</span> <span class="ident">MinVestedTransfer</span>;
 		<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> ();
+		<span class="kw">type</span> <span class="ident">UnvestedFundsAllowedWithdrawReasons</span> <span class="op">=</span> <span class="ident">UnvestedFundsAllowedWithdrawReasons</span>;
 		<span class="kw">const</span> <span class="ident">MAX_VESTING_SCHEDULES</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">28</span>;
 	}
 

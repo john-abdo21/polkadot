@@ -1859,6 +1859,9 @@
 <span id="1853">1853</span>
 <span id="1854">1854</span>
 <span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1886,7 +1889,7 @@
 <span class="kw">use</span> <span class="ident">frame_election_provider_support</span>::{<span class="ident">onchain</span>, <span class="ident">SequentialPhragmen</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">construct_runtime</span>, <span class="ident">parameter_types</span>,
-	<span class="ident">traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">InstanceFilter</span>, <span class="ident">KeyOwnerProofSystem</span>},
+	<span class="ident">traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">InstanceFilter</span>, <span class="ident">KeyOwnerProofSystem</span>, <span class="ident">WithdrawReasons</span>},
 	<span class="ident">weights::ConstantMultiplier</span>,
 	<span class="ident">PalletId</span>,
 };
@@ -2573,6 +2576,8 @@
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MinVestedTransfer</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">CENTS</span>;
+	<span class="kw">pub</span> <span class="ident">UnvestedFundsAllowedWithdrawReasons</span>: <span class="ident">WithdrawReasons</span> <span class="op">=</span>
+		<span class="ident">WithdrawReasons::except</span>(<span class="ident">WithdrawReasons::TRANSFER</span> <span class="op">|</span> <span class="ident">WithdrawReasons::RESERVE</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_vesting::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
@@ -2581,6 +2586,7 @@
 	<span class="kw">type</span> <span class="ident">BlockNumberToBalance</span> <span class="op">=</span> <span class="ident">ConvertInto</span>;
 	<span class="kw">type</span> <span class="ident">MinVestedTransfer</span> <span class="op">=</span> <span class="ident">MinVestedTransfer</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">weights::pallet_vesting::WeightInfo</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">UnvestedFundsAllowedWithdrawReasons</span> <span class="op">=</span> <span class="ident">UnvestedFundsAllowedWithdrawReasons</span>;
 	<span class="kw">const</span> <span class="ident">MAX_VESTING_SCHEDULES</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">28</span>;
 }
 
