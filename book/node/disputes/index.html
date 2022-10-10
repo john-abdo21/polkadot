@@ -157,9 +157,11 @@
 <p>No more than one statement by each validator on each side of the dispute needs to be stored. That is, validators are allowed to participate on both sides of the dispute, although we won't write code to do so. Such behavior has negative extractable value in the runtime.</p>
 <p>This will notify the dispute participation subsystem of a new dispute if the local validator has not issued any statements on the disputed candidate already.</p>
 <p>Locally authored statements related to disputes will be forwarded to the dispute distribution subsystem.</p>
-<p>This subsystem also provides two further behaviors for the interactions between disputes and fork-choice
-- Enhancing the finality voting rule. Given description of a chain and candidates included at different heights in that chain, it returns the <code>BlockHash</code> corresponding to the highest <code>BlockNumber</code> that there are no disputes before. I expect that we will slightly change <code>ApprovalVoting::ApprovedAncestor</code> to return this set and then the target block to vote on will be further constrained by this function.
-- Chain roll-backs. Whenever importing new blocks, the header should be scanned for a roll-back digest. If there is one, the chain should be rolled back according to the digest. I expect this would be implemented with a <code>ChainApi</code> function and possibly an <code>ApprovalVoting</code> function to clean up the approval voting DB.</p>
+<p>This subsystem also provides two further behaviors for the interactions between disputes and fork-choice</p>
+<ul>
+<li>Enhancing the finality voting rule. Given description of a chain and candidates included at different heights in that chain, it returns the <code>BlockHash</code> corresponding to the highest <code>BlockNumber</code> that there are no disputes before. I expect that we will slightly change <code>ApprovalVoting::ApprovedAncestor</code> to return this set and then the target block to vote on will be further constrained by this function.</li>
+<li>Chain roll-backs. Whenever importing new blocks, the header should be scanned for a roll-back digest. If there is one, the chain should be rolled back according to the digest. I expect this would be implemented with a <code>ChainApi</code> function and possibly an <code>ApprovalVoting</code> function to clean up the approval voting DB.</li>
+</ul>
 <h3 id="dispute-participation"><a class="header" href="#dispute-participation">Dispute Participation</a></h3>
 <p>This subsystem ties together the dispute tracker, availability recovery, candidate validation, and dispute distribution subsystems. When notified of a new dispute by the Dispute Tracker, the data should be recovered, the validation code loaded from the relay chain, and the candidate is executed.</p>
 <p>A statement depending on the outcome of the execution is produced, signed, and imported to the dispute tracker.</p>

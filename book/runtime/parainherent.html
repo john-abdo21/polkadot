@@ -181,9 +181,12 @@ OnChainVotes: Option&lt;ScrapedOnChainVotes&gt;,
 <li>Hash the parent header and make sure that it corresponds to the block hash of the parent (tracked by the <code>frame_system</code> FRAME module).</li>
 <li>Calculate the <code>candidate_weight</code>, <code>bitfields_weight</code>, and <code>disputes_weight</code>.</li>
 <li>If the sum of <code>candidate_weight</code>, <code>bitfields_weight</code>, and <code>disputes_weight</code> is greater than the max block weight we do the following with the goal of prioritizing the inclusion of disputes without making it game-able by block authors:
-1. clear <code>bitfields</code> and set <code>bitfields_weight</code> equal to 0.
-1. clear <code>backed_candidates</code> and set <code>candidate_weight</code> equal to 0.
-1. invoke <code>limit_disputes</code> on the <code>disputes</code> with the max block weight iff the disputes weight is greater than the max block weight.</li>
+<ol>
+<li>clear <code>bitfields</code> and set <code>bitfields_weight</code> equal to 0.</li>
+<li>clear <code>backed_candidates</code> and set <code>candidate_weight</code> equal to 0.</li>
+<li>invoke <code>limit_disputes</code> on the <code>disputes</code> with the max block weight iff the disputes weight is greater than the max block weight.</li>
+</ol>
+</li>
 <li>Invoke <code>Disputes::provide_multi_dispute_data</code>.</li>
 <li>If <code>Disputes::is_frozen</code>, return.</li>
 <li>If there are any concluded disputes from the current session, invoke <code>Inclusion::collect_disputed</code> with the disputed candidates. Annotate each returned core with <code>FreedReason::Concluded</code>, sort them, and invoke <code>Scheduler::free_cores</code> with them.</li>
