@@ -156,7 +156,7 @@
 
 <span class="kw">use</span> <span class="ident">clap::Parser</span>;
 <span class="kw">use</span> <span class="ident">color_eyre::eyre</span>;
-<span class="kw">use</span> <span class="ident">polkadot_cli</span>::{<span class="ident">Cli</span>, <span class="ident">RunCmd</span>};
+<span class="kw">use</span> <span class="ident">polkadot_cli::Cli</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">interceptor</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">shared</span>;
@@ -171,9 +171,9 @@
 <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="kw">enum</span> <span class="ident">NemesisVariant</span> {
 	<span class="doccomment">/// Suggest a candidate with an invalid proof of validity.</span>
-	<span class="ident">SuggestGarbageCandidate</span>(<span class="ident">RunCmd</span>),
+	<span class="ident">SuggestGarbageCandidate</span>(<span class="ident">Cli</span>),
 	<span class="doccomment">/// Back a candidate with a specifically crafted proof of validity.</span>
-	<span class="ident">BackGarbageCandidate</span>(<span class="ident">RunCmd</span>),
+	<span class="ident">BackGarbageCandidate</span>(<span class="ident">Cli</span>),
 	<span class="doccomment">/// Delayed disputing of ancestors that are perfectly fine.</span>
 	<span class="ident">DisputeAncestor</span>(<span class="ident">DisputeAncestorOptions</span>),
 
@@ -195,24 +195,24 @@
 	<span class="kw">pub</span> <span class="ident">finality_delay</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">fn</span> <span class="ident">run_cmd</span>(<span class="ident">run</span>: <span class="ident">RunCmd</span>) -&gt; <span class="ident">Cli</span> {
-	<span class="ident">Cli</span> { <span class="ident">subcommand</span>: <span class="prelude-val">None</span>, <span class="ident">run</span> }
-}
-
 <span class="kw">impl</span> <span class="ident">MalusCli</span> {
 	<span class="doccomment">/// Launch a malus node.</span>
 	<span class="kw">fn</span> <span class="ident">launch</span>(<span class="self">self</span>) -&gt; <span class="ident">eyre::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">finality_delay</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">finality_delay</span>;
 		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">variant</span> {
-			<span class="ident">NemesisVariant::BackGarbageCandidate</span>(<span class="ident">cmd</span>) =&gt;
-				<span class="ident">polkadot_cli::run_node</span>(<span class="ident">run_cmd</span>(<span class="ident">cmd</span>), <span class="ident">BackGarbageCandidate</span>, <span class="ident">finality_delay</span>)<span class="question-mark">?</span>,
-			<span class="ident">NemesisVariant::SuggestGarbageCandidate</span>(<span class="ident">cmd</span>) =&gt;
-				<span class="ident">polkadot_cli::run_node</span>(<span class="ident">run_cmd</span>(<span class="ident">cmd</span>), <span class="ident">BackGarbageCandidateWrapper</span>, <span class="ident">finality_delay</span>)<span class="question-mark">?</span>,
-			<span class="ident">NemesisVariant::DisputeAncestor</span>(<span class="ident">opts</span>) =&gt; <span class="ident">polkadot_cli::run_node</span>(
-				<span class="ident">run_cmd</span>(<span class="ident">opts</span>.<span class="ident">clone</span>().<span class="ident">cmd</span>),
-				<span class="ident">DisputeValidCandidates::new</span>(<span class="ident">opts</span>),
-				<span class="ident">finality_delay</span>,
-			)<span class="question-mark">?</span>,
+			<span class="ident">NemesisVariant::BackGarbageCandidate</span>(<span class="ident">cli</span>) =&gt;
+				<span class="ident">polkadot_cli::run_node</span>(<span class="ident">cli</span>, <span class="ident">BackGarbageCandidate</span>, <span class="ident">finality_delay</span>)<span class="question-mark">?</span>,
+			<span class="ident">NemesisVariant::SuggestGarbageCandidate</span>(<span class="ident">cli</span>) =&gt;
+				<span class="ident">polkadot_cli::run_node</span>(<span class="ident">cli</span>, <span class="ident">BackGarbageCandidateWrapper</span>, <span class="ident">finality_delay</span>)<span class="question-mark">?</span>,
+			<span class="ident">NemesisVariant::DisputeAncestor</span>(<span class="ident">opts</span>) =&gt; {
+				<span class="kw">let</span> <span class="ident">DisputeAncestorOptions</span> { <span class="ident">fake_validation</span>, <span class="ident">fake_validation_error</span>, <span class="ident">cli</span> } <span class="op">=</span> <span class="ident">opts</span>;
+
+				<span class="ident">polkadot_cli::run_node</span>(
+					<span class="ident">cli</span>,
+					<span class="ident">DisputeValidCandidates</span> { <span class="ident">fake_validation</span>, <span class="ident">fake_validation_error</span> },
+					<span class="ident">finality_delay</span>,
+				)<span class="question-mark">?</span>
+			},
 			<span class="ident">NemesisVariant::PvfPrepareWorker</span>(<span class="ident">cmd</span>) =&gt; {
 				<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>)]</span>
 				{
@@ -264,7 +264,7 @@
 			<span class="ident">variant</span>: <span class="ident">NemesisVariant::DisputeAncestor</span>(<span class="ident">run</span>),
 			..
 		} =&gt; {
-			<span class="macro">assert!</span>(<span class="ident">run</span>.<span class="ident">cmd</span>.<span class="ident">base</span>.<span class="ident">bob</span>);
+			<span class="macro">assert!</span>(<span class="ident">run</span>.<span class="ident">cli</span>.<span class="ident">run</span>.<span class="ident">base</span>.<span class="ident">bob</span>);
 		});
 	}
 }

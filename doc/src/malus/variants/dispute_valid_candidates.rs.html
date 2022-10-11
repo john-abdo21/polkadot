@@ -98,10 +98,6 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -133,7 +129,7 @@
 		<span class="ident">OverseerConnector</span>, <span class="ident">OverseerGen</span>, <span class="ident">OverseerGenArgs</span>, <span class="ident">OverseerHandle</span>, <span class="ident">ParachainHost</span>,
 		<span class="ident">ProvideRuntimeApi</span>,
 	},
-	<span class="ident">RunCmd</span>,
+	<span class="ident">Cli</span>,
 };
 <span class="kw">use</span> <span class="ident">polkadot_node_subsystem::SpawnGlue</span>;
 <span class="kw">use</span> <span class="ident">sp_core::traits::SpawnNamed</span>;
@@ -144,7 +140,7 @@
 
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">clap::Parser</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">clap::Parser</span>)]</span>
 <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisputeAncestorOptions</span> {
@@ -160,18 +156,14 @@
 	<span class="kw">pub</span> <span class="ident">fake_validation_error</span>: <span class="ident">FakeCandidateValidationError</span>,
 
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">cmd</span>: <span class="ident">RunCmd</span>,
+	<span class="kw">pub</span> <span class="ident">cli</span>: <span class="ident">Cli</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DisputeValidCandidates</span> {
 	<span class="doccomment">/// Fake validation config (applies to disputes as well).</span>
-	<span class="ident">opts</span>: <span class="ident">DisputeAncestorOptions</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">DisputeValidCandidates</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">opts</span>: <span class="ident">DisputeAncestorOptions</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">opts</span> }
-	}
+	<span class="kw">pub</span> <span class="ident">fake_validation</span>: <span class="ident">FakeCandidateValidation</span>,
+	<span class="doccomment">/// Fake validation error config.</span>
+	<span class="kw">pub</span> <span class="ident">fake_validation_error</span>: <span class="ident">FakeCandidateValidationError</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">OverseerGen</span> <span class="kw">for</span> <span class="ident">DisputeValidCandidates</span> {
@@ -187,8 +179,8 @@
 	{
 		<span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">spawner</span>.<span class="ident">clone</span>();
 		<span class="kw">let</span> <span class="ident">validation_filter</span> <span class="op">=</span> <span class="ident">ReplaceValidationResult::new</span>(
-			<span class="self">self</span>.<span class="ident">opts</span>.<span class="ident">fake_validation</span>,
-			<span class="self">self</span>.<span class="ident">opts</span>.<span class="ident">fake_validation_error</span>,
+			<span class="self">self</span>.<span class="ident">fake_validation</span>,
+			<span class="self">self</span>.<span class="ident">fake_validation_error</span>,
 			<span class="ident">SpawnGlue</span>(<span class="ident">spawner</span>.<span class="ident">clone</span>()),
 		);
 
