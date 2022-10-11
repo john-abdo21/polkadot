@@ -1356,6 +1356,71 @@
 <span id="1350">1350</span>
 <span id="1351">1351</span>
 <span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1418,6 +1483,8 @@
 	<span class="kw">fn</span> <span class="ident">force_register</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">deregister</span>() -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">swap</span>() -&gt; <span class="ident">Weight</span>;
+	<span class="kw">fn</span> <span class="ident">schedule_code_upgrade</span>(<span class="ident">b</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
+	<span class="kw">fn</span> <span class="ident">set_current_head</span>(<span class="ident">b</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestWeightInfo</span>;
@@ -1435,6 +1502,12 @@
 		<span class="ident">Weight::zero</span>()
 	}
 	<span class="kw">fn</span> <span class="ident">swap</span>() -&gt; <span class="ident">Weight</span> {
+		<span class="ident">Weight::zero</span>()
+	}
+	<span class="kw">fn</span> <span class="ident">schedule_code_upgrade</span>(<span class="ident">_b</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
+		<span class="ident">Weight::zero</span>()
+	}
+	<span class="kw">fn</span> <span class="ident">set_current_head</span>(<span class="ident">_b</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
 		<span class="ident">Weight::zero</span>()
 	}
 }
@@ -1676,11 +1749,11 @@
 		<span class="doccomment">/// Remove a manager lock from a para. This will allow the manager of a</span>
 		<span class="doccomment">/// previously locked para to deregister or swap a para without using governance.</span>
 		<span class="doccomment">///</span>
-		<span class="doccomment">/// Can only be called by the Root origin.</span>
+		<span class="doccomment">/// Can only be called by the Root origin or the parachain.</span>
 		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="number">1</span>))]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force_remove_lock</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">para</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="ident"><span class="self">Self</span>::remove_lock</span>(<span class="ident">para</span>);
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_lock</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">para</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">DispatchResult</span> {
+			<span class="ident"><span class="self">Self</span>::ensure_root_or_para</span>(<span class="ident">origin</span>, <span class="ident">para</span>)<span class="question-mark">?</span>;
+			<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Registrar</span><span class="op">&gt;</span><span class="ident">::remove_lock</span>(<span class="ident">para</span>);
 			<span class="prelude-val">Ok</span>(())
 		}
 
@@ -1704,6 +1777,45 @@
 			<span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">NextFreeParaId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">max</span>(<span class="ident">LOWEST_PUBLIC_ID</span>);
 			<span class="ident"><span class="self">Self</span>::do_reserve</span>(<span class="ident">who</span>, <span class="prelude-val">None</span>, <span class="ident">id</span>)<span class="question-mark">?</span>;
 			<span class="ident">NextFreeParaId</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">id</span> <span class="op">+</span> <span class="number">1</span>);
+			<span class="prelude-val">Ok</span>(())
+		}
+
+		<span class="doccomment">/// Add a manager lock from a para. This will prevent the manager of a</span>
+		<span class="doccomment">/// para to deregister or swap a para.</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="number">1</span>))]</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_lock</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">para</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">DispatchResult</span> {
+			<span class="ident"><span class="self">Self</span>::ensure_root_para_or_owner</span>(<span class="ident">origin</span>, <span class="ident">para</span>)<span class="question-mark">?</span>;
+			<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Registrar</span><span class="op">&gt;</span><span class="ident">::apply_lock</span>(<span class="ident">para</span>);
+			<span class="prelude-val">Ok</span>(())
+		}
+
+		<span class="doccomment">/// Schedule a parachain upgrade.</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_code_upgrade</span>(<span class="ident">new_code</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>))]</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_code_upgrade</span>(
+			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">para</span>: <span class="ident">ParaId</span>,
+			<span class="ident">new_code</span>: <span class="ident">ValidationCode</span>,
+		) -&gt; <span class="ident">DispatchResult</span> {
+			<span class="ident"><span class="self">Self</span>::ensure_root_para_or_owner</span>(<span class="ident">origin</span>, <span class="ident">para</span>)<span class="question-mark">?</span>;
+			<span class="ident">runtime_parachains::schedule_code_upgrade</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">para</span>, <span class="ident">new_code</span>)<span class="question-mark">?</span>;
+			<span class="prelude-val">Ok</span>(())
+		}
+
+		<span class="doccomment">/// Set the parachain&#39;s current head.</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::set_current_head</span>(<span class="ident">new_head</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>))]</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_current_head</span>(
+			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">para</span>: <span class="ident">ParaId</span>,
+			<span class="ident">new_head</span>: <span class="ident">HeadData</span>,
+		) -&gt; <span class="ident">DispatchResult</span> {
+			<span class="ident"><span class="self">Self</span>::ensure_root_para_or_owner</span>(<span class="ident">origin</span>, <span class="ident">para</span>)<span class="question-mark">?</span>;
+			<span class="ident">runtime_parachains::set_current_head</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">para</span>, <span class="ident">new_head</span>);
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
@@ -1737,7 +1849,7 @@
 		<span class="ident">Paras</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="ident">id</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">true</span>));
 	}
 
-	<span class="comment">// Apply a lock to the parachain.</span>
+	<span class="comment">// Remove a lock from the parachain.</span>
 	<span class="kw">fn</span> <span class="ident">remove_lock</span>(<span class="ident">id</span>: <span class="ident">ParaId</span>) {
 		<span class="ident">Paras</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="ident">id</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">locked</span> <span class="op">=</span> <span class="bool-val">false</span>));
 	}
@@ -1825,17 +1937,23 @@
 				<span class="macro">ensure!</span>(<span class="ident">para_info</span>.<span class="ident">manager</span> <span class="op">==</span> <span class="ident">who</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotOwner</span>);
 				<span class="prelude-val">Ok</span>(())
 			})
-			.<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> -&gt; <span class="ident">DispatchResult</span> {
-				<span class="comment">// Else check if para origin...</span>
-				<span class="kw">let</span> <span class="ident">caller_id</span> <span class="op">=</span>
-					<span class="ident">ensure_parachain</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::RuntimeOrigin::from</span>(<span class="ident">origin</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
-				<span class="macro">ensure!</span>(<span class="ident">caller_id</span> <span class="op">==</span> <span class="ident">id</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotOwner</span>);
-				<span class="prelude-val">Ok</span>(())
-			})
-			.<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> -&gt; <span class="ident">DispatchResult</span> {
-				<span class="comment">// Check if root...</span>
-				<span class="ident">ensure_root</span>(<span class="ident">origin</span>.<span class="ident">clone</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>())
-			})
+			.<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> -&gt; <span class="ident">DispatchResult</span> { <span class="ident"><span class="self">Self</span>::ensure_root_or_para</span>(<span class="ident">origin</span>, <span class="ident">id</span>) })
+	}
+
+	<span class="doccomment">/// Ensure the origin is one of Root or the `para` itself.</span>
+	<span class="kw">fn</span> <span class="ident">ensure_root_or_para</span>(
+		<span class="ident">origin</span>: <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::RuntimeOrigin</span>,
+		<span class="ident">id</span>: <span class="ident">ParaId</span>,
+	) -&gt; <span class="ident">DispatchResult</span> {
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">caller_id</span>) <span class="op">=</span> <span class="ident">ensure_parachain</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::RuntimeOrigin::from</span>(<span class="ident">origin</span>.<span class="ident">clone</span>()))
+		{
+			<span class="comment">// Check if matching para id...</span>
+			<span class="macro">ensure!</span>(<span class="ident">caller_id</span> <span class="op">==</span> <span class="ident">id</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotOwner</span>);
+		} <span class="kw">else</span> {
+			<span class="comment">// Check if root...</span>
+			<span class="ident">ensure_root</span>(<span class="ident">origin</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+		}
+		<span class="prelude-val">Ok</span>(())
 	}
 
 	<span class="kw">fn</span> <span class="ident">do_reserve</span>(
@@ -2445,21 +2563,20 @@
 				<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].<span class="ident">into</span>(),
 			));
 
-			<span class="comment">// Owner can call swap</span>
-			<span class="macro">assert_ok!</span>(<span class="ident">Registrar::swap</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">1</span>), <span class="ident">para_id</span>, <span class="ident">para_id</span> <span class="op">+</span> <span class="number">1</span>));
-
-			<span class="comment">// 2 session changes to fully onboard.</span>
-			<span class="ident">run_to_session</span>(<span class="number">2</span>);
-			<span class="macro">assert_eq!</span>(<span class="ident">Parachains::lifecycle</span>(<span class="ident">para_id</span>), <span class="prelude-val">Some</span>(<span class="ident">ParaLifecycle::Parathread</span>));
-
+			<span class="macro">assert_noop!</span>(<span class="ident">Registrar::add_lock</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">2</span>), <span class="ident">para_id</span>), <span class="ident">BadOrigin</span>);
 			<span class="comment">// Once they begin onboarding, we lock them in.</span>
-			<span class="macro">assert_ok!</span>(<span class="ident">Registrar::make_parachain</span>(<span class="ident">para_id</span>));
-
-			<span class="comment">// Owner cannot call swap anymore</span>
+			<span class="macro">assert_ok!</span>(<span class="ident">Registrar::add_lock</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">1</span>), <span class="ident">para_id</span>));
+			<span class="comment">// Owner cannot pass origin check when checking lock</span>
 			<span class="macro">assert_noop!</span>(
-				<span class="ident">Registrar::swap</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">1</span>), <span class="ident">para_id</span>, <span class="ident">para_id</span> <span class="op">+</span> <span class="number">2</span>),
+				<span class="ident">Registrar::ensure_root_para_or_owner</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">1</span>), <span class="ident">para_id</span>),
 				<span class="ident">BadOrigin</span>
 			);
+			<span class="comment">// Owner cannot remove lock.</span>
+			<span class="macro">assert_noop!</span>(<span class="ident">Registrar::remove_lock</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">1</span>), <span class="ident">para_id</span>), <span class="ident">BadOrigin</span>);
+			<span class="comment">// Para can.</span>
+			<span class="macro">assert_ok!</span>(<span class="ident">Registrar::remove_lock</span>(<span class="ident">para_origin</span>(<span class="ident">para_id</span>), <span class="ident">para_id</span>));
+			<span class="comment">// Owner can pass origin check again</span>
+			<span class="macro">assert_ok!</span>(<span class="ident">Registrar::ensure_root_para_or_owner</span>(<span class="ident">RuntimeOrigin::signed</span>(<span class="number">1</span>), <span class="ident">para_id</span>));
 		});
 	}
 
@@ -2585,6 +2702,7 @@
 	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::traits::Registrar</span> <span class="kw">as</span> <span class="ident">RegistrarT</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::assert_ok</span>;
 	<span class="kw">use</span> <span class="ident">frame_system::RawOrigin</span>;
+	<span class="kw">use</span> <span class="ident">primitives::v2</span>::{<span class="ident">MAX_CODE_SIZE</span>, <span class="ident">MAX_HEAD_DATA_SIZE</span>};
 	<span class="kw">use</span> <span class="ident">runtime_parachains</span>::{<span class="ident">paras</span>, <span class="ident">shared</span>, <span class="ident">Origin</span> <span class="kw">as</span> <span class="ident">ParaOrigin</span>};
 	<span class="kw">use</span> <span class="ident">sp_runtime::traits::Bounded</span>;
 
@@ -2700,6 +2818,18 @@
 			<span class="macro">assert_eq!</span>(<span class="ident">paras::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::lifecycle</span>(<span class="ident">parachain</span>), <span class="prelude-val">Some</span>(<span class="ident">ParaLifecycle::Parathread</span>));
 			<span class="macro">assert_eq!</span>(<span class="ident">paras::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::lifecycle</span>(<span class="ident">parathread</span>), <span class="prelude-val">Some</span>(<span class="ident">ParaLifecycle::Parachain</span>));
 		}
+
+		<span class="ident">schedule_code_upgrade</span> {
+			<span class="kw">let</span> <span class="ident">b</span> <span class="kw">in</span> <span class="number">1</span> .. <span class="ident">MAX_CODE_SIZE</span>;
+			<span class="kw">let</span> <span class="ident">new_code</span> <span class="op">=</span> <span class="ident">ValidationCode</span>(<span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>]);
+			<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">ParaId::from</span>(<span class="number">1000</span>);
+		}: <span class="kw">_</span>(<span class="ident">RawOrigin::Root</span>, <span class="ident">para_id</span>, <span class="ident">new_code</span>)
+
+		<span class="ident">set_current_head</span> {
+			<span class="kw">let</span> <span class="ident">b</span> <span class="kw">in</span> <span class="number">1</span> .. <span class="ident">MAX_HEAD_DATA_SIZE</span>;
+			<span class="kw">let</span> <span class="ident">new_head</span> <span class="op">=</span> <span class="ident">HeadData</span>(<span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>]);
+			<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">ParaId::from</span>(<span class="number">1000</span>);
+		}: <span class="kw">_</span>(<span class="ident">RawOrigin::Root</span>, <span class="ident">para_id</span>, <span class="ident">new_head</span>)
 
 		<span class="macro">impl_benchmark_test_suite!</span>(
 			<span class="ident">Registrar</span>,
