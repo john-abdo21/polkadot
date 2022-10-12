@@ -2137,6 +2137,16 @@
 <span id="2131">2131</span>
 <span id="2132">2132</span>
 <span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -2166,7 +2176,7 @@
 
 <span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
 	<span class="self">self</span> <span class="kw">as</span> <span class="ident">net_protocol</span>,
-	<span class="ident">grid_topology</span>::{<span class="ident">RequiredRouting</span>, <span class="ident">SessionBoundGridTopologyStorage</span>, <span class="ident">SessionGridTopology</span>},
+	<span class="ident">grid_topology</span>::{<span class="ident">GridNeighbors</span>, <span class="ident">RequiredRouting</span>, <span class="ident">SessionBoundGridTopologyStorage</span>},
 	<span class="ident">peer_set</span>::{<span class="ident">IsAuthority</span>, <span class="ident">PeerSet</span>},
 	<span class="ident">request_response</span>::{<span class="ident">v1</span> <span class="kw">as</span> <span class="ident">request_v1</span>, <span class="ident">IncomingRequestReceiver</span>},
 	<span class="ident">v1</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">protocol_v1</span>, <span class="ident">StatementMetadata</span>},
@@ -3049,7 +3059,10 @@
 		.<span class="ident">with_candidate</span>(<span class="ident">statement</span>.<span class="ident">payload</span>().<span class="ident">candidate_hash</span>())
 		.<span class="ident">with_stage</span>(<span class="ident">jaeger::Stage::StatementDistribution</span>);
 
-	<span class="kw">let</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">topology_store</span>.<span class="ident">get_topology_or_fallback</span>(<span class="ident">active_head</span>.<span class="ident">session_index</span>);
+	<span class="kw">let</span> <span class="ident">topology</span> <span class="op">=</span> <span class="ident">topology_store</span>
+		.<span class="ident">get_topology_or_fallback</span>(<span class="ident">active_head</span>.<span class="ident">session_index</span>)
+		.<span class="ident">local_grid_neighbors</span>();
+
 	<span class="comment">// First circulate the statement directly to all peers needing it.</span>
 	<span class="comment">// The borrow of `active_head` needs to encompass only this (Rust) statement.</span>
 	<span class="kw">let</span> <span class="ident">outputs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">CandidateHash</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">=</span> {
@@ -3148,7 +3161,7 @@
 <span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">StatementDistribution</span>, <span class="ident">prefix</span><span class="op">=</span><span class="ident"><span class="self">self</span>::overseer</span>)]</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">circulate_statement</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Context</span><span class="op">&gt;</span>(
 	<span class="ident">required_routing</span>: <span class="ident">RequiredRouting</span>,
-	<span class="ident">topology</span>: <span class="kw-2">&amp;</span><span class="ident">SessionGridTopology</span>,
+	<span class="ident">topology</span>: <span class="kw-2">&amp;</span><span class="ident">GridNeighbors</span>,
 	<span class="ident">peers</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PeerId</span>, <span class="ident">PeerData</span><span class="op">&gt;</span>,
 	<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
@@ -3491,7 +3504,8 @@
 
 		<span class="kw">let</span> <span class="ident">session_index</span> <span class="op">=</span> <span class="ident">runtime</span>.<span class="ident">get_session_index_for_child</span>(<span class="ident">ctx</span>.<span class="ident">sender</span>(), <span class="ident">relay_parent</span>).<span class="kw">await</span>;
 		<span class="kw">let</span> <span class="ident">topology</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">session_index</span> {
-			<span class="prelude-val">Ok</span>(<span class="ident">session_index</span>) =&gt; <span class="ident">topology_storage</span>.<span class="ident">get_topology_or_fallback</span>(<span class="ident">session_index</span>),
+			<span class="prelude-val">Ok</span>(<span class="ident">session_index</span>) =&gt;
+				<span class="ident">topology_storage</span>.<span class="ident">get_topology_or_fallback</span>(<span class="ident">session_index</span>).<span class="ident">local_grid_neighbors</span>(),
 			<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
 				<span class="macro">gum::debug!</span>(
 					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
@@ -3500,7 +3514,7 @@
 					<span class="ident">e</span>
 				);
 
-				<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>()
+				<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>().<span class="ident">local_grid_neighbors</span>()
 			},
 		};
 		<span class="kw">let</span> <span class="ident">required_routing</span> <span class="op">=</span>
@@ -3727,7 +3741,7 @@
 <span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">StatementDistribution</span>, <span class="ident">prefix</span><span class="op">=</span><span class="ident"><span class="self">self</span>::overseer</span>)]</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">update_peer_view_and_maybe_send_unlocked</span><span class="op">&lt;</span><span class="ident">Context</span>, <span class="ident">R</span><span class="op">&gt;</span>(
 	<span class="ident">peer</span>: <span class="ident">PeerId</span>,
-	<span class="ident">topology</span>: <span class="kw-2">&amp;</span><span class="ident">SessionGridTopology</span>,
+	<span class="ident">topology</span>: <span class="kw-2">&amp;</span><span class="ident">GridNeighbors</span>,
 	<span class="ident">peer_data</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PeerData</span>,
 	<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 	<span class="ident">active_heads</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ActiveHeadData</span><span class="op">&gt;</span>,
@@ -3812,16 +3826,22 @@
 			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">metrics</span>.<span class="ident">time_network_bridge_update_v1</span>(<span class="string">&quot;new_gossip_topology&quot;</span>);
 
 			<span class="kw">let</span> <span class="ident">new_session_index</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">session</span>;
-			<span class="kw">let</span> <span class="ident">new_topology</span>: <span class="ident">SessionGridTopology</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">into</span>();
-			<span class="kw">let</span> <span class="ident">old_topology</span> <span class="op">=</span> <span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>();
-			<span class="kw">let</span> <span class="ident">newly_added</span> <span class="op">=</span> <span class="ident">new_topology</span>.<span class="ident">peers_diff</span>(<span class="ident">old_topology</span>);
-			<span class="ident">topology_storage</span>.<span class="ident">update_topology</span>(<span class="ident">new_session_index</span>, <span class="ident">new_topology</span>);
+			<span class="kw">let</span> <span class="ident">new_topology</span> <span class="op">=</span> <span class="ident">topology</span>.<span class="ident">topology</span>;
+			<span class="kw">let</span> <span class="ident">old_topology</span> <span class="op">=</span>
+				<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>().<span class="ident">local_grid_neighbors</span>().<span class="ident">clone</span>();
+			<span class="ident">topology_storage</span>.<span class="ident">update_topology</span>(<span class="ident">new_session_index</span>, <span class="ident">new_topology</span>, <span class="ident">topology</span>.<span class="ident">local_index</span>);
+
+			<span class="kw">let</span> <span class="ident">newly_added</span> <span class="op">=</span> <span class="ident">topology_storage</span>
+				.<span class="ident">get_current_topology</span>()
+				.<span class="ident">local_grid_neighbors</span>()
+				.<span class="ident">peers_diff</span>(<span class="kw-2">&amp;</span><span class="ident">old_topology</span>);
+
 			<span class="kw">for</span> <span class="ident">peer</span> <span class="kw">in</span> <span class="ident">newly_added</span> {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">peers</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">peer</span>) {
 					<span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">view</span>);
 					<span class="ident">update_peer_view_and_maybe_send_unlocked</span>(
 						<span class="ident">peer</span>,
-						<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>(),
+						<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>().<span class="ident">local_grid_neighbors</span>(),
 						<span class="ident">data</span>,
 						<span class="ident">ctx</span>,
 						<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">active_heads</span>,
@@ -3856,7 +3876,7 @@
 				<span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt;
 					<span class="ident">update_peer_view_and_maybe_send_unlocked</span>(
 						<span class="ident">peer</span>,
-						<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>(),
+						<span class="ident">topology_storage</span>.<span class="ident">get_current_topology</span>().<span class="ident">local_grid_neighbors</span>(),
 						<span class="ident">data</span>,
 						<span class="ident">ctx</span>,
 						<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">active_heads</span>,

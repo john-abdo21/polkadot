@@ -927,9 +927,6 @@
 <span id="921">921</span>
 <span id="922">922</span>
 <span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -959,6 +956,7 @@
 
 <span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
 	<span class="self">self</span> <span class="kw">as</span> <span class="ident">net_protocol</span>,
+	<span class="ident">grid_topology</span>::{<span class="ident">SessionGridTopology</span>, <span class="ident">TopologyPeerInfo</span>},
 	<span class="ident">peer_set</span>::{
 		<span class="ident">CollationVersion</span>, <span class="ident">PeerSet</span>, <span class="ident">PeerSetProtocolNames</span>, <span class="ident">PerPeerSet</span>, <span class="ident">ProtocolVersion</span>,
 		<span class="ident">ValidationVersion</span>,
@@ -969,10 +967,9 @@
 <span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{
 	<span class="ident">errors::SubsystemError</span>,
 	<span class="ident">messages</span>::{
-		<span class="ident">network_bridge_event</span>::{<span class="ident">NewGossipTopology</span>, <span class="ident">TopologyPeerInfo</span>},
-		<span class="ident">ApprovalDistributionMessage</span>, <span class="ident">BitfieldDistributionMessage</span>, <span class="ident">CollatorProtocolMessage</span>,
-		<span class="ident">GossipSupportMessage</span>, <span class="ident">NetworkBridgeEvent</span>, <span class="ident">NetworkBridgeRxMessage</span>,
-		<span class="ident">StatementDistributionMessage</span>,
+		<span class="ident">network_bridge_event::NewGossipTopology</span>, <span class="ident">ApprovalDistributionMessage</span>,
+		<span class="ident">BitfieldDistributionMessage</span>, <span class="ident">CollatorProtocolMessage</span>, <span class="ident">GossipSupportMessage</span>,
+		<span class="ident">NetworkBridgeEvent</span>, <span class="ident">NetworkBridgeRxMessage</span>, <span class="ident">StatementDistributionMessage</span>,
 	},
 	<span class="ident">overseer</span>, <span class="ident">ActivatedLeaf</span>, <span class="ident">ActiveLeavesUpdate</span>, <span class="ident">FromOrchestra</span>, <span class="ident">OverseerSignal</span>, <span class="ident">SpawnedSubsystem</span>,
 };
@@ -1059,28 +1056,6 @@
 			.<span class="ident">boxed</span>();
 		<span class="ident">SpawnedSubsystem</span> { <span class="ident">name</span>: <span class="string">&quot;network-bridge-subsystem&quot;</span>, <span class="ident">future</span> }
 	}
-}
-
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">update_gossip_peers_1d</span><span class="op">&lt;</span><span class="ident">AD</span>, <span class="ident">N</span><span class="op">&gt;</span>(
-	<span class="ident">ads</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AD</span>,
-	<span class="ident">neighbors</span>: <span class="ident">N</span>,
-) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span>, <span class="ident">TopologyPeerInfo</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">AD</span>: <span class="ident">validator_discovery::AuthorityDiscovery</span>,
-	<span class="ident">N</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">ValidatorIndex</span>)<span class="op">&gt;</span>,
-	<span class="ident">N::IntoIter</span>: <span class="ident">std::iter::ExactSizeIterator</span>,
-{
-	<span class="kw">let</span> <span class="ident">neighbors</span> <span class="op">=</span> <span class="ident">neighbors</span>.<span class="ident">into_iter</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">peers</span> <span class="op">=</span> <span class="ident">HashMap::with_capacity</span>(<span class="ident">neighbors</span>.<span class="ident">len</span>());
-	<span class="kw">for</span> (<span class="ident">authority</span>, <span class="ident">validator_index</span>) <span class="kw">in</span> <span class="ident">neighbors</span> {
-		<span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">get_peer_id_by_authority_id</span>(<span class="ident">ads</span>, <span class="ident">authority</span>.<span class="ident">clone</span>()).<span class="kw">await</span>;
-
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peer_id</span>) <span class="op">=</span> <span class="ident">addr</span> {
-			<span class="ident">peers</span>.<span class="ident">insert</span>(<span class="ident">authority</span>, <span class="ident">TopologyPeerInfo</span> { <span class="ident">peer_ids</span>: <span class="macro">vec!</span>[<span class="ident">peer_id</span>], <span class="ident">validator_index</span> });
-		}
-	}
-
-	<span class="ident">peers</span>
 }
 
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_network_messages</span><span class="op">&lt;</span><span class="ident">AD</span><span class="op">&gt;</span>(
@@ -1439,6 +1414,26 @@
 	}
 }
 
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">flesh_out_topology_peers</span><span class="op">&lt;</span><span class="ident">AD</span>, <span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">ads</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AD</span>, <span class="ident">neighbors</span>: <span class="ident">N</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TopologyPeerInfo</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">AD</span>: <span class="ident">validator_discovery::AuthorityDiscovery</span>,
+	<span class="ident">N</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">ValidatorIndex</span>)<span class="op">&gt;</span>,
+	<span class="ident">N::IntoIter</span>: <span class="ident">std::iter::ExactSizeIterator</span>,
+{
+	<span class="kw">let</span> <span class="ident">neighbors</span> <span class="op">=</span> <span class="ident">neighbors</span>.<span class="ident">into_iter</span>();
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">peers</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">neighbors</span>.<span class="ident">len</span>());
+	<span class="kw">for</span> (<span class="ident">discovery_id</span>, <span class="ident">validator_index</span>) <span class="kw">in</span> <span class="ident">neighbors</span> {
+		<span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">get_peer_id_by_authority_id</span>(<span class="ident">ads</span>, <span class="ident">discovery_id</span>.<span class="ident">clone</span>()).<span class="kw">await</span>;
+		<span class="ident">peers</span>.<span class="ident">push</span>(<span class="ident">TopologyPeerInfo</span> {
+			<span class="ident">peer_ids</span>: <span class="ident">addr</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+			<span class="ident">validator_index</span>,
+			<span class="ident">discovery_id</span>,
+		});
+	}
+
+	<span class="ident">peers</span>
+}
+
 <span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">NetworkBridgeRx</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_incoming_orchestra_signals</span><span class="op">&lt;</span><span class="ident">Context</span>, <span class="ident">N</span>, <span class="ident">AD</span><span class="op">&gt;</span>(
 	<span class="kw-2">mut</span> <span class="ident">ctx</span>: <span class="ident">Context</span>,
@@ -1464,29 +1459,28 @@
 				<span class="ident">msg</span>:
 					<span class="ident">NetworkBridgeRxMessage::NewGossipTopology</span> {
 						<span class="ident">session</span>,
-						<span class="ident">our_neighbors_x</span>,
-						<span class="ident">our_neighbors_y</span>,
+						<span class="ident">local_index</span>,
+						<span class="ident">canonical_shuffling</span>,
+						<span class="ident">shuffled_indices</span>,
 					},
 			} =&gt; {
 				<span class="macro">gum::debug!</span>(
 					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
 					<span class="ident">action</span> <span class="op">=</span> <span class="string">&quot;NewGossipTopology&quot;</span>,
-					<span class="ident">neighbors_x</span> <span class="op">=</span> <span class="ident">our_neighbors_x</span>.<span class="ident">len</span>(),
-					<span class="ident">neighbors_y</span> <span class="op">=</span> <span class="ident">our_neighbors_y</span>.<span class="ident">len</span>(),
+					<span class="question-mark">?</span><span class="ident">session</span>,
+					<span class="question-mark">?</span><span class="ident">local_index</span>,
 					<span class="string">&quot;Gossip topology has changed&quot;</span>,
 				);
 
-				<span class="kw">let</span> <span class="ident">gossip_peers_x</span> <span class="op">=</span>
-					<span class="ident">update_gossip_peers_1d</span>(<span class="kw-2">&amp;mut</span> <span class="ident">authority_discovery_service</span>, <span class="ident">our_neighbors_x</span>).<span class="kw">await</span>;
-
-				<span class="kw">let</span> <span class="ident">gossip_peers_y</span> <span class="op">=</span>
-					<span class="ident">update_gossip_peers_1d</span>(<span class="kw-2">&amp;mut</span> <span class="ident">authority_discovery_service</span>, <span class="ident">our_neighbors_y</span>).<span class="kw">await</span>;
+				<span class="kw">let</span> <span class="ident">topology_peers</span> <span class="op">=</span>
+					<span class="ident">flesh_out_topology_peers</span>(<span class="kw-2">&amp;mut</span> <span class="ident">authority_discovery_service</span>, <span class="ident">canonical_shuffling</span>)
+						.<span class="kw">await</span>;
 
 				<span class="ident">dispatch_validation_event_to_all_unbounded</span>(
 					<span class="ident">NetworkBridgeEvent::NewGossipTopology</span>(<span class="ident">NewGossipTopology</span> {
 						<span class="ident">session</span>,
-						<span class="ident">our_neighbors_x</span>: <span class="ident">gossip_peers_x</span>,
-						<span class="ident">our_neighbors_y</span>: <span class="ident">gossip_peers_y</span>,
+						<span class="ident">topology</span>: <span class="ident">SessionGridTopology::new</span>(<span class="ident">shuffled_indices</span>, <span class="ident">topology_peers</span>),
+						<span class="ident">local_index</span>,
 					}),
 					<span class="ident">ctx</span>.<span class="ident">sender</span>(),
 				);
