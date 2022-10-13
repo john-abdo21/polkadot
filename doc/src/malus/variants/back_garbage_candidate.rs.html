@@ -72,6 +72,24 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -99,6 +117,7 @@
 		<span class="ident">OverseerConnector</span>, <span class="ident">OverseerGen</span>, <span class="ident">OverseerGenArgs</span>, <span class="ident">OverseerHandle</span>, <span class="ident">ParachainHost</span>,
 		<span class="ident">ProvideRuntimeApi</span>,
 	},
+	<span class="ident">Cli</span>,
 };
 <span class="kw">use</span> <span class="ident">polkadot_node_subsystem::SpawnGlue</span>;
 <span class="kw">use</span> <span class="ident">sp_core::traits::SpawnNamed</span>;
@@ -110,11 +129,27 @@
 
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">clap::Parser</span>)]</span>
+<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BackGarbageCandidateOptions</span> {
+	<span class="doccomment">/// Determines the percentage of garbage candidates that should be backed.</span>
+	<span class="doccomment">/// Defaults to 100% of garbage candidates being backed.</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">100</span>, <span class="ident">value_parser</span> <span class="op">=</span> <span class="macro">clap::value_parser!</span>(<span class="ident">u8</span>).<span class="ident">range</span>(<span class="number">0</span>..<span class="op">=</span><span class="number">100</span>))]</span>
+	<span class="kw">pub</span> <span class="ident">percentage</span>: <span class="ident">u8</span>,
+
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
+	<span class="kw">pub</span> <span class="ident">cli</span>: <span class="ident">Cli</span>,
+}
+
 <span class="doccomment">/// Generates an overseer that replaces the candidate validation subsystem with our malicious</span>
 <span class="doccomment">/// variant.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">BackGarbageCandidate</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">BackGarbageCandidates</span> {
+	<span class="doccomment">/// The probability of behaving maliciously.</span>
+	<span class="kw">pub</span> <span class="ident">percentage</span>: <span class="ident">u8</span>,
+}
 
-<span class="kw">impl</span> <span class="ident">OverseerGen</span> <span class="kw">for</span> <span class="ident">BackGarbageCandidate</span> {
+<span class="kw">impl</span> <span class="ident">OverseerGen</span> <span class="kw">for</span> <span class="ident">BackGarbageCandidates</span> {
 	<span class="kw">fn</span> <span class="ident">generate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">connector</span>: <span class="ident">OverseerConnector</span>,
@@ -129,6 +164,7 @@
 		<span class="kw">let</span> <span class="ident">validation_filter</span> <span class="op">=</span> <span class="ident">ReplaceValidationResult::new</span>(
 			<span class="ident">FakeCandidateValidation::BackingAndApprovalValid</span>,
 			<span class="ident">FakeCandidateValidationError::InvalidOutputs</span>,
+			<span class="ident">f64::from</span>(<span class="self">self</span>.<span class="ident">percentage</span>),
 			<span class="ident">SpawnGlue</span>(<span class="ident">spawner</span>),
 		);
 

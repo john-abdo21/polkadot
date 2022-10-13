@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BackGarbageCandidateWrapper","Garbage candidate implementation wrapper which implements `OverseerGen` glue."],["Inner",""],["NoteCandidate","Replace outgoing approval messages with disputes."]]};
+window.SIDEBAR_ITEMS = {"struct":[["NoteCandidate","Replace outgoing approval messages with disputes."],["SuggestGarbageCandidateOptions",""],["SuggestGarbageCandidates","Garbage candidate implementation wrapper which implements `OverseerGen` glue."]]};

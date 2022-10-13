@@ -98,6 +98,14 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -155,6 +163,11 @@
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">arg_enum</span>, <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="ident">FakeCandidateValidationError::InvalidOutputs</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">fake_validation_error</span>: <span class="ident">FakeCandidateValidationError</span>,
 
+	<span class="doccomment">/// Determines the percentage of candidates that should be disputed. Allows for fine-tuning</span>
+	<span class="doccomment">/// the intensity of the behavior of the malicious node. Value must be in the range [0..=100].</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">100</span>, <span class="ident">value_parser</span> <span class="op">=</span> <span class="macro">clap::value_parser!</span>(<span class="ident">u8</span>).<span class="ident">range</span>(<span class="number">0</span>..<span class="op">=</span><span class="number">100</span>))]</span>
+	<span class="kw">pub</span> <span class="ident">percentage</span>: <span class="ident">u8</span>,
+
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">cli</span>: <span class="ident">Cli</span>,
 }
@@ -164,6 +177,8 @@
 	<span class="kw">pub</span> <span class="ident">fake_validation</span>: <span class="ident">FakeCandidateValidation</span>,
 	<span class="doccomment">/// Fake validation error config.</span>
 	<span class="kw">pub</span> <span class="ident">fake_validation_error</span>: <span class="ident">FakeCandidateValidationError</span>,
+	<span class="doccomment">/// The probability of behaving maliciously.</span>
+	<span class="kw">pub</span> <span class="ident">percentage</span>: <span class="ident">u8</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">OverseerGen</span> <span class="kw">for</span> <span class="ident">DisputeValidCandidates</span> {
@@ -181,6 +196,7 @@
 		<span class="kw">let</span> <span class="ident">validation_filter</span> <span class="op">=</span> <span class="ident">ReplaceValidationResult::new</span>(
 			<span class="self">self</span>.<span class="ident">fake_validation</span>,
 			<span class="self">self</span>.<span class="ident">fake_validation_error</span>,
+			<span class="ident">f64::from</span>(<span class="self">self</span>.<span class="ident">percentage</span>),
 			<span class="ident">SpawnGlue</span>(<span class="ident">spawner</span>.<span class="ident">clone</span>()),
 		);
 

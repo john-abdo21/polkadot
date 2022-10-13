@@ -342,6 +342,111 @@
 <span id="336">336</span>
 <span id="337">337</span>
 <span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -377,6 +482,8 @@
 };
 
 <span class="kw">use</span> <span class="ident">futures::channel::oneshot</span>;
+
+<span class="kw">use</span> <span class="ident">rand::distributions</span>::{<span class="ident">Bernoulli</span>, <span class="ident">Distribution</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">clap::ArgEnum</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
@@ -453,6 +560,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReplaceValidationResult</span><span class="op">&lt;</span><span class="ident">Spawner</span><span class="op">&gt;</span> {
 	<span class="ident">fake_validation</span>: <span class="ident">FakeCandidateValidation</span>,
 	<span class="ident">fake_validation_error</span>: <span class="ident">FakeCandidateValidationError</span>,
+	<span class="ident">distribution</span>: <span class="ident">Bernoulli</span>,
 	<span class="ident">spawner</span>: <span class="ident">Spawner</span>,
 }
 
@@ -463,9 +571,12 @@
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
 		<span class="ident">fake_validation</span>: <span class="ident">FakeCandidateValidation</span>,
 		<span class="ident">fake_validation_error</span>: <span class="ident">FakeCandidateValidationError</span>,
+		<span class="ident">percentage</span>: <span class="ident">f64</span>,
 		<span class="ident">spawner</span>: <span class="ident">Spawner</span>,
 	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">fake_validation</span>, <span class="ident">fake_validation_error</span>, <span class="ident">spawner</span> }
+		<span class="kw">let</span> <span class="ident">distribution</span> <span class="op">=</span> <span class="ident">Bernoulli::new</span>(<span class="ident">percentage</span> <span class="op">/</span> <span class="number">100.0</span>)
+			.<span class="ident">expect</span>(<span class="string">&quot;Invalid probability! Percentage must be in range [0..=100].&quot;</span>);
+		<span class="self">Self</span> { <span class="ident">fake_validation</span>, <span class="ident">fake_validation_error</span>, <span class="ident">distribution</span>, <span class="ident">spawner</span> }
 	}
 
 	<span class="doccomment">/// Creates and sends the validation response for a given candidate. Queries the runtime to obtain the validation data for the</span>
@@ -546,13 +657,14 @@
 {
 	<span class="kw">type</span> <span class="ident">Message</span> <span class="op">=</span> <span class="ident">CandidateValidationMessage</span>;
 
-	<span class="comment">// Capture all candidate validation requests and depending on configuration fail them.</span>
+	<span class="comment">// Capture all (approval and backing) candidate validation requests and depending on configuration fail them.</span>
 	<span class="kw">fn</span> <span class="ident">intercept_incoming</span>(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">subsystem_sender</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Sender</span>,
 		<span class="ident">msg</span>: <span class="ident">FromOrchestra</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Message</span><span class="op">&gt;</span>,
 	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FromOrchestra</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Message</span><span class="op">&gt;</span><span class="op">&gt;</span> {
 		<span class="kw">match</span> <span class="ident">msg</span> {
+			<span class="comment">// Message sent by the approval voting subsystem</span>
 			<span class="ident">FromOrchestra::Communication</span> {
 				<span class="ident">msg</span>:
 					<span class="ident">CandidateValidationMessage::ValidateFromExhaustive</span>(
@@ -580,28 +692,84 @@
 								),
 							})
 						}
-						<span class="ident">create_validation_response</span>(
-							<span class="ident">validation_data</span>,
-							<span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>,
-							<span class="ident">sender</span>,
-						);
-						<span class="prelude-val">None</span>
+						<span class="comment">// Create the fake response with probability `p` if the `PoV` is malicious,</span>
+						<span class="comment">// where &#39;p&#39; defaults to 100% for suggest-garbage-candidate variant.</span>
+						<span class="kw">let</span> <span class="ident">behave_maliciously</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">distribution</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rand::thread_rng</span>());
+						<span class="kw">match</span> <span class="ident">behave_maliciously</span> {
+							<span class="bool-val">true</span> =&gt; {
+								<span class="macro">gum::info!</span>(
+									<span class="ident">target</span>: <span class="ident">MALUS</span>,
+									<span class="question-mark">?</span><span class="ident">behave_maliciously</span>,
+									<span class="string">&quot;😈 Creating malicious ValidationResult::Valid message with fake candidate commitments.&quot;</span>,
+								);
+
+								<span class="ident">create_validation_response</span>(
+									<span class="ident">validation_data</span>,
+									<span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>,
+									<span class="ident">sender</span>,
+								);
+								<span class="prelude-val">None</span>
+							},
+							<span class="bool-val">false</span> =&gt; {
+								<span class="comment">// Behave normally with probability `(1-p)` for a malicious `PoV`.</span>
+								<span class="macro">gum::info!</span>(
+									<span class="ident">target</span>: <span class="ident">MALUS</span>,
+									<span class="question-mark">?</span><span class="ident">behave_maliciously</span>,
+									<span class="string">&quot;😈 Passing CandidateValidationMessage::ValidateFromExhaustive to the candidate validation subsystem.&quot;</span>,
+								);
+
+								<span class="prelude-val">Some</span>(<span class="ident">FromOrchestra::Communication</span> {
+									<span class="ident">msg</span>: <span class="ident">CandidateValidationMessage::ValidateFromExhaustive</span>(
+										<span class="ident">validation_data</span>,
+										<span class="ident">validation_code</span>,
+										<span class="ident">candidate_receipt</span>,
+										<span class="ident">pov</span>,
+										<span class="ident">timeout</span>,
+										<span class="ident">sender</span>,
+									),
+								})
+							},
+						}
 					},
 					<span class="ident">FakeCandidateValidation::ApprovalInvalid</span> <span class="op">|</span>
 					<span class="ident">FakeCandidateValidation::BackingAndApprovalInvalid</span> =&gt; {
-						<span class="kw">let</span> <span class="ident">validation_result</span> <span class="op">=</span>
-							<span class="ident">ValidationResult::Invalid</span>(<span class="ident">InvalidCandidate::InvalidOutputs</span>);
+						<span class="comment">// Set the validation result to invalid with probability `p` and trigger a dispute</span>
+						<span class="kw">let</span> <span class="ident">behave_maliciously</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">distribution</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rand::thread_rng</span>());
+						<span class="kw">match</span> <span class="ident">behave_maliciously</span> {
+							<span class="bool-val">true</span> =&gt; {
+								<span class="kw">let</span> <span class="ident">validation_result</span> <span class="op">=</span>
+									<span class="ident">ValidationResult::Invalid</span>(<span class="ident">InvalidCandidate::InvalidOutputs</span>);
 
-						<span class="macro">gum::debug!</span>(
-							<span class="ident">target</span>: <span class="ident">MALUS</span>,
-							<span class="ident">para_id</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>.<span class="ident">para_id</span>,
-							<span class="string">&quot;ValidateFromExhaustive result: {:?}&quot;</span>,
-							<span class="kw-2">&amp;</span><span class="ident">validation_result</span>
-						);
-						<span class="comment">// We&#39;re not even checking the candidate, this makes us appear faster than honest validators.</span>
-						<span class="ident">sender</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(<span class="ident">validation_result</span>)).<span class="ident">unwrap</span>();
-						<span class="prelude-val">None</span>
+								<span class="macro">gum::info!</span>(
+									<span class="ident">target</span>: <span class="ident">MALUS</span>,
+									<span class="question-mark">?</span><span class="ident">behave_maliciously</span>,
+									<span class="ident">para_id</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>.<span class="ident">para_id</span>,
+									<span class="string">&quot;😈 Maliciously sending invalid validation result: {:?}.&quot;</span>,
+									<span class="kw-2">&amp;</span><span class="ident">validation_result</span>,
+								);
+
+								<span class="comment">// We&#39;re not even checking the candidate, this makes us appear faster than honest validators.</span>
+								<span class="ident">sender</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(<span class="ident">validation_result</span>)).<span class="ident">unwrap</span>();
+								<span class="prelude-val">None</span>
+							},
+							<span class="bool-val">false</span> =&gt; {
+								<span class="comment">// Behave normally with probability `(1-p)`</span>
+								<span class="macro">gum::info!</span>(<span class="ident">target</span>: <span class="ident">MALUS</span>, <span class="string">&quot;😈 &#39;Decided&#39; to not act maliciously.&quot;</span>,);
+
+								<span class="prelude-val">Some</span>(<span class="ident">FromOrchestra::Communication</span> {
+									<span class="ident">msg</span>: <span class="ident">CandidateValidationMessage::ValidateFromExhaustive</span>(
+										<span class="ident">validation_data</span>,
+										<span class="ident">validation_code</span>,
+										<span class="ident">candidate_receipt</span>,
+										<span class="ident">pov</span>,
+										<span class="ident">timeout</span>,
+										<span class="ident">sender</span>,
+									),
+								})
+							},
+						}
 					},
+					<span class="comment">// Handle FakeCandidateValidation::Disabled</span>
 					<span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">FromOrchestra::Communication</span> {
 						<span class="ident">msg</span>: <span class="ident">CandidateValidationMessage::ValidateFromExhaustive</span>(
 							<span class="ident">validation_data</span>,
@@ -614,6 +782,7 @@
 					}),
 				}
 			},
+			<span class="comment">// Behaviour related to the backing subsystem</span>
 			<span class="ident">FromOrchestra::Communication</span> {
 				<span class="ident">msg</span>:
 					<span class="ident">CandidateValidationMessage::ValidateFromChainState</span>(
@@ -637,27 +806,68 @@
 								),
 							})
 						}
-						<span class="self">self</span>.<span class="ident">send_validation_response</span>(
-							<span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>,
-							<span class="ident">subsystem_sender</span>.<span class="ident">clone</span>(),
-							<span class="ident">response_sender</span>,
-						);
-						<span class="prelude-val">None</span>
+						<span class="comment">// If the `PoV` is malicious, back the candidate with some probability `p`,</span>
+						<span class="comment">// where &#39;p&#39; defaults to 100% for suggest-garbage-candidate variant.</span>
+						<span class="kw">let</span> <span class="ident">behave_maliciously</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">distribution</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rand::thread_rng</span>());
+						<span class="kw">match</span> <span class="ident">behave_maliciously</span> {
+							<span class="bool-val">true</span> =&gt; {
+								<span class="macro">gum::info!</span>(
+									<span class="ident">target</span>: <span class="ident">MALUS</span>,
+									<span class="question-mark">?</span><span class="ident">behave_maliciously</span>,
+									<span class="string">&quot;😈 Backing candidate with malicious PoV.&quot;</span>,
+								);
+
+								<span class="self">self</span>.<span class="ident">send_validation_response</span>(
+									<span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>,
+									<span class="ident">subsystem_sender</span>.<span class="ident">clone</span>(),
+									<span class="ident">response_sender</span>,
+								);
+								<span class="prelude-val">None</span>
+							},
+							<span class="comment">// If the `PoV` is malicious, we behave normally with some probability `(1-p)`</span>
+							<span class="bool-val">false</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">FromOrchestra::Communication</span> {
+								<span class="ident">msg</span>: <span class="ident">CandidateValidationMessage::ValidateFromChainState</span>(
+									<span class="ident">candidate_receipt</span>,
+									<span class="ident">pov</span>,
+									<span class="ident">timeout</span>,
+									<span class="ident">response_sender</span>,
+								),
+							}),
+						}
 					},
 					<span class="ident">FakeCandidateValidation::BackingInvalid</span> <span class="op">|</span>
 					<span class="ident">FakeCandidateValidation::BackingAndApprovalInvalid</span> =&gt; {
-						<span class="kw">let</span> <span class="ident">validation_result</span> <span class="op">=</span>
-							<span class="ident">ValidationResult::Invalid</span>(<span class="self">self</span>.<span class="ident">fake_validation_error</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
-						<span class="macro">gum::debug!</span>(
-							<span class="ident">target</span>: <span class="ident">MALUS</span>,
-							<span class="ident">para_id</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>.<span class="ident">para_id</span>,
-							<span class="string">&quot;ValidateFromChainState result: {:?}&quot;</span>,
-							<span class="kw-2">&amp;</span><span class="ident">validation_result</span>
-						);
+						<span class="comment">// Maliciously set the validation result to invalid for a valid candidate with probability `p`</span>
+						<span class="kw">let</span> <span class="ident">behave_maliciously</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">distribution</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rand::thread_rng</span>());
+						<span class="kw">match</span> <span class="ident">behave_maliciously</span> {
+							<span class="bool-val">true</span> =&gt; {
+								<span class="kw">let</span> <span class="ident">validation_result</span> <span class="op">=</span> <span class="ident">ValidationResult::Invalid</span>(
+									<span class="self">self</span>.<span class="ident">fake_validation_error</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+								);
+								<span class="macro">gum::info!</span>(
+									<span class="ident">target</span>: <span class="ident">MALUS</span>,
+									<span class="ident">para_id</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">candidate_receipt</span>.<span class="ident">descriptor</span>.<span class="ident">para_id</span>,
+									<span class="string">&quot;😈 Maliciously sending invalid validation result: {:?}.&quot;</span>,
+									<span class="kw-2">&amp;</span><span class="ident">validation_result</span>,
+								);
+								<span class="comment">// We&#39;re not even checking the candidate, this makes us appear faster than honest validators.</span>
+								<span class="ident">response_sender</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(<span class="ident">validation_result</span>)).<span class="ident">unwrap</span>();
+								<span class="prelude-val">None</span>
+							},
+							<span class="comment">// With some probability `(1-p)` we behave normally</span>
+							<span class="bool-val">false</span> =&gt; {
+								<span class="macro">gum::info!</span>(<span class="ident">target</span>: <span class="ident">MALUS</span>, <span class="string">&quot;😈 &#39;Decided&#39; to not act maliciously.&quot;</span>,);
 
-						<span class="comment">// We&#39;re not even checking the candidate, this makes us appear faster than honest validators.</span>
-						<span class="ident">response_sender</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(<span class="ident">validation_result</span>)).<span class="ident">unwrap</span>();
-						<span class="prelude-val">None</span>
+								<span class="prelude-val">Some</span>(<span class="ident">FromOrchestra::Communication</span> {
+									<span class="ident">msg</span>: <span class="ident">CandidateValidationMessage::ValidateFromChainState</span>(
+										<span class="ident">candidate_receipt</span>,
+										<span class="ident">pov</span>,
+										<span class="ident">timeout</span>,
+										<span class="ident">response_sender</span>,
+									),
+								})
+							},
+						}
 					},
 					<span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">FromOrchestra::Communication</span> {
 						<span class="ident">msg</span>: <span class="ident">CandidateValidationMessage::ValidateFromChainState</span>(
