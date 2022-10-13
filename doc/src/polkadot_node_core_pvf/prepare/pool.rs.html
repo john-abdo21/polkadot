@@ -398,6 +398,14 @@
 <span id="392">392</span>
 <span id="393">393</span>
 <span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -461,7 +469,12 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// In either case, the worker is considered busy and no further `StartWork` messages should be</span>
 	<span class="doccomment">/// sent until either `Concluded` or `Rip` message is received.</span>
-	<span class="ident">StartWork</span> { <span class="ident">worker</span>: <span class="ident">Worker</span>, <span class="ident">code</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">artifact_path</span>: <span class="ident">PathBuf</span> },
+	<span class="ident">StartWork</span> {
+		<span class="ident">worker</span>: <span class="ident">Worker</span>,
+		<span class="ident">code</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">artifact_path</span>: <span class="ident">PathBuf</span>,
+		<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
+	},
 }
 
 <span class="doccomment">/// A message sent from pool to its client.</span>
@@ -605,7 +618,7 @@
 			<span class="ident">metrics</span>.<span class="ident">prepare_worker</span>().<span class="ident">on_begin_spawn</span>();
 			<span class="ident">mux</span>.<span class="ident">push</span>(<span class="ident">spawn_worker_task</span>(<span class="ident">program_path</span>.<span class="ident">to_owned</span>(), <span class="ident">spawn_timeout</span>).<span class="ident">boxed</span>());
 		},
-		<span class="ident">ToPool::StartWork</span> { <span class="ident">worker</span>, <span class="ident">code</span>, <span class="ident">artifact_path</span> } =&gt; {
+		<span class="ident">ToPool::StartWork</span> { <span class="ident">worker</span>, <span class="ident">code</span>, <span class="ident">artifact_path</span>, <span class="ident">compilation_timeout</span> } =&gt; {
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">spawned</span>.<span class="ident">get_mut</span>(<span class="ident">worker</span>) {
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idle</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">idle</span>.<span class="ident">take</span>() {
 					<span class="kw">let</span> <span class="ident">preparation_timer</span> <span class="op">=</span> <span class="ident">metrics</span>.<span class="ident">time_preparation</span>();
@@ -616,6 +629,7 @@
 							<span class="ident">code</span>,
 							<span class="ident">cache_path</span>.<span class="ident">to_owned</span>(),
 							<span class="ident">artifact_path</span>,
+							<span class="ident">compilation_timeout</span>,
 							<span class="ident">preparation_timer</span>,
 						)
 						.<span class="ident">boxed</span>(),
@@ -663,9 +677,11 @@
 	<span class="ident">code</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">cache_path</span>: <span class="ident">PathBuf</span>,
 	<span class="ident">artifact_path</span>: <span class="ident">PathBuf</span>,
+	<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
 	<span class="ident">_preparation_timer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Timer</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">PoolEvent</span> {
-	<span class="kw">let</span> <span class="ident">outcome</span> <span class="op">=</span> <span class="ident">worker::start_work</span>(<span class="ident">idle</span>, <span class="ident">code</span>, <span class="kw-2">&amp;</span><span class="ident">cache_path</span>, <span class="ident">artifact_path</span>).<span class="kw">await</span>;
+	<span class="kw">let</span> <span class="ident">outcome</span> <span class="op">=</span>
+		<span class="ident">worker::start_work</span>(<span class="ident">idle</span>, <span class="ident">code</span>, <span class="kw-2">&amp;</span><span class="ident">cache_path</span>, <span class="ident">artifact_path</span>, <span class="ident">compilation_timeout</span>).<span class="kw">await</span>;
 	<span class="ident">PoolEvent::StartWork</span>(<span class="ident">worker</span>, <span class="ident">outcome</span>)
 }
 

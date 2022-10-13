@@ -743,6 +743,49 @@
 <span id="737">737</span>
 <span id="738">738</span>
 <span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -766,7 +809,10 @@
 <span class="kw">use</span> <span class="ident">always_assert</span>::{<span class="ident">always</span>, <span class="ident">never</span>};
 <span class="kw">use</span> <span class="ident">async_std::path::PathBuf</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">channel::mpsc</span>, <span class="ident">stream::StreamExt</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">Future</span>, <span class="ident">SinkExt</span>};
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+	<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>},
+	<span class="ident">time::Duration</span>,
+};
 
 <span class="doccomment">/// A request to pool.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -775,7 +821,7 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Note that it is incorrect to enqueue the same PVF again without first receiving the</span>
 	<span class="doccomment">/// [`FromQueue`] response.</span>
-	<span class="ident">Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority</span>, <span class="ident">pvf</span>: <span class="ident">Pvf</span> },
+	<span class="ident">Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority</span>, <span class="ident">pvf</span>: <span class="ident">Pvf</span>, <span class="ident">compilation_timeout</span>: <span class="ident">Duration</span> },
 }
 
 <span class="doccomment">/// A response from queue.</span>
@@ -821,6 +867,8 @@
 	<span class="doccomment">/// The priority of this job. Can be bumped.</span>
 	<span class="ident">priority</span>: <span class="ident">Priority</span>,
 	<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
+	<span class="doccomment">/// The timeout for the preparation job.</span>
+	<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
 	<span class="ident">worker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Worker</span><span class="op">&gt;</span>,
 }
 
@@ -836,7 +884,7 @@
 }
 
 <span class="doccomment">/// A queue structured like this is prone to starving, however, we don&#39;t care that much since we expect</span>
-<span class="doccomment">///  there is going to be a limited number of critical jobs and we don&#39;t really care if background starve.</span>
+<span class="doccomment">/// there is going to be a limited number of critical jobs and we don&#39;t really care if background starve.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Unscheduled</span> {
 	<span class="ident">normal</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Job</span><span class="op">&gt;</span>,
@@ -948,18 +996,24 @@
 
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_to_queue</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">to_queue</span>: <span class="ident">ToQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
 	<span class="kw">match</span> <span class="ident">to_queue</span> {
-		<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span> } =&gt; {
-			<span class="ident">handle_enqueue</span>(<span class="ident">queue</span>, <span class="ident">priority</span>, <span class="ident">pvf</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">compilation_timeout</span> } =&gt; {
+			<span class="ident">handle_enqueue</span>(<span class="ident">queue</span>, <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">compilation_timeout</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
 	}
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_enqueue</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">priority</span>: <span class="ident">Priority</span>, <span class="ident">pvf</span>: <span class="ident">Pvf</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_enqueue</span>(
+	<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>,
+	<span class="ident">priority</span>: <span class="ident">Priority</span>,
+	<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
+	<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
 	<span class="macro">gum::debug!</span>(
 		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
 		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">pvf</span>.<span class="ident">code_hash</span>,
 		<span class="question-mark">?</span><span class="ident">priority</span>,
+		<span class="question-mark">?</span><span class="ident">compilation_timeout</span>,
 		<span class="string">&quot;PVF is enqueued for preparation.&quot;</span>,
 	);
 	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">prepare_enqueued</span>();
@@ -970,7 +1024,7 @@
 		<span class="string">&quot;second Enqueue sent for a known artifact&quot;</span>
 	) {
 		<span class="comment">// This function is called in response to a `Enqueue` message;</span>
-		<span class="comment">// Precondtion for `Enqueue` is that it is sent only once for a PVF;</span>
+		<span class="comment">// Precondition for `Enqueue` is that it is sent only once for a PVF;</span>
 		<span class="comment">// Thus this should always be `false`;</span>
 		<span class="comment">// qed.</span>
 		<span class="macro">gum::warn!</span>(
@@ -981,7 +1035,7 @@
 		<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">jobs</span>.<span class="ident">insert</span>(<span class="ident">JobData</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">worker</span>: <span class="prelude-val">None</span> });
+	<span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">jobs</span>.<span class="ident">insert</span>(<span class="ident">JobData</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">compilation_timeout</span>, <span class="ident">worker</span>: <span class="prelude-val">None</span> });
 	<span class="ident">queue</span>.<span class="ident">artifact_id_to_job</span>.<span class="ident">insert</span>(<span class="ident">artifact_id</span>, <span class="ident">job</span>);
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">available</span>) <span class="op">=</span> <span class="ident">find_idle_worker</span>(<span class="ident">queue</span>) {
@@ -1169,7 +1223,12 @@
 
 	<span class="ident">send_pool</span>(
 		<span class="kw-2">&amp;mut</span> <span class="ident">queue</span>.<span class="ident">to_pool_tx</span>,
-		<span class="ident">pool::ToPool::StartWork</span> { <span class="ident">worker</span>, <span class="ident">code</span>: <span class="ident">job_data</span>.<span class="ident">pvf</span>.<span class="ident">code</span>.<span class="ident">clone</span>(), <span class="ident">artifact_path</span> },
+		<span class="ident">pool::ToPool::StartWork</span> {
+			<span class="ident">worker</span>,
+			<span class="ident">code</span>: <span class="ident">job_data</span>.<span class="ident">pvf</span>.<span class="ident">code</span>.<span class="ident">clone</span>(),
+			<span class="ident">artifact_path</span>,
+			<span class="ident">compilation_timeout</span>: <span class="ident">job_data</span>.<span class="ident">compilation_timeout</span>,
+		},
 	)
 	.<span class="kw">await</span><span class="question-mark">?</span>;
 
@@ -1223,7 +1282,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::PrepareError</span>;
+	<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::PrepareError</span>, <span class="ident">host::PRECHECK_COMPILATION_TIMEOUT</span>};
 	<span class="kw">use</span> <span class="ident">assert_matches::assert_matches</span>;
 	<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::BoxFuture</span>, <span class="ident">FutureExt</span>};
 	<span class="kw">use</span> <span class="ident">slotmap::SlotMap</span>;
@@ -1316,7 +1375,6 @@
 
 		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_ensure_to_pool_is_empty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
 			<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
-			<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 
 			<span class="kw">let</span> <span class="ident">to_pool_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_pool_rx</span>;
 			<span class="ident">run_until</span>(
@@ -1339,7 +1397,11 @@
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">properly_concludes</span>() {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>) });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
+			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
+			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
+			<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+		});
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
 
 		<span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
@@ -1352,10 +1414,12 @@
 	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">dont_spawn_over_soft_limit_unless_critical</span>() {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">3</span>);
+		<span class="kw">let</span> <span class="ident">compilation_timeout</span> <span class="op">=</span> <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>;
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>) });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>) });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">3</span>) });
+		<span class="kw">let</span> <span class="ident">priority</span> <span class="op">=</span> <span class="ident">Priority::Normal</span>;
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>), <span class="ident">compilation_timeout</span> });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>), <span class="ident">compilation_timeout</span> });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">3</span>), <span class="ident">compilation_timeout</span> });
 
 		<span class="comment">// Receive only two spawns.</span>
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
@@ -1376,7 +1440,11 @@
 		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
 
 		<span class="comment">// Enqueue a critical job.</span>
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Critical</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">4</span>) });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
+			<span class="ident">priority</span>: <span class="ident">Priority::Critical</span>,
+			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">4</span>),
+			<span class="ident">compilation_timeout</span>,
+		});
 
 		<span class="comment">// 2 out of 2 are working, but there is a critical job incoming. That means that spawning</span>
 		<span class="comment">// another worker is warranted.</span>
@@ -1386,15 +1454,24 @@
 	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">cull_unwanted</span>() {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">1</span>, <span class="number">2</span>);
+		<span class="kw">let</span> <span class="ident">compilation_timeout</span> <span class="op">=</span> <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>;
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>) });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
+			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
+			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
+			<span class="ident">compilation_timeout</span>,
+		});
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
 		<span class="kw">let</span> <span class="ident">w1</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
 		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w1</span>));
 		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
 
 		<span class="comment">// Enqueue a critical job, which warrants spawning over the soft limit.</span>
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Critical</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>) });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
+			<span class="ident">priority</span>: <span class="ident">Priority::Critical</span>,
+			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>),
+			<span class="ident">compilation_timeout</span>,
+		});
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
 
 		<span class="comment">// However, before the new worker had a chance to spawn, the first worker finishes with its</span>
@@ -1412,9 +1489,10 @@
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">worker_mass_die_out_doesnt_stall_queue</span>() {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>) });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>) });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">3</span>) });
+		<span class="kw">let</span> (<span class="ident">priority</span>, <span class="ident">compilation_timeout</span>) <span class="op">=</span> (<span class="ident">Priority::Normal</span>, <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>);
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>), <span class="ident">compilation_timeout</span> });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>), <span class="ident">compilation_timeout</span> });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">3</span>), <span class="ident">compilation_timeout</span> });
 
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
@@ -1441,7 +1519,11 @@
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">doesnt_resurrect_ripped_worker_if_no_work</span>() {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>) });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
+			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
+			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
+			<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+		});
 
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
 
@@ -1462,7 +1544,11 @@
 	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">rip_for_start_work</span>() {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>) });
+		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
+			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
+			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
+			<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+		});
 
 		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
 

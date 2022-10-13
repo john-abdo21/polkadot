@@ -1164,6 +1164,44 @@
 <span id="1158">1158</span>
 <span id="1159">1159</span>
 <span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
+<span id="1175">1175</span>
+<span id="1176">1176</span>
+<span id="1177">1177</span>
+<span id="1178">1178</span>
+<span id="1179">1179</span>
+<span id="1180">1180</span>
+<span id="1181">1181</span>
+<span id="1182">1182</span>
+<span id="1183">1183</span>
+<span id="1184">1184</span>
+<span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1204,6 +1242,16 @@
 	<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">SystemTime</span>},
 };
 
+<span class="doccomment">/// The time period after which the precheck preparation worker is considered unresponsive and will</span>
+<span class="doccomment">/// be killed.</span>
+<span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">60</span>);
+
+<span class="doccomment">/// The time period after which the execute preparation worker is considered unresponsive and will</span>
+<span class="doccomment">/// be killed.</span>
+<span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXECUTE_COMPILATION_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">180</span>);
+
 <span class="doccomment">/// An alias to not spell the type for the oneshot sender for the PVF execution result.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ResultSender</span> <span class="op">=</span> <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ValidationResult</span>, <span class="ident">ValidationError</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
@@ -1217,10 +1265,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ValidationHost</span> {
-	<span class="doccomment">/// Precheck PVF with the given code, i.e. verify that it compiles within a reasonable time limit.</span>
-	<span class="doccomment">/// The result of execution will be sent to the provided result sender.</span>
+	<span class="doccomment">/// Precheck PVF with the given code, i.e. verify that it compiles within a reasonable time</span>
+	<span class="doccomment">/// limit. This will prepare the PVF. The result of preparation will be sent to the provided</span>
+	<span class="doccomment">/// result sender.</span>
 	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is async to accommodate the fact a possibility of back-pressure. In the vast majority of</span>
+	<span class="doccomment">/// This is async to accommodate the possibility of back-pressure. In the vast majority of</span>
 	<span class="doccomment">/// situations this function should return immediately.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.</span>
@@ -1238,7 +1287,7 @@
 	<span class="doccomment">/// Execute PVF with the given code, execution timeout, parameters and priority.</span>
 	<span class="doccomment">/// The result of execution will be sent to the provided result sender.</span>
 	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is async to accommodate the fact a possibility of back-pressure. In the vast majority of</span>
+	<span class="doccomment">/// This is async to accommodate the possibility of back-pressure. In the vast majority of</span>
 	<span class="doccomment">/// situations this function should return immediately.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.</span>
@@ -1258,7 +1307,7 @@
 
 	<span class="doccomment">/// Sends a signal to the validation host requesting to prepare a list of the given PVFs.</span>
 	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is async to accommodate the fact a possibility of back-pressure. In the vast majority of</span>
+	<span class="doccomment">/// This is async to accommodate the possibility of back-pressure. In the vast majority of</span>
 	<span class="doccomment">/// situations this function should return immediately.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.</span>
@@ -1584,6 +1633,9 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// Handles PVF prechecking.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This tries to prepare the PVF by compiling the WASM blob within a given timeout ([`PRECHECK_COMPILATION_TIMEOUT`]).</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_precheck_pvf</span>(
 	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
 	<span class="ident">prepare_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
@@ -1606,12 +1658,24 @@
 		}
 	} <span class="kw">else</span> {
 		<span class="ident">artifacts</span>.<span class="ident">insert_preparing</span>(<span class="ident">artifact_id</span>, <span class="macro">vec!</span>[<span class="ident">result_sender</span>]);
-		<span class="ident">send_prepare</span>(<span class="ident">prepare_queue</span>, <span class="ident">prepare::ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span> })
-			.<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="ident">send_prepare</span>(
+			<span class="ident">prepare_queue</span>,
+			<span class="ident">prepare::ToQueue::Enqueue</span> {
+				<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
+				<span class="ident">pvf</span>,
+				<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+			},
+		)
+		.<span class="kw">await</span><span class="question-mark">?</span>;
 	}
 	<span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// Handles PVF execution.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This will first try to prepare the PVF, if a prepared artifact does not already exist. If there is already a</span>
+<span class="doccomment">/// preparation job, we coalesce the two preparation jobs. When preparing for execution, we use a more lenient timeout</span>
+<span class="doccomment">/// ([`EXECUTE_COMPILATION_TIMEOUT`]) than when prechecking.</span>
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_execute_pvf</span>(
 	<span class="ident">cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
@@ -1628,7 +1692,7 @@
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="ident">artifacts</span>.<span class="ident">artifact_state_mut</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>) {
 		<span class="kw">match</span> <span class="ident">state</span> {
-			<span class="ident">ArtifactState::Prepared</span> { <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">last_time_needed</span> } =&gt; {
+			<span class="ident">ArtifactState::Prepared</span> { <span class="ident">last_time_needed</span> } =&gt; {
 				<span class="kw-2">*</span><span class="ident">last_time_needed</span> <span class="op">=</span> <span class="ident">SystemTime::now</span>();
 
 				<span class="ident">send_execute</span>(
@@ -1651,9 +1715,17 @@
 		}
 	} <span class="kw">else</span> {
 		<span class="comment">// Artifact is unknown: register it and enqueue a job with the corresponding priority and</span>
-		<span class="comment">//</span>
+		<span class="comment">// PVF.</span>
 		<span class="ident">artifacts</span>.<span class="ident">insert_preparing</span>(<span class="ident">artifact_id</span>.<span class="ident">clone</span>(), <span class="ident">Vec::new</span>());
-		<span class="ident">send_prepare</span>(<span class="ident">prepare_queue</span>, <span class="ident">prepare::ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span> }).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="ident">send_prepare</span>(
+			<span class="ident">prepare_queue</span>,
+			<span class="ident">prepare::ToQueue::Enqueue</span> {
+				<span class="ident">priority</span>,
+				<span class="ident">pvf</span>,
+				<span class="ident">compilation_timeout</span>: <span class="ident">EXECUTE_COMPILATION_TIMEOUT</span>,
+			},
+		)
+		.<span class="kw">await</span><span class="question-mark">?</span>;
 
 		<span class="ident">awaiting_prepare</span>.<span class="ident">add</span>(<span class="ident">artifact_id</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">result_tx</span>);
 	}
@@ -1686,7 +1758,11 @@
 
 			<span class="ident">send_prepare</span>(
 				<span class="ident">prepare_queue</span>,
-				<span class="ident">prepare::ToQueue::Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority::Normal</span>, <span class="ident">pvf</span>: <span class="ident">active_pvf</span> },
+				<span class="ident">prepare::ToQueue::Enqueue</span> {
+					<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
+					<span class="ident">pvf</span>: <span class="ident">active_pvf</span>,
+					<span class="ident">compilation_timeout</span>: <span class="ident">EXECUTE_COMPILATION_TIMEOUT</span>,
+				},
 			)
 			.<span class="kw">await</span><span class="question-mark">?</span>;
 		}

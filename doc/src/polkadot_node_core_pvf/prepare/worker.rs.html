@@ -302,9 +302,6 @@
 <span id="296">296</span>
 <span id="297">297</span>
 <span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -339,10 +336,6 @@
 <span class="kw">use</span> <span class="ident">sp_core::hexdisplay::HexDisplay</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">panic</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
 
-<span class="doccomment">/// The time period after which the preparation worker is considered unresponsive and will be killed.</span>
-<span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.</span>
-<span class="kw">const</span> <span class="ident">COMPILATION_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">60</span>);
-
 <span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The program should be able to handle `&lt;program-path&gt; prepare-worker &lt;socket-path&gt;` invocation.</span>
@@ -376,6 +369,7 @@
 	<span class="ident">code</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 	<span class="ident">artifact_path</span>: <span class="ident">PathBuf</span>,
+	<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
 ) -&gt; <span class="ident">Outcome</span> {
 	<span class="kw">let</span> <span class="ident">IdleWorker</span> { <span class="kw-2">mut</span> <span class="ident">stream</span>, <span class="ident">pid</span> } <span class="op">=</span> <span class="ident">worker</span>;
 
@@ -410,7 +404,7 @@
 		}
 
 		<span class="kw">let</span> <span class="ident">selected</span> <span class="op">=</span>
-			<span class="kw">match</span> <span class="ident">async_std::future::timeout</span>(<span class="ident">COMPILATION_TIMEOUT</span>, <span class="ident">framed_recv</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>)).<span class="kw">await</span> {
+			<span class="kw">match</span> <span class="ident">async_std::future::timeout</span>(<span class="ident">compilation_timeout</span>, <span class="ident">framed_recv</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>)).<span class="kw">await</span> {
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">response_bytes</span>)) =&gt; {
 					<span class="comment">// Received bytes from worker within the time limit.</span>
 					<span class="comment">// By convention we expect encoded `PrepareResult`.</span>
