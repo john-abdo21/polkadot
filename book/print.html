@@ -472,7 +472,7 @@ the validators that had duty at the time of backing, plus backing votes by the b
 <p>Persisted votes stay persisted for <code>N</code> sessions, and are cleaned up on a per session basis.</p>
 <p>Votes must be queryable by a particular validator, identified by its signing key.</p>
 <p>Votes must be queryable by a particular validator, identified by a session index and the validator index valid in that session.</p>
-<p>If there exists a negative and a positive fork for a particular block, a dispute is detected.</p>
+<p>If there exists a negative and a positive vote for a particular block, a dispute is detected.</p>
 <p>If a dispute is detected, all currently available votes for that block must be gossiped.</p>
 <p>If an incoming dispute vote is detected, a validator must cast their own vote. The vote is determined by validating the PoV with the Code at the time of backing the block in question.</p>
 <p>If the validator was also a backer of the block, validation and casting an additional vote should be skipped.</p>
@@ -527,7 +527,7 @@ the validators that had duty at the time of backing, plus backing votes by the b
 <ol>
 <li>If the required block is the best finalized block, then select the best viable leaf.</li>
 <li>If the required block is unfinalized and non-viable, then select the required block and go no further. This is likely an indication that something bad will be finalized in the network, which will never happen when approvals &amp; disputes are functioning correctly. Nevertheless we account for the case here.</li>
-<li>If the required block is unfinalized and non-viable, then iterate over the viable leaves in descending order by score and select the first one which contains the required block in its chain. Backwards iteration is a simple way to check this, but if unfinalized chains grow long then Merkle Mountain-Ranges will most likely be more efficient.</li>
+<li>If the required block is unfinalized and viable, then iterate over the viable leaves in descending order by score and select the first one which contains the required block in its chain. Backwards iteration is a simple way to check this, but if unfinalized chains grow long then Merkle Mountain-Ranges will most likely be more efficient.</li>
 </ol>
 <p>Once selecting a leaf, the chain should be constrained to the maximum of the required block or the highest <strong>finalizable</strong> ancestor.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="architecture-overview"><a class="header" href="#architecture-overview">Architecture Overview</a></h1>
@@ -793,7 +793,7 @@ BypassConsistencyCheck: bool;
 <h2 id="routines"><a class="header" href="#routines">Routines</a></h2>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>enum InconsistentErrror {
+</span>enum InconsistentError {
   // ...
 }
 
@@ -1176,7 +1176,7 @@ PastCodePruning: Vec&lt;(ParaId, BlockNumber)&gt;;
 /// The change will be applied after the first parablock for this ID included which executes
 /// in the context of a relay chain block with a number &gt;= `expected_at`.
 FutureCodeUpgrades: map ParaId =&gt; Option&lt;BlockNumber&gt;;
-/// The actual future code of a para.
+/// Hash of the actual future code of a para.
 FutureCodeHash: map ParaId =&gt; Option&lt;ValidationCodeHash&gt;;
 /// This is used by the relay-chain to communicate to a parachain a go-ahead with in the upgrade procedure.
 ///
@@ -1257,8 +1257,8 @@ parameters.</li>
 <li>Do pruning based on all entries in <code>PastCodePruning</code> with <code>BlockNumber &lt;= now</code>. Update the
 corresponding <code>PastCodeMeta</code> and <code>PastCode</code> accordingly.</li>
 <li>Toggle the upgrade related signals</li>
-<li>Collect all <code>(para_id, expected_at)</code> from <code>UpcomingUpgrades</code> where <code>expected_at &lt;= now</code> and prune them. For each para pruned set <code>UpgradeGoAheadSignal</code> to <code>GoAhead</code>.</li>
-<li>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code> and prune them. For each para pruned set <code>UpgradeRestrictionSignal</code> to <code>Present</code>.</li>
+<li>Collect all <code>(para_id, expected_at)</code> from <code>UpcomingUpgrades</code> where <code>expected_at &lt;= now</code> and prune them. For each para pruned set <code>UpgradeGoAheadSignal</code> to <code>GoAhead</code>. Reserve weight for the state modification to upgrade each para pruned.</li>
+<li>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code>. For each para obtained this way reserve weight to remove its <code>UpgradeRestrictionSignal</code> on finalization.</li>
 </ol>
 <h2 id="routines-2"><a class="header" href="#routines-2">Routines</a></h2>
 <ul>
@@ -1285,7 +1285,7 @@ or live parachain.</li>
 <li><code>pvfs_require_prechecking() -&gt; Vec&lt;ValidationCodeHash&gt;</code>: Returns the list of PVF validation code hashes that require PVF pre-checking votes.</li>
 </ul>
 <h2 id="finalization-2"><a class="header" href="#finalization-2">Finalization</a></h2>
-<p>No finalization routine runs for this module.</p>
+<p>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code> and prune them. For each para pruned remove its <code>UpgradeRestrictionSignal</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="scheduler-module"><a class="header" href="#scheduler-module">Scheduler Module</a></h1>
 <blockquote>
 <p>TODO: this section is still heavily under construction. key questions about availability cores and validator assignment are still open and the flow of the the section may be contradictory or inconsistent</p>

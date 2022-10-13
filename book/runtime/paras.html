@@ -307,7 +307,7 @@ PastCodePruning: Vec&lt;(ParaId, BlockNumber)&gt;;
 /// The change will be applied after the first parablock for this ID included which executes
 /// in the context of a relay chain block with a number &gt;= `expected_at`.
 FutureCodeUpgrades: map ParaId =&gt; Option&lt;BlockNumber&gt;;
-/// The actual future code of a para.
+/// Hash of the actual future code of a para.
 FutureCodeHash: map ParaId =&gt; Option&lt;ValidationCodeHash&gt;;
 /// This is used by the relay-chain to communicate to a parachain a go-ahead with in the upgrade procedure.
 ///
@@ -388,8 +388,8 @@ parameters.</li>
 <li>Do pruning based on all entries in <code>PastCodePruning</code> with <code>BlockNumber &lt;= now</code>. Update the
 corresponding <code>PastCodeMeta</code> and <code>PastCode</code> accordingly.</li>
 <li>Toggle the upgrade related signals</li>
-<li>Collect all <code>(para_id, expected_at)</code> from <code>UpcomingUpgrades</code> where <code>expected_at &lt;= now</code> and prune them. For each para pruned set <code>UpgradeGoAheadSignal</code> to <code>GoAhead</code>.</li>
-<li>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code> and prune them. For each para pruned set <code>UpgradeRestrictionSignal</code> to <code>Present</code>.</li>
+<li>Collect all <code>(para_id, expected_at)</code> from <code>UpcomingUpgrades</code> where <code>expected_at &lt;= now</code> and prune them. For each para pruned set <code>UpgradeGoAheadSignal</code> to <code>GoAhead</code>. Reserve weight for the state modification to upgrade each para pruned.</li>
+<li>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code>. For each para obtained this way reserve weight to remove its <code>UpgradeRestrictionSignal</code> on finalization.</li>
 </ol>
 <h2 id="routines"><a class="header" href="#routines">Routines</a></h2>
 <ul>
@@ -416,7 +416,7 @@ or live parachain.</li>
 <li><code>pvfs_require_prechecking() -&gt; Vec&lt;ValidationCodeHash&gt;</code>: Returns the list of PVF validation code hashes that require PVF pre-checking votes.</li>
 </ul>
 <h2 id="finalization"><a class="header" href="#finalization">Finalization</a></h2>
-<p>No finalization routine runs for this module.</p>
+<p>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code> and prune them. For each para pruned remove its <code>UpgradeRestrictionSignal</code>.</p>
 
                     </main>
 
