@@ -1552,6 +1552,39 @@
 <span id="1546">1546</span>
 <span id="1547">1547</span>
 <span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -1612,6 +1645,7 @@
 	<span class="kw">fn</span> <span class="ident">force_process_hrmp_close</span>(<span class="ident">c</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">hrmp_cancel_open_request</span>(<span class="ident">c</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
 	<span class="kw">fn</span> <span class="ident">clean_open_channel_requests</span>(<span class="ident">c</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span>;
+	<span class="kw">fn</span> <span class="ident">force_open_hrmp_channel</span>() -&gt; <span class="ident">Weight</span>;
 }
 
 <span class="doccomment">/// A weight info that is only suitable for testing.</span>
@@ -1640,6 +1674,9 @@
 		<span class="ident">Weight::MAX</span>
 	}
 	<span class="kw">fn</span> <span class="ident">clean_open_channel_requests</span>(<span class="kw">_</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
+		<span class="ident">Weight::MAX</span>
+	}
+	<span class="kw">fn</span> <span class="ident">force_open_hrmp_channel</span>() -&gt; <span class="ident">Weight</span> {
 		<span class="ident">Weight::MAX</span>
 	}
 }
@@ -1823,6 +1860,9 @@
 		<span class="ident">OpenChannelAccepted</span>(<span class="ident">ParaId</span>, <span class="ident">ParaId</span>),
 		<span class="doccomment">/// HRMP channel closed. `[by_parachain, channel_id]`</span>
 		<span class="ident">ChannelClosed</span>(<span class="ident">ParaId</span>, <span class="ident">HrmpChannelId</span>),
+		<span class="doccomment">/// An HRMP channel was opened via Root origin.</span>
+		<span class="doccomment">/// `[sender, recipient, proposed_max_capacity, proposed_max_message_size]`</span>
+		<span class="ident">HrmpChannelForceOpened</span>(<span class="ident">ParaId</span>, <span class="ident">ParaId</span>, <span class="ident">u32</span>, <span class="ident">u32</span>),
 	}
 
 	<span class="attribute">#[<span class="ident">pallet::error</span>]</span>
@@ -2129,6 +2169,32 @@
 			);
 			<span class="ident"><span class="self">Self</span>::cancel_open_request</span>(<span class="ident">origin</span>, <span class="ident">channel_id</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
 			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OpenChannelCanceled</span>(<span class="ident">origin</span>, <span class="ident">channel_id</span>));
+			<span class="prelude-val">Ok</span>(())
+		}
+
+		<span class="doccomment">/// Open a channel from a `sender` to a `recipient` `ParaId` using the Root origin. Although</span>
+		<span class="doccomment">/// opened by Root, the `max_capacity` and `max_message_size` are still subject to the Relay</span>
+		<span class="doccomment">/// Chain&#39;s configured limits.</span>
+		<span class="doccomment">///</span>
+		<span class="doccomment">/// Expected use is when one of the `ParaId`s involved in the channel is governed by the</span>
+		<span class="doccomment">/// Relay Chain, e.g. a common good parachain.</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::force_open_hrmp_channel</span>())]</span>
+		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force_open_hrmp_channel</span>(
+			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+			<span class="ident">sender</span>: <span class="ident">ParaId</span>,
+			<span class="ident">recipient</span>: <span class="ident">ParaId</span>,
+			<span class="ident">max_capacity</span>: <span class="ident">u32</span>,
+			<span class="ident">max_message_size</span>: <span class="ident">u32</span>,
+		) -&gt; <span class="ident">DispatchResult</span> {
+			<span class="ident">ensure_root</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::init_open_channel</span>(<span class="ident">sender</span>, <span class="ident">recipient</span>, <span class="ident">max_capacity</span>, <span class="ident">max_message_size</span>)<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::accept_open_channel</span>(<span class="ident">recipient</span>, <span class="ident">sender</span>)<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::HrmpChannelForceOpened</span>(
+				<span class="ident">sender</span>,
+				<span class="ident">recipient</span>,
+				<span class="ident">max_capacity</span>,
+				<span class="ident">max_message_size</span>,
+			));
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
