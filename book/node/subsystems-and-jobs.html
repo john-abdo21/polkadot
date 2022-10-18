@@ -164,8 +164,7 @@ the details; each parachain just needs to provide a <a href="collators/collation
 <p><strong>Note</strong>: Inter-subsystem communications are relayed via the overseer, but that step is omitted here for brevity.</p>
 <p><strong>Note</strong>: Dashed lines indicate a request/response cycle, where the response is communicated asynchronously via
 a oneshot channel. Adjacent dashed lines may be processed in parallel.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant Overseer
     participant CollationGeneration
     participant RuntimeApi
@@ -184,14 +183,13 @@ sequenceDiagram
 
         CollationGeneration -&gt;&gt; CollatorProtocol: DistributeCollation
     end
-`</pre>
+</pre>
 <p>The <code>DistributeCollation</code> messages that <code>CollationGeneration</code> sends to the <code>CollatorProtocol</code> contains
 two items: a <code>CandidateReceipt</code> and <code>PoV</code>. The <code>CollatorProtocol</code> is then responsible for distributing
 that collation to interested validators. However, not all potential collations are of interest. The
 <code>CandidateSelection</code> subsystem is responsible for determining which collations are interesting, before
 <code>CollatorProtocol</code> actually fetches the collation.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant CollationGeneration
     participant CS as CollatorProtocol::CollatorSide
     participant NB as NetworkBridge
@@ -231,13 +229,12 @@ sequenceDiagram
     else CandidateSelection already selected a different candidate
         Note over CandidateSelection: silently drop
     end
-`</pre>
+</pre>
 <p>Assuming we hit the happy path, flow continues with <code>CandidateSelection</code> receiving a <code>(candidate_receipt, pov)</code> as
 the return value from its
 <code>FetchCollation</code> request. The only time <code>CandidateSelection</code> actively requests a collation is when
 it hasn't yet seconded one for some <code>relay_parent</code>, and is ready to second.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant CS as CandidateSelection
     participant CB as CandidateBacking
     participant CV as CandidateValidation
@@ -267,7 +264,7 @@ sequenceDiagram
     else invalid
         CB -&gt;&gt; CS: Invalid
     end
-`</pre>
+</pre>
 <p>At this point, you'll see that control flows in two directions: to <code>StatementDistribution</code> to distribute
 the <code>SignedStatement</code>, and to <code>PoVDistribution</code> to distribute the <code>PoV</code>. However, that's largely a mirage:
 while the initial implementation distributes <code>PoV</code>s by gossip, that's inefficient, and will be replaced
@@ -277,8 +274,7 @@ with a system which fetches <code>PoV</code>s only when actually necessary.</p>
 </blockquote>
 <p>Therefore, we'll follow the <code>SignedStatement</code>. The <code>StatementDistribution</code> subsystem is largely concerned
 with implementing a gossip protocol:</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant SD as StatementDistribution
     participant NB as NetworkBridge
 
@@ -300,12 +296,11 @@ sequenceDiagram
             SD -&gt;&gt; NB: SendValidationMessage
         end
     end
-`</pre>
+</pre>
 <p>But who are these <code>Listener</code>s who've asked to be notified about incoming <code>SignedStatement</code>s?
 Nobody, as yet.</p>
 <p>Let's pick back up with the PoV Distribution subsystem.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant CB as CandidateBacking
     participant PD as PoVDistribution
     participant Listener
@@ -324,14 +319,13 @@ sequenceDiagram
     PD -&gt;&gt; NB: SendPoV
 
     Note over PD,NB: On receipt of a network PoV, PovDistribution forwards it to each Listener.&lt;br/&gt;It also penalizes bad gossipers.
-`</pre>
+</pre>
 <p>Unlike in the case of <code>StatementDistribution</code>, there is another subsystem which in various circumstances
 already registers a listener to be notified when a new <code>PoV</code> arrives: <code>CandidateBacking</code>. Note that this
 is the second time that <code>CandidateBacking</code> has gotten involved. The first instance was from the perspective
 of the validator choosing to second a candidate via its <code>CandidateSelection</code> subsystem. This time, it's
 from the perspective of some other validator, being informed that this foreign <code>PoV</code> has been received.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant SD as StatementDistribution
     participant CB as CandidateBacking
     participant PD as PoVDistribution
@@ -343,13 +337,12 @@ sequenceDiagram
     Note over CB,PD: This call creates the Listener from the previous diagram
 
     CB -&gt;&gt; AS: StoreAvailableData
-`</pre>
+</pre>
 <p>At this point, things have gone a bit nonlinear. Let's pick up the thread again with <code>BitfieldSigning</code>. As
 the <code>Overseer</code> activates each relay parent, it starts a <code>BitfieldSigningJob</code> which operates on an extremely
 simple metric: after creation, it immediately goes to sleep for 1.5 seconds. On waking, it records the state
 of the world pertaining to availability at that moment.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant OS as Overseer
     participant BS as BitfieldSigning
     participant RA as RuntimeApi
@@ -365,12 +358,11 @@ sequenceDiagram
         end
         BS -&gt;&gt; BD: DistributeBitfield
     end
-`</pre>
+</pre>
 <p><code>BitfieldDistribution</code> is, like the other <code>*Distribution</code> subsystems, primarily interested in implementing
 a peer-to-peer gossip network propagating its particular messages. However, it also serves as an essential
 relay passing the message along.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant BS as BitfieldSigning
     participant BD as BitfieldDistribution
     participant NB as NetworkBridge
@@ -379,14 +371,13 @@ sequenceDiagram
     BS -&gt;&gt; BD: DistributeBitfield
     BD -&gt;&gt; PV: ProvisionableData::Bitfield
     BD -&gt;&gt; NB: SendValidationMessage::BitfieldDistribution::Bitfield
-`</pre>
+</pre>
 <p>We've now seen the message flow to the <code>Provisioner</code>: both <code>CandidateBacking</code> and <code>BitfieldDistribution</code>
 contribute provisionable data. Now, let's look at that subsystem.</p>
 <p>Much like the <code>BitfieldSigning</code> subsystem, the <code>Provisioner</code> creates a new job for each newly-activated
 leaf, and starts a timer. Unlike <code>BitfieldSigning</code>, we won't depict that part of the process, because
 the <code>Provisioner</code> also has other things going on.</p>
-<pre class="mermaid">
-sequenceDiagram
+<pre class="mermaid">sequenceDiagram
     participant A as Arbitrary
     participant PV as Provisioner
     participant CB as CandidateBacking
@@ -421,7 +412,7 @@ sequenceDiagram
             PV -&gt;&gt; PI: (SignedAvailabilityBitfields, BackedCandidates)
         end
     end
-`</pre>
+</pre>
 <p>In principle, any arbitrary subsystem could send a <code>RequestInherentData</code> to the <code>Provisioner</code>. In practice,
 only the <code>ParachainsInherentDataProvider</code> does so.</p>
 <p>The tuple <code>(SignedAvailabilityBitfields, BackedCandidates, ParentHeader)</code> is injected by the <code>ParachainsInherentDataProvider</code>
