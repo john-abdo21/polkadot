@@ -644,6 +644,11 @@
 <span id="638">638</span>
 <span id="639">639</span>
 <span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -941,11 +946,16 @@
 
 <span class="doccomment">/// Build the Ext at hash with all the data of `ElectionProviderMultiPhase` and any additional</span>
 <span class="doccomment">/// pallets.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_election_ext</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EPM::Config</span>, <span class="ident">B</span>: <span class="ident">BlockT</span> <span class="op">+</span> <span class="ident">DeserializeOwned</span><span class="op">&gt;</span>(
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">create_election_ext</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span>(
 	<span class="ident">client</span>: <span class="ident">SharedRpcClient</span>,
 	<span class="ident">at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">B::Hash</span><span class="op">&gt;</span>,
 	<span class="ident">additional</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Ext</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Ext</span>, <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">T</span>: <span class="ident">EPM::Config</span>,
+	<span class="ident">B</span>: <span class="ident">BlockT</span>,
+	<span class="ident">B::Header</span>: <span class="ident">DeserializeOwned</span>,
+{
 	<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">storage::generator::StorageMap</span>, <span class="ident">traits::PalletInfo</span>};
 	<span class="kw">use</span> <span class="ident">sp_core::hashing::twox_128</span>;
 
