@@ -102,15 +102,15 @@
 <span class="doccomment">//! touched again. It can be reused to regenerate a wholly different</span>
 <span class="doccomment">//! quantity of bags, or if the existential deposit changes, etc.</span>
 
-<span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgEnum</span>, <span class="ident">Parser</span>};
+<span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">Parser</span>, <span class="ident">ValueEnum</span>};
 <span class="kw">use</span> <span class="ident">generate_bags::generate_thresholds</span>;
 <span class="kw">use</span> <span class="ident">kusama_runtime::Runtime</span> <span class="kw">as</span> <span class="ident">KusamaRuntime</span>;
 <span class="kw">use</span> <span class="ident">polkadot_runtime::Runtime</span> <span class="kw">as</span> <span class="ident">PolkadotRuntime</span>;
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">westend_runtime::Runtime</span> <span class="kw">as</span> <span class="ident">WestendRuntime</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">ArgEnum</span>)]</span>
-<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;PascalCase&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">ValueEnum</span>)]</span>
+<span class="attribute">#[<span class="ident">value</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;PascalCase&quot;</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Runtime</span> {
 	<span class="ident">Westend</span>,
 	<span class="ident">Kusama</span>,
@@ -132,22 +132,22 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Opt</span> {
 	<span class="doccomment">/// How many bags to generate.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;200&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">200</span>)]</span>
 	<span class="ident">n_bags</span>: <span class="ident">usize</span>,
 
 	<span class="doccomment">/// Which runtime to generate.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="ident">arg_enum</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;Polkadot&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="ident">value_enum</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="ident">Runtime::Polkadot</span>)]</span>
 	<span class="ident">runtime</span>: <span class="ident">Runtime</span>,
 
 	<span class="doccomment">/// Where to write the output.</span>
 	<span class="ident">output</span>: <span class="ident">PathBuf</span>,
 
 	<span class="doccomment">/// The total issuance of the native currency.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
 	<span class="ident">total_issuance</span>: <span class="ident">u128</span>,
 
 	<span class="doccomment">/// The minimum account balance (i.e. existential deposit) for the native currency.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
 	<span class="ident">minimum_balance</span>: <span class="ident">u128</span>,
 }
 

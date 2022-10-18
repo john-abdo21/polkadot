@@ -383,21 +383,21 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Parser</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>))]</span>
-<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">author</span>, <span class="ident">version</span>, <span class="ident">about</span>)]</span>
+<span class="attribute">#[<span class="ident">command</span>(<span class="ident">author</span>, <span class="ident">version</span>, <span class="ident">about</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Opt</span> {
 	<span class="doccomment">/// The `ws` node to connect to.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">DEFAULT_URI</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;URI&quot;</span>, <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">short</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">DEFAULT_URI</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;URI&quot;</span>, <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">uri</span>: <span class="ident">String</span>,
 
 	<span class="doccomment">/// WS connection timeout in number of seconds.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">try_from_str</span>), <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">60</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">60</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">connection_timeout</span>: <span class="ident">usize</span>,
 
 	<span class="doccomment">/// WS request timeout in number of seconds.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">try_from_str</span>), <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">60</span> <span class="op">*</span> <span class="number">10</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">60</span> <span class="op">*</span> <span class="number">10</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">request_timeout</span>: <span class="ident">usize</span>,
 
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">command</span>: <span class="ident">Command</span>,
 }
 
@@ -427,7 +427,7 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// WARNING: Don&#39;t use an account with a large stash for this. Based on how the bot is</span>
 	<span class="doccomment">/// configured, it might re-try and lose funds through transaction fees/deposits.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;SEED&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">short</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;SEED&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">seed_or_path</span>: <span class="ident">String</span>,
 
 	<span class="doccomment">/// They type of event to listen to.</span>
@@ -435,11 +435,11 @@
 	<span class="doccomment">/// Typically, finalized is safer and there is no chance of anything going wrong, but it can be</span>
 	<span class="doccomment">/// slower. It is recommended to use finalized, if the duration of the signed phase is longer</span>
 	<span class="doccomment">/// than the the finality delay.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;head&quot;</span>, <span class="ident">possible_values</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="string">&quot;head&quot;</span>, <span class="string">&quot;finalized&quot;</span>]</span>)]
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;head&quot;</span>, <span class="ident">value_parser</span> <span class="op">=</span> [<span class="string">&quot;head&quot;</span>, <span class="string">&quot;finalized&quot;</span>]</span>)]
 	<span class="kw">pub</span> <span class="ident">listen</span>: <span class="ident">String</span>,
 
 	<span class="doccomment">/// The solver algorithm to use.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">solver</span>: <span class="ident">Solver</span>,
 
 	<span class="doccomment">/// Submission strategy to use.</span>
@@ -451,7 +451,7 @@
 	<span class="doccomment">/// `--submission-strategy always`: always submit.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// `--submission-strategy &quot;percent-better &lt;percent&gt;&quot;`: submit if the submission is `n` percent better.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">try_from_str</span>), <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;if-leading&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;if-leading&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">submission_strategy</span>: <span class="ident">SubmissionStrategy</span>,
 
 	<span class="doccomment">/// Delay in number seconds to wait until starting mining a solution.</span>
@@ -462,7 +462,7 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// When this is enabled and there are competing solutions, your solution might not be submitted</span>
 	<span class="doccomment">/// if the scores are equal.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">try_from_str</span>), <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">0</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">0</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">delay</span>: <span class="ident">usize</span>,
 }
 
@@ -476,19 +476,19 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// WARNING: Don&#39;t use an account with a large stash for this. Based on how the bot is</span>
 	<span class="doccomment">/// configured, it might re-try and lose funds through transaction fees/deposits.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;SEED&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">short</span>, <span class="ident">env</span> <span class="op">=</span> <span class="string">&quot;SEED&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">seed_or_path</span>: <span class="ident">String</span>,
 
 	<span class="doccomment">/// The block hash at which scraping happens. If none is provided, the latest head is used.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// The solver algorithm to use.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">solver</span>: <span class="ident">Solver</span>,
 
 	<span class="doccomment">/// Force create a new snapshot, else expect one to exist onchain.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">force_snapshot</span>: <span class="ident">bool</span>,
 }
 
@@ -496,11 +496,11 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">EmergencySolutionConfig</span> {
 	<span class="doccomment">/// The block hash at which scraping happens. If none is provided, the latest head is used.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">at</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// The solver algorithm to use.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">solver</span>: <span class="ident">Solver</span>,
 
 	<span class="doccomment">/// The number of top backed winners to take. All are taken, if not provided.</span>
@@ -511,7 +511,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">InfoOpts</span> {
 	<span class="doccomment">/// Serialize the output as json</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">short</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">short</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">json</span>: <span class="ident">bool</span>,
 }
 
@@ -532,11 +532,11 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>))]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Solver</span> {
 	<span class="ident">SeqPhragmen</span> {
-		<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10&quot;</span>)]</span>
+		<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">10</span>)]</span>
 		<span class="ident">iterations</span>: <span class="ident">usize</span>,
 	},
 	<span class="ident">PhragMMS</span> {
-		<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10&quot;</span>)]</span>
+		<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value_t</span> <span class="op">=</span> <span class="number">10</span>)]</span>
 		<span class="ident">iterations</span>: <span class="ident">usize</span>,
 	},
 }

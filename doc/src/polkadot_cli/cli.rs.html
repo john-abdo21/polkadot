@@ -159,6 +159,7 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -204,16 +205,16 @@
 	<span class="ident">Revert</span>(<span class="ident">sc_cli::RevertCmd</span>),
 
 	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;prepare-worker&quot;</span>, <span class="ident">hide</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;prepare-worker&quot;</span>, <span class="ident">hide</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
 	<span class="ident">PvfPrepareWorker</span>(<span class="ident">ValidationWorkerCommand</span>),
 
 	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;execute-worker&quot;</span>, <span class="ident">hide</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;execute-worker&quot;</span>, <span class="ident">hide</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
 	<span class="ident">PvfExecuteWorker</span>(<span class="ident">ValidationWorkerCommand</span>),
 
 	<span class="doccomment">/// Sub-commands concerned with benchmarking.</span>
 	<span class="doccomment">/// The pallet benchmarking moved to the `pallet` sub-command.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="ident">Benchmark</span>(<span class="ident">frame_benchmarking_cli::BenchmarkCmd</span>),
 
 	<span class="doccomment">/// Runs performance checks such as PVF compilation in order to measure machine</span>
@@ -229,7 +230,7 @@
 	<span class="ident">TryRuntime</span>,
 
 	<span class="doccomment">/// Key management CLI utilities</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="ident">Key</span>(<span class="ident">sc_cli::KeySubcommand</span>),
 
 	<span class="doccomment">/// Db meta columns information.</span>
@@ -245,21 +246,22 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
+<span class="attribute">#[<span class="ident">group</span>(<span class="ident">skip</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RunCmd</span> {
 	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">sc_cli::RunCmd</span>,
 
 	<span class="doccomment">/// Force using Kusama native runtime.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-kusama&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-kusama&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">force_kusama</span>: <span class="ident">bool</span>,
 
 	<span class="doccomment">/// Force using Westend native runtime.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-westend&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-westend&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">force_westend</span>: <span class="ident">bool</span>,
 
 	<span class="doccomment">/// Force using Rococo native runtime.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-rococo&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-rococo&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">force_rococo</span>: <span class="ident">bool</span>,
 
 	<span class="doccomment">/// Setup a GRANDPA scheduled voting pause.</span>
@@ -268,25 +270,25 @@
 	<span class="doccomment">/// blocks). After the given block number is finalized the GRANDPA voter</span>
 	<span class="doccomment">/// will temporarily stop voting for new blocks until the given delay has</span>
 	<span class="doccomment">/// elapsed (i.e. until a block at height `pause_block + delay` is imported).</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;grandpa-pause&quot;</span>, <span class="ident">number_of_values</span>(<span class="number">2</span>))]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;grandpa-pause&quot;</span>, <span class="ident">num_args</span> <span class="op">=</span> <span class="number">2</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">grandpa_pause</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// Enable the BEEFY gadget (only on Rococo or Wococo for now).</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">beefy</span>: <span class="ident">bool</span>,
 
 	<span class="doccomment">/// Add the destination address to the jaeger agent.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Must be valid socket address, of format `IP:Port`</span>
 	<span class="doccomment">/// commonly `127.0.0.1:6831`.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">jaeger_agent</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// Add the destination address to the `pyroscope` agent.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// Must be valid socket address, of format `IP:Port`</span>
 	<span class="doccomment">/// commonly `127.0.0.1:4040`.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">pyroscope_server</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 
 	<span class="doccomment">/// Disable automatic hardware benchmarks.</span>
@@ -296,20 +298,20 @@
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// The results are then printed out in the logs, and also sent as part of</span>
 	<span class="doccomment">/// telemetry, if telemetry is enabled.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">no_hardware_benchmarks</span>: <span class="ident">bool</span>,
 
 	<span class="doccomment">/// Overseer message capacity override.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// **Dangerous!** Do not touch unless explicitly adviced to.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
+	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">overseer_channel_capacity_override</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cli</span> {
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
+	<span class="attribute">#[<span class="ident">command</span>(<span class="ident">subcommand</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">subcommand</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Subcommand</span><span class="op">&gt;</span>,
 	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">run</span>: <span class="ident">RunCmd</span>,
