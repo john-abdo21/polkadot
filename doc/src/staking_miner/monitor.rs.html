@@ -426,6 +426,52 @@
 <span id="420">420</span>
 <span id="421">421</span>
 <span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -492,7 +538,7 @@
 		.<span class="ident">map_err</span>::<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>
 		.<span class="ident">unwrap_or_default</span>();
 
-	<span class="kw">for</span> (<span class="ident">_score</span>, <span class="ident">idx</span>) <span class="kw">in</span> <span class="ident">indices</span> {
+	<span class="kw">for</span> (<span class="ident">_score</span>, <span class="ident">_bn</span>, <span class="ident">idx</span>) <span class="kw">in</span> <span class="ident">indices</span> {
 		<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">StorageKey</span>(<span class="ident">EPM::SignedSubmissionsMap</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::hashed_key_for</span>(<span class="ident">idx</span>));
 
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">submission</span>) <span class="op">=</span> <span class="ident">rpc</span>
@@ -509,20 +555,36 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
+<span class="doccomment">/// `true` if `our_score` should pass the onchain `best_score` with the given strategy.</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">score_passes_strategy</span>(
+	<span class="ident">our_score</span>: <span class="ident">sp_npos_elections::ElectionScore</span>,
+	<span class="ident">best_score</span>: <span class="ident">sp_npos_elections::ElectionScore</span>,
+	<span class="ident">strategy</span>: <span class="ident">SubmissionStrategy</span>,
+) -&gt; <span class="ident">bool</span> {
+	<span class="kw">match</span> <span class="ident">strategy</span> {
+		<span class="ident">SubmissionStrategy::Always</span> =&gt; <span class="bool-val">true</span>,
+		<span class="ident">SubmissionStrategy::IfLeading</span> =&gt;
+			<span class="ident">our_score</span> <span class="op">==</span> <span class="ident">best_score</span> <span class="op">|</span><span class="op">|</span>
+				<span class="ident">our_score</span>.<span class="ident">strict_threshold_better</span>(<span class="ident">best_score</span>, <span class="ident">Perbill::zero</span>()),
+		<span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">epsilon</span>) =&gt;
+			<span class="ident">our_score</span>.<span class="ident">strict_threshold_better</span>(<span class="ident">best_score</span>, <span class="ident">epsilon</span>),
+		<span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">epsilon</span>) =&gt;
+			<span class="op">!</span><span class="ident">best_score</span>.<span class="ident">strict_threshold_better</span>(<span class="ident">our_score</span>, <span class="ident">epsilon</span>),
+	}
+}
+
 <span class="doccomment">/// Reads all current solutions and checks the scores according to the `SubmissionStrategy`.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ensure_no_better_solution</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EPM::Config</span>, <span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&gt;</span>(
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">ensure_strategy_met</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EPM::Config</span>, <span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&gt;</span>(
 	<span class="ident">rpc</span>: <span class="kw-2">&amp;</span><span class="ident">SharedRpcClient</span>,
 	<span class="ident">at</span>: <span class="ident">Hash</span>,
 	<span class="ident">score</span>: <span class="ident">sp_npos_elections::ElectionScore</span>,
 	<span class="ident">strategy</span>: <span class="ident">SubmissionStrategy</span>,
 	<span class="ident">max_submissions</span>: <span class="ident">u32</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">epsilon</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">strategy</span> {
-		<span class="comment">// don&#39;t care about current scores.</span>
-		<span class="ident">SubmissionStrategy::Always</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-		<span class="ident">SubmissionStrategy::IfLeading</span> =&gt; <span class="ident">Perbill::zero</span>(),
-		<span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">epsilon</span>) =&gt; <span class="ident">epsilon</span>,
-	};
+	<span class="comment">// don&#39;t care about current scores.</span>
+	<span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">strategy</span>, <span class="ident">SubmissionStrategy::Always</span>) {
+		<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+	}
 
 	<span class="kw">let</span> <span class="ident">indices_key</span> <span class="op">=</span> <span class="ident">StorageKey</span>(<span class="ident">EPM::SignedSubmissionIndices</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::hashed_key</span>().<span class="ident">to_vec</span>());
 
@@ -532,34 +594,16 @@
 		.<span class="ident">map_err</span>::<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">Into::into</span>)<span class="question-mark">?</span>
 		.<span class="ident">unwrap_or_default</span>();
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_best_score</span> <span class="op">=</span> <span class="bool-val">true</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scores</span> <span class="op">=</span> <span class="number">0</span>;
-
-	<span class="macro">log::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;submitted solutions on chain: {:?}&quot;</span>, <span class="ident">indices</span>);
-
-	<span class="comment">// BTreeMap is ordered, take last to get the max score.</span>
-	<span class="kw">for</span> (<span class="ident">curr_max_score</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">indices</span>.<span class="ident">into_iter</span>() {
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">score</span>.<span class="ident">strict_threshold_better</span>(<span class="ident">curr_max_score</span>, <span class="ident">epsilon</span>) {
-			<span class="macro">log::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;mined score is not better; skipping to submit&quot;</span>);
-			<span class="ident">is_best_score</span> <span class="op">=</span> <span class="bool-val">false</span>;
-		}
-
-		<span class="kw">if</span> <span class="ident">score</span> <span class="op">==</span> <span class="ident">curr_max_score</span> {
-			<span class="macro">log::warn!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="string">&quot;mined score has the same score as already submitted score&quot;</span>
-			);
-		}
-
-		<span class="comment">// Indices can&#39;t be bigger than u32::MAX so can&#39;t overflow.</span>
-		<span class="ident">scores</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+	<span class="comment">// we check the queue here as well. Could be checked elsewhere.</span>
+	<span class="kw">if</span> <span class="ident">indices</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">max_submissions</span> {
+		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::QueueFull</span>)
 	}
 
-	<span class="kw">if</span> <span class="ident">scores</span> <span class="op">==</span> <span class="ident">max_submissions</span> {
-		<span class="macro">log::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;The submissions queue is full&quot;</span>);
-	}
+	<span class="comment">// default score is all zeros, any score is better than it.</span>
+	<span class="kw">let</span> <span class="ident">best_score</span> <span class="op">=</span> <span class="ident">indices</span>.<span class="ident">last</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">score</span>, <span class="kw">_</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">score</span>).<span class="ident">unwrap_or_default</span>();
+	<span class="macro">log::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;best onchain score is {:?}&quot;</span>, <span class="ident">best_score</span>);
 
-	<span class="kw">if</span> <span class="ident">is_best_score</span> {
+	<span class="kw">if</span> <span class="ident">score_passes_strategy</span>(<span class="ident">score</span>, <span class="ident">best_score</span>, <span class="ident">strategy</span>) {
 		<span class="prelude-val">Ok</span>(())
 	} <span class="kw">else</span> {
 		<span class="prelude-val">Err</span>(<span class="ident">Error::StrategyNotSatisfied</span>)
@@ -661,7 +705,7 @@
 
 			<span class="comment">// block on this because if this fails there is no way to recover from</span>
 			<span class="comment">// that error i.e, upgrade/downgrade required.</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::check_versions</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">rpc</span>).<span class="kw">await</span> {
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::check_versions</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">rpc</span>, <span class="bool-val">false</span>).<span class="kw">await</span> {
 				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">err</span>.<span class="ident">into</span>());
 				<span class="kw">return</span>;
 			}
@@ -742,9 +786,14 @@
 				}
 			};
 
-			<span class="kw">let</span> <span class="ident">ensure_no_better_fut</span> <span class="op">=</span> <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-				<span class="ident">ensure_no_better_solution</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Block</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">rpc1</span>, <span class="ident">latest_head</span>, <span class="ident">score</span>, <span class="ident">config</span>.<span class="ident">submission_strategy</span>,
-					<span class="ident">SignedMaxSubmissions::get</span>()).<span class="kw">await</span>
+			<span class="kw">let</span> <span class="ident">ensure_strategy_met_fut</span> <span class="op">=</span> <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
+				<span class="ident">ensure_strategy_met</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Block</span><span class="op">&gt;</span>(
+					<span class="kw-2">&amp;</span><span class="ident">rpc1</span>,
+					<span class="ident">latest_head</span>,
+					<span class="ident">score</span>,
+					<span class="ident">config</span>.<span class="ident">submission_strategy</span>,
+					<span class="ident">SignedMaxSubmissions::get</span>()
+				).<span class="kw">await</span>
 			});
 
 			<span class="kw">let</span> <span class="ident">ensure_signed_phase_fut</span> <span class="op">=</span> <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
@@ -753,7 +802,7 @@
 
 			<span class="comment">// Run the calls in parallel and return once all has completed or any failed.</span>
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="macro">tokio::try_join!</span>(
-				<span class="ident">flatten</span>(<span class="ident">ensure_no_better_fut</span>),
+				<span class="ident">flatten</span>(<span class="ident">ensure_strategy_met_fut</span>),
 				<span class="ident">flatten</span>(<span class="ident">ensure_signed_phase_fut</span>),
 			) {
 				<span class="macro">log::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;Skipping to submit at block {}; {}&quot;</span>, <span class="ident">at</span>.<span class="ident">number</span>, <span class="ident">err</span>);
@@ -848,6 +897,49 @@
 <span class="macro">monitor_cmd_for!</span>(<span class="ident">polkadot</span>);
 <span class="macro">monitor_cmd_for!</span>(<span class="ident">kusama</span>);
 <span class="macro">monitor_cmd_for!</span>(<span class="ident">westend</span>);
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
+	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+	<span class="attribute">#[<span class="ident">test</span>]</span>
+	<span class="kw">fn</span> <span class="ident">score_passes_strategy_works</span>() {
+		<span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">sp_npos_elections::ElectionScore</span> { <span class="ident">minimal_stake</span>: <span class="ident">x</span>, ..<span class="ident">Default::default</span>() };
+		<span class="kw">let</span> <span class="ident">two</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">2</span>);
+
+		<span class="comment">// anything passes Always</span>
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">0</span>), <span class="ident">s</span>(<span class="number">0</span>), <span class="ident">SubmissionStrategy::Always</span>));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">5</span>), <span class="ident">s</span>(<span class="number">0</span>), <span class="ident">SubmissionStrategy::Always</span>));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">5</span>), <span class="ident">s</span>(<span class="number">10</span>), <span class="ident">SubmissionStrategy::Always</span>));
+
+		<span class="comment">// if leading</span>
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">0</span>), <span class="ident">s</span>(<span class="number">0</span>), <span class="ident">SubmissionStrategy::IfLeading</span>));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">1</span>), <span class="ident">s</span>(<span class="number">0</span>), <span class="ident">SubmissionStrategy::IfLeading</span>));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">2</span>), <span class="ident">s</span>(<span class="number">0</span>), <span class="ident">SubmissionStrategy::IfLeading</span>));
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">5</span>), <span class="ident">s</span>(<span class="number">10</span>), <span class="ident">SubmissionStrategy::IfLeading</span>));
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">9</span>), <span class="ident">s</span>(<span class="number">10</span>), <span class="ident">SubmissionStrategy::IfLeading</span>));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">10</span>), <span class="ident">s</span>(<span class="number">10</span>), <span class="ident">SubmissionStrategy::IfLeading</span>));
+
+		<span class="comment">// if better by 2%</span>
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">50</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">100</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">101</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">102</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">103</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">150</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimBetterThan</span>(<span class="ident">two</span>)));
+
+		<span class="comment">// if no less than 2% worse</span>
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">50</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="op">!</span><span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">97</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">98</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">99</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">100</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">101</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">102</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">103</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+		<span class="macro">assert!</span>(<span class="ident">score_passes_strategy</span>(<span class="ident">s</span>(<span class="number">150</span>), <span class="ident">s</span>(<span class="number">100</span>), <span class="ident">SubmissionStrategy::ClaimNoWorseThan</span>(<span class="ident">two</span>)));
+	}
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="staking_miner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
 </body></html>

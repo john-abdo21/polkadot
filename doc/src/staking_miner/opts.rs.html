@@ -360,6 +360,14 @@
 <span id="354">354</span>
 <span id="355">355</span>
 <span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
 <span class="comment">// This file is part of Polkadot.</span>
 
@@ -451,7 +459,9 @@
 	<span class="doccomment">/// `--submission-strategy always`: always submit.</span>
 	<span class="doccomment">///</span>
 	<span class="doccomment">/// `--submission-strategy &quot;percent-better &lt;percent&gt;&quot;`: submit if the submission is `n` percent better.</span>
-	<span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;if-leading&quot;</span>)]</span>
+	<span class="doccomment">///</span>
+	<span class="doccomment">/// `--submission-strategy &quot;no-worse-than  &lt;percent&gt;&quot;`: submit if submission is no more than `n` percent worse.</span>
+	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;if-leading&quot;</span>)]</span>
 	<span class="kw">pub</span> <span class="ident">submission_strategy</span>: <span class="ident">SubmissionStrategy</span>,
 
 	<span class="doccomment">/// Delay in number seconds to wait until starting mining a solution.</span>
@@ -519,12 +529,14 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SubmissionStrategy</span> {
-	<span class="comment">// Only submit if at the time, we are the best.</span>
-	<span class="ident">IfLeading</span>,
-	<span class="comment">// Always submit.</span>
+	<span class="doccomment">/// Always submit.</span>
 	<span class="ident">Always</span>,
-	<span class="comment">// Submit if we are leading, or if the solution that&#39;s leading is more that the given `Perbill`</span>
-	<span class="comment">// better than us. This helps detect obviously fake solutions and still combat them.</span>
+	<span class="doccomment">/// Only submit if at the time, we are the best (or equal to it).</span>
+	<span class="ident">IfLeading</span>,
+	<span class="doccomment">/// Submit if we are no worse than `Perbill` worse than the best.</span>
+	<span class="ident">ClaimNoWorseThan</span>(<span class="ident">Perbill</span>),
+	<span class="doccomment">/// Submit if we are leading, or if the solution that&#39;s leading is more that the given `Perbill`</span>
+	<span class="doccomment">/// better than us. This helps detect obviously fake solutions and still combat them.</span>
 	<span class="ident">ClaimBetterThan</span>(<span class="ident">Perbill</span>),
 }
 
@@ -547,6 +559,7 @@
 <span class="doccomment">/// * --submission-strategy if-leading: only submit if leading</span>
 <span class="doccomment">/// * --submission-strategy always: always submit</span>
 <span class="doccomment">/// * --submission-strategy &quot;percent-better &lt;percent&gt;&quot;: submit if submission is `n` percent better.</span>
+<span class="doccomment">/// * --submission-strategy &quot;no-worse-than&lt;percent&gt;&quot;: submit if submission is no more than `n` percent worse.</span>
 <span class="doccomment">///</span>
 <span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">SubmissionStrategy</span> {
 	<span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
@@ -558,8 +571,11 @@
 			<span class="ident"><span class="self">Self</span>::IfLeading</span>
 		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;always&quot;</span> {
 			<span class="ident"><span class="self">Self</span>::Always</span>
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;percent-better &quot;</span>) {
-			<span class="kw">let</span> <span class="ident">percent</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">s</span>[<span class="number">15</span>..].<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+		} <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">percent</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;no-worse-than &quot;</span>) {
+			<span class="kw">let</span> <span class="ident">percent</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">percent</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+			<span class="ident"><span class="self">Self</span>::ClaimNoWorseThan</span>(<span class="ident">Perbill::from_percent</span>(<span class="ident">percent</span>))
+		} <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">percent</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">strip_prefix</span>(<span class="string">&quot;percent-better &quot;</span>) {
+			<span class="kw">let</span> <span class="ident">percent</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">percent</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
 			<span class="ident"><span class="self">Self</span>::ClaimBetterThan</span>(<span class="ident">Perbill::from_percent</span>(<span class="ident">percent</span>))
 		} <span class="kw">else</span> {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">s</span>.<span class="ident">into</span>())
