@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/runtime-api/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_runtime_api/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_runtime_api/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_runtime_api/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/runtime-api/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_runtime_api/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_runtime_api/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -471,473 +465,472 @@
 <span id="465">465</span>
 <span id="466">466</span>
 <span id="467">467</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident">std::collections::btree_map::BTreeMap</span>;
+</span><span class="kw">use </span>std::collections::btree_map::BTreeMap;
 
-<span class="kw">use</span> <span class="ident">memory_lru</span>::{<span class="ident">MemoryLruCache</span>, <span class="ident">ResidentSize</span>};
-<span class="kw">use</span> <span class="ident">parity_util_mem</span>::{<span class="ident">MallocSizeOf</span>, <span class="ident">MallocSizeOfExt</span>};
-<span class="kw">use</span> <span class="ident">sp_consensus_babe::Epoch</span>;
+<span class="kw">use </span>memory_lru::{MemoryLruCache, ResidentSize};
+<span class="kw">use </span>parity_util_mem::{MallocSizeOf, MallocSizeOfExt};
+<span class="kw">use </span>sp_consensus_babe::Epoch;
 
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">BlockNumber</span>, <span class="ident">CandidateCommitments</span>, <span class="ident">CandidateEvent</span>, <span class="ident">CandidateHash</span>,
-	<span class="ident">CommittedCandidateReceipt</span>, <span class="ident">CoreState</span>, <span class="ident">DisputeState</span>, <span class="ident">GroupRotationInfo</span>, <span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>,
-	<span class="ident">InboundDownwardMessage</span>, <span class="ident">InboundHrmpMessage</span>, <span class="ident">OccupiedCoreAssumption</span>, <span class="ident">PersistedValidationData</span>,
-	<span class="ident">PvfCheckStatement</span>, <span class="ident">ScrapedOnChainVotes</span>, <span class="ident">SessionIndex</span>, <span class="ident">SessionInfo</span>, <span class="ident">ValidationCode</span>,
-	<span class="ident">ValidationCodeHash</span>, <span class="ident">ValidatorId</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>,
+<span class="kw">use </span>polkadot_primitives::v2::{
+	AuthorityDiscoveryId, BlockNumber, CandidateCommitments, CandidateEvent, CandidateHash,
+	CommittedCandidateReceipt, CoreState, DisputeState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId,
+	InboundDownwardMessage, InboundHrmpMessage, OccupiedCoreAssumption, PersistedValidationData,
+	PvfCheckStatement, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidationCode,
+	ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
 };
 
-<span class="kw">const</span> <span class="ident">AUTHORITIES_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">128</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">VALIDATORS_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">VALIDATOR_GROUPS_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">AVAILABILITY_CORES_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">PERSISTED_VALIDATION_DATA_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">ASSUMED_VALIDATION_DATA_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">CHECK_VALIDATION_OUTPUTS_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">SESSION_INDEX_FOR_CHILD_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">VALIDATION_CODE_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">CANDIDATE_PENDING_AVAILABILITY_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">CANDIDATE_EVENTS_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">SESSION_INFO_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">DMQ_CONTENTS_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">INBOUND_HRMP_CHANNELS_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">CURRENT_BABE_EPOCH_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">ON_CHAIN_VOTES_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">PVFS_REQUIRE_PRECHECK_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">VALIDATION_CODE_HASH_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">VERSION_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="number">1024</span>;
-<span class="kw">const</span> <span class="ident">DISPUTES_CACHE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span> <span class="op">*</span> <span class="number">1024</span>;
+<span class="kw">const </span>AUTHORITIES_CACHE_SIZE: usize = <span class="number">128 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>VALIDATORS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>VALIDATOR_GROUPS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>AVAILABILITY_CORES_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>PERSISTED_VALIDATION_DATA_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>ASSUMED_VALIDATION_DATA_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>CHECK_VALIDATION_OUTPUTS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>SESSION_INDEX_FOR_CHILD_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>VALIDATION_CODE_CACHE_SIZE: usize = <span class="number">10 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>CANDIDATE_PENDING_AVAILABILITY_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>CANDIDATE_EVENTS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>SESSION_INFO_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>DMQ_CONTENTS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>INBOUND_HRMP_CHANNELS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>CURRENT_BABE_EPOCH_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>ON_CHAIN_VOTES_CACHE_SIZE: usize = <span class="number">3 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>PVFS_REQUIRE_PRECHECK_SIZE: usize = <span class="number">1024</span>;
+<span class="kw">const </span>VALIDATION_CODE_HASH_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>VERSION_CACHE_SIZE: usize = <span class="number">4 </span>* <span class="number">1024</span>;
+<span class="kw">const </span>DISPUTES_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
 
-<span class="kw">struct</span> <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
+<span class="kw">struct </span>ResidentSizeOf&lt;T&gt;(T);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">MallocSizeOf</span><span class="op">&gt;</span> <span class="ident">ResidentSize</span> <span class="kw">for</span> <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">resident_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>() <span class="op">+</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">malloc_size_of</span>()
+<span class="kw">impl</span>&lt;T: MallocSizeOf&gt; ResidentSize <span class="kw">for </span>ResidentSizeOf&lt;T&gt; {
+	<span class="kw">fn </span>resident_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		std::mem::size_of::&lt;<span class="self">Self</span>&gt;() + <span class="self">self</span>.<span class="number">0</span>.malloc_size_of()
 	}
 }
 
-<span class="kw">struct</span> <span class="ident">DoesNotAllocate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
+<span class="kw">struct </span>DoesNotAllocate&lt;T&gt;(T);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ResidentSize</span> <span class="kw">for</span> <span class="ident">DoesNotAllocate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">resident_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
+<span class="kw">impl</span>&lt;T&gt; ResidentSize <span class="kw">for </span>DoesNotAllocate&lt;T&gt; {
+	<span class="kw">fn </span>resident_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		std::mem::size_of::&lt;<span class="self">Self</span>&gt;()
 	}
 }
 
-<span class="comment">// this is an ugly workaround for `AuthorityDiscoveryId`</span>
-<span class="comment">// not implementing `MallocSizeOf`</span>
-<span class="kw">struct</span> <span class="ident">VecOfDoesNotAllocate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="comment">// this is an ugly workaround for `AuthorityDiscoveryId`
+// not implementing `MallocSizeOf`
+</span><span class="kw">struct </span>VecOfDoesNotAllocate&lt;T&gt;(Vec&lt;T&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ResidentSize</span> <span class="kw">for</span> <span class="ident">VecOfDoesNotAllocate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">resident_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">capacity</span>()
+<span class="kw">impl</span>&lt;T&gt; ResidentSize <span class="kw">for </span>VecOfDoesNotAllocate&lt;T&gt; {
+	<span class="kw">fn </span>resident_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		std::mem::size_of::&lt;T&gt;() * <span class="self">self</span>.<span class="number">0</span>.capacity()
 	}
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">RequestResultCache</span> {
-	<span class="ident">authorities</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">VecOfDoesNotAllocate</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">validators</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">validator_groups</span>:
-		<span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">GroupRotationInfo</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">availability_cores</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CoreState</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">persisted_validation_data</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span>
-		(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-		<span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PersistedValidationData</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span>,
-	<span class="ident">assumed_validation_data</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span>
-		(<span class="ident">ParaId</span>, <span class="ident">Hash</span>),
-		<span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">PersistedValidationData</span>, <span class="ident">ValidationCodeHash</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span>,
-	<span class="ident">check_validation_outputs</span>:
-		<span class="ident">MemoryLruCache</span><span class="op">&lt;</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">CandidateCommitments</span>), <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">session_index_for_child</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">SessionIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">validation_code</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span>
-		(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-		<span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span>,
-	<span class="ident">validation_code_by_hash</span>:
-		<span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">candidate_pending_availability</span>:
-		<span class="ident">MemoryLruCache</span><span class="op">&lt;</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>), <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CommittedCandidateReceipt</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">candidate_events</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CandidateEvent</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">session_info</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">SessionIndex</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">SessionInfo</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">dmq_contents</span>:
-		<span class="ident">MemoryLruCache</span><span class="op">&lt;</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>), <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">inbound_hrmp_channels_contents</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span>
-		(<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-		<span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundHrmpMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span>,
-	<span class="ident">current_babe_epoch</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">DoesNotAllocate</span><span class="op">&lt;</span><span class="ident">Epoch</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">on_chain_votes</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">pvfs_require_precheck</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">validation_code_hash</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span>
-		(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-		<span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span>,
-	<span class="ident">version</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">disputes</span>: <span class="ident">MemoryLruCache</span><span class="op">&lt;</span>
-		<span class="ident">Hash</span>,
-		<span class="ident">ResidentSizeOf</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeState</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RequestResultCache {
+	authorities: MemoryLruCache&lt;Hash, VecOfDoesNotAllocate&lt;AuthorityDiscoveryId&gt;&gt;,
+	validators: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;ValidatorId&gt;&gt;&gt;,
+	validator_groups:
+		MemoryLruCache&lt;Hash, ResidentSizeOf&lt;(Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo)&gt;&gt;,
+	availability_cores: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;CoreState&gt;&gt;&gt;,
+	persisted_validation_data: MemoryLruCache&lt;
+		(Hash, ParaId, OccupiedCoreAssumption),
+		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;&gt;,
+	&gt;,
+	assumed_validation_data: MemoryLruCache&lt;
+		(ParaId, Hash),
+		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;&gt;,
+	&gt;,
+	check_validation_outputs:
+		MemoryLruCache&lt;(Hash, ParaId, CandidateCommitments), ResidentSizeOf&lt;bool&gt;&gt;,
+	session_index_for_child: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;SessionIndex&gt;&gt;,
+	validation_code: MemoryLruCache&lt;
+		(Hash, ParaId, OccupiedCoreAssumption),
+		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;,
+	&gt;,
+	validation_code_by_hash:
+		MemoryLruCache&lt;ValidationCodeHash, ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;&gt;,
+	candidate_pending_availability:
+		MemoryLruCache&lt;(Hash, ParaId), ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;&gt;&gt;,
+	candidate_events: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;CandidateEvent&gt;&gt;&gt;,
+	session_info: MemoryLruCache&lt;SessionIndex, ResidentSizeOf&lt;SessionInfo&gt;&gt;,
+	dmq_contents:
+		MemoryLruCache&lt;(Hash, ParaId), ResidentSizeOf&lt;Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;&gt;&gt;,
+	inbound_hrmp_channels_contents: MemoryLruCache&lt;
+		(Hash, ParaId),
+		ResidentSizeOf&lt;BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;&gt;,
+	&gt;,
+	current_babe_epoch: MemoryLruCache&lt;Hash, DoesNotAllocate&lt;Epoch&gt;&gt;,
+	on_chain_votes: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;&gt;&gt;,
+	pvfs_require_precheck: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;ValidationCodeHash&gt;&gt;&gt;,
+	validation_code_hash: MemoryLruCache&lt;
+		(Hash, ParaId, OccupiedCoreAssumption),
+		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;&gt;,
+	&gt;,
+	version: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;u32&gt;&gt;,
+	disputes: MemoryLruCache&lt;
+		Hash,
+		ResidentSizeOf&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;&gt;,
+	&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RequestResultCache</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">authorities</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">AUTHORITIES_CACHE_SIZE</span>),
-			<span class="ident">validators</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">VALIDATORS_CACHE_SIZE</span>),
-			<span class="ident">validator_groups</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">VALIDATOR_GROUPS_CACHE_SIZE</span>),
-			<span class="ident">availability_cores</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">AVAILABILITY_CORES_CACHE_SIZE</span>),
-			<span class="ident">persisted_validation_data</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">PERSISTED_VALIDATION_DATA_CACHE_SIZE</span>),
-			<span class="ident">assumed_validation_data</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">ASSUMED_VALIDATION_DATA_CACHE_SIZE</span>),
-			<span class="ident">check_validation_outputs</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">CHECK_VALIDATION_OUTPUTS_CACHE_SIZE</span>),
-			<span class="ident">session_index_for_child</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">SESSION_INDEX_FOR_CHILD_CACHE_SIZE</span>),
-			<span class="ident">validation_code</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">VALIDATION_CODE_CACHE_SIZE</span>),
-			<span class="ident">validation_code_by_hash</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">VALIDATION_CODE_CACHE_SIZE</span>),
-			<span class="ident">candidate_pending_availability</span>: <span class="ident">MemoryLruCache::new</span>(
-				<span class="ident">CANDIDATE_PENDING_AVAILABILITY_CACHE_SIZE</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>RequestResultCache {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			authorities: MemoryLruCache::new(AUTHORITIES_CACHE_SIZE),
+			validators: MemoryLruCache::new(VALIDATORS_CACHE_SIZE),
+			validator_groups: MemoryLruCache::new(VALIDATOR_GROUPS_CACHE_SIZE),
+			availability_cores: MemoryLruCache::new(AVAILABILITY_CORES_CACHE_SIZE),
+			persisted_validation_data: MemoryLruCache::new(PERSISTED_VALIDATION_DATA_CACHE_SIZE),
+			assumed_validation_data: MemoryLruCache::new(ASSUMED_VALIDATION_DATA_CACHE_SIZE),
+			check_validation_outputs: MemoryLruCache::new(CHECK_VALIDATION_OUTPUTS_CACHE_SIZE),
+			session_index_for_child: MemoryLruCache::new(SESSION_INDEX_FOR_CHILD_CACHE_SIZE),
+			validation_code: MemoryLruCache::new(VALIDATION_CODE_CACHE_SIZE),
+			validation_code_by_hash: MemoryLruCache::new(VALIDATION_CODE_CACHE_SIZE),
+			candidate_pending_availability: MemoryLruCache::new(
+				CANDIDATE_PENDING_AVAILABILITY_CACHE_SIZE,
 			),
-			<span class="ident">candidate_events</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">CANDIDATE_EVENTS_CACHE_SIZE</span>),
-			<span class="ident">session_info</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">SESSION_INFO_CACHE_SIZE</span>),
-			<span class="ident">dmq_contents</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">DMQ_CONTENTS_CACHE_SIZE</span>),
-			<span class="ident">inbound_hrmp_channels_contents</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">INBOUND_HRMP_CHANNELS_CACHE_SIZE</span>),
-			<span class="ident">current_babe_epoch</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">CURRENT_BABE_EPOCH_CACHE_SIZE</span>),
-			<span class="ident">on_chain_votes</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">ON_CHAIN_VOTES_CACHE_SIZE</span>),
-			<span class="ident">pvfs_require_precheck</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">PVFS_REQUIRE_PRECHECK_SIZE</span>),
-			<span class="ident">validation_code_hash</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">VALIDATION_CODE_HASH_CACHE_SIZE</span>),
-			<span class="ident">version</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">VERSION_CACHE_SIZE</span>),
-			<span class="ident">disputes</span>: <span class="ident">MemoryLruCache::new</span>(<span class="ident">DISPUTES_CACHE_SIZE</span>),
+			candidate_events: MemoryLruCache::new(CANDIDATE_EVENTS_CACHE_SIZE),
+			session_info: MemoryLruCache::new(SESSION_INFO_CACHE_SIZE),
+			dmq_contents: MemoryLruCache::new(DMQ_CONTENTS_CACHE_SIZE),
+			inbound_hrmp_channels_contents: MemoryLruCache::new(INBOUND_HRMP_CHANNELS_CACHE_SIZE),
+			current_babe_epoch: MemoryLruCache::new(CURRENT_BABE_EPOCH_CACHE_SIZE),
+			on_chain_votes: MemoryLruCache::new(ON_CHAIN_VOTES_CACHE_SIZE),
+			pvfs_require_precheck: MemoryLruCache::new(PVFS_REQUIRE_PRECHECK_SIZE),
+			validation_code_hash: MemoryLruCache::new(VALIDATION_CODE_HASH_CACHE_SIZE),
+			version: MemoryLruCache::new(VERSION_CACHE_SIZE),
+			disputes: MemoryLruCache::new(DISPUTES_CACHE_SIZE),
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">RequestResultCache</span> {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">authorities</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">authorities</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+<span class="kw">impl </span>RequestResultCache {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>authorities(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: <span class="kw-2">&amp;</span>Hash,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;AuthorityDiscoveryId&gt;&gt; {
+		<span class="self">self</span>.authorities.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_authorities</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">authorities</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_authorities(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		authorities: Vec&lt;AuthorityDiscoveryId&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">authorities</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">VecOfDoesNotAllocate</span>(<span class="ident">authorities</span>));
+		<span class="self">self</span>.authorities.insert(relay_parent, VecOfDoesNotAllocate(authorities));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validators</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorId</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validators(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;ValidatorId&gt;&gt; {
+		<span class="self">self</span>.validators.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_validators</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="ident">Hash</span>, <span class="ident">validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorId</span><span class="op">&gt;</span>) {
-		<span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">validators</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validators(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, validators: Vec&lt;ValidatorId&gt;) {
+		<span class="self">self</span>.validators.insert(relay_parent, ResidentSizeOf(validators));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validator_groups</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">GroupRotationInfo</span>)<span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">validator_groups</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validator_groups(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: <span class="kw-2">&amp;</span>Hash,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo)&gt; {
+		<span class="self">self</span>.validator_groups.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_validator_groups</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">groups</span>: (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">GroupRotationInfo</span>),
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validator_groups(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		groups: (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo),
 	) {
-		<span class="self">self</span>.<span class="ident">validator_groups</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">groups</span>));
+		<span class="self">self</span>.validator_groups.insert(relay_parent, ResidentSizeOf(groups));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">availability_cores</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CoreState</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">availability_cores</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>availability_cores(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;CoreState&gt;&gt; {
+		<span class="self">self</span>.availability_cores.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_availability_cores</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="ident">Hash</span>, <span class="ident">cores</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CoreState</span><span class="op">&gt;</span>) {
-		<span class="self">self</span>.<span class="ident">availability_cores</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">cores</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_availability_cores(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, cores: Vec&lt;CoreState&gt;) {
+		<span class="self">self</span>.availability_cores.insert(relay_parent, ResidentSizeOf(cores));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">persisted_validation_data</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PersistedValidationData</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">persisted_validation_data</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>persisted_validation_data(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, OccupiedCoreAssumption),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;&gt; {
+		<span class="self">self</span>.persisted_validation_data.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_persisted_validation_data</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-		<span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PersistedValidationData</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_persisted_validation_data(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, OccupiedCoreAssumption),
+		data: <span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">persisted_validation_data</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">data</span>));
+		<span class="self">self</span>.persisted_validation_data.insert(key, ResidentSizeOf(data));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assumed_validation_data</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">Hash</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">PersistedValidationData</span>, <span class="ident">ValidationCodeHash</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">assumed_validation_data</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">key</span>.<span class="number">1</span>, <span class="ident">key</span>.<span class="number">2</span>)).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assumed_validation_data(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, Hash),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;&gt; {
+		<span class="self">self</span>.assumed_validation_data.get(<span class="kw-2">&amp;</span>(key.<span class="number">1</span>, key.<span class="number">2</span>)).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_assumed_validation_data</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">ParaId</span>, <span class="ident">Hash</span>),
-		<span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">PersistedValidationData</span>, <span class="ident">ValidationCodeHash</span>)<span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_assumed_validation_data(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (ParaId, Hash),
+		data: <span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">assumed_validation_data</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">data</span>));
+		<span class="self">self</span>.assumed_validation_data.insert(key, ResidentSizeOf(data));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_validation_outputs</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">CandidateCommitments</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">check_validation_outputs</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_validation_outputs(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, CandidateCommitments),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>bool&gt; {
+		<span class="self">self</span>.check_validation_outputs.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_check_validation_outputs</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">CandidateCommitments</span>),
-		<span class="ident">value</span>: <span class="ident">bool</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_check_validation_outputs(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, CandidateCommitments),
+		value: bool,
 	) {
-		<span class="self">self</span>.<span class="ident">check_validation_outputs</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.check_validation_outputs.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">session_index_for_child</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SessionIndex</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">session_index_for_child</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>session_index_for_child(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionIndex&gt; {
+		<span class="self">self</span>.session_index_for_child.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_session_index_for_child</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">index</span>: <span class="ident">SessionIndex</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_session_index_for_child(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		index: SessionIndex,
 	) {
-		<span class="self">self</span>.<span class="ident">session_index_for_child</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">index</span>));
+		<span class="self">self</span>.session_index_for_child.insert(relay_parent, ResidentSizeOf(index));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validation_code</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">validation_code</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validation_code(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, OccupiedCoreAssumption),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt; {
+		<span class="self">self</span>.validation_code.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_validation_code</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-		<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validation_code(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, OccupiedCoreAssumption),
+		value: <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">validation_code</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.validation_code.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="comment">// the actual key is `ValidationCodeHash` (`Hash` is ignored),</span>
-	<span class="comment">// but we keep the interface that way to keep the macro simple</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validation_code_by_hash</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ValidationCodeHash</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">validation_code_by_hash</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="number">1</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="comment">// the actual key is `ValidationCodeHash` (`Hash` is ignored),
+	// but we keep the interface that way to keep the macro simple
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validation_code_by_hash(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ValidationCodeHash),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt; {
+		<span class="self">self</span>.validation_code_by_hash.get(<span class="kw-2">&amp;</span>key.<span class="number">1</span>).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_validation_code_by_hash</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: <span class="ident">ValidationCodeHash</span>,
-		<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validation_code_by_hash(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: ValidationCodeHash,
+		value: <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">validation_code_by_hash</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.validation_code_by_hash.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">candidate_pending_availability</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CommittedCandidateReceipt</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">candidate_pending_availability</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>candidate_pending_availability(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;&gt; {
+		<span class="self">self</span>.candidate_pending_availability.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_candidate_pending_availability</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-		<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CommittedCandidateReceipt</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_candidate_pending_availability(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId),
+		value: <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">candidate_pending_availability</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.candidate_pending_availability.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">candidate_events</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CandidateEvent</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">candidate_events</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>candidate_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;CandidateEvent&gt;&gt; {
+		<span class="self">self</span>.candidate_events.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_candidate_events</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CandidateEvent</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_candidate_events(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		events: Vec&lt;CandidateEvent&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">candidate_events</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">events</span>));
+		<span class="self">self</span>.candidate_events.insert(relay_parent, ResidentSizeOf(events));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">session_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SessionInfo</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">session_info</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>session_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionInfo&gt; {
+		<span class="self">self</span>.session_info.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_session_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">SessionIndex</span>, <span class="ident">value</span>: <span class="ident">SessionInfo</span>) {
-		<span class="self">self</span>.<span class="ident">session_info</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_session_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: SessionIndex, value: SessionInfo) {
+		<span class="self">self</span>.session_info.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dmq_contents</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">dmq_contents</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;&gt; {
+		<span class="self">self</span>.dmq_contents.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_dmq_contents</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-		<span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_dmq_contents(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId),
+		value: Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">dmq_contents</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.dmq_contents.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inbound_hrmp_channels_contents</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundHrmpMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">inbound_hrmp_channels_contents</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inbound_hrmp_channels_contents(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;&gt; {
+		<span class="self">self</span>.inbound_hrmp_channels_contents.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_inbound_hrmp_channel_contents</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>),
-		<span class="ident">value</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundHrmpMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_inbound_hrmp_channel_contents(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId),
+		value: BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">inbound_hrmp_channels_contents</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.inbound_hrmp_channels_contents.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">current_babe_epoch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Epoch</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">current_babe_epoch</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_babe_epoch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Epoch&gt; {
+		<span class="self">self</span>.current_babe_epoch.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_current_babe_epoch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="ident">Hash</span>, <span class="ident">epoch</span>: <span class="ident">Epoch</span>) {
-		<span class="self">self</span>.<span class="ident">current_babe_epoch</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">DoesNotAllocate</span>(<span class="ident">epoch</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_current_babe_epoch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, epoch: Epoch) {
+		<span class="self">self</span>.current_babe_epoch.insert(relay_parent, DoesNotAllocate(epoch));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">on_chain_votes</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">on_chain_votes</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_chain_votes(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: <span class="kw-2">&amp;</span>Hash,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;&gt; {
+		<span class="self">self</span>.on_chain_votes.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_on_chain_votes</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">scraped</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_on_chain_votes(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		scraped: <span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">on_chain_votes</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">scraped</span>));
+		<span class="self">self</span>.on_chain_votes.insert(relay_parent, ResidentSizeOf(scraped));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pvfs_require_precheck</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">pvfs_require_precheck</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pvfs_require_precheck(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: <span class="kw-2">&amp;</span>Hash,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;ValidationCodeHash&gt;&gt; {
+		<span class="self">self</span>.pvfs_require_precheck.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_pvfs_require_precheck</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">pvfs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_pvfs_require_precheck(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		pvfs: Vec&lt;ValidationCodeHash&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">pvfs_require_precheck</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">pvfs</span>))
+		<span class="self">self</span>.pvfs_require_precheck.insert(relay_parent, ResidentSizeOf(pvfs))
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validation_code_hash</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">validation_code_hash</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validation_code_hash(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, OccupiedCoreAssumption),
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;&gt; {
+		<span class="self">self</span>.validation_code_hash.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_validation_code_hash</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">key</span>: (<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>),
-		<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validation_code_hash(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		key: (Hash, ParaId, OccupiedCoreAssumption),
+		value: <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">validation_code_hash</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.validation_code_hash.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">version</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>version(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>u32&gt; {
+		<span class="self">self</span>.version.get(<span class="kw-2">&amp;</span>relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_version</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Hash</span>, <span class="ident">value</span>: <span class="ident">u32</span>) {
-		<span class="self">self</span>.<span class="ident">version</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_version(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Hash, value: u32) {
+		<span class="self">self</span>.version.insert(key, ResidentSizeOf(value));
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">disputes</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeState</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">disputes</span>.<span class="ident">get</span>(<span class="ident">relay_parent</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="number">0</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disputes(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: <span class="kw-2">&amp;</span>Hash,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;&gt; {
+		<span class="self">self</span>.disputes.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">cache_disputes</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeState</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_disputes(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		value: Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;,
 	) {
-		<span class="self">self</span>.<span class="ident">disputes</span>.<span class="ident">insert</span>(<span class="ident">relay_parent</span>, <span class="ident">ResidentSizeOf</span>(<span class="ident">value</span>));
+		<span class="self">self</span>.disputes.insert(relay_parent, ResidentSizeOf(value));
 	}
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">RequestResult</span> {
-	<span class="comment">// The structure of each variant is (relay_parent, [params,]*, result)</span>
-	<span class="ident">Authorities</span>(<span class="ident">Hash</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>),
-	<span class="ident">Validators</span>(<span class="ident">Hash</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorId</span><span class="op">&gt;</span>),
-	<span class="ident">ValidatorGroups</span>(<span class="ident">Hash</span>, (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">GroupRotationInfo</span>)),
-	<span class="ident">AvailabilityCores</span>(<span class="ident">Hash</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CoreState</span><span class="op">&gt;</span>),
-	<span class="ident">PersistedValidationData</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PersistedValidationData</span><span class="op">&gt;</span>),
-	<span class="ident">AssumedValidationData</span>(
-		<span class="ident">Hash</span>,
-		<span class="ident">ParaId</span>,
-		<span class="ident">Hash</span>,
-		<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">PersistedValidationData</span>, <span class="ident">ValidationCodeHash</span>)<span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>RequestResult {
+	<span class="comment">// The structure of each variant is (relay_parent, [params,]*, result)
+	</span>Authorities(Hash, Vec&lt;AuthorityDiscoveryId&gt;),
+	Validators(Hash, Vec&lt;ValidatorId&gt;),
+	ValidatorGroups(Hash, (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo)),
+	AvailabilityCores(Hash, Vec&lt;CoreState&gt;),
+	PersistedValidationData(Hash, ParaId, OccupiedCoreAssumption, <span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;),
+	AssumedValidationData(
+		Hash,
+		ParaId,
+		Hash,
+		<span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;,
 	),
-	<span class="ident">CheckValidationOutputs</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">CandidateCommitments</span>, <span class="ident">bool</span>),
-	<span class="ident">SessionIndexForChild</span>(<span class="ident">Hash</span>, <span class="ident">SessionIndex</span>),
-	<span class="ident">ValidationCode</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span>),
-	<span class="ident">ValidationCodeByHash</span>(<span class="ident">Hash</span>, <span class="ident">ValidationCodeHash</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span>),
-	<span class="ident">CandidatePendingAvailability</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CommittedCandidateReceipt</span><span class="op">&gt;</span>),
-	<span class="ident">CandidateEvents</span>(<span class="ident">Hash</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CandidateEvent</span><span class="op">&gt;</span>),
-	<span class="ident">SessionInfo</span>(<span class="ident">Hash</span>, <span class="ident">SessionIndex</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SessionInfo</span><span class="op">&gt;</span>),
-	<span class="ident">DmqContents</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span>),
-	<span class="ident">InboundHrmpChannelsContents</span>(
-		<span class="ident">Hash</span>,
-		<span class="ident">ParaId</span>,
-		<span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundHrmpMessage</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	CheckValidationOutputs(Hash, ParaId, CandidateCommitments, bool),
+	SessionIndexForChild(Hash, SessionIndex),
+	ValidationCode(Hash, ParaId, OccupiedCoreAssumption, <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;),
+	ValidationCodeByHash(Hash, ValidationCodeHash, <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;),
+	CandidatePendingAvailability(Hash, ParaId, <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;),
+	CandidateEvents(Hash, Vec&lt;CandidateEvent&gt;),
+	SessionInfo(Hash, SessionIndex, <span class="prelude-ty">Option</span>&lt;SessionInfo&gt;),
+	DmqContents(Hash, ParaId, Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;),
+	InboundHrmpChannelsContents(
+		Hash,
+		ParaId,
+		BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;,
 	),
-	<span class="ident">CurrentBabeEpoch</span>(<span class="ident">Hash</span>, <span class="ident">Epoch</span>),
-	<span class="ident">FetchOnChainVotes</span>(<span class="ident">Hash</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&gt;</span>),
-	<span class="ident">PvfsRequirePrecheck</span>(<span class="ident">Hash</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span>),
-	<span class="comment">// This is a request with side-effects and no result, hence ().</span>
-	<span class="ident">SubmitPvfCheckStatement</span>(<span class="ident">Hash</span>, <span class="ident">PvfCheckStatement</span>, <span class="ident">ValidatorSignature</span>, ()),
-	<span class="ident">ValidationCodeHash</span>(<span class="ident">Hash</span>, <span class="ident">ParaId</span>, <span class="ident">OccupiedCoreAssumption</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span>),
-	<span class="ident">Version</span>(<span class="ident">Hash</span>, <span class="ident">u32</span>),
-	<span class="ident">Disputes</span>(<span class="ident">Hash</span>, <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeState</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
+	CurrentBabeEpoch(Hash, Epoch),
+	FetchOnChainVotes(Hash, <span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;),
+	PvfsRequirePrecheck(Hash, Vec&lt;ValidationCodeHash&gt;),
+	<span class="comment">// This is a request with side-effects and no result, hence ().
+	</span>SubmitPvfCheckStatement(Hash, PvfCheckStatement, ValidatorSignature, ()),
+	ValidationCodeHash(Hash, ParaId, OccupiedCoreAssumption, <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;),
+	Version(Hash, u32),
+	Disputes(Hash, Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;),
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_runtime_api" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_runtime_api" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

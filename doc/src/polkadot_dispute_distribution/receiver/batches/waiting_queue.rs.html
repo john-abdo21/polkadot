@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/dispute-distribution/src/receiver/batches/waiting_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waiting_queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../polkadot_dispute_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_dispute_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_dispute_distribution/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/dispute-distribution/src/receiver/batches/waiting_queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>waiting_queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_dispute_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_dispute_distribution/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -208,210 +202,209 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">collections::BinaryHeap</span>, <span class="ident">time::Instant</span>};
+</span><span class="kw">use </span>std::{cmp::Ordering, collections::BinaryHeap, time::Instant};
 
-<span class="kw">use</span> <span class="ident">futures::future::pending</span>;
-<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
+<span class="kw">use </span>futures::future::pending;
+<span class="kw">use </span>futures_timer::Delay;
 
-<span class="doccomment">/// Wait asynchronously for given `Instant`s one after the other.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `PendingWake`s can be inserted and `WaitingQueue` makes `wait_ready()` to always wait for the</span>
-<span class="doccomment">/// next `Instant` in the queue.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WaitingQueue</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// All pending wakes we are supposed to wait on in order.</span>
-	<span class="ident">pending_wakes</span>: <span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Wait for next `PendingWake`.</span>
-	<span class="ident">timer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Delay</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Wait asynchronously for given `Instant`s one after the other.
+///
+/// `PendingWake`s can be inserted and `WaitingQueue` makes `wait_ready()` to always wait for the
+/// next `Instant` in the queue.
+</span><span class="kw">pub struct </span>WaitingQueue&lt;Payload&gt; {
+	<span class="doccomment">/// All pending wakes we are supposed to wait on in order.
+	</span>pending_wakes: BinaryHeap&lt;PendingWake&lt;Payload&gt;&gt;,
+	<span class="doccomment">/// Wait for next `PendingWake`.
+	</span>timer: <span class="prelude-ty">Option</span>&lt;Delay&gt;,
 }
 
-<span class="doccomment">/// Represents some event waiting to be processed at `ready_at`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is an event in `WaitingQueue`. It provides an `Ord` instance, that sorts descending with</span>
-<span class="doccomment">/// regard to `Instant` (so we get a `min-heap` with the earliest `Instant` at the top).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="ident">payload</span>: <span class="ident">Payload</span>,
-	<span class="kw">pub</span> <span class="ident">ready_at</span>: <span class="ident">Instant</span>,
+<span class="doccomment">/// Represents some event waiting to be processed at `ready_at`.
+///
+/// This is an event in `WaitingQueue`. It provides an `Ord` instance, that sorts descending with
+/// regard to `Instant` (so we get a `min-heap` with the earliest `Instant` at the top).
+</span><span class="attribute">#[derive(Eq, PartialEq)]
+</span><span class="kw">pub struct </span>PendingWake&lt;Payload&gt; {
+	<span class="kw">pub </span>payload: Payload,
+	<span class="kw">pub </span>ready_at: Instant,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Payload</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">WaitingQueue</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Get a new empty `WaitingQueue`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// If you call `pop` on this queue immediately, it will always return `Poll::Pending`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">pending_wakes</span>: <span class="ident">BinaryHeap::new</span>(), <span class="ident">timer</span>: <span class="prelude-val">None</span> }
+<span class="kw">impl</span>&lt;Payload: Eq + Ord&gt; WaitingQueue&lt;Payload&gt; {
+	<span class="doccomment">/// Get a new empty `WaitingQueue`.
+	///
+	/// If you call `pop` on this queue immediately, it will always return `Poll::Pending`.
+	</span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ pending_wakes: BinaryHeap::new(), timer: <span class="prelude-val">None </span>}
 	}
 
-	<span class="doccomment">/// Push a `PendingWake`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The next call to `wait_ready` will make sure to wake soon enough to process that new event in a</span>
-	<span class="doccomment">/// timely manner.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">wake</span>: <span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span>) {
-		<span class="self">self</span>.<span class="ident">pending_wakes</span>.<span class="ident">push</span>(<span class="ident">wake</span>);
-		<span class="comment">// Reset timer as it is potentially obsolete now:</span>
-		<span class="self">self</span>.<span class="ident">timer</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+	<span class="doccomment">/// Push a `PendingWake`.
+	///
+	/// The next call to `wait_ready` will make sure to wake soon enough to process that new event in a
+	/// timely manner.
+	</span><span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, wake: PendingWake&lt;Payload&gt;) {
+		<span class="self">self</span>.pending_wakes.push(wake);
+		<span class="comment">// Reset timer as it is potentially obsolete now:
+		</span><span class="self">self</span>.timer = <span class="prelude-val">None</span>;
 	}
 
-	<span class="doccomment">/// Pop the next ready item.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This function does not wait, if nothing is ready right now as determined by the passed</span>
-	<span class="doccomment">/// `now` time stamp, this function simply returns `None`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">now</span>: <span class="ident">Instant</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">is_ready</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_wakes</span>.<span class="ident">peek</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">ready_at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">now</span>);
-		<span class="kw">if</span> <span class="ident">is_ready</span> {
-			<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">pending_wakes</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;We just peeked. qed.&quot;</span>))
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+	<span class="doccomment">/// Pop the next ready item.
+	///
+	/// This function does not wait, if nothing is ready right now as determined by the passed
+	/// `now` time stamp, this function simply returns `None`.
+	</span><span class="kw">pub fn </span>pop_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: Instant) -&gt; <span class="prelude-ty">Option</span>&lt;PendingWake&lt;Payload&gt;&gt; {
+		<span class="kw">let </span>is_ready = <span class="self">self</span>.pending_wakes.peek().map_or(<span class="bool-val">false</span>, |p| p.ready_at &lt;= now);
+		<span class="kw">if </span>is_ready {
+			<span class="prelude-val">Some</span>(<span class="self">self</span>.pending_wakes.pop().expect(<span class="string">&quot;We just peeked. qed.&quot;</span>))
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 
-	<span class="doccomment">/// Don&#39;t pop, just wait until something is ready.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Once this function returns `Poll::Ready(())` `pop_ready()` will return `Some`, if passed</span>
-	<span class="doccomment">/// the same `Instant`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Whether ready or not is determined based on the passed time stamp `now` which should be the</span>
-	<span class="doccomment">/// current time as returned by `Instant::now()`</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This function waits asynchronously for an item to become ready. If there is no more item,</span>
-	<span class="doccomment">/// this call will wait forever (return Poll::Pending without scheduling a wake).</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">now</span>: <span class="ident">Instant</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">timer</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">timer</span> {
-			<span class="comment">// Previous timer was not done yet.</span>
-			<span class="ident">timer</span>.<span class="kw">await</span>
-		}
+	<span class="doccomment">/// Don&#39;t pop, just wait until something is ready.
+	///
+	/// Once this function returns `Poll::Ready(())` `pop_ready()` will return `Some`, if passed
+	/// the same `Instant`.
+	///
+	/// Whether ready or not is determined based on the passed time stamp `now` which should be the
+	/// current time as returned by `Instant::now()`
+	///
+	/// This function waits asynchronously for an item to become ready. If there is no more item,
+	/// this call will wait forever (return Poll::Pending without scheduling a wake).
+	</span><span class="kw">pub async fn </span>wait_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, now: Instant) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(timer) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.timer {
+			<span class="comment">// Previous timer was not done yet.
+			</span>timer.<span class="kw">await
+		</span>}
 
-		<span class="kw">let</span> <span class="ident">next_waiting</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_wakes</span>.<span class="ident">peek</span>();
-		<span class="kw">let</span> <span class="ident">is_ready</span> <span class="op">=</span> <span class="ident">next_waiting</span>.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">ready_at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">now</span>);
-		<span class="kw">if</span> <span class="ident">is_ready</span> {
-			<span class="kw">return</span>
-		}
+		<span class="kw">let </span>next_waiting = <span class="self">self</span>.pending_wakes.peek();
+		<span class="kw">let </span>is_ready = next_waiting.map_or(<span class="bool-val">false</span>, |p| p.ready_at &lt;= now);
+		<span class="kw">if </span>is_ready {
+			<span class="kw">return
+		</span>}
 
-		<span class="self">self</span>.<span class="ident">timer</span> <span class="op">=</span> <span class="ident">next_waiting</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">Delay::new</span>(<span class="ident">p</span>.<span class="ident">ready_at</span>.<span class="ident">duration_since</span>(<span class="ident">now</span>)));
-		<span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">timer</span> {
-			<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">pending</span>().<span class="kw">await</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">timer</span>) =&gt; <span class="ident">timer</span>.<span class="kw">await</span>,
-		}
-	}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Payload</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">cmp</span>(<span class="ident">other</span>))
-	}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Payload</span>: <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">PendingWake</span><span class="op">&lt;</span><span class="ident">Payload</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
-		<span class="comment">// Reverse order for min-heap:</span>
-		<span class="kw">match</span> <span class="ident">other</span>.<span class="ident">ready_at</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ready_at</span>) {
-			<span class="ident">Ordering::Equal</span> =&gt; <span class="ident">other</span>.<span class="ident">payload</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">payload</span>),
-			<span class="ident">o</span> =&gt; <span class="ident">o</span>,
+		<span class="self">self</span>.timer = next_waiting.map(|p| Delay::new(p.ready_at.duration_since(now)));
+		<span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.timer {
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span>pending().<span class="kw">await</span>,
+			<span class="prelude-val">Some</span>(timer) =&gt; timer.<span class="kw">await</span>,
 		}
 	}
 }
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="ident">std</span>::{
-		<span class="ident">task::Poll</span>,
-		<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>},
+
+<span class="kw">impl</span>&lt;Payload: Eq + Ord&gt; PartialOrd&lt;PendingWake&lt;Payload&gt;&gt; <span class="kw">for </span>PendingWake&lt;Payload&gt; {
+	<span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+		<span class="prelude-val">Some</span>(<span class="self">self</span>.cmp(other))
+	}
+}
+
+<span class="kw">impl</span>&lt;Payload: Ord&gt; Ord <span class="kw">for </span>PendingWake&lt;Payload&gt; {
+	<span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+		<span class="comment">// Reverse order for min-heap:
+		</span><span class="kw">match </span>other.ready_at.cmp(<span class="kw-2">&amp;</span><span class="self">self</span>.ready_at) {
+			Ordering::Equal =&gt; other.payload.cmp(<span class="kw-2">&amp;</span><span class="self">self</span>.payload),
+			o =&gt; o,
+		}
+	}
+}
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use </span>std::{
+		task::Poll,
+		time::{Duration, Instant},
 	};
 
-	<span class="kw">use</span> <span class="ident">assert_matches::assert_matches</span>;
-	<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::poll_fn</span>, <span class="ident">pin_mut</span>, <span class="ident">Future</span>};
+	<span class="kw">use </span>assert_matches::assert_matches;
+	<span class="kw">use </span>futures::{future::poll_fn, pin_mut, Future};
 
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LOG_TARGET</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::LOG_TARGET;
 
-	<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">PendingWake</span>, <span class="ident">WaitingQueue</span>};
+	<span class="kw">use super</span>::{PendingWake, WaitingQueue};
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">wait_ready_waits_for_earliest_event_always</span>() {
-		<span class="ident">sp_tracing::try_init_simple</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">WaitingQueue::new</span>();
-		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-		<span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">now</span>;
-		<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">PendingWake</span> { <span class="ident">payload</span>: <span class="number">1u32</span>, <span class="ident">ready_at</span>: <span class="ident">now</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">3</span>) });
-		<span class="comment">// Push another one in order:</span>
-		<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">PendingWake</span> { <span class="ident">payload</span>: <span class="number">2u32</span>, <span class="ident">ready_at</span>: <span class="ident">now</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">5</span>) });
-		<span class="comment">// Push one out of order:</span>
-		<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">PendingWake</span> { <span class="ident">payload</span>: <span class="number">0u32</span>, <span class="ident">ready_at</span>: <span class="ident">now</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">1</span>) });
-		<span class="comment">// Push another one at same timestamp (should become ready at the same time)</span>
-		<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">PendingWake</span> { <span class="ident">payload</span>: <span class="number">10u32</span>, <span class="ident">ready_at</span>: <span class="ident">now</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">1</span>) });
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>wait_ready_waits_for_earliest_event_always() {
+		sp_tracing::try_init_simple();
+		<span class="kw">let </span><span class="kw-2">mut </span>queue = WaitingQueue::new();
+		<span class="kw">let </span>now = Instant::now();
+		<span class="kw">let </span>start = now;
+		queue.push(PendingWake { payload: <span class="number">1u32</span>, ready_at: now + Duration::from_millis(<span class="number">3</span>) });
+		<span class="comment">// Push another one in order:
+		</span>queue.push(PendingWake { payload: <span class="number">2u32</span>, ready_at: now + Duration::from_millis(<span class="number">5</span>) });
+		<span class="comment">// Push one out of order:
+		</span>queue.push(PendingWake { payload: <span class="number">0u32</span>, ready_at: now + Duration::from_millis(<span class="number">1</span>) });
+		<span class="comment">// Push another one at same timestamp (should become ready at the same time)
+		</span>queue.push(PendingWake { payload: <span class="number">10u32</span>, ready_at: now + Duration::from_millis(<span class="number">1</span>) });
 
-		<span class="ident">futures::executor::block_on</span>(<span class="kw">async</span> <span class="kw">move</span> {
-			<span class="comment">// No time passed yet - nothing should be ready.</span>
-			<span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">is_none</span>(), <span class="string">&quot;No time has passed, nothing should be ready&quot;</span>);
+		futures::executor::block_on(<span class="kw">async move </span>{
+			<span class="comment">// No time passed yet - nothing should be ready.
+			</span><span class="macro">assert!</span>(queue.pop_ready(now).is_none(), <span class="string">&quot;No time has passed, nothing should be ready&quot;</span>);
 
-			<span class="comment">// Receive them in order at expected times:</span>
-			<span class="ident">queue</span>.<span class="ident">wait_ready</span>(<span class="ident">now</span>).<span class="kw">await</span>;
-			<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;After first wait.&quot;</span>);
+			<span class="comment">// Receive them in order at expected times:
+			</span>queue.wait_ready(now).<span class="kw">await</span>;
+			<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;After first wait.&quot;</span>);
 
-			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">start</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">1</span>);
-			<span class="macro">assert!</span>(<span class="ident">Instant::now</span>() <span class="op">-</span> <span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">1</span>));
-			<span class="macro">assert_eq!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">payload</span>), <span class="prelude-val">Some</span>(<span class="number">0u32</span>));
-			<span class="comment">// One more should be ready:</span>
-			<span class="macro">assert_eq!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">payload</span>), <span class="prelude-val">Some</span>(<span class="number">10u32</span>));
-			<span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">is_none</span>(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
+			<span class="kw">let </span>now = start + Duration::from_millis(<span class="number">1</span>);
+			<span class="macro">assert!</span>(Instant::now() - start &gt;= Duration::from_millis(<span class="number">1</span>));
+			<span class="macro">assert_eq!</span>(queue.pop_ready(now).map(|p| p.payload), <span class="prelude-val">Some</span>(<span class="number">0u32</span>));
+			<span class="comment">// One more should be ready:
+			</span><span class="macro">assert_eq!</span>(queue.pop_ready(now).map(|p| p.payload), <span class="prelude-val">Some</span>(<span class="number">10u32</span>));
+			<span class="macro">assert!</span>(queue.pop_ready(now).is_none(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
 
-			<span class="ident">queue</span>.<span class="ident">wait_ready</span>(<span class="ident">now</span>).<span class="kw">await</span>;
-			<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;After second wait.&quot;</span>);
-			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">start</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">3</span>);
-			<span class="macro">assert!</span>(<span class="ident">Instant::now</span>() <span class="op">-</span> <span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">3</span>));
-			<span class="macro">assert_eq!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">payload</span>), <span class="prelude-val">Some</span>(<span class="number">1u32</span>));
-			<span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">is_none</span>(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
+			queue.wait_ready(now).<span class="kw">await</span>;
+			<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;After second wait.&quot;</span>);
+			<span class="kw">let </span>now = start + Duration::from_millis(<span class="number">3</span>);
+			<span class="macro">assert!</span>(Instant::now() - start &gt;= Duration::from_millis(<span class="number">3</span>));
+			<span class="macro">assert_eq!</span>(queue.pop_ready(now).map(|p| p.payload), <span class="prelude-val">Some</span>(<span class="number">1u32</span>));
+			<span class="macro">assert!</span>(queue.pop_ready(now).is_none(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
 
-			<span class="comment">// Push in between wait:</span>
-			<span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">wait_ready</span>(<span class="ident">now</span>);
-				<span class="macro">pin_mut!</span>(<span class="ident">fut</span>);
-				<span class="macro">assert_matches!</span>(<span class="ident">fut</span>.<span class="ident">poll</span>(<span class="ident">cx</span>), <span class="ident">Poll::Pending</span>);
-				<span class="ident">Poll::Ready</span>(())
+			<span class="comment">// Push in between wait:
+			</span>poll_fn(|cx| {
+				<span class="kw">let </span>fut = queue.wait_ready(now);
+				<span class="macro">pin_mut!</span>(fut);
+				<span class="macro">assert_matches!</span>(fut.poll(cx), Poll::Pending);
+				Poll::Ready(())
 			})
 			.<span class="kw">await</span>;
-			<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">PendingWake</span> { <span class="ident">payload</span>: <span class="number">3u32</span>, <span class="ident">ready_at</span>: <span class="ident">start</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">4</span>) });
+			queue.push(PendingWake { payload: <span class="number">3u32</span>, ready_at: start + Duration::from_millis(<span class="number">4</span>) });
 
-			<span class="ident">queue</span>.<span class="ident">wait_ready</span>(<span class="ident">now</span>).<span class="kw">await</span>;
-			<span class="comment">// Newly pushed element should have become ready:</span>
-			<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;After third wait.&quot;</span>);
-			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">start</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">4</span>);
-			<span class="macro">assert!</span>(<span class="ident">Instant::now</span>() <span class="op">-</span> <span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">4</span>));
-			<span class="macro">assert_eq!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">payload</span>), <span class="prelude-val">Some</span>(<span class="number">3u32</span>));
-			<span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">is_none</span>(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
+			queue.wait_ready(now).<span class="kw">await</span>;
+			<span class="comment">// Newly pushed element should have become ready:
+			</span><span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;After third wait.&quot;</span>);
+			<span class="kw">let </span>now = start + Duration::from_millis(<span class="number">4</span>);
+			<span class="macro">assert!</span>(Instant::now() - start &gt;= Duration::from_millis(<span class="number">4</span>));
+			<span class="macro">assert_eq!</span>(queue.pop_ready(now).map(|p| p.payload), <span class="prelude-val">Some</span>(<span class="number">3u32</span>));
+			<span class="macro">assert!</span>(queue.pop_ready(now).is_none(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
 
-			<span class="ident">queue</span>.<span class="ident">wait_ready</span>(<span class="ident">now</span>).<span class="kw">await</span>;
-			<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;After fourth wait.&quot;</span>);
-			<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">start</span> <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">5</span>);
-			<span class="macro">assert!</span>(<span class="ident">Instant::now</span>() <span class="op">-</span> <span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">5</span>));
-			<span class="macro">assert_eq!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">payload</span>), <span class="prelude-val">Some</span>(<span class="number">2u32</span>));
-			<span class="macro">assert!</span>(<span class="ident">queue</span>.<span class="ident">pop_ready</span>(<span class="ident">now</span>).<span class="ident">is_none</span>(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
+			queue.wait_ready(now).<span class="kw">await</span>;
+			<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;After fourth wait.&quot;</span>);
+			<span class="kw">let </span>now = start + Duration::from_millis(<span class="number">5</span>);
+			<span class="macro">assert!</span>(Instant::now() - start &gt;= Duration::from_millis(<span class="number">5</span>));
+			<span class="macro">assert_eq!</span>(queue.pop_ready(now).map(|p| p.payload), <span class="prelude-val">Some</span>(<span class="number">2u32</span>));
+			<span class="macro">assert!</span>(queue.pop_ready(now).is_none(), <span class="string">&quot;No more entry expected to be ready.&quot;</span>);
 
-			<span class="comment">// queue empty - should wait forever now:</span>
-			<span class="ident">poll_fn</span>(<span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">wait_ready</span>(<span class="ident">now</span>);
-				<span class="macro">pin_mut!</span>(<span class="ident">fut</span>);
-				<span class="macro">assert_matches!</span>(<span class="ident">fut</span>.<span class="ident">poll</span>(<span class="ident">cx</span>), <span class="ident">Poll::Pending</span>);
-				<span class="ident">Poll::Ready</span>(())
+			<span class="comment">// queue empty - should wait forever now:
+			</span>poll_fn(|cx| {
+				<span class="kw">let </span>fut = queue.wait_ready(now);
+				<span class="macro">pin_mut!</span>(fut);
+				<span class="macro">assert_matches!</span>(fut.poll(cx), Poll::Pending);
+				Poll::Ready(())
 			})
 			.<span class="kw">await</span>;
 		});
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_dispute_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_dispute_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

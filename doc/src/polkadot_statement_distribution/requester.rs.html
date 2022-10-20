@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/statement-distribution/src/requester.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>requester.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_statement_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_statement_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_statement_distribution/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/statement-distribution/src/requester.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>requester.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_statement_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_statement_distribution/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -234,236 +228,235 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Large statement requesting background task logic.</span>
+</span><span class="doccomment">//! Large statement requesting background task logic.
 
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+</span><span class="kw">use </span>std::time::Duration;
 
-<span class="kw">use</span> <span class="ident">futures</span>::{
-	<span class="ident">channel</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>},
-	<span class="ident">SinkExt</span>,
+<span class="kw">use </span>futures::{
+	channel::{mpsc, oneshot},
+	SinkExt,
 };
 
-<span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
-	<span class="ident">request_response</span>::{
-		<span class="ident">v1</span>::{<span class="ident">StatementFetchingRequest</span>, <span class="ident">StatementFetchingResponse</span>},
-		<span class="ident">OutgoingRequest</span>, <span class="ident">Recipient</span>, <span class="ident">Requests</span>,
+<span class="kw">use </span>polkadot_node_network_protocol::{
+	request_response::{
+		v1::{StatementFetchingRequest, StatementFetchingResponse},
+		OutgoingRequest, Recipient, Requests,
 	},
-	<span class="ident">PeerId</span>, <span class="ident">UnifiedReputationChange</span>,
+	PeerId, UnifiedReputationChange,
 };
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{<span class="ident">Span</span>, <span class="ident">Stage</span>};
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::TimeoutExt</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">CandidateHash</span>, <span class="ident">CommittedCandidateReceipt</span>, <span class="ident">Hash</span>};
+<span class="kw">use </span>polkadot_node_subsystem::{Span, Stage};
+<span class="kw">use </span>polkadot_node_subsystem_util::TimeoutExt;
+<span class="kw">use </span>polkadot_primitives::v2::{CandidateHash, CommittedCandidateReceipt, Hash};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">metrics::Metrics</span>, <span class="ident">COST_WRONG_HASH</span>, <span class="ident">LOG_TARGET</span>};
+<span class="kw">use crate</span>::{metrics::Metrics, COST_WRONG_HASH, LOG_TARGET};
 
-<span class="comment">// In case we failed fetching from our known peers, how long we should wait before attempting a</span>
-<span class="comment">// retry, even though we have not yet discovered any new peers. Or in other words how long to</span>
-<span class="comment">// wait before retrying peers that already failed.</span>
-<span class="kw">const</span> <span class="ident">RETRY_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">500</span>);
+<span class="comment">// In case we failed fetching from our known peers, how long we should wait before attempting a
+// retry, even though we have not yet discovered any new peers. Or in other words how long to
+// wait before retrying peers that already failed.
+</span><span class="kw">const </span>RETRY_TIMEOUT: Duration = Duration::from_millis(<span class="number">500</span>);
 
-<span class="doccomment">/// Messages coming from a background task.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RequesterMessage</span> {
-	<span class="doccomment">/// Get an update of available peers to try for fetching a given statement.</span>
-	<span class="ident">GetMorePeers</span> {
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
-		<span class="ident">tx</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Messages coming from a background task.
+</span><span class="kw">pub enum </span>RequesterMessage {
+	<span class="doccomment">/// Get an update of available peers to try for fetching a given statement.
+	</span>GetMorePeers {
+		relay_parent: Hash,
+		candidate_hash: CandidateHash,
+		tx: oneshot::Sender&lt;Vec&lt;PeerId&gt;&gt;,
 	},
-	<span class="doccomment">/// Fetching finished, ask for verification. If verification fails, task will continue asking</span>
-	<span class="doccomment">/// peers for data.</span>
-	<span class="ident">Finished</span> {
-		<span class="doccomment">/// Relay parent this candidate is in the context of.</span>
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="doccomment">/// The candidate we fetched data for.</span>
-		<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
-		<span class="doccomment">/// Data was fetched from this peer.</span>
-		<span class="ident">from_peer</span>: <span class="ident">PeerId</span>,
-		<span class="doccomment">/// Response we received from above peer.</span>
-		<span class="ident">response</span>: <span class="ident">CommittedCandidateReceipt</span>,
-		<span class="doccomment">/// Peers which failed providing the data.</span>
-		<span class="ident">bad_peers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Fetching finished, ask for verification. If verification fails, task will continue asking
+	/// peers for data.
+	</span>Finished {
+		<span class="doccomment">/// Relay parent this candidate is in the context of.
+		</span>relay_parent: Hash,
+		<span class="doccomment">/// The candidate we fetched data for.
+		</span>candidate_hash: CandidateHash,
+		<span class="doccomment">/// Data was fetched from this peer.
+		</span>from_peer: PeerId,
+		<span class="doccomment">/// Response we received from above peer.
+		</span>response: CommittedCandidateReceipt,
+		<span class="doccomment">/// Peers which failed providing the data.
+		</span>bad_peers: Vec&lt;PeerId&gt;,
 	},
-	<span class="doccomment">/// Report a peer which behaved worse than just not providing data:</span>
-	<span class="ident">ReportPeer</span>(<span class="ident">PeerId</span>, <span class="ident">UnifiedReputationChange</span>),
-	<span class="doccomment">/// Ask subsystem to send a request for us.</span>
-	<span class="ident">SendRequest</span>(<span class="ident">Requests</span>),
+	<span class="doccomment">/// Report a peer which behaved worse than just not providing data:
+	</span>ReportPeer(PeerId, UnifiedReputationChange),
+	<span class="doccomment">/// Ask subsystem to send a request for us.
+	</span>SendRequest(Requests),
 }
 
-<span class="doccomment">/// A fetching task, taking care of fetching large statements via request/response.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A fetch task does not know about a particular `Statement` instead it just tries fetching a</span>
-<span class="doccomment">/// `CommittedCandidateReceipt` from peers, whether this can be used to re-assemble one ore</span>
-<span class="doccomment">/// many `SignedFullStatement`s needs to be verified by the caller.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">fetch</span>(
-	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-	<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
-	<span class="ident">peers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
-	<span class="kw-2">mut</span> <span class="ident">sender</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">RequesterMessage</span><span class="op">&gt;</span>,
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
+<span class="doccomment">/// A fetching task, taking care of fetching large statements via request/response.
+///
+/// A fetch task does not know about a particular `Statement` instead it just tries fetching a
+/// `CommittedCandidateReceipt` from peers, whether this can be used to re-assemble one ore
+/// many `SignedFullStatement`s needs to be verified by the caller.
+</span><span class="kw">pub async fn </span>fetch(
+	relay_parent: Hash,
+	candidate_hash: CandidateHash,
+	peers: Vec&lt;PeerId&gt;,
+	<span class="kw-2">mut </span>sender: mpsc::Sender&lt;RequesterMessage&gt;,
+	metrics: Metrics,
 ) {
-	<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">candidate_hash</span>, <span class="string">&quot;fetch-large-statement&quot;</span>)
-		.<span class="ident">with_relay_parent</span>(<span class="ident">relay_parent</span>)
-		.<span class="ident">with_stage</span>(<span class="ident">Stage::StatementDistribution</span>);
+	<span class="kw">let </span>span = Span::new(candidate_hash, <span class="string">&quot;fetch-large-statement&quot;</span>)
+		.with_relay_parent(relay_parent)
+		.with_stage(Stage::StatementDistribution);
 
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="question-mark">?</span><span class="ident">candidate_hash</span>,
-		<span class="question-mark">?</span><span class="ident">relay_parent</span>,
+		target: LOG_TARGET,
+		<span class="question-mark">?</span>candidate_hash,
+		<span class="question-mark">?</span>relay_parent,
 		<span class="string">&quot;Fetch for large statement started&quot;</span>,
 	);
 
-	<span class="comment">// Peers we already tried (and failed).</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tried_peers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-	<span class="comment">// Peers left for trying out.</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_peers</span> <span class="op">=</span> <span class="ident">peers</span>;
+	<span class="comment">// Peers we already tried (and failed).
+	</span><span class="kw">let </span><span class="kw-2">mut </span>tried_peers = Vec::new();
+	<span class="comment">// Peers left for trying out.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>new_peers = peers;
 
-	<span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">StatementFetchingRequest</span> { <span class="ident">relay_parent</span>, <span class="ident">candidate_hash</span> };
+	<span class="kw">let </span>req = StatementFetchingRequest { relay_parent, candidate_hash };
 
-	<span class="comment">// We retry endlessly (with sleep periods), and rely on the subsystem to kill us eventually.</span>
-	<span class="kw">loop</span> {
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">child</span>(<span class="string">&quot;try-available-peers&quot;</span>);
+	<span class="comment">// We retry endlessly (with sleep periods), and rely on the subsystem to kill us eventually.
+	</span><span class="kw">loop </span>{
+		<span class="kw">let </span>span = span.child(<span class="string">&quot;try-available-peers&quot;</span>);
 
-		<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peer</span>) <span class="op">=</span> <span class="ident">new_peers</span>.<span class="ident">pop</span>() {
-			<span class="kw">let</span> <span class="ident">_span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">child</span>(<span class="string">&quot;try-peer&quot;</span>).<span class="ident">with_peer_id</span>(<span class="kw-2">&amp;</span><span class="ident">peer</span>);
+		<span class="kw">while let </span><span class="prelude-val">Some</span>(peer) = new_peers.pop() {
+			<span class="kw">let </span>_span = span.child(<span class="string">&quot;try-peer&quot;</span>).with_peer_id(<span class="kw-2">&amp;</span>peer);
 
-			<span class="kw">let</span> (<span class="ident">outgoing</span>, <span class="ident">pending_response</span>) <span class="op">=</span>
-				<span class="ident">OutgoingRequest::new</span>(<span class="ident">Recipient::Peer</span>(<span class="ident">peer</span>), <span class="ident">req</span>.<span class="ident">clone</span>());
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">sender</span>
-				.<span class="ident">feed</span>(<span class="ident">RequesterMessage::SendRequest</span>(<span class="ident">Requests::StatementFetchingV1</span>(<span class="ident">outgoing</span>)))
-				.<span class="kw">await</span>
-			{
+			<span class="kw">let </span>(outgoing, pending_response) =
+				OutgoingRequest::new(Recipient::Peer(peer), req.clone());
+			<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = sender
+				.feed(RequesterMessage::SendRequest(Requests::StatementFetchingV1(outgoing)))
+				.<span class="kw">await
+			</span>{
 				<span class="macro">gum::info!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">err</span>,
-					<span class="string">&quot;Sending request failed, node might be shutting down - exiting.&quot;</span>
-				);
-				<span class="kw">return</span>
-			}
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>err,
+					<span class="string">&quot;Sending request failed, node might be shutting down - exiting.&quot;
+				</span>);
+				<span class="kw">return
+			</span>}
 
-			<span class="ident">metrics</span>.<span class="ident">on_sent_request</span>();
+			metrics.on_sent_request();
 
-			<span class="kw">match</span> <span class="ident">pending_response</span>.<span class="kw">await</span> {
-				<span class="prelude-val">Ok</span>(<span class="ident">StatementFetchingResponse::Statement</span>(<span class="ident">statement</span>)) =&gt; {
-					<span class="kw">if</span> <span class="ident">statement</span>.<span class="ident">hash</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">candidate_hash</span> {
-						<span class="ident">metrics</span>.<span class="ident">on_received_response</span>(<span class="bool-val">false</span>);
-						<span class="ident">metrics</span>.<span class="ident">on_unexpected_statement_large</span>();
+			<span class="kw">match </span>pending_response.<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(StatementFetchingResponse::Statement(statement)) =&gt; {
+					<span class="kw">if </span>statement.hash() != candidate_hash {
+						metrics.on_received_response(<span class="bool-val">false</span>);
+						metrics.on_unexpected_statement_large();
 
-						<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span>
-							<span class="ident">sender</span>.<span class="ident">feed</span>(<span class="ident">RequesterMessage::ReportPeer</span>(<span class="ident">peer</span>, <span class="ident">COST_WRONG_HASH</span>)).<span class="kw">await</span>
-						{
+						<span class="kw">if let </span><span class="prelude-val">Err</span>(err) =
+							sender.feed(RequesterMessage::ReportPeer(peer, COST_WRONG_HASH)).<span class="kw">await
+						</span>{
 							<span class="macro">gum::warn!</span>(
-								<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-								<span class="question-mark">?</span><span class="ident">err</span>,
-								<span class="string">&quot;Sending reputation change failed: This should not happen.&quot;</span>
-							);
+								target: LOG_TARGET,
+								<span class="question-mark">?</span>err,
+								<span class="string">&quot;Sending reputation change failed: This should not happen.&quot;
+							</span>);
 						}
-						<span class="comment">// We want to get rid of this peer:</span>
-						<span class="kw">continue</span>
-					}
+						<span class="comment">// We want to get rid of this peer:
+						</span><span class="kw">continue
+					</span>}
 
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">sender</span>
-						.<span class="ident">feed</span>(<span class="ident">RequesterMessage::Finished</span> {
-							<span class="ident">relay_parent</span>,
-							<span class="ident">candidate_hash</span>,
-							<span class="ident">from_peer</span>: <span class="ident">peer</span>,
-							<span class="ident">response</span>: <span class="ident">statement</span>,
-							<span class="ident">bad_peers</span>: <span class="ident">tried_peers</span>,
+					<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = sender
+						.feed(RequesterMessage::Finished {
+							relay_parent,
+							candidate_hash,
+							from_peer: peer,
+							response: statement,
+							bad_peers: tried_peers,
 						})
-						.<span class="kw">await</span>
-					{
+						.<span class="kw">await
+					</span>{
 						<span class="macro">gum::warn!</span>(
-							<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-							<span class="question-mark">?</span><span class="ident">err</span>,
-							<span class="string">&quot;Sending task response failed: This should not happen.&quot;</span>
-						);
+							target: LOG_TARGET,
+							<span class="question-mark">?</span>err,
+							<span class="string">&quot;Sending task response failed: This should not happen.&quot;
+						</span>);
 					}
 
-					<span class="ident">metrics</span>.<span class="ident">on_received_response</span>(<span class="bool-val">true</span>);
+					metrics.on_received_response(<span class="bool-val">true</span>);
 
-					<span class="comment">// We are done now.</span>
-					<span class="kw">return</span>
-				},
-				<span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
+					<span class="comment">// We are done now.
+					</span><span class="kw">return
+				</span>},
+				<span class="prelude-val">Err</span>(err) =&gt; {
 					<span class="macro">gum::debug!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-						<span class="question-mark">?</span><span class="ident">err</span>,
-						<span class="string">&quot;Receiving response failed with error - trying next peer.&quot;</span>
-					);
+						target: LOG_TARGET,
+						<span class="question-mark">?</span>err,
+						<span class="string">&quot;Receiving response failed with error - trying next peer.&quot;
+					</span>);
 
-					<span class="ident">metrics</span>.<span class="ident">on_received_response</span>(<span class="bool-val">false</span>);
-					<span class="ident">metrics</span>.<span class="ident">on_unexpected_statement_large</span>();
+					metrics.on_received_response(<span class="bool-val">false</span>);
+					metrics.on_unexpected_statement_large();
 				},
 			}
 
-			<span class="ident">tried_peers</span>.<span class="ident">push</span>(<span class="ident">peer</span>);
+			tried_peers.push(peer);
 		}
 
-		<span class="ident">new_peers</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tried_peers</span>);
+		new_peers = std::mem::take(<span class="kw-2">&amp;mut </span>tried_peers);
 
-		<span class="comment">// All our peers failed us - try getting new ones before trying again:</span>
-		<span class="kw">match</span> <span class="ident">try_get_new_peers</span>(<span class="ident">relay_parent</span>, <span class="ident">candidate_hash</span>, <span class="kw-2">&amp;mut</span> <span class="ident">sender</span>, <span class="kw-2">&amp;</span><span class="ident">span</span>).<span class="kw">await</span> {
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">peers</span>)) =&gt; {
-				<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">peers</span>, <span class="string">&quot;Received new peers.&quot;</span>);
-				<span class="comment">// New arrivals will be tried first:</span>
-				<span class="ident">new_peers</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">peers</span>);
+		<span class="comment">// All our peers failed us - try getting new ones before trying again:
+		</span><span class="kw">match </span>try_get_new_peers(relay_parent, candidate_hash, <span class="kw-2">&amp;mut </span>sender, <span class="kw-2">&amp;</span>span).<span class="kw">await </span>{
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>peers)) =&gt; {
+				<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>peers, <span class="string">&quot;Received new peers.&quot;</span>);
+				<span class="comment">// New arrivals will be tried first:
+				</span>new_peers.append(<span class="kw-2">&amp;mut </span>peers);
 			},
-			<span class="comment">// No new peers, try the old ones again (if we have any):</span>
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-				<span class="comment">// Note: In case we don&#39;t have any more peers, we will just keep asking for new</span>
-				<span class="comment">// peers, which is exactly what we want.</span>
-			},
+			<span class="comment">// No new peers, try the old ones again (if we have any):
+			</span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
+				<span class="comment">// Note: In case we don&#39;t have any more peers, we will just keep asking for new
+				// peers, which is exactly what we want.
+			</span>},
 			<span class="prelude-val">Err</span>(()) =&gt; <span class="kw">return</span>,
 		}
 	}
 }
 
-<span class="doccomment">/// Try getting new peers from subsystem.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If there are non, we will return after a timeout with `None`.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">try_get_new_peers</span>(
-	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-	<span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">RequesterMessage</span><span class="op">&gt;</span>,
-	<span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">Span</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">_span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">child</span>(<span class="string">&quot;wait-for-peers&quot;</span>);
+<span class="doccomment">/// Try getting new peers from subsystem.
+///
+/// If there are non, we will return after a timeout with `None`.
+</span><span class="kw">async fn </span>try_get_new_peers(
+	relay_parent: Hash,
+	candidate_hash: CandidateHash,
+	sender: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;RequesterMessage&gt;,
+	span: <span class="kw-2">&amp;</span>Span,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;PeerId&gt;&gt;, ()&gt; {
+	<span class="kw">let </span>_span = span.child(<span class="string">&quot;wait-for-peers&quot;</span>);
 
-	<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
+	<span class="kw">let </span>(tx, rx) = oneshot::channel();
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">sender</span>
-		.<span class="ident">send</span>(<span class="ident">RequesterMessage::GetMorePeers</span> { <span class="ident">relay_parent</span>, <span class="ident">candidate_hash</span>, <span class="ident">tx</span> })
-		.<span class="kw">await</span>
-	{
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = sender
+		.send(RequesterMessage::GetMorePeers { relay_parent, candidate_hash, tx })
+		.<span class="kw">await
+	</span>{
 		<span class="macro">gum::debug!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">err</span>,
-			<span class="string">&quot;Failed sending background task message, subsystem probably moved on.&quot;</span>
-		);
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(())
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>err,
+			<span class="string">&quot;Failed sending background task message, subsystem probably moved on.&quot;
+		</span>);
+		<span class="kw">return </span><span class="prelude-val">Err</span>(())
 	}
 
-	<span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">timeout</span>(<span class="ident">RETRY_TIMEOUT</span>).<span class="kw">await</span>.<span class="ident">transpose</span>() {
+	<span class="kw">match </span>rx.timeout(RETRY_TIMEOUT).<span class="kw">await</span>.transpose() {
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-			<span class="macro">gum::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;Failed fetching more peers.&quot;</span>);
+			<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Failed fetching more peers.&quot;</span>);
 			<span class="prelude-val">Err</span>(())
 		},
-		<span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">val</span>),
+		<span class="prelude-val">Ok</span>(val) =&gt; <span class="prelude-val">Ok</span>(val),
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_statement_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_statement_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

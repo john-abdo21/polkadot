@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/provisioner/src/disputes/prioritized_selection/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_node_core_provisioner/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/provisioner/src/disputes/prioritized_selection/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_node_core_provisioner/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -468,470 +462,469 @@
 <span id="462">462</span>
 <span id="463">463</span>
 <span id="464">464</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! This module uses different approach for selecting dispute votes. It queries the Runtime</span>
-<span class="doccomment">//! about the votes already known onchain and tries to select only relevant votes. Refer to</span>
-<span class="doccomment">//! the documentation of `select_disputes` for more details about the actual implementation.</span>
+</span><span class="doccomment">//! This module uses different approach for selecting dispute votes. It queries the Runtime
+//! about the votes already known onchain and tries to select only relevant votes. Refer to
+//! the documentation of `select_disputes` for more details about the actual implementation.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::GetOnchainDisputesError</span>, <span class="ident">metrics</span>, <span class="ident">LOG_TARGET</span>};
-<span class="kw">use</span> <span class="ident">futures::channel::oneshot</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives</span>::{<span class="ident">dispute_is_inactive</span>, <span class="ident">CandidateVotes</span>, <span class="ident">DisputeStatus</span>, <span class="ident">Timestamp</span>};
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{
-	<span class="ident">errors::RuntimeApiError</span>,
-	<span class="ident">messages</span>::{<span class="ident">DisputeCoordinatorMessage</span>, <span class="ident">RuntimeApiMessage</span>, <span class="ident">RuntimeApiRequest</span>},
-	<span class="ident">overseer</span>, <span class="ident">ActivatedLeaf</span>,
+</span><span class="kw">use crate</span>::{error::GetOnchainDisputesError, metrics, LOG_TARGET};
+<span class="kw">use </span>futures::channel::oneshot;
+<span class="kw">use </span>polkadot_node_primitives::{dispute_is_inactive, CandidateVotes, DisputeStatus, Timestamp};
+<span class="kw">use </span>polkadot_node_subsystem::{
+	errors::RuntimeApiError,
+	messages::{DisputeCoordinatorMessage, RuntimeApiMessage, RuntimeApiRequest},
+	overseer, ActivatedLeaf,
 };
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">supermajority_threshold</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeState</span>, <span class="ident">DisputeStatement</span>, <span class="ident">DisputeStatementSet</span>,
-	<span class="ident">Hash</span>, <span class="ident">MultiDisputeStatementSet</span>, <span class="ident">SessionIndex</span>, <span class="ident">ValidatorIndex</span>,
+<span class="kw">use </span>polkadot_primitives::v2::{
+	supermajority_threshold, CandidateHash, DisputeState, DisputeStatement, DisputeStatementSet,
+	Hash, MultiDisputeStatementSet, SessionIndex, ValidatorIndex,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>},
-	<span class="ident">time</span>::{<span class="ident">SystemTime</span>, <span class="ident">UNIX_EPOCH</span>},
+<span class="kw">use </span>std::{
+	collections::{BTreeMap, HashMap},
+	time::{SystemTime, UNIX_EPOCH},
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// The maximum number of disputes Provisioner will include in the inherent data.</span>
-<span class="doccomment">/// Serves as a protection not to flood the Runtime with excessive data.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">200_000</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">200</span>;
+<span class="doccomment">/// The maximum number of disputes Provisioner will include in the inherent data.
+/// Serves as a protection not to flood the Runtime with excessive data.
+</span><span class="attribute">#[cfg(not(test))]
+</span><span class="kw">pub const </span>MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME: usize = <span class="number">200_000</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub const </span>MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME: usize = <span class="number">200</span>;
 
-<span class="doccomment">/// Controls how much dispute votes to be fetched from the `dispute-coordinator` per iteration in</span>
-<span class="doccomment">/// `fn vote_selection`. The purpose is to fetch the votes in batches until</span>
-<span class="doccomment">/// `MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME` is reached. If all votes are fetched in single call</span>
-<span class="doccomment">/// we might fetch votes which we never use. This will create unnecessary load on `dispute-coordinator`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This value should be less than `MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME`. Increase it in case</span>
-<span class="doccomment">/// `provisioner` sends too many `QueryCandidateVotes` messages to `dispite-coordinator`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">const</span> <span class="ident">VOTES_SELECTION_BATCH_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1_100</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">const</span> <span class="ident">VOTES_SELECTION_BATCH_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="doccomment">/// Controls how much dispute votes to be fetched from the `dispute-coordinator` per iteration in
+/// `fn vote_selection`. The purpose is to fetch the votes in batches until
+/// `MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME` is reached. If all votes are fetched in single call
+/// we might fetch votes which we never use. This will create unnecessary load on `dispute-coordinator`.
+///
+/// This value should be less than `MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME`. Increase it in case
+/// `provisioner` sends too many `QueryCandidateVotes` messages to `dispite-coordinator`.
+</span><span class="attribute">#[cfg(not(test))]
+</span><span class="kw">const </span>VOTES_SELECTION_BATCH_SIZE: usize = <span class="number">1_100</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">const </span>VOTES_SELECTION_BATCH_SIZE: usize = <span class="number">11</span>;
 
-<span class="doccomment">/// Implements the `select_disputes` function which selects dispute votes which should</span>
-<span class="doccomment">/// be sent to the Runtime.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # How the prioritization works</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Generally speaking disputes can be described as:</span>
-<span class="doccomment">///   * Active vs Inactive</span>
-<span class="doccomment">///   * Known vs Unknown onchain</span>
-<span class="doccomment">///   * Offchain vs Onchain</span>
-<span class="doccomment">///   * Concluded onchain vs Unconcluded onchain</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Provisioner fetches all disputes from `dispute-coordinator` and separates them in multiple partitions.</span>
-<span class="doccomment">/// Please refer to `struct PartitionedDisputes` for details about the actual partitions.</span>
-<span class="doccomment">/// Each partition has got a priority implicitly assigned to it and the disputes are selected based on this</span>
-<span class="doccomment">/// priority (e.g. disputes in partition 1, then if there is space - disputes from partition 2 and so on).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Votes selection</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Besides the prioritization described above the votes in each partition are filtered too. Provisioner</span>
-<span class="doccomment">/// fetches all onchain votes and filters them out from all partitions. As a result the Runtime receives</span>
-<span class="doccomment">/// only fresh votes (votes it didn&#39;t know about).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # How the onchain votes are fetched</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The logic outlined above relies on `RuntimeApiRequest::Disputes` message from the Runtime. The user</span>
-<span class="doccomment">/// check the Runtime version before calling `select_disputes`. If the function is used with old runtime</span>
-<span class="doccomment">/// an error is logged and the logic will continue with empty onchain votes `HashMap`.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">select_disputes</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span>(
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Sender</span>,
-	<span class="ident">metrics</span>: <span class="kw-2">&amp;</span><span class="ident">metrics::Metrics</span>,
-	<span class="ident">leaf</span>: <span class="kw-2">&amp;</span><span class="ident">ActivatedLeaf</span>,
-) -&gt; <span class="ident">MultiDisputeStatementSet</span>
-<span class="kw">where</span>
-	<span class="ident">Sender</span>: <span class="ident">overseer::ProvisionerSenderTrait</span>,
+<span class="doccomment">/// Implements the `select_disputes` function which selects dispute votes which should
+/// be sent to the Runtime.
+///
+/// # How the prioritization works
+///
+/// Generally speaking disputes can be described as:
+///   * Active vs Inactive
+///   * Known vs Unknown onchain
+///   * Offchain vs Onchain
+///   * Concluded onchain vs Unconcluded onchain
+///
+/// Provisioner fetches all disputes from `dispute-coordinator` and separates them in multiple partitions.
+/// Please refer to `struct PartitionedDisputes` for details about the actual partitions.
+/// Each partition has got a priority implicitly assigned to it and the disputes are selected based on this
+/// priority (e.g. disputes in partition 1, then if there is space - disputes from partition 2 and so on).
+///
+/// # Votes selection
+///
+/// Besides the prioritization described above the votes in each partition are filtered too. Provisioner
+/// fetches all onchain votes and filters them out from all partitions. As a result the Runtime receives
+/// only fresh votes (votes it didn&#39;t know about).
+///
+/// # How the onchain votes are fetched
+///
+/// The logic outlined above relies on `RuntimeApiRequest::Disputes` message from the Runtime. The user
+/// check the Runtime version before calling `select_disputes`. If the function is used with old runtime
+/// an error is logged and the logic will continue with empty onchain votes `HashMap`.
+</span><span class="kw">pub async fn </span>select_disputes&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
+	metrics: <span class="kw-2">&amp;</span>metrics::Metrics,
+	leaf: <span class="kw-2">&amp;</span>ActivatedLeaf,
+) -&gt; MultiDisputeStatementSet
+<span class="kw">where
+	</span>Sender: overseer::ProvisionerSenderTrait,
 {
 	<span class="macro">gum::trace!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="question-mark">?</span><span class="ident">leaf</span>,
-		<span class="string">&quot;Selecting disputes for inherent data using prioritized selection&quot;</span>
-	);
+		target: LOG_TARGET,
+		<span class="question-mark">?</span>leaf,
+		<span class="string">&quot;Selecting disputes for inherent data using prioritized selection&quot;
+	</span>);
 
-	<span class="comment">// Fetch the onchain disputes. We&#39;ll do a prioritization based on them.</span>
-	<span class="kw">let</span> <span class="ident">onchain</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_onchain_disputes</span>(<span class="ident">sender</span>, <span class="ident">leaf</span>.<span class="ident">hash</span>.<span class="ident">clone</span>()).<span class="kw">await</span> {
-		<span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
-		<span class="prelude-val">Err</span>(<span class="ident">GetOnchainDisputesError::NotSupported</span>(<span class="ident">runtime_api_err</span>, <span class="ident">relay_parent</span>)) =&gt; {
-			<span class="comment">// Runtime version is checked before calling this method, so the error below should never happen!</span>
-			<span class="macro">gum::error!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="question-mark">?</span><span class="ident">runtime_api_err</span>,
-				<span class="question-mark">?</span><span class="ident">relay_parent</span>,
+	<span class="comment">// Fetch the onchain disputes. We&#39;ll do a prioritization based on them.
+	</span><span class="kw">let </span>onchain = <span class="kw">match </span>get_onchain_disputes(sender, leaf.hash.clone()).<span class="kw">await </span>{
+		<span class="prelude-val">Ok</span>(r) =&gt; r,
+		<span class="prelude-val">Err</span>(GetOnchainDisputesError::NotSupported(runtime_api_err, relay_parent)) =&gt; {
+			<span class="comment">// Runtime version is checked before calling this method, so the error below should never happen!
+			</span><span class="macro">gum::error!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>runtime_api_err,
+				<span class="question-mark">?</span>relay_parent,
 				<span class="string">&quot;Can&#39;t fetch onchain disputes, because ParachainHost runtime api version is old. Will continue with empty onchain disputes set.&quot;</span>,
 			);
-			<span class="ident">HashMap::new</span>()
+			HashMap::new()
 		},
-		<span class="prelude-val">Err</span>(<span class="ident">GetOnchainDisputesError::Channel</span>) =&gt; {
-			<span class="comment">// This error usually means the node is shutting down. Log just in case.</span>
-			<span class="macro">gum::debug!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+		<span class="prelude-val">Err</span>(GetOnchainDisputesError::Channel) =&gt; {
+			<span class="comment">// This error usually means the node is shutting down. Log just in case.
+			</span><span class="macro">gum::debug!</span>(
+				target: LOG_TARGET,
 				<span class="string">&quot;Channel error occurred while fetching onchain disputes. Will continue with empty onchain disputes set.&quot;</span>,
 			);
-			<span class="ident">HashMap::new</span>()
+			HashMap::new()
 		},
-		<span class="prelude-val">Err</span>(<span class="ident">GetOnchainDisputesError::Execution</span>(<span class="ident">runtime_api_err</span>, <span class="ident">parent_hash</span>)) =&gt; {
+		<span class="prelude-val">Err</span>(GetOnchainDisputesError::Execution(runtime_api_err, parent_hash)) =&gt; {
 			<span class="macro">gum::warn!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="question-mark">?</span><span class="ident">runtime_api_err</span>,
-				<span class="question-mark">?</span><span class="ident">parent_hash</span>,
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>runtime_api_err,
+				<span class="question-mark">?</span>parent_hash,
 				<span class="string">&quot;Unexpected execution error occurred while fetching onchain votes. Will continue with empty onchain disputes set.&quot;</span>,
 			);
-			<span class="ident">HashMap::new</span>()
+			HashMap::new()
 		},
 	};
 
-	<span class="kw">let</span> <span class="ident">recent_disputes</span> <span class="op">=</span> <span class="ident">request_disputes</span>(<span class="ident">sender</span>).<span class="kw">await</span>;
+	<span class="kw">let </span>recent_disputes = request_disputes(sender).<span class="kw">await</span>;
 	<span class="macro">gum::trace!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="question-mark">?</span><span class="ident">leaf</span>,
+		target: LOG_TARGET,
+		<span class="question-mark">?</span>leaf,
 		<span class="string">&quot;Got {} recent disputes and {} onchain disputes.&quot;</span>,
-		<span class="ident">recent_disputes</span>.<span class="ident">len</span>(),
-		<span class="ident">onchain</span>.<span class="ident">len</span>(),
+		recent_disputes.len(),
+		onchain.len(),
 	);
 
-	<span class="kw">let</span> <span class="ident">partitioned</span> <span class="op">=</span> <span class="ident">partition_recent_disputes</span>(<span class="ident">recent_disputes</span>, <span class="kw-2">&amp;</span><span class="ident">onchain</span>);
-	<span class="ident">metrics</span>.<span class="ident">on_partition_recent_disputes</span>(<span class="kw-2">&amp;</span><span class="ident">partitioned</span>);
+	<span class="kw">let </span>partitioned = partition_recent_disputes(recent_disputes, <span class="kw-2">&amp;</span>onchain);
+	metrics.on_partition_recent_disputes(<span class="kw-2">&amp;</span>partitioned);
 
-	<span class="kw">if</span> <span class="ident">partitioned</span>.<span class="ident">inactive_unknown_onchain</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span> {
+	<span class="kw">if </span>partitioned.inactive_unknown_onchain.len() &gt; <span class="number">0 </span>{
 		<span class="macro">gum::warn!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">leaf</span>,
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>leaf,
 			<span class="string">&quot;Got {} inactive unknown onchain disputes. This should not happen!&quot;</span>,
-			<span class="ident">partitioned</span>.<span class="ident">inactive_unknown_onchain</span>.<span class="ident">len</span>()
+			partitioned.inactive_unknown_onchain.len()
 		);
 	}
-	<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">vote_selection</span>(<span class="ident">sender</span>, <span class="ident">partitioned</span>, <span class="kw-2">&amp;</span><span class="ident">onchain</span>).<span class="kw">await</span>;
+	<span class="kw">let </span>result = vote_selection(sender, partitioned, <span class="kw-2">&amp;</span>onchain).<span class="kw">await</span>;
 
-	<span class="ident">make_multi_dispute_statement_set</span>(<span class="ident">metrics</span>, <span class="ident">result</span>)
+	make_multi_dispute_statement_set(metrics, result)
 }
 
-<span class="doccomment">/// Selects dispute votes from `PartitionedDisputes` which should be sent to the runtime. Votes which</span>
-<span class="doccomment">/// are already onchain are filtered out. Result should be sorted by `(SessionIndex, CandidateHash)`</span>
-<span class="doccomment">/// which is enforced by the `BTreeMap`. This is a requirement from the runtime.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">vote_selection</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span>(
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Sender</span>,
-	<span class="ident">partitioned</span>: <span class="ident">PartitionedDisputes</span>,
-	<span class="ident">onchain</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>), <span class="ident">DisputeState</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>), <span class="ident">CandidateVotes</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Sender</span>: <span class="ident">overseer::ProvisionerSenderTrait</span>,
+<span class="doccomment">/// Selects dispute votes from `PartitionedDisputes` which should be sent to the runtime. Votes which
+/// are already onchain are filtered out. Result should be sorted by `(SessionIndex, CandidateHash)`
+/// which is enforced by the `BTreeMap`. This is a requirement from the runtime.
+</span><span class="kw">async fn </span>vote_selection&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
+	partitioned: PartitionedDisputes,
+	onchain: <span class="kw-2">&amp;</span>HashMap&lt;(SessionIndex, CandidateHash), DisputeState&gt;,
+) -&gt; BTreeMap&lt;(SessionIndex, CandidateHash), CandidateVotes&gt;
+<span class="kw">where
+	</span>Sender: overseer::ProvisionerSenderTrait,
 {
-	<span class="comment">// fetch in batches until there are enough votes</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">disputes</span> <span class="op">=</span> <span class="ident">partitioned</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_votes_len</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">request_votes_counter</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">while</span> <span class="op">!</span><span class="ident">disputes</span>.<span class="ident">is_empty</span>() {
-		<span class="kw">let</span> <span class="ident">batch_size</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">VOTES_SELECTION_BATCH_SIZE</span>, <span class="ident">disputes</span>.<span class="ident">len</span>());
-		<span class="kw">let</span> <span class="ident">batch</span> <span class="op">=</span> <span class="ident">Vec::from_iter</span>(<span class="ident">disputes</span>.<span class="ident">drain</span>(<span class="number">0</span>..<span class="ident">batch_size</span>));
+	<span class="comment">// fetch in batches until there are enough votes
+	</span><span class="kw">let </span><span class="kw-2">mut </span>disputes = partitioned.into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+	<span class="kw">let </span><span class="kw-2">mut </span>total_votes_len = <span class="number">0</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>result = BTreeMap::new();
+	<span class="kw">let </span><span class="kw-2">mut </span>request_votes_counter = <span class="number">0</span>;
+	<span class="kw">while </span>!disputes.is_empty() {
+		<span class="kw">let </span>batch_size = std::cmp::min(VOTES_SELECTION_BATCH_SIZE, disputes.len());
+		<span class="kw">let </span>batch = Vec::from_iter(disputes.drain(<span class="number">0</span>..batch_size));
 
-		<span class="comment">// Filter votes which are already onchain</span>
-		<span class="ident">request_votes_counter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-		<span class="kw">let</span> <span class="ident">votes</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::request_votes</span>(<span class="ident">sender</span>, <span class="ident">batch</span>)
-			.<span class="kw">await</span>
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="kw-2">mut</span> <span class="ident">votes</span>)<span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">onchain_state</span> <span class="op">=</span>
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">onchain_state</span>) <span class="op">=</span> <span class="ident">onchain</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)) {
-						<span class="ident">onchain_state</span>
-					} <span class="kw">else</span> {
-						<span class="comment">// onchain knows nothing about this dispute - add all votes</span>
-						<span class="kw">return</span> (<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="ident">votes</span>)
+		<span class="comment">// Filter votes which are already onchain
+		</span>request_votes_counter += <span class="number">1</span>;
+		<span class="kw">let </span>votes = <span class="kw">super</span>::request_votes(sender, batch)
+			.<span class="kw">await
+			</span>.into_iter()
+			.map(|(session_index, candidate_hash, <span class="kw-2">mut </span>votes)| {
+				<span class="kw">let </span>onchain_state =
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(onchain_state) = onchain.get(<span class="kw-2">&amp;</span>(session_index, candidate_hash)) {
+						onchain_state
+					} <span class="kw">else </span>{
+						<span class="comment">// onchain knows nothing about this dispute - add all votes
+						</span><span class="kw">return </span>(session_index, candidate_hash, votes)
 					};
 
-				<span class="ident">votes</span>.<span class="ident">valid</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">validator_idx</span>, (<span class="ident">statement_kind</span>, <span class="kw">_</span>)<span class="op">|</span> {
-					<span class="ident">is_vote_worth_to_keep</span>(
-						<span class="ident">validator_idx</span>,
-						<span class="ident">DisputeStatement::Valid</span>(<span class="kw-2">*</span><span class="ident">statement_kind</span>),
-						<span class="kw-2">&amp;</span><span class="ident">onchain_state</span>,
+				votes.valid.retain(|validator_idx, (statement_kind, <span class="kw">_</span>)| {
+					is_vote_worth_to_keep(
+						validator_idx,
+						DisputeStatement::Valid(<span class="kw-2">*</span>statement_kind),
+						<span class="kw-2">&amp;</span>onchain_state,
 					)
 				});
-				<span class="ident">votes</span>.<span class="ident">invalid</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">validator_idx</span>, (<span class="ident">statement_kind</span>, <span class="kw">_</span>)<span class="op">|</span> {
-					<span class="ident">is_vote_worth_to_keep</span>(
-						<span class="ident">validator_idx</span>,
-						<span class="ident">DisputeStatement::Invalid</span>(<span class="kw-2">*</span><span class="ident">statement_kind</span>),
-						<span class="kw-2">&amp;</span><span class="ident">onchain_state</span>,
+				votes.invalid.retain(|validator_idx, (statement_kind, <span class="kw">_</span>)| {
+					is_vote_worth_to_keep(
+						validator_idx,
+						DisputeStatement::Invalid(<span class="kw-2">*</span>statement_kind),
+						<span class="kw-2">&amp;</span>onchain_state,
 					)
 				});
-				(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="ident">votes</span>)
+				(session_index, candidate_hash, votes)
 			})
-			.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-		<span class="comment">// Check if votes are within the limit</span>
-		<span class="kw">for</span> (<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="ident">selected_votes</span>) <span class="kw">in</span> <span class="ident">votes</span> {
-			<span class="kw">let</span> <span class="ident">votes_len</span> <span class="op">=</span> <span class="ident">selected_votes</span>.<span class="ident">valid</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">selected_votes</span>.<span class="ident">invalid</span>.<span class="ident">len</span>();
-			<span class="kw">if</span> <span class="ident">votes_len</span> <span class="op">+</span> <span class="ident">total_votes_len</span> <span class="op">&gt;</span> <span class="ident">MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME</span> {
-				<span class="comment">// we are done - no more votes can be added</span>
-				<span class="kw">return</span> <span class="ident">result</span>
+		<span class="comment">// Check if votes are within the limit
+		</span><span class="kw">for </span>(session_index, candidate_hash, selected_votes) <span class="kw">in </span>votes {
+			<span class="kw">let </span>votes_len = selected_votes.valid.len() + selected_votes.invalid.len();
+			<span class="kw">if </span>votes_len + total_votes_len &gt; MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME {
+				<span class="comment">// we are done - no more votes can be added
+				</span><span class="kw">return </span>result
 			}
-			<span class="ident">result</span>.<span class="ident">insert</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>), <span class="ident">selected_votes</span>);
-			<span class="ident">total_votes_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">votes_len</span>
+			result.insert((session_index, candidate_hash), selected_votes);
+			total_votes_len += votes_len
 		}
 	}
 
 	<span class="macro">gum::trace!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="question-mark">?</span><span class="ident">request_votes_counter</span>,
+		target: LOG_TARGET,
+		<span class="question-mark">?</span>request_votes_counter,
 		<span class="string">&quot;vote_selection DisputeCoordinatorMessage::QueryCandidateVotes counter&quot;</span>,
 	);
 
-	<span class="ident">result</span>
+	result
 }
 
-<span class="doccomment">/// Contains disputes by partitions. Check the field comments for further details.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">PartitionedDisputes</span> {
-	<span class="doccomment">/// Concluded and inactive disputes which are completely unknown for the Runtime.</span>
-	<span class="doccomment">/// Hopefully this should never happen.</span>
-	<span class="doccomment">/// Will be sent to the Runtime with FIRST priority.</span>
-	<span class="kw">pub</span> <span class="ident">inactive_unknown_onchain</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="doccomment">/// Disputes which are INACTIVE locally but they are unconcluded for the Runtime.</span>
-	<span class="doccomment">/// A dispute can have enough local vote to conclude and at the same time the</span>
-	<span class="doccomment">/// Runtime knows nothing about them at treats it as unconcluded. This discrepancy</span>
-	<span class="doccomment">/// should be treated with high priority.</span>
-	<span class="doccomment">/// Will be sent to the Runtime with SECOND priority.</span>
-	<span class="kw">pub</span> <span class="ident">inactive_unconcluded_onchain</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="doccomment">/// Active disputes completely unknown onchain.</span>
-	<span class="doccomment">/// Will be sent to the Runtime with THIRD priority.</span>
-	<span class="kw">pub</span> <span class="ident">active_unknown_onchain</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="doccomment">/// Active disputes unconcluded onchain.</span>
-	<span class="doccomment">/// Will be sent to the Runtime with FOURTH priority.</span>
-	<span class="kw">pub</span> <span class="ident">active_unconcluded_onchain</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="doccomment">/// Active disputes concluded onchain. New votes are not that important for</span>
-	<span class="doccomment">/// this partition.</span>
-	<span class="doccomment">/// Will be sent to the Runtime with FIFTH priority.</span>
-	<span class="kw">pub</span> <span class="ident">active_concluded_onchain</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="doccomment">/// Inactive disputes which has concluded onchain. These are not interesting and</span>
-	<span class="doccomment">/// won&#39;t be sent to the Runtime.</span>
-	<span class="doccomment">/// Will be DROPPED</span>
-	<span class="kw">pub</span> <span class="ident">inactive_concluded_onchain</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Contains disputes by partitions. Check the field comments for further details.
+</span><span class="attribute">#[derive(Default)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PartitionedDisputes {
+	<span class="doccomment">/// Concluded and inactive disputes which are completely unknown for the Runtime.
+	/// Hopefully this should never happen.
+	/// Will be sent to the Runtime with FIRST priority.
+	</span><span class="kw">pub </span>inactive_unknown_onchain: Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	<span class="doccomment">/// Disputes which are INACTIVE locally but they are unconcluded for the Runtime.
+	/// A dispute can have enough local vote to conclude and at the same time the
+	/// Runtime knows nothing about them at treats it as unconcluded. This discrepancy
+	/// should be treated with high priority.
+	/// Will be sent to the Runtime with SECOND priority.
+	</span><span class="kw">pub </span>inactive_unconcluded_onchain: Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	<span class="doccomment">/// Active disputes completely unknown onchain.
+	/// Will be sent to the Runtime with THIRD priority.
+	</span><span class="kw">pub </span>active_unknown_onchain: Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	<span class="doccomment">/// Active disputes unconcluded onchain.
+	/// Will be sent to the Runtime with FOURTH priority.
+	</span><span class="kw">pub </span>active_unconcluded_onchain: Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	<span class="doccomment">/// Active disputes concluded onchain. New votes are not that important for
+	/// this partition.
+	/// Will be sent to the Runtime with FIFTH priority.
+	</span><span class="kw">pub </span>active_concluded_onchain: Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	<span class="doccomment">/// Inactive disputes which has concluded onchain. These are not interesting and
+	/// won&#39;t be sent to the Runtime.
+	/// Will be DROPPED
+	</span><span class="kw">pub </span>inactive_concluded_onchain: Vec&lt;(SessionIndex, CandidateHash)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">PartitionedDisputes</span> {
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">PartitionedDisputes</span> {
-		<span class="ident">Default::default</span>()
+<span class="kw">impl </span>PartitionedDisputes {
+	<span class="kw">fn </span>new() -&gt; PartitionedDisputes {
+		Default::default()
 	}
 
-	<span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">inactive_unknown_onchain</span>
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">inactive_unconcluded_onchain</span>.<span class="ident">into_iter</span>())
-			.<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">active_unknown_onchain</span>.<span class="ident">into_iter</span>())
-			.<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">active_unconcluded_onchain</span>.<span class="ident">into_iter</span>())
-			.<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">active_concluded_onchain</span>.<span class="ident">into_iter</span>())
-		<span class="comment">// inactive_concluded_onchain is dropped on purpose</span>
-	}
+	<span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (SessionIndex, CandidateHash)&gt; {
+		<span class="self">self</span>.inactive_unknown_onchain
+			.into_iter()
+			.chain(<span class="self">self</span>.inactive_unconcluded_onchain.into_iter())
+			.chain(<span class="self">self</span>.active_unknown_onchain.into_iter())
+			.chain(<span class="self">self</span>.active_unconcluded_onchain.into_iter())
+			.chain(<span class="self">self</span>.active_concluded_onchain.into_iter())
+		<span class="comment">// inactive_concluded_onchain is dropped on purpose
+	</span>}
 }
 
-<span class="kw">fn</span> <span class="ident">secs_since_epoch</span>() -&gt; <span class="ident">Timestamp</span> {
-	<span class="kw">match</span> <span class="ident">SystemTime::now</span>().<span class="ident">duration_since</span>(<span class="ident">UNIX_EPOCH</span>) {
-		<span class="prelude-val">Ok</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>.<span class="ident">as_secs</span>(),
-		<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+<span class="kw">fn </span>secs_since_epoch() -&gt; Timestamp {
+	<span class="kw">match </span>SystemTime::now().duration_since(UNIX_EPOCH) {
+		<span class="prelude-val">Ok</span>(d) =&gt; d.as_secs(),
+		<span class="prelude-val">Err</span>(e) =&gt; {
 			<span class="macro">gum::warn!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="ident">err</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>,
-				<span class="string">&quot;Error getting system time.&quot;</span>
-			);
-			<span class="number">0</span>
-		},
+				target: LOG_TARGET,
+				err = <span class="question-mark">?</span>e,
+				<span class="string">&quot;Error getting system time.&quot;
+			</span>);
+			<span class="number">0
+		</span>},
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">concluded_onchain</span>(<span class="ident">onchain_state</span>: <span class="kw-2">&amp;</span><span class="ident">DisputeState</span>) -&gt; <span class="ident">bool</span> {
-	<span class="comment">// Check if there are enough onchain votes for or against to conclude the dispute</span>
-	<span class="kw">let</span> <span class="ident">supermajority</span> <span class="op">=</span> <span class="ident">supermajority_threshold</span>(<span class="ident">onchain_state</span>.<span class="ident">validators_for</span>.<span class="ident">len</span>());
+<span class="kw">fn </span>concluded_onchain(onchain_state: <span class="kw-2">&amp;</span>DisputeState) -&gt; bool {
+	<span class="comment">// Check if there are enough onchain votes for or against to conclude the dispute
+	</span><span class="kw">let </span>supermajority = supermajority_threshold(onchain_state.validators_for.len());
 
-	<span class="ident">onchain_state</span>.<span class="ident">validators_for</span>.<span class="ident">count_ones</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">supermajority</span> <span class="op">|</span><span class="op">|</span>
-		<span class="ident">onchain_state</span>.<span class="ident">validators_against</span>.<span class="ident">count_ones</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">supermajority</span>
+	onchain_state.validators_for.count_ones() &gt;= supermajority ||
+		onchain_state.validators_against.count_ones() &gt;= supermajority
 }
 
-<span class="kw">fn</span> <span class="ident">partition_recent_disputes</span>(
-	<span class="ident">recent</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeStatus</span>)<span class="op">&gt;</span>,
-	<span class="ident">onchain</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>), <span class="ident">DisputeState</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">PartitionedDisputes</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partitioned</span> <span class="op">=</span> <span class="ident">PartitionedDisputes::new</span>();
+<span class="kw">fn </span>partition_recent_disputes(
+	recent: Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt;,
+	onchain: <span class="kw-2">&amp;</span>HashMap&lt;(SessionIndex, CandidateHash), DisputeState&gt;,
+) -&gt; PartitionedDisputes {
+	<span class="kw">let </span><span class="kw-2">mut </span>partitioned = PartitionedDisputes::new();
 
-	<span class="comment">// Drop any duplicates</span>
-	<span class="kw">let</span> <span class="ident">unique_recent</span> <span class="op">=</span> <span class="ident">recent</span>
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="ident">dispute_state</span>)<span class="op">|</span> {
-			((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>), <span class="ident">dispute_state</span>)
+	<span class="comment">// Drop any duplicates
+	</span><span class="kw">let </span>unique_recent = recent
+		.into_iter()
+		.map(|(session_index, candidate_hash, dispute_state)| {
+			((session_index, candidate_hash), dispute_state)
 		})
-		.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+		.collect::&lt;HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
 
-	<span class="comment">// Split recent disputes in ACTIVE and INACTIVE</span>
-	<span class="kw">let</span> <span class="ident">time_now</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">secs_since_epoch</span>();
-	<span class="kw">let</span> (<span class="ident">active</span>, <span class="ident">inactive</span>): (
-		<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeStatus</span>)<span class="op">&gt;</span>,
-		<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeStatus</span>)<span class="op">&gt;</span>,
-	) <span class="op">=</span> <span class="ident">unique_recent</span>
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>), <span class="ident">dispute_state</span>)<span class="op">|</span> {
-			(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="ident">dispute_state</span>)
+	<span class="comment">// Split recent disputes in ACTIVE and INACTIVE
+	</span><span class="kw">let </span>time_now = <span class="kw-2">&amp;</span>secs_since_epoch();
+	<span class="kw">let </span>(active, inactive): (
+		Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt;,
+		Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt;,
+	) = unique_recent
+		.into_iter()
+		.map(|((session_index, candidate_hash), dispute_state)| {
+			(session_index, candidate_hash, dispute_state)
 		})
-		.<span class="ident">partition</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">status</span>)<span class="op">|</span> <span class="op">!</span><span class="ident">dispute_is_inactive</span>(<span class="ident">status</span>, <span class="ident">time_now</span>));
+		.partition(|(<span class="kw">_</span>, <span class="kw">_</span>, status)| !dispute_is_inactive(status, time_now));
 
-	<span class="comment">// Split ACTIVE in three groups...</span>
-	<span class="kw">for</span> (<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">active</span> {
-		<span class="kw">match</span> <span class="ident">onchain</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)) {
-			<span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="kw">match</span> <span class="ident">concluded_onchain</span>(<span class="ident">d</span>) {
-				<span class="bool-val">true</span> =&gt; <span class="ident">partitioned</span>.<span class="ident">active_concluded_onchain</span>.<span class="ident">push</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)),
-				<span class="bool-val">false</span> =&gt;
-					<span class="ident">partitioned</span>.<span class="ident">active_unconcluded_onchain</span>.<span class="ident">push</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)),
+	<span class="comment">// Split ACTIVE in three groups...
+	</span><span class="kw">for </span>(session_index, candidate_hash, <span class="kw">_</span>) <span class="kw">in </span>active {
+		<span class="kw">match </span>onchain.get(<span class="kw-2">&amp;</span>(session_index, candidate_hash)) {
+			<span class="prelude-val">Some</span>(d) =&gt; <span class="kw">match </span>concluded_onchain(d) {
+				<span class="bool-val">true </span>=&gt; partitioned.active_concluded_onchain.push((session_index, candidate_hash)),
+				<span class="bool-val">false </span>=&gt;
+					partitioned.active_unconcluded_onchain.push((session_index, candidate_hash)),
 			},
-			<span class="prelude-val">None</span> =&gt; <span class="ident">partitioned</span>.<span class="ident">active_unknown_onchain</span>.<span class="ident">push</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)),
+			<span class="prelude-val">None </span>=&gt; partitioned.active_unknown_onchain.push((session_index, candidate_hash)),
 		};
 	}
 
-	<span class="comment">// ... and INACTIVE in three more</span>
-	<span class="kw">for</span> (<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="ident">inactive</span> {
-		<span class="kw">match</span> <span class="ident">onchain</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)) {
-			<span class="prelude-val">Some</span>(<span class="ident">onchain_state</span>) =&gt;
-				<span class="kw">if</span> <span class="ident">concluded_onchain</span>(<span class="ident">onchain_state</span>) {
-					<span class="ident">partitioned</span>.<span class="ident">inactive_concluded_onchain</span>.<span class="ident">push</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>));
-				} <span class="kw">else</span> {
-					<span class="ident">partitioned</span>.<span class="ident">inactive_unconcluded_onchain</span>.<span class="ident">push</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>));
+	<span class="comment">// ... and INACTIVE in three more
+	</span><span class="kw">for </span>(session_index, candidate_hash, <span class="kw">_</span>) <span class="kw">in </span>inactive {
+		<span class="kw">match </span>onchain.get(<span class="kw-2">&amp;</span>(session_index, candidate_hash)) {
+			<span class="prelude-val">Some</span>(onchain_state) =&gt;
+				<span class="kw">if </span>concluded_onchain(onchain_state) {
+					partitioned.inactive_concluded_onchain.push((session_index, candidate_hash));
+				} <span class="kw">else </span>{
+					partitioned.inactive_unconcluded_onchain.push((session_index, candidate_hash));
 				},
-			<span class="prelude-val">None</span> =&gt; <span class="ident">partitioned</span>.<span class="ident">inactive_unknown_onchain</span>.<span class="ident">push</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>)),
+			<span class="prelude-val">None </span>=&gt; partitioned.inactive_unknown_onchain.push((session_index, candidate_hash)),
 		}
 	}
 
-	<span class="ident">partitioned</span>
+	partitioned
 }
 
-<span class="doccomment">/// Determines if a vote is worth to be kept, based on the onchain disputes</span>
-<span class="kw">fn</span> <span class="ident">is_vote_worth_to_keep</span>(
-	<span class="ident">validator_index</span>: <span class="kw-2">&amp;</span><span class="ident">ValidatorIndex</span>,
-	<span class="ident">dispute_statement</span>: <span class="ident">DisputeStatement</span>,
-	<span class="ident">onchain_state</span>: <span class="kw-2">&amp;</span><span class="ident">DisputeState</span>,
-) -&gt; <span class="ident">bool</span> {
-	<span class="kw">let</span> <span class="ident">offchain_vote</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dispute_statement</span> {
-		<span class="ident">DisputeStatement::Valid</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-		<span class="ident">DisputeStatement::Invalid</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+<span class="doccomment">/// Determines if a vote is worth to be kept, based on the onchain disputes
+</span><span class="kw">fn </span>is_vote_worth_to_keep(
+	validator_index: <span class="kw-2">&amp;</span>ValidatorIndex,
+	dispute_statement: DisputeStatement,
+	onchain_state: <span class="kw-2">&amp;</span>DisputeState,
+) -&gt; bool {
+	<span class="kw">let </span>offchain_vote = <span class="kw">match </span>dispute_statement {
+		DisputeStatement::Valid(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+		DisputeStatement::Invalid(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 	};
-	<span class="kw">let</span> <span class="ident">in_validators_for</span> <span class="op">=</span> <span class="ident">onchain_state</span>
-		.<span class="ident">validators_for</span>
-		.<span class="ident">get</span>(<span class="ident">validator_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>)
-		.<span class="ident">as_deref</span>()
-		.<span class="ident">copied</span>()
-		.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
-	<span class="kw">let</span> <span class="ident">in_validators_against</span> <span class="op">=</span> <span class="ident">onchain_state</span>
-		.<span class="ident">validators_against</span>
-		.<span class="ident">get</span>(<span class="ident">validator_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>)
-		.<span class="ident">as_deref</span>()
-		.<span class="ident">copied</span>()
-		.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+	<span class="kw">let </span>in_validators_for = onchain_state
+		.validators_for
+		.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
+		.as_deref()
+		.copied()
+		.unwrap_or(<span class="bool-val">false</span>);
+	<span class="kw">let </span>in_validators_against = onchain_state
+		.validators_against
+		.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
+		.as_deref()
+		.copied()
+		.unwrap_or(<span class="bool-val">false</span>);
 
-	<span class="kw">if</span> <span class="ident">in_validators_for</span> <span class="op">&amp;&amp;</span> <span class="ident">in_validators_against</span> {
-		<span class="comment">// The validator has double voted and runtime knows about this. Ignore this vote.</span>
-		<span class="kw">return</span> <span class="bool-val">false</span>
-	}
+	<span class="kw">if </span>in_validators_for &amp;&amp; in_validators_against {
+		<span class="comment">// The validator has double voted and runtime knows about this. Ignore this vote.
+		</span><span class="kw">return </span><span class="bool-val">false
+	</span>}
 
-	<span class="kw">if</span> <span class="ident">offchain_vote</span> <span class="op">&amp;&amp;</span> <span class="ident">in_validators_against</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">offchain_vote</span> <span class="op">&amp;&amp;</span> <span class="ident">in_validators_for</span> {
-		<span class="comment">// offchain vote differs from the onchain vote</span>
-		<span class="comment">// we need this vote to punish the offending validator</span>
-		<span class="kw">return</span> <span class="bool-val">true</span>
-	}
+	<span class="kw">if </span>offchain_vote &amp;&amp; in_validators_against || !offchain_vote &amp;&amp; in_validators_for {
+		<span class="comment">// offchain vote differs from the onchain vote
+		// we need this vote to punish the offending validator
+		</span><span class="kw">return </span><span class="bool-val">true
+	</span>}
 
-	<span class="comment">// The vote is valid. Return true if it is not seen onchain.</span>
-	<span class="op">!</span><span class="ident">in_validators_for</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">in_validators_against</span>
+	<span class="comment">// The vote is valid. Return true if it is not seen onchain.
+	</span>!in_validators_for &amp;&amp; !in_validators_against
 }
 
-<span class="doccomment">/// Request disputes identified by `CandidateHash` and the `SessionIndex`.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">request_disputes</span>(
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">overseer::ProvisionerSenderTrait</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>, <span class="ident">DisputeStatus</span>)<span class="op">&gt;</span> {
-	<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-	<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">DisputeCoordinatorMessage::RecentDisputes</span>(<span class="ident">tx</span>);
+<span class="doccomment">/// Request disputes identified by `CandidateHash` and the `SessionIndex`.
+</span><span class="kw">async fn </span>request_disputes(
+	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::ProvisionerSenderTrait,
+) -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt; {
+	<span class="kw">let </span>(tx, rx) = oneshot::channel();
+	<span class="kw">let </span>msg = DisputeCoordinatorMessage::RecentDisputes(tx);
 
-	<span class="comment">// Bounded by block production - `ProvisionerMessage::RequestInherentData`.</span>
-	<span class="ident">sender</span>.<span class="ident">send_unbounded_message</span>(<span class="ident">msg</span>);
+	<span class="comment">// Bounded by block production - `ProvisionerMessage::RequestInherentData`.
+	</span>sender.send_unbounded_message(msg);
 
-	<span class="kw">let</span> <span class="ident">recent_disputes</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="kw">await</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-		<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="ident">err</span><span class="op">=</span><span class="question-mark">?</span><span class="ident">err</span>, <span class="string">&quot;Unable to gather recent disputes&quot;</span>);
-		<span class="ident">Vec::new</span>()
+	<span class="kw">let </span>recent_disputes = rx.<span class="kw">await</span>.unwrap_or_else(|err| {
+		<span class="macro">gum::warn!</span>(target: LOG_TARGET, err=<span class="question-mark">?</span>err, <span class="string">&quot;Unable to gather recent disputes&quot;</span>);
+		Vec::new()
 	});
-	<span class="ident">recent_disputes</span>
+	recent_disputes
 }
 
-<span class="comment">// This function produces the return value for `pub fn select_disputes()`</span>
-<span class="kw">fn</span> <span class="ident">make_multi_dispute_statement_set</span>(
-	<span class="ident">metrics</span>: <span class="kw-2">&amp;</span><span class="ident">metrics::Metrics</span>,
-	<span class="ident">dispute_candidate_votes</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>), <span class="ident">CandidateVotes</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">MultiDisputeStatementSet</span> {
-	<span class="comment">// Transform all `CandidateVotes` into `MultiDisputeStatementSet`.</span>
-	<span class="ident">dispute_candidate_votes</span>
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span>((<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>), <span class="ident">votes</span>)<span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">valid_statements</span> <span class="op">=</span> <span class="ident">votes</span>
-				.<span class="ident">valid</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, (<span class="ident">s</span>, <span class="ident">sig</span>))<span class="op">|</span> (<span class="ident">DisputeStatement::Valid</span>(<span class="ident">s</span>), <span class="ident">i</span>, <span class="ident">sig</span>));
+<span class="comment">// This function produces the return value for `pub fn select_disputes()`
+</span><span class="kw">fn </span>make_multi_dispute_statement_set(
+	metrics: <span class="kw-2">&amp;</span>metrics::Metrics,
+	dispute_candidate_votes: BTreeMap&lt;(SessionIndex, CandidateHash), CandidateVotes&gt;,
+) -&gt; MultiDisputeStatementSet {
+	<span class="comment">// Transform all `CandidateVotes` into `MultiDisputeStatementSet`.
+	</span>dispute_candidate_votes
+		.into_iter()
+		.map(|((session_index, candidate_hash), votes)| {
+			<span class="kw">let </span>valid_statements = votes
+				.valid
+				.into_iter()
+				.map(|(i, (s, sig))| (DisputeStatement::Valid(s), i, sig));
 
-			<span class="kw">let</span> <span class="ident">invalid_statements</span> <span class="op">=</span> <span class="ident">votes</span>
-				.<span class="ident">invalid</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, (<span class="ident">s</span>, <span class="ident">sig</span>))<span class="op">|</span> (<span class="ident">DisputeStatement::Invalid</span>(<span class="ident">s</span>), <span class="ident">i</span>, <span class="ident">sig</span>));
+			<span class="kw">let </span>invalid_statements = votes
+				.invalid
+				.into_iter()
+				.map(|(i, (s, sig))| (DisputeStatement::Invalid(s), i, sig));
 
-			<span class="ident">metrics</span>.<span class="ident">inc_valid_statements_by</span>(<span class="ident">valid_statements</span>.<span class="ident">len</span>());
-			<span class="ident">metrics</span>.<span class="ident">inc_invalid_statements_by</span>(<span class="ident">invalid_statements</span>.<span class="ident">len</span>());
-			<span class="ident">metrics</span>.<span class="ident">inc_dispute_statement_sets_by</span>(<span class="number">1</span>);
+			metrics.inc_valid_statements_by(valid_statements.len());
+			metrics.inc_invalid_statements_by(invalid_statements.len());
+			metrics.inc_dispute_statement_sets_by(<span class="number">1</span>);
 
-			<span class="ident">DisputeStatementSet</span> {
-				<span class="ident">candidate_hash</span>,
-				<span class="ident">session</span>: <span class="ident">session_index</span>,
-				<span class="ident">statements</span>: <span class="ident">valid_statements</span>.<span class="ident">chain</span>(<span class="ident">invalid_statements</span>).<span class="ident">collect</span>(),
+			DisputeStatementSet {
+				candidate_hash,
+				session: session_index,
+				statements: valid_statements.chain(invalid_statements).collect(),
 			}
 		})
-		.<span class="ident">collect</span>()
+		.collect()
 }
 
-<span class="doccomment">/// Gets the on-chain disputes at a given block number and returns them as a `HashMap` so that searching in them is cheap.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_onchain_disputes</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span>(
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Sender</span>,
-	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>), <span class="ident">DisputeState</span><span class="op">&gt;</span>, <span class="ident">GetOnchainDisputesError</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Sender</span>: <span class="ident">overseer::ProvisionerSenderTrait</span>,
+<span class="doccomment">/// Gets the on-chain disputes at a given block number and returns them as a `HashMap` so that searching in them is cheap.
+</span><span class="kw">pub async fn </span>get_onchain_disputes&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
+	relay_parent: Hash,
+) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;(SessionIndex, CandidateHash), DisputeState&gt;, GetOnchainDisputesError&gt;
+<span class="kw">where
+	</span>Sender: overseer::ProvisionerSenderTrait,
 {
-	<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">relay_parent</span>, <span class="string">&quot;Fetching on-chain disputes&quot;</span>);
-	<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-	<span class="ident">sender</span>
-		.<span class="ident">send_message</span>(<span class="ident">RuntimeApiMessage::Request</span>(<span class="ident">relay_parent</span>, <span class="ident">RuntimeApiRequest::Disputes</span>(<span class="ident">tx</span>)))
+	<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>relay_parent, <span class="string">&quot;Fetching on-chain disputes&quot;</span>);
+	<span class="kw">let </span>(tx, rx) = oneshot::channel();
+	sender
+		.send_message(RuntimeApiMessage::Request(relay_parent, RuntimeApiRequest::Disputes(tx)))
 		.<span class="kw">await</span>;
 
-	<span class="ident">rx</span>.<span class="kw">await</span>
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">GetOnchainDisputesError::Channel</span>)
-		.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> {
-			<span class="ident">res</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">e</span> {
-				<span class="ident">RuntimeApiError::Execution</span> { .. } =&gt;
-					<span class="ident">GetOnchainDisputesError::Execution</span>(<span class="ident">e</span>, <span class="ident">relay_parent</span>),
-				<span class="ident">RuntimeApiError::NotSupported</span> { .. } =&gt;
-					<span class="ident">GetOnchainDisputesError::NotSupported</span>(<span class="ident">e</span>, <span class="ident">relay_parent</span>),
+	rx.<span class="kw">await
+		</span>.map_err(|<span class="kw">_</span>| GetOnchainDisputesError::Channel)
+		.and_then(|res| {
+			res.map_err(|e| <span class="kw">match </span>e {
+				RuntimeApiError::Execution { .. } =&gt;
+					GetOnchainDisputesError::Execution(e, relay_parent),
+				RuntimeApiError::NotSupported { .. } =&gt;
+					GetOnchainDisputesError::NotSupported(e, relay_parent),
 			})
 		})
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> ((<span class="ident">e</span>.<span class="number">0</span>, <span class="ident">e</span>.<span class="number">1</span>), <span class="ident">e</span>.<span class="number">2</span>)).<span class="ident">collect</span>())
+		.map(|v| v.into_iter().map(|e| ((e.<span class="number">0</span>, e.<span class="number">1</span>), e.<span class="number">2</span>)).collect())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_node_core_provisioner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_node_core_provisioner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

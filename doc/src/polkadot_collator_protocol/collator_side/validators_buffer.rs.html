@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/collator-protocol/src/collator_side/validators_buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validators_buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_collator_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_collator_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_collator_protocol/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/collator-protocol/src/collator_side/validators_buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validators_buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_collator_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_collator_protocol/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -321,323 +315,322 @@
 <span id="315">315</span>
 <span id="316">316</span>
 <span id="317">317</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Validator groups buffer for connection managements.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Solves 2 problems:</span>
-<span class="doccomment">//! 	1. A collator may want to stay connected to multiple groups on rotation boundaries.</span>
-<span class="doccomment">//! 	2. It&#39;s important to disconnect from validator when there&#39;re no collations to be fetched.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! We keep a simple FIFO buffer of N validator groups and a bitvec for each advertisement,</span>
-<span class="doccomment">//! 1 indicating we want to be connected to i-th validator in a buffer, 0 otherwise.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The bit is set to 1 for the whole **group** whenever it&#39;s inserted into the buffer. Given a relay</span>
-<span class="doccomment">//! parent, one can reset a bit back to 0 for particular **validator**. For example, if a collation</span>
-<span class="doccomment">//! was fetched or some timeout has been hit.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The bitwise OR over known advertisements gives us validators indices for connection request.</span>
+</span><span class="doccomment">//! Validator groups buffer for connection managements.
+//!
+//! Solves 2 problems:
+//! 	1. A collator may want to stay connected to multiple groups on rotation boundaries.
+//! 	2. It&#39;s important to disconnect from validator when there&#39;re no collations to be fetched.
+//!
+//! We keep a simple FIFO buffer of N validator groups and a bitvec for each advertisement,
+//! 1 indicating we want to be connected to i-th validator in a buffer, 0 otherwise.
+//!
+//! The bit is set to 1 for the whole **group** whenever it&#39;s inserted into the buffer. Given a relay
+//! parent, one can reset a bit back to 0 for particular **validator**. For example, if a collation
+//! was fetched or some timeout has been hit.
+//!
+//! The bitwise OR over known advertisements gives us validators indices for connection request.
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>},
-	<span class="ident">num::NonZeroUsize</span>,
-	<span class="ident">ops::Range</span>,
+</span><span class="kw">use </span>std::{
+	collections::{HashMap, VecDeque},
+	num::NonZeroUsize,
+	ops::Range,
 };
 
-<span class="kw">use</span> <span class="ident">bitvec</span>::{<span class="ident">bitvec</span>, <span class="ident">vec::BitVec</span>};
+<span class="kw">use </span>bitvec::{bitvec, vec::BitVec};
 
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">GroupIndex</span>, <span class="ident">Hash</span>, <span class="ident">SessionIndex</span>};
+<span class="kw">use </span>polkadot_primitives::v2::{AuthorityDiscoveryId, GroupIndex, Hash, SessionIndex};
 
-<span class="doccomment">/// The ring buffer stores at most this many unique validator groups.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This value should be chosen in way that all groups assigned to our para</span>
-<span class="doccomment">/// in the view can fit into the buffer.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VALIDATORS_BUFFER_CAPACITY</span>: <span class="ident">NonZeroUsize</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">NonZeroUsize::new</span>(<span class="number">3</span>) {
-	<span class="prelude-val">Some</span>(<span class="ident">cap</span>) =&gt; <span class="ident">cap</span>,
-	<span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;buffer capacity must be non-zero&quot;</span>),
+<span class="doccomment">/// The ring buffer stores at most this many unique validator groups.
+///
+/// This value should be chosen in way that all groups assigned to our para
+/// in the view can fit into the buffer.
+</span><span class="kw">pub const </span>VALIDATORS_BUFFER_CAPACITY: NonZeroUsize = <span class="kw">match </span>NonZeroUsize::new(<span class="number">3</span>) {
+	<span class="prelude-val">Some</span>(cap) =&gt; cap,
+	<span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;buffer capacity must be non-zero&quot;</span>),
 };
 
-<span class="doccomment">/// Unique identifier of a validators group.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">ValidatorsGroupInfo</span> {
-	<span class="doccomment">/// Number of validators in the group.</span>
-	<span class="ident">len</span>: <span class="ident">usize</span>,
-	<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
-	<span class="ident">group_index</span>: <span class="ident">GroupIndex</span>,
+<span class="doccomment">/// Unique identifier of a validators group.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>ValidatorsGroupInfo {
+	<span class="doccomment">/// Number of validators in the group.
+	</span>len: usize,
+	session_index: SessionIndex,
+	group_index: GroupIndex,
 }
 
-<span class="doccomment">/// Ring buffer of validator groups.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Tracks which peers we want to be connected to with respect to advertised collations.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValidatorGroupsBuffer</span> {
-	<span class="doccomment">/// Validator groups identifiers we **had** advertisements for.</span>
-	<span class="ident">group_infos</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">ValidatorsGroupInfo</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Continuous buffer of validators discovery keys.</span>
-	<span class="ident">validators</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Mapping from relay-parent to bit-vectors with bits for all `validators`.</span>
-	<span class="doccomment">/// Invariants kept: All bit-vectors are guaranteed to have the same size.</span>
-	<span class="ident">should_be_connected</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">BitVec</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Buffer capacity, limits the number of **groups** tracked.</span>
-	<span class="ident">cap</span>: <span class="ident">NonZeroUsize</span>,
+<span class="doccomment">/// Ring buffer of validator groups.
+///
+/// Tracks which peers we want to be connected to with respect to advertised collations.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ValidatorGroupsBuffer {
+	<span class="doccomment">/// Validator groups identifiers we **had** advertisements for.
+	</span>group_infos: VecDeque&lt;ValidatorsGroupInfo&gt;,
+	<span class="doccomment">/// Continuous buffer of validators discovery keys.
+	</span>validators: VecDeque&lt;AuthorityDiscoveryId&gt;,
+	<span class="doccomment">/// Mapping from relay-parent to bit-vectors with bits for all `validators`.
+	/// Invariants kept: All bit-vectors are guaranteed to have the same size.
+	</span>should_be_connected: HashMap&lt;Hash, BitVec&gt;,
+	<span class="doccomment">/// Buffer capacity, limits the number of **groups** tracked.
+	</span>cap: NonZeroUsize,
 }
 
-<span class="kw">impl</span> <span class="ident">ValidatorGroupsBuffer</span> {
-	<span class="doccomment">/// Creates a new buffer with a non-zero capacity.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <span class="ident">NonZeroUsize</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">group_infos</span>: <span class="ident">VecDeque::new</span>(),
-			<span class="ident">validators</span>: <span class="ident">VecDeque::new</span>(),
-			<span class="ident">should_be_connected</span>: <span class="ident">HashMap::new</span>(),
-			<span class="ident">cap</span>,
+<span class="kw">impl </span>ValidatorGroupsBuffer {
+	<span class="doccomment">/// Creates a new buffer with a non-zero capacity.
+	</span><span class="kw">pub fn </span>with_capacity(cap: NonZeroUsize) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			group_infos: VecDeque::new(),
+			validators: VecDeque::new(),
+			should_be_connected: HashMap::new(),
+			cap,
 		}
 	}
 
-	<span class="doccomment">/// Returns discovery ids of validators we have at least one advertised-but-not-fetched</span>
-	<span class="doccomment">/// collation for.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validators_to_connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">validators_num</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">len</span>();
-		<span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">should_be_connected</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">fold</span>(<span class="macro">bitvec!</span>[<span class="number">0</span>; <span class="ident">validators_num</span>], <span class="op">|</span><span class="ident">acc</span>, <span class="ident">next</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">|</span> <span class="ident">next</span>);
+	<span class="doccomment">/// Returns discovery ids of validators we have at least one advertised-but-not-fetched
+	/// collation for.
+	</span><span class="kw">pub fn </span>validators_to_connect(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;AuthorityDiscoveryId&gt; {
+		<span class="kw">let </span>validators_num = <span class="self">self</span>.validators.len();
+		<span class="kw">let </span>bits = <span class="self">self
+			</span>.should_be_connected
+			.values()
+			.fold(<span class="macro">bitvec!</span>[<span class="number">0</span>; validators_num], |acc, next| acc | next);
 
-		<span class="self">self</span>.<span class="ident">validators</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">enumerate</span>()
-			.<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">authority_id</span>)<span class="op">|</span> <span class="ident">bits</span>[<span class="ident">idx</span>].<span class="ident">then_some</span>(<span class="ident">authority_id</span>.<span class="ident">clone</span>()))
-			.<span class="ident">collect</span>()
+		<span class="self">self</span>.validators
+			.iter()
+			.enumerate()
+			.filter_map(|(idx, authority_id)| bits[idx].then_some(authority_id.clone()))
+			.collect()
 	}
 
-	<span class="doccomment">/// Note a new advertisement, marking that we want to be connected to validators</span>
-	<span class="doccomment">/// from this group.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// If max capacity is reached and the group is new, drops validators from the back</span>
-	<span class="doccomment">/// of the buffer.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">note_collation_advertised</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
-		<span class="ident">group_index</span>: <span class="ident">GroupIndex</span>,
-		<span class="ident">validators</span>: <span class="kw-2">&amp;</span>[<span class="ident">AuthorityDiscoveryId</span>],
+	<span class="doccomment">/// Note a new advertisement, marking that we want to be connected to validators
+	/// from this group.
+	///
+	/// If max capacity is reached and the group is new, drops validators from the back
+	/// of the buffer.
+	</span><span class="kw">pub fn </span>note_collation_advertised(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		session_index: SessionIndex,
+		group_index: GroupIndex,
+		validators: <span class="kw-2">&amp;</span>[AuthorityDiscoveryId],
 	) {
-		<span class="kw">if</span> <span class="ident">validators</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">return</span>
-		}
+		<span class="kw">if </span>validators.is_empty() {
+			<span class="kw">return
+		</span>}
 
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">group_infos</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">group</span>)<span class="op">|</span> {
-			<span class="ident">group</span>.<span class="ident">session_index</span> <span class="op">==</span> <span class="ident">session_index</span> <span class="op">&amp;&amp;</span> <span class="ident">group</span>.<span class="ident">group_index</span> <span class="op">==</span> <span class="ident">group_index</span>
+		<span class="kw">match </span><span class="self">self</span>.group_infos.iter().enumerate().find(|(<span class="kw">_</span>, group)| {
+			group.session_index == session_index &amp;&amp; group.group_index == group_index
 		}) {
-			<span class="prelude-val">Some</span>((<span class="ident">idx</span>, <span class="ident">group</span>)) =&gt; {
-				<span class="kw">let</span> <span class="ident">group_start_idx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">group_lengths_iter</span>().<span class="ident">take</span>(<span class="ident">idx</span>).<span class="ident">sum</span>();
-				<span class="self">self</span>.<span class="ident">set_bits</span>(<span class="ident">relay_parent</span>, <span class="ident">group_start_idx</span>..(<span class="ident">group_start_idx</span> <span class="op">+</span> <span class="ident">group</span>.<span class="ident">len</span>));
+			<span class="prelude-val">Some</span>((idx, group)) =&gt; {
+				<span class="kw">let </span>group_start_idx = <span class="self">self</span>.group_lengths_iter().take(idx).sum();
+				<span class="self">self</span>.set_bits(relay_parent, group_start_idx..(group_start_idx + group.len));
 			},
-			<span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">relay_parent</span>, <span class="ident">session_index</span>, <span class="ident">group_index</span>, <span class="ident">validators</span>),
+			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.push(relay_parent, session_index, group_index, validators),
 		}
 	}
 
-	<span class="doccomment">/// Note that a validator is no longer interested in a given relay parent.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_validator_interest</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">authority_id</span>: <span class="kw-2">&amp;</span><span class="ident">AuthorityDiscoveryId</span>,
+	<span class="doccomment">/// Note that a validator is no longer interested in a given relay parent.
+	</span><span class="kw">pub fn </span>reset_validator_interest(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		authority_id: <span class="kw-2">&amp;</span>AuthorityDiscoveryId,
 	) {
-		<span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">should_be_connected</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">relay_parent</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">bits</span>) =&gt; <span class="ident">bits</span>,
-			<span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
+		<span class="kw">let </span>bits = <span class="kw">match </span><span class="self">self</span>.should_be_connected.get_mut(<span class="kw-2">&amp;</span>relay_parent) {
+			<span class="prelude-val">Some</span>(bits) =&gt; bits,
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
 		};
 
-		<span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">auth_id</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-			<span class="kw">if</span> <span class="ident">auth_id</span> <span class="op">==</span> <span class="ident">authority_id</span> {
-				<span class="ident">bits</span>.<span class="ident">set</span>(<span class="ident">idx</span>, <span class="bool-val">false</span>);
+		<span class="kw">for </span>(idx, auth_id) <span class="kw">in </span><span class="self">self</span>.validators.iter().enumerate() {
+			<span class="kw">if </span>auth_id == authority_id {
+				bits.set(idx, <span class="bool-val">false</span>);
 			}
 		}
 	}
 
-	<span class="doccomment">/// Remove relay parent from the buffer.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The buffer will no longer track which validators are interested in a corresponding</span>
-	<span class="doccomment">/// advertisement.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_relay_parent</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) {
-		<span class="self">self</span>.<span class="ident">should_be_connected</span>.<span class="ident">remove</span>(<span class="ident">relay_parent</span>);
+	<span class="doccomment">/// Remove relay parent from the buffer.
+	///
+	/// The buffer will no longer track which validators are interested in a corresponding
+	/// advertisement.
+	</span><span class="kw">pub fn </span>remove_relay_parent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) {
+		<span class="self">self</span>.should_be_connected.remove(relay_parent);
 	}
 
-	<span class="doccomment">/// Removes all advertisements from the buffer.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_advertisements</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="self">self</span>.<span class="ident">should_be_connected</span>.<span class="ident">clear</span>();
+	<span class="doccomment">/// Removes all advertisements from the buffer.
+	</span><span class="kw">pub fn </span>clear_advertisements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="self">self</span>.should_be_connected.clear();
 	}
 
-	<span class="doccomment">/// Pushes a new group to the buffer along with advertisement, setting all validators</span>
-	<span class="doccomment">/// bits to 1.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// If the buffer is full, drops group from the tail.</span>
-	<span class="kw">fn</span> <span class="ident">push</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-		<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
-		<span class="ident">group_index</span>: <span class="ident">GroupIndex</span>,
-		<span class="ident">validators</span>: <span class="kw-2">&amp;</span>[<span class="ident">AuthorityDiscoveryId</span>],
+	<span class="doccomment">/// Pushes a new group to the buffer along with advertisement, setting all validators
+	/// bits to 1.
+	///
+	/// If the buffer is full, drops group from the tail.
+	</span><span class="kw">fn </span>push(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		relay_parent: Hash,
+		session_index: SessionIndex,
+		group_index: GroupIndex,
+		validators: <span class="kw-2">&amp;</span>[AuthorityDiscoveryId],
 	) {
-		<span class="kw">let</span> <span class="ident">new_group_info</span> <span class="op">=</span>
-			<span class="ident">ValidatorsGroupInfo</span> { <span class="ident">len</span>: <span class="ident">validators</span>.<span class="ident">len</span>(), <span class="ident">session_index</span>, <span class="ident">group_index</span> };
+		<span class="kw">let </span>new_group_info =
+			ValidatorsGroupInfo { len: validators.len(), session_index, group_index };
 
-		<span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">group_infos</span>;
-		<span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cap</span>.<span class="ident">get</span>();
+		<span class="kw">let </span>buf = <span class="kw-2">&amp;mut </span><span class="self">self</span>.group_infos;
+		<span class="kw">let </span>cap = <span class="self">self</span>.cap.get();
 
-		<span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">cap</span> {
-			<span class="kw">let</span> <span class="ident">pruned_group</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">pop_front</span>().<span class="ident">expect</span>(<span class="string">&quot;buf is not empty; qed&quot;</span>);
-			<span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">drain</span>(..<span class="ident">pruned_group</span>.<span class="ident">len</span>);
+		<span class="kw">if </span>buf.len() &gt;= cap {
+			<span class="kw">let </span>pruned_group = buf.pop_front().expect(<span class="string">&quot;buf is not empty; qed&quot;</span>);
+			<span class="self">self</span>.validators.drain(..pruned_group.len);
 
-			<span class="self">self</span>.<span class="ident">should_be_connected</span>.<span class="ident">values_mut</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">bits</span><span class="op">|</span> {
-				<span class="ident">bits</span>.<span class="ident">as_mut_bitslice</span>().<span class="ident">shift_left</span>(<span class="ident">pruned_group</span>.<span class="ident">len</span>);
+			<span class="self">self</span>.should_be_connected.values_mut().for_each(|bits| {
+				bits.as_mut_bitslice().shift_left(pruned_group.len);
 			});
 		}
 
-		<span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">extend</span>(<span class="ident">validators</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
-		<span class="ident">buf</span>.<span class="ident">push_back</span>(<span class="ident">new_group_info</span>);
-		<span class="kw">let</span> <span class="ident">buf_len</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>();
-		<span class="kw">let</span> <span class="ident">group_start_idx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">group_lengths_iter</span>().<span class="ident">take</span>(<span class="ident">buf_len</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">sum</span>();
+		<span class="self">self</span>.validators.extend(validators.iter().cloned());
+		buf.push_back(new_group_info);
+		<span class="kw">let </span>buf_len = buf.len();
+		<span class="kw">let </span>group_start_idx = <span class="self">self</span>.group_lengths_iter().take(buf_len - <span class="number">1</span>).sum();
 
-		<span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">len</span>();
-		<span class="self">self</span>.<span class="ident">should_be_connected</span>
-			.<span class="ident">values_mut</span>()
-			.<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">bits</span><span class="op">|</span> <span class="ident">bits</span>.<span class="ident">resize</span>(<span class="ident">new_len</span>, <span class="bool-val">false</span>));
-		<span class="self">self</span>.<span class="ident">set_bits</span>(<span class="ident">relay_parent</span>, <span class="ident">group_start_idx</span>..(<span class="ident">group_start_idx</span> <span class="op">+</span> <span class="ident">validators</span>.<span class="ident">len</span>()));
+		<span class="kw">let </span>new_len = <span class="self">self</span>.validators.len();
+		<span class="self">self</span>.should_be_connected
+			.values_mut()
+			.for_each(|bits| bits.resize(new_len, <span class="bool-val">false</span>));
+		<span class="self">self</span>.set_bits(relay_parent, group_start_idx..(group_start_idx + validators.len()));
 	}
 
-	<span class="doccomment">/// Sets advertisement bits to 1 in a given range (usually corresponding to some group).</span>
-	<span class="doccomment">/// If the relay parent is unknown, inserts 0-initialized bitvec first.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The range must be ensured to be within bounds.</span>
-	<span class="kw">fn</span> <span class="ident">set_bits</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="ident">Hash</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">should_be_connected</span>
-			.<span class="ident">entry</span>(<span class="ident">relay_parent</span>)
-			.<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">bitvec!</span>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">validators</span>.<span class="ident">len</span>()]);
+	<span class="doccomment">/// Sets advertisement bits to 1 in a given range (usually corresponding to some group).
+	/// If the relay parent is unknown, inserts 0-initialized bitvec first.
+	///
+	/// The range must be ensured to be within bounds.
+	</span><span class="kw">fn </span>set_bits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, range: Range&lt;usize&gt;) {
+		<span class="kw">let </span>bits = <span class="self">self
+			</span>.should_be_connected
+			.entry(relay_parent)
+			.or_insert_with(|| <span class="macro">bitvec!</span>[<span class="number">0</span>; <span class="self">self</span>.validators.len()]);
 
-		<span class="ident">bits</span>[<span class="ident">range</span>].<span class="ident">fill</span>(<span class="bool-val">true</span>);
+		bits[range].fill(<span class="bool-val">true</span>);
 	}
 
-	<span class="doccomment">/// Returns iterator over numbers of validators in groups.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Useful for getting an index of the first validator in i-th group.</span>
-	<span class="kw">fn</span> <span class="ident">group_lengths_iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-		<span class="self">self</span>.<span class="ident">group_infos</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">group</span><span class="op">|</span> <span class="ident">group</span>.<span class="ident">len</span>)
+	<span class="doccomment">/// Returns iterator over numbers of validators in groups.
+	///
+	/// Useful for getting an index of the first validator in i-th group.
+	</span><span class="kw">fn </span>group_lengths_iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = usize&gt; + <span class="lifetime">&#39;_ </span>{
+		<span class="self">self</span>.group_infos.iter().map(|group| group.len)
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">sp_keyring::Sr25519Keyring</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>sp_keyring::Sr25519Keyring;
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">one_capacity_buffer</span>() {
-		<span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="ident">NonZeroUsize::new</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ValidatorGroupsBuffer::with_capacity</span>(<span class="ident">cap</span>);
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>one_capacity_buffer() {
+		<span class="kw">let </span>cap = NonZeroUsize::new(<span class="number">1</span>).unwrap();
+		<span class="kw">let </span><span class="kw-2">mut </span>buf = ValidatorGroupsBuffer::with_capacity(cap);
 
-		<span class="kw">let</span> <span class="ident">hash_a</span> <span class="op">=</span> <span class="ident">Hash::repeat_byte</span>(<span class="number">0x1</span>);
-		<span class="kw">let</span> <span class="ident">hash_b</span> <span class="op">=</span> <span class="ident">Hash::repeat_byte</span>(<span class="number">0x2</span>);
+		<span class="kw">let </span>hash_a = Hash::repeat_byte(<span class="number">0x1</span>);
+		<span class="kw">let </span>hash_b = Hash::repeat_byte(<span class="number">0x2</span>);
 
-		<span class="kw">let</span> <span class="ident">validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> [
-			<span class="ident">Sr25519Keyring::Alice</span>,
-			<span class="ident">Sr25519Keyring::Bob</span>,
-			<span class="ident">Sr25519Keyring::Charlie</span>,
-			<span class="ident">Sr25519Keyring::Dave</span>,
-			<span class="ident">Sr25519Keyring::Ferdie</span>,
+		<span class="kw">let </span>validators: Vec&lt;<span class="kw">_</span>&gt; = [
+			Sr25519Keyring::Alice,
+			Sr25519Keyring::Bob,
+			Sr25519Keyring::Charlie,
+			Sr25519Keyring::Dave,
+			Sr25519Keyring::Ferdie,
 		]
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="ident">AuthorityDiscoveryId::from</span>(<span class="ident">key</span>.<span class="ident">public</span>()))
-		.<span class="ident">collect</span>();
+		.into_iter()
+		.map(|key| AuthorityDiscoveryId::from(key.public()))
+		.collect();
 
-		<span class="macro">assert!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>().<span class="ident">is_empty</span>());
+		<span class="macro">assert!</span>(buf.validators_to_connect().is_empty());
 
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hash_a</span>, <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">0</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[..<span class="number">2</span>]);
-		<span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(), <span class="ident">validators</span>[..<span class="number">2</span>].<span class="ident">to_vec</span>());
+		buf.note_collation_advertised(hash_a, <span class="number">0</span>, GroupIndex(<span class="number">0</span>), <span class="kw-2">&amp;</span>validators[..<span class="number">2</span>]);
+		<span class="macro">assert_eq!</span>(buf.validators_to_connect(), validators[..<span class="number">2</span>].to_vec());
 
-		<span class="ident">buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">hash_a</span>, <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">1</span>]);
-		<span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(), <span class="macro">vec!</span>[<span class="ident">validators</span>[<span class="number">0</span>].<span class="ident">clone</span>()]);
+		buf.reset_validator_interest(hash_a, <span class="kw-2">&amp;</span>validators[<span class="number">1</span>]);
+		<span class="macro">assert_eq!</span>(buf.validators_to_connect(), <span class="macro">vec!</span>[validators[<span class="number">0</span>].clone()]);
 
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hash_b</span>, <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">1</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>..]);
-		<span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(), <span class="ident">validators</span>[<span class="number">2</span>..].<span class="ident">to_vec</span>());
+		buf.note_collation_advertised(hash_b, <span class="number">0</span>, GroupIndex(<span class="number">1</span>), <span class="kw-2">&amp;</span>validators[<span class="number">2</span>..]);
+		<span class="macro">assert_eq!</span>(buf.validators_to_connect(), validators[<span class="number">2</span>..].to_vec());
 
-		<span class="kw">for</span> <span class="ident">validator</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>..] {
-			<span class="ident">buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">hash_b</span>, <span class="ident">validator</span>);
+		<span class="kw">for </span>validator <span class="kw">in </span><span class="kw-2">&amp;</span>validators[<span class="number">2</span>..] {
+			buf.reset_validator_interest(hash_b, validator);
 		}
-		<span class="macro">assert!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>().<span class="ident">is_empty</span>());
+		<span class="macro">assert!</span>(buf.validators_to_connect().is_empty());
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">buffer_works</span>() {
-		<span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="ident">NonZeroUsize::new</span>(<span class="number">3</span>).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">ValidatorGroupsBuffer::with_capacity</span>(<span class="ident">cap</span>);
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>buffer_works() {
+		<span class="kw">let </span>cap = NonZeroUsize::new(<span class="number">3</span>).unwrap();
+		<span class="kw">let </span><span class="kw-2">mut </span>buf = ValidatorGroupsBuffer::with_capacity(cap);
 
-		<span class="kw">let</span> <span class="ident">hashes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">5</span>).<span class="ident">map</span>(<span class="ident">Hash::repeat_byte</span>).<span class="ident">collect</span>();
+		<span class="kw">let </span>hashes: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..<span class="number">5</span>).map(Hash::repeat_byte).collect();
 
-		<span class="kw">let</span> <span class="ident">validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> [
-			<span class="ident">Sr25519Keyring::Alice</span>,
-			<span class="ident">Sr25519Keyring::Bob</span>,
-			<span class="ident">Sr25519Keyring::Charlie</span>,
-			<span class="ident">Sr25519Keyring::Dave</span>,
-			<span class="ident">Sr25519Keyring::Ferdie</span>,
+		<span class="kw">let </span>validators: Vec&lt;<span class="kw">_</span>&gt; = [
+			Sr25519Keyring::Alice,
+			Sr25519Keyring::Bob,
+			Sr25519Keyring::Charlie,
+			Sr25519Keyring::Dave,
+			Sr25519Keyring::Ferdie,
 		]
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="ident">AuthorityDiscoveryId::from</span>(<span class="ident">key</span>.<span class="ident">public</span>()))
-		.<span class="ident">collect</span>();
+		.into_iter()
+		.map(|key| AuthorityDiscoveryId::from(key.public()))
+		.collect();
 
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hashes</span>[<span class="number">0</span>], <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">0</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[..<span class="number">2</span>]);
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hashes</span>[<span class="number">1</span>], <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">0</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[..<span class="number">2</span>]);
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hashes</span>[<span class="number">2</span>], <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">1</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>..<span class="number">4</span>]);
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hashes</span>[<span class="number">2</span>], <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">1</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>..<span class="number">4</span>]);
+		buf.note_collation_advertised(hashes[<span class="number">0</span>], <span class="number">0</span>, GroupIndex(<span class="number">0</span>), <span class="kw-2">&amp;</span>validators[..<span class="number">2</span>]);
+		buf.note_collation_advertised(hashes[<span class="number">1</span>], <span class="number">0</span>, GroupIndex(<span class="number">0</span>), <span class="kw-2">&amp;</span>validators[..<span class="number">2</span>]);
+		buf.note_collation_advertised(hashes[<span class="number">2</span>], <span class="number">0</span>, GroupIndex(<span class="number">1</span>), <span class="kw-2">&amp;</span>validators[<span class="number">2</span>..<span class="number">4</span>]);
+		buf.note_collation_advertised(hashes[<span class="number">2</span>], <span class="number">0</span>, GroupIndex(<span class="number">1</span>), <span class="kw-2">&amp;</span>validators[<span class="number">2</span>..<span class="number">4</span>]);
 
-		<span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(), <span class="ident">validators</span>[..<span class="number">4</span>].<span class="ident">to_vec</span>());
+		<span class="macro">assert_eq!</span>(buf.validators_to_connect(), validators[..<span class="number">4</span>].to_vec());
 
-		<span class="kw">for</span> <span class="ident">validator</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>..<span class="number">4</span>] {
-			<span class="ident">buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">hashes</span>[<span class="number">2</span>], <span class="ident">validator</span>);
+		<span class="kw">for </span>validator <span class="kw">in </span><span class="kw-2">&amp;</span>validators[<span class="number">2</span>..<span class="number">4</span>] {
+			buf.reset_validator_interest(hashes[<span class="number">2</span>], validator);
 		}
 
-		<span class="ident">buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">hashes</span>[<span class="number">1</span>], <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">0</span>]);
-		<span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(), <span class="ident">validators</span>[..<span class="number">2</span>].<span class="ident">to_vec</span>());
+		buf.reset_validator_interest(hashes[<span class="number">1</span>], <span class="kw-2">&amp;</span>validators[<span class="number">0</span>]);
+		<span class="macro">assert_eq!</span>(buf.validators_to_connect(), validators[..<span class="number">2</span>].to_vec());
 
-		<span class="ident">buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">hashes</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">0</span>]);
-		<span class="macro">assert_eq!</span>(<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(), <span class="macro">vec!</span>[<span class="ident">validators</span>[<span class="number">1</span>].<span class="ident">clone</span>()]);
+		buf.reset_validator_interest(hashes[<span class="number">0</span>], <span class="kw-2">&amp;</span>validators[<span class="number">0</span>]);
+		<span class="macro">assert_eq!</span>(buf.validators_to_connect(), <span class="macro">vec!</span>[validators[<span class="number">1</span>].clone()]);
 
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(<span class="ident">hashes</span>[<span class="number">3</span>], <span class="number">0</span>, <span class="ident">GroupIndex</span>(<span class="number">1</span>), <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>..<span class="number">4</span>]);
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(
-			<span class="ident">hashes</span>[<span class="number">4</span>],
+		buf.note_collation_advertised(hashes[<span class="number">3</span>], <span class="number">0</span>, GroupIndex(<span class="number">1</span>), <span class="kw-2">&amp;</span>validators[<span class="number">2</span>..<span class="number">4</span>]);
+		buf.note_collation_advertised(
+			hashes[<span class="number">4</span>],
 			<span class="number">0</span>,
-			<span class="ident">GroupIndex</span>(<span class="number">2</span>),
-			<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">4</span>]),
+			GroupIndex(<span class="number">2</span>),
+			std::slice::from_ref(<span class="kw-2">&amp;</span>validators[<span class="number">4</span>]),
 		);
 
-		<span class="ident">buf</span>.<span class="ident">reset_validator_interest</span>(<span class="ident">hashes</span>[<span class="number">3</span>], <span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">2</span>]);
-		<span class="ident">buf</span>.<span class="ident">note_collation_advertised</span>(
-			<span class="ident">hashes</span>[<span class="number">4</span>],
+		buf.reset_validator_interest(hashes[<span class="number">3</span>], <span class="kw-2">&amp;</span>validators[<span class="number">2</span>]);
+		buf.note_collation_advertised(
+			hashes[<span class="number">4</span>],
 			<span class="number">0</span>,
-			<span class="ident">GroupIndex</span>(<span class="number">3</span>),
-			<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">validators</span>[<span class="number">0</span>]),
+			GroupIndex(<span class="number">3</span>),
+			std::slice::from_ref(<span class="kw-2">&amp;</span>validators[<span class="number">0</span>]),
 		);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">buf</span>.<span class="ident">validators_to_connect</span>(),
-			<span class="macro">vec!</span>[<span class="ident">validators</span>[<span class="number">3</span>].<span class="ident">clone</span>(), <span class="ident">validators</span>[<span class="number">4</span>].<span class="ident">clone</span>(), <span class="ident">validators</span>[<span class="number">0</span>].<span class="ident">clone</span>()]
+			buf.validators_to_connect(),
+			<span class="macro">vec!</span>[validators[<span class="number">3</span>].clone(), validators[<span class="number">4</span>].clone(), validators[<span class="number">0</span>].clone()]
 		);
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_collator_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_collator_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

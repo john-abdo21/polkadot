@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/executor_intf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>executor_intf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/executor_intf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>executor_intf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -434,436 +428,435 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Interface to the Substrate Executor</span>
+</span><span class="doccomment">//! Interface to the Substrate Executor
 
-<span class="kw">use</span> <span class="ident">sc_executor_common</span>::{
-	<span class="ident">runtime_blob::RuntimeBlob</span>,
-	<span class="ident">wasm_runtime</span>::{<span class="ident">InvokeMethod</span>, <span class="ident">WasmModule</span> <span class="kw">as</span> <span class="kw">_</span>},
+</span><span class="kw">use </span>sc_executor_common::{
+	runtime_blob::RuntimeBlob,
+	wasm_runtime::{InvokeMethod, WasmModule <span class="kw">as _</span>},
 };
-<span class="kw">use</span> <span class="ident">sc_executor_wasmtime</span>::{<span class="ident">Config</span>, <span class="ident">DeterministicStackLimit</span>, <span class="ident">Semantics</span>};
-<span class="kw">use</span> <span class="ident">sp_core::storage</span>::{<span class="ident">ChildInfo</span>, <span class="ident">TrackedStorageKey</span>};
-<span class="kw">use</span> <span class="ident">sp_externalities::MultiRemovalResults</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">any</span>::{<span class="ident">Any</span>, <span class="ident">TypeId</span>},
-	<span class="ident">path::Path</span>,
+<span class="kw">use </span>sc_executor_wasmtime::{Config, DeterministicStackLimit, Semantics};
+<span class="kw">use </span>sp_core::storage::{ChildInfo, TrackedStorageKey};
+<span class="kw">use </span>sp_externalities::MultiRemovalResults;
+<span class="kw">use </span>std::{
+	any::{Any, TypeId},
+	path::Path,
 };
 
-<span class="comment">// Memory configuration</span>
-<span class="comment">//</span>
-<span class="comment">// When Substrate Runtime is instantiated, a number of WASM pages are allocated for the Substrate</span>
-<span class="comment">// Runtime instance&#39;s linear memory. The exact number of pages is a sum of whatever the WASM blob</span>
-<span class="comment">// itself requests (by default at least enough to hold the data section as well as have some space</span>
-<span class="comment">// left for the stack; this is, of course, overridable at link time when compiling the runtime)</span>
-<span class="comment">// plus the number of pages specified in the `extra_heap_pages` passed to the executor.</span>
-<span class="comment">//</span>
-<span class="comment">// By default, rustc (or `lld` specifically) should allocate 1 MiB for the shadow stack, or 16 pages.</span>
-<span class="comment">// The data section for runtimes are typically rather small and can fit in a single digit number of</span>
-<span class="comment">// WASM pages, so let&#39;s say an extra 16 pages. Thus let&#39;s assume that 32 pages or 2 MiB are used for</span>
-<span class="comment">// these needs by default.</span>
-<span class="kw">const</span> <span class="ident">DEFAULT_HEAP_PAGES_ESTIMATE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">32</span>;
-<span class="kw">const</span> <span class="ident">EXTRA_HEAP_PAGES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">2048</span>;
+<span class="comment">// Memory configuration
+//
+// When Substrate Runtime is instantiated, a number of WASM pages are allocated for the Substrate
+// Runtime instance&#39;s linear memory. The exact number of pages is a sum of whatever the WASM blob
+// itself requests (by default at least enough to hold the data section as well as have some space
+// left for the stack; this is, of course, overridable at link time when compiling the runtime)
+// plus the number of pages specified in the `extra_heap_pages` passed to the executor.
+//
+// By default, rustc (or `lld` specifically) should allocate 1 MiB for the shadow stack, or 16 pages.
+// The data section for runtimes are typically rather small and can fit in a single digit number of
+// WASM pages, so let&#39;s say an extra 16 pages. Thus let&#39;s assume that 32 pages or 2 MiB are used for
+// these needs by default.
+</span><span class="kw">const </span>DEFAULT_HEAP_PAGES_ESTIMATE: u64 = <span class="number">32</span>;
+<span class="kw">const </span>EXTRA_HEAP_PAGES: u64 = <span class="number">2048</span>;
 
-<span class="doccomment">/// The number of bytes devoted for the stack during wasm execution of a PVF.</span>
-<span class="kw">const</span> <span class="ident">NATIVE_STACK_MAX</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">256</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>;
+<span class="doccomment">/// The number of bytes devoted for the stack during wasm execution of a PVF.
+</span><span class="kw">const </span>NATIVE_STACK_MAX: u32 = <span class="number">256 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
 
-<span class="kw">const</span> <span class="ident">CONFIG</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">Config</span> {
-	<span class="ident">allow_missing_func_imports</span>: <span class="bool-val">true</span>,
-	<span class="ident">cache_path</span>: <span class="prelude-val">None</span>,
-	<span class="ident">semantics</span>: <span class="ident">Semantics</span> {
-		<span class="ident">extra_heap_pages</span>: <span class="ident">EXTRA_HEAP_PAGES</span>,
+<span class="kw">const </span>CONFIG: Config = Config {
+	allow_missing_func_imports: <span class="bool-val">true</span>,
+	cache_path: <span class="prelude-val">None</span>,
+	semantics: Semantics {
+		extra_heap_pages: EXTRA_HEAP_PAGES,
 
-		<span class="comment">// NOTE: This is specified in bytes, so we multiply by WASM page size.</span>
-		<span class="ident">max_memory_size</span>: <span class="prelude-val">Some</span>(((<span class="ident">DEFAULT_HEAP_PAGES_ESTIMATE</span> <span class="op">+</span> <span class="ident">EXTRA_HEAP_PAGES</span>) <span class="op">*</span> <span class="number">65536</span>) <span class="kw">as</span> <span class="ident">usize</span>),
+		<span class="comment">// NOTE: This is specified in bytes, so we multiply by WASM page size.
+		</span>max_memory_size: <span class="prelude-val">Some</span>(((DEFAULT_HEAP_PAGES_ESTIMATE + EXTRA_HEAP_PAGES) * <span class="number">65536</span>) <span class="kw">as </span>usize),
 
-		<span class="ident">instantiation_strategy</span>:
-			<span class="ident">sc_executor_wasmtime::InstantiationStrategy::RecreateInstanceCopyOnWrite</span>,
+		instantiation_strategy:
+			sc_executor_wasmtime::InstantiationStrategy::RecreateInstanceCopyOnWrite,
 
-		<span class="comment">// Enable deterministic stack limit to pin down the exact number of items the wasmtime stack</span>
-		<span class="comment">// can contain before it traps with stack overflow.</span>
-		<span class="comment">//</span>
-		<span class="comment">// Here is how the values below were chosen.</span>
-		<span class="comment">//</span>
-		<span class="comment">// At the moment of writing, the default native stack size limit is 1 MiB. Assuming a logical item</span>
-		<span class="comment">// (see the docs about the field and the instrumentation algorithm) is 8 bytes, 1 MiB can</span>
-		<span class="comment">// fit 2x 65536 logical items.</span>
-		<span class="comment">//</span>
-		<span class="comment">// Since reaching the native stack limit is undesirable, we halve the logical item limit and</span>
-		<span class="comment">// also increase the native 256x. This hopefully should preclude wasm code from reaching</span>
-		<span class="comment">// the stack limit set by the wasmtime.</span>
-		<span class="ident">deterministic_stack_limit</span>: <span class="prelude-val">Some</span>(<span class="ident">DeterministicStackLimit</span> {
-			<span class="ident">logical_max</span>: <span class="number">65536</span>,
-			<span class="ident">native_stack_max</span>: <span class="ident">NATIVE_STACK_MAX</span>,
+		<span class="comment">// Enable deterministic stack limit to pin down the exact number of items the wasmtime stack
+		// can contain before it traps with stack overflow.
+		//
+		// Here is how the values below were chosen.
+		//
+		// At the moment of writing, the default native stack size limit is 1 MiB. Assuming a logical item
+		// (see the docs about the field and the instrumentation algorithm) is 8 bytes, 1 MiB can
+		// fit 2x 65536 logical items.
+		//
+		// Since reaching the native stack limit is undesirable, we halve the logical item limit and
+		// also increase the native 256x. This hopefully should preclude wasm code from reaching
+		// the stack limit set by the wasmtime.
+		</span>deterministic_stack_limit: <span class="prelude-val">Some</span>(DeterministicStackLimit {
+			logical_max: <span class="number">65536</span>,
+			native_stack_max: NATIVE_STACK_MAX,
 		}),
-		<span class="ident">canonicalize_nans</span>: <span class="bool-val">true</span>,
-		<span class="comment">// Rationale for turning the multi-threaded compilation off is to make the preparation time</span>
-		<span class="comment">// easily reproducible and as deterministic as possible.</span>
-		<span class="comment">//</span>
-		<span class="comment">// Currently the prepare queue doesn&#39;t distinguish between precheck and prepare requests.</span>
-		<span class="comment">// On the one hand, it simplifies the code, on the other, however, slows down compile times</span>
-		<span class="comment">// for execute requests. This behavior may change in future.</span>
-		<span class="ident">parallel_compilation</span>: <span class="bool-val">false</span>,
+		canonicalize_nans: <span class="bool-val">true</span>,
+		<span class="comment">// Rationale for turning the multi-threaded compilation off is to make the preparation time
+		// easily reproducible and as deterministic as possible.
+		//
+		// Currently the prepare queue doesn&#39;t distinguish between precheck and prepare requests.
+		// On the one hand, it simplifies the code, on the other, however, slows down compile times
+		// for execute requests. This behavior may change in future.
+		</span>parallel_compilation: <span class="bool-val">false</span>,
 	},
 };
 
-<span class="doccomment">/// Runs the prevalidation on the given code. Returns a [`RuntimeBlob`] if it succeeds.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prevalidate</span>(<span class="ident">code</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RuntimeBlob</span>, <span class="ident">sc_executor_common::error::WasmError</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">blob</span> <span class="op">=</span> <span class="ident">RuntimeBlob::new</span>(<span class="ident">code</span>)<span class="question-mark">?</span>;
-	<span class="comment">// It&#39;s assumed this function will take care of any prevalidation logic</span>
-	<span class="comment">// that needs to be done.</span>
-	<span class="comment">//</span>
-	<span class="comment">// Do nothing for now.</span>
-	<span class="prelude-val">Ok</span>(<span class="ident">blob</span>)
+<span class="doccomment">/// Runs the prevalidation on the given code. Returns a [`RuntimeBlob`] if it succeeds.
+</span><span class="kw">pub fn </span>prevalidate(code: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;RuntimeBlob, sc_executor_common::error::WasmError&gt; {
+	<span class="kw">let </span>blob = RuntimeBlob::new(code)<span class="question-mark">?</span>;
+	<span class="comment">// It&#39;s assumed this function will take care of any prevalidation logic
+	// that needs to be done.
+	//
+	// Do nothing for now.
+	</span><span class="prelude-val">Ok</span>(blob)
 }
 
-<span class="doccomment">/// Runs preparation on the given runtime blob. If successful, it returns a serialized compiled</span>
-<span class="doccomment">/// artifact which can then be used to pass into [`execute`] after writing it to the disk.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare</span>(<span class="ident">blob</span>: <span class="ident">RuntimeBlob</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">sc_executor_common::error::WasmError</span><span class="op">&gt;</span> {
-	<span class="ident">sc_executor_wasmtime::prepare_runtime_artifact</span>(<span class="ident">blob</span>, <span class="kw-2">&amp;</span><span class="ident">CONFIG</span>.<span class="ident">semantics</span>)
+<span class="doccomment">/// Runs preparation on the given runtime blob. If successful, it returns a serialized compiled
+/// artifact which can then be used to pass into [`execute`] after writing it to the disk.
+</span><span class="kw">pub fn </span>prepare(blob: RuntimeBlob) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sc_executor_common::error::WasmError&gt; {
+	sc_executor_wasmtime::prepare_runtime_artifact(blob, <span class="kw-2">&amp;</span>CONFIG.semantics)
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Executor</span> {
-	<span class="ident">thread_pool</span>: <span class="ident">rayon::ThreadPool</span>,
-	<span class="ident">spawner</span>: <span class="ident">TaskSpawner</span>,
+<span class="kw">pub struct </span>Executor {
+	thread_pool: rayon::ThreadPool,
+	spawner: TaskSpawner,
 }
 
-<span class="kw">impl</span> <span class="ident">Executor</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="comment">// Wasmtime powers the Substrate Executor. It compiles the wasm bytecode into native code.</span>
-		<span class="comment">// That native code does not create any stacks and just reuses the stack of the thread that</span>
-		<span class="comment">// wasmtime was invoked from.</span>
-		<span class="comment">//</span>
-		<span class="comment">// Also, we configure the executor to provide the deterministic stack and that requires</span>
-		<span class="comment">// supplying the amount of the native stack space that wasm is allowed to use. This is</span>
-		<span class="comment">// realized by supplying the limit into `wasmtime::Config::max_wasm_stack`.</span>
-		<span class="comment">//</span>
-		<span class="comment">// There are quirks to that configuration knob:</span>
-		<span class="comment">//</span>
-		<span class="comment">// 1. It only limits the amount of stack space consumed by wasm but does not ensure nor check</span>
-		<span class="comment">//    that the stack space is actually available.</span>
-		<span class="comment">//</span>
-		<span class="comment">//    That means, if the calling thread has 1 MiB of stack space left and the wasm code consumes</span>
-		<span class="comment">//    more, then the wasmtime limit will **not** trigger. Instead, the wasm code will hit the</span>
-		<span class="comment">//    guard page and the Rust stack overflow handler will be triggered. That leads to an</span>
-		<span class="comment">//    **abort**.</span>
-		<span class="comment">//</span>
-		<span class="comment">// 2. It cannot and does not limit the stack space consumed by Rust code.</span>
-		<span class="comment">//</span>
-		<span class="comment">//    Meaning that if the wasm code leaves no stack space for Rust code, then the Rust code</span>
-		<span class="comment">//    and that will abort the process as well.</span>
-		<span class="comment">//</span>
-		<span class="comment">// Typically on Linux the main thread gets the stack size specified by the `ulimit` and</span>
-		<span class="comment">// typically it&#39;s configured to 8 MiB. Rust&#39;s spawned threads are 2 MiB. OTOH, the</span>
-		<span class="comment">// NATIVE_STACK_MAX is set to 256 MiB. Not nearly enough.</span>
-		<span class="comment">//</span>
-		<span class="comment">// Hence we need to increase it.</span>
-		<span class="comment">//</span>
-		<span class="comment">// The simplest way to fix that is to spawn a thread with the desired stack limit. In order</span>
-		<span class="comment">// to avoid costs of creating a thread, we use a thread pool. The execution is</span>
-		<span class="comment">// single-threaded hence the thread pool has only one thread.</span>
-		<span class="comment">//</span>
-		<span class="comment">// The reasoning why we pick this particular size is:</span>
-		<span class="comment">//</span>
-		<span class="comment">// The default Rust thread stack limit 2 MiB + 256 MiB wasm stack.</span>
-		<span class="kw">let</span> <span class="ident">thread_stack_size</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">+</span> <span class="ident">NATIVE_STACK_MAX</span> <span class="kw">as</span> <span class="ident">usize</span>;
-		<span class="kw">let</span> <span class="ident">thread_pool</span> <span class="op">=</span> <span class="ident">rayon::ThreadPoolBuilder::new</span>()
-			.<span class="ident">num_threads</span>(<span class="number">1</span>)
-			.<span class="ident">stack_size</span>(<span class="ident">thread_stack_size</span>)
-			.<span class="ident">build</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to create thread pool: {:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+<span class="kw">impl </span>Executor {
+	<span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
+		<span class="comment">// Wasmtime powers the Substrate Executor. It compiles the wasm bytecode into native code.
+		// That native code does not create any stacks and just reuses the stack of the thread that
+		// wasmtime was invoked from.
+		//
+		// Also, we configure the executor to provide the deterministic stack and that requires
+		// supplying the amount of the native stack space that wasm is allowed to use. This is
+		// realized by supplying the limit into `wasmtime::Config::max_wasm_stack`.
+		//
+		// There are quirks to that configuration knob:
+		//
+		// 1. It only limits the amount of stack space consumed by wasm but does not ensure nor check
+		//    that the stack space is actually available.
+		//
+		//    That means, if the calling thread has 1 MiB of stack space left and the wasm code consumes
+		//    more, then the wasmtime limit will **not** trigger. Instead, the wasm code will hit the
+		//    guard page and the Rust stack overflow handler will be triggered. That leads to an
+		//    **abort**.
+		//
+		// 2. It cannot and does not limit the stack space consumed by Rust code.
+		//
+		//    Meaning that if the wasm code leaves no stack space for Rust code, then the Rust code
+		//    and that will abort the process as well.
+		//
+		// Typically on Linux the main thread gets the stack size specified by the `ulimit` and
+		// typically it&#39;s configured to 8 MiB. Rust&#39;s spawned threads are 2 MiB. OTOH, the
+		// NATIVE_STACK_MAX is set to 256 MiB. Not nearly enough.
+		//
+		// Hence we need to increase it.
+		//
+		// The simplest way to fix that is to spawn a thread with the desired stack limit. In order
+		// to avoid costs of creating a thread, we use a thread pool. The execution is
+		// single-threaded hence the thread pool has only one thread.
+		//
+		// The reasoning why we pick this particular size is:
+		//
+		// The default Rust thread stack limit 2 MiB + 256 MiB wasm stack.
+		</span><span class="kw">let </span>thread_stack_size = <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024 </span>+ NATIVE_STACK_MAX <span class="kw">as </span>usize;
+		<span class="kw">let </span>thread_pool = rayon::ThreadPoolBuilder::new()
+			.num_threads(<span class="number">1</span>)
+			.stack_size(thread_stack_size)
+			.build()
+			.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to create thread pool: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span>
-			<span class="ident">TaskSpawner::new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;cannot create task spawner: {}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>spawner =
+			TaskSpawner::new().map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;cannot create task spawner: {}&quot;</span>, e))<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">thread_pool</span>, <span class="ident">spawner</span> })
+		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{ thread_pool, spawner })
 	}
 
-	<span class="doccomment">/// Executes the given PVF in the form of a compiled artifact and returns the result of execution</span>
-	<span class="doccomment">/// upon success.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// # Safety</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The caller must ensure that the compiled artifact passed here was:</span>
-	<span class="doccomment">///   1) produced by [`prepare`],</span>
-	<span class="doccomment">///   2) written to the disk as a file,</span>
-	<span class="doccomment">///   3) was not modified,</span>
-	<span class="doccomment">///   4) will not be modified while any runtime using this artifact is alive, or is being</span>
-	<span class="doccomment">///      instantiated.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Failure to adhere to these requirements might lead to crashes and arbitrary code execution.</span>
-	<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">execute</span>(
+	<span class="doccomment">/// Executes the given PVF in the form of a compiled artifact and returns the result of execution
+	/// upon success.
+	///
+	/// # Safety
+	///
+	/// The caller must ensure that the compiled artifact passed here was:
+	///   1) produced by [`prepare`],
+	///   2) written to the disk as a file,
+	///   3) was not modified,
+	///   4) will not be modified while any runtime using this artifact is alive, or is being
+	///      instantiated.
+	///
+	/// Failure to adhere to these requirements might lead to crashes and arbitrary code execution.
+	</span><span class="kw">pub unsafe fn </span>execute(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">compiled_artifact_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-		<span class="ident">params</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">spawner</span>.<span class="ident">clone</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-		<span class="self">self</span>.<span class="ident">thread_pool</span>.<span class="ident">scope</span>({
-			<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">result</span>;
-			<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-				<span class="ident">s</span>.<span class="ident">spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-					<span class="comment">// spawn does not return a value, so we need to use a variable to pass the result.</span>
-					<span class="kw-2">*</span><span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-						<span class="ident">do_execute</span>(<span class="ident">compiled_artifact_path</span>, <span class="ident">params</span>, <span class="ident">spawner</span>)
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;execute error: {:?}&quot;</span>, <span class="ident">err</span>)),
+		compiled_artifact_path: <span class="kw-2">&amp;</span>Path,
+		params: <span class="kw-2">&amp;</span>[u8],
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, String&gt; {
+		<span class="kw">let </span>spawner = <span class="self">self</span>.spawner.clone();
+		<span class="kw">let </span><span class="kw-2">mut </span>result = <span class="prelude-val">None</span>;
+		<span class="self">self</span>.thread_pool.scope({
+			<span class="kw">let </span>result = <span class="kw-2">&amp;mut </span>result;
+			<span class="kw">move </span>|s| {
+				s.spawn(<span class="kw">move </span>|<span class="kw">_</span>| {
+					<span class="comment">// spawn does not return a value, so we need to use a variable to pass the result.
+					</span><span class="kw-2">*</span>result = <span class="prelude-val">Some</span>(
+						do_execute(compiled_artifact_path, params, spawner)
+							.map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;execute error: {:?}&quot;</span>, err)),
 					);
 				});
 			}
 		});
-		<span class="ident">result</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="string">&quot;rayon thread pool spawn failed&quot;</span>.<span class="ident">to_string</span>()))
+		result.unwrap_or_else(|| <span class="prelude-val">Err</span>(<span class="string">&quot;rayon thread pool spawn failed&quot;</span>.to_string()))
 	}
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">do_execute</span>(
-	<span class="ident">compiled_artifact_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">params</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-	<span class="ident">spawner</span>: <span class="kw">impl</span> <span class="ident">sp_core::traits::SpawnNamed</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">sc_executor_common::error::Error</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extensions</span> <span class="op">=</span> <span class="ident">sp_externalities::Extensions::new</span>();
+<span class="kw">unsafe fn </span>do_execute(
+	compiled_artifact_path: <span class="kw-2">&amp;</span>Path,
+	params: <span class="kw-2">&amp;</span>[u8],
+	spawner: <span class="kw">impl </span>sp_core::traits::SpawnNamed + <span class="lifetime">&#39;static</span>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sc_executor_common::error::Error&gt; {
+	<span class="kw">let </span><span class="kw-2">mut </span>extensions = sp_externalities::Extensions::new();
 
-	<span class="ident">extensions</span>.<span class="ident">register</span>(<span class="ident">sp_core::traits::TaskExecutorExt::new</span>(<span class="ident">spawner</span>));
-	<span class="ident">extensions</span>.<span class="ident">register</span>(<span class="ident">sp_core::traits::ReadRuntimeVersionExt::new</span>(<span class="ident">ReadRuntimeVersion</span>));
+	extensions.register(sp_core::traits::TaskExecutorExt::new(spawner));
+	extensions.register(sp_core::traits::ReadRuntimeVersionExt::new(ReadRuntimeVersion));
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">ValidationExternalities</span>(<span class="ident">extensions</span>);
+	<span class="kw">let </span><span class="kw-2">mut </span>ext = ValidationExternalities(extensions);
 
-	<span class="ident">sc_executor::with_externalities_safe</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ext</span>, <span class="op">|</span><span class="op">|</span> {
-		<span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">sc_executor_wasmtime::create_runtime_from_artifact</span>::<span class="op">&lt;</span><span class="ident">HostFunctions</span><span class="op">&gt;</span>(
-			<span class="ident">compiled_artifact_path</span>,
-			<span class="ident">CONFIG</span>,
+	sc_executor::with_externalities_safe(<span class="kw-2">&amp;mut </span>ext, || {
+		<span class="kw">let </span>runtime = sc_executor_wasmtime::create_runtime_from_artifact::&lt;HostFunctions&gt;(
+			compiled_artifact_path,
+			CONFIG,
 		)<span class="question-mark">?</span>;
-		<span class="ident">runtime</span>.<span class="ident">new_instance</span>()<span class="question-mark">?</span>.<span class="ident">call</span>(<span class="ident">InvokeMethod::Export</span>(<span class="string">&quot;validate_block&quot;</span>), <span class="ident">params</span>)
-	})<span class="question-mark">?</span>
-}
+		runtime.new_instance()<span class="question-mark">?</span>.call(InvokeMethod::Export(<span class="string">&quot;validate_block&quot;</span>), params)
+	})<span class="question-mark">?
+</span>}
 
-<span class="kw">type</span> <span class="ident">HostFunctions</span> <span class="op">=</span> (
-	<span class="ident">sp_io::misc::HostFunctions</span>,
-	<span class="ident">sp_io::crypto::HostFunctions</span>,
-	<span class="ident">sp_io::hashing::HostFunctions</span>,
-	<span class="ident">sp_io::allocator::HostFunctions</span>,
-	<span class="ident">sp_io::logging::HostFunctions</span>,
-	<span class="ident">sp_io::trie::HostFunctions</span>,
+<span class="kw">type </span>HostFunctions = (
+	sp_io::misc::HostFunctions,
+	sp_io::crypto::HostFunctions,
+	sp_io::hashing::HostFunctions,
+	sp_io::allocator::HostFunctions,
+	sp_io::logging::HostFunctions,
+	sp_io::trie::HostFunctions,
 );
 
-<span class="doccomment">/// The validation externalities that will panic on any storage related access.</span>
-<span class="kw">struct</span> <span class="ident">ValidationExternalities</span>(<span class="ident">sp_externalities::Extensions</span>);
+<span class="doccomment">/// The validation externalities that will panic on any storage related access.
+</span><span class="kw">struct </span>ValidationExternalities(sp_externalities::Extensions);
 
-<span class="kw">impl</span> <span class="ident">sp_externalities::Externalities</span> <span class="kw">for</span> <span class="ident">ValidationExternalities</span> {
-	<span class="kw">fn</span> <span class="ident">storage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl </span>sp_externalities::Externalities <span class="kw">for </span>ValidationExternalities {
+	<span class="kw">fn </span>storage(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">storage_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>storage_hash(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage_hash: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">child_storage_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>child_storage_hash(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>ChildInfo, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;child_storage_hash: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">child_storage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>child_storage(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>ChildInfo, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;child_storage: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">kill_child_storage</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">_child_info</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>,
-		<span class="ident">_maybe_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="ident">_maybe_cursor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-	) -&gt; <span class="ident">MultiRemovalResults</span> {
+	<span class="kw">fn </span>kill_child_storage(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		_child_info: <span class="kw-2">&amp;</span>ChildInfo,
+		_maybe_limit: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+		_maybe_cursor: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
+	) -&gt; MultiRemovalResults {
 		<span class="macro">panic!</span>(<span class="string">&quot;kill_child_storage: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">clear_prefix</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-		<span class="ident">_maybe_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="ident">_maybe_cursor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-	) -&gt; <span class="ident">MultiRemovalResults</span> {
+	<span class="kw">fn </span>clear_prefix(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		_prefix: <span class="kw-2">&amp;</span>[u8],
+		_maybe_limit: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+		_maybe_cursor: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
+	) -&gt; MultiRemovalResults {
 		<span class="macro">panic!</span>(<span class="string">&quot;clear_prefix: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">clear_child_prefix</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">_child_info</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>,
-		<span class="ident">_prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-		<span class="ident">_maybe_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="ident">_maybe_cursor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-	) -&gt; <span class="ident">MultiRemovalResults</span> {
+	<span class="kw">fn </span>clear_child_prefix(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		_child_info: <span class="kw-2">&amp;</span>ChildInfo,
+		_prefix: <span class="kw-2">&amp;</span>[u8],
+		_maybe_limit: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+		_maybe_cursor: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
+	) -&gt; MultiRemovalResults {
 		<span class="macro">panic!</span>(<span class="string">&quot;clear_child_prefix: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">place_storage</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+	<span class="kw">fn </span>place_storage(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: Vec&lt;u8&gt;, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;) {
 		<span class="macro">panic!</span>(<span class="string">&quot;place_storage: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">place_child_storage</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>, <span class="kw">_</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
+	<span class="kw">fn </span>place_child_storage(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>ChildInfo, <span class="kw">_</span>: Vec&lt;u8&gt;, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;) {
 		<span class="macro">panic!</span>(<span class="string">&quot;place_child_storage: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">storage_root</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="ident">sp_core::storage::StateVersion</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>storage_root(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: sp_core::storage::StateVersion) -&gt; Vec&lt;u8&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage_root: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">child_storage_root</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>, <span class="kw">_</span>: <span class="ident">sp_core::storage::StateVersion</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>child_storage_root(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>ChildInfo, <span class="kw">_</span>: sp_core::storage::StateVersion) -&gt; Vec&lt;u8&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;child_storage_root: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">next_child_storage_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ChildInfo</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>next_child_storage_key(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>ChildInfo, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;next_child_storage_key: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">next_storage_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>next_storage_key(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;next_storage_key: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">storage_append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_key</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">_value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
+	<span class="kw">fn </span>storage_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _key: Vec&lt;u8&gt;, _value: Vec&lt;u8&gt;) {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage_append: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">storage_start_transaction</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+	<span class="kw">fn </span>storage_start_transaction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage_start_transaction: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">storage_rollback_transaction</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+	<span class="kw">fn </span>storage_rollback_transaction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage_rollback_transaction: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">storage_commit_transaction</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+	<span class="kw">fn </span>storage_commit_transaction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;storage_commit_transaction: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">wipe</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+	<span class="kw">fn </span>wipe(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 		<span class="macro">panic!</span>(<span class="string">&quot;wipe: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">commit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+	<span class="kw">fn </span>commit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 		<span class="macro">panic!</span>(<span class="string">&quot;commit: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">read_write_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>) {
+	<span class="kw">fn </span>read_write_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u32, u32, u32, u32) {
 		<span class="macro">panic!</span>(<span class="string">&quot;read_write_count: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">reset_read_write_count</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+	<span class="kw">fn </span>reset_read_write_count(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 		<span class="macro">panic!</span>(<span class="string">&quot;reset_read_write_count: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">get_whitelist</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackedStorageKey</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>get_whitelist(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;TrackedStorageKey&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;get_whitelist: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">set_whitelist</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackedStorageKey</span><span class="op">&gt;</span>) {
+	<span class="kw">fn </span>set_whitelist(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: Vec&lt;TrackedStorageKey&gt;) {
 		<span class="macro">panic!</span>(<span class="string">&quot;set_whitelist: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">set_offchain_storage</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="kw">_</span>: <span class="ident">std::option::Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) {
+	<span class="kw">fn </span>set_offchain_storage(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8], <span class="kw">_</span>: std::option::Option&lt;<span class="kw-2">&amp;</span>[u8]&gt;) {
 		<span class="macro">panic!</span>(<span class="string">&quot;set_offchain_storage: unsupported feature for parachain validation&quot;</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">get_read_and_written_keys</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
+	<span class="kw">fn </span>get_read_and_written_keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;(Vec&lt;u8&gt;, u32, u32, bool)&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;get_read_and_written_keys: unsupported feature for parachain validation&quot;</span>)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">sp_externalities::ExtensionStore</span> <span class="kw">for</span> <span class="ident">ValidationExternalities</span> {
-	<span class="kw">fn</span> <span class="ident">extension_by_type_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">type_id</span>: <span class="ident">TypeId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Any</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_mut</span>(<span class="ident">type_id</span>)
+<span class="kw">impl </span>sp_externalities::ExtensionStore <span class="kw">for </span>ValidationExternalities {
+	<span class="kw">fn </span>extension_by_type_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, type_id: TypeId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.get_mut(type_id)
 	}
 
-	<span class="kw">fn</span> <span class="ident">register_extension_with_type_id</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">type_id</span>: <span class="ident">TypeId</span>,
-		<span class="ident">extension</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">sp_externalities::Extension</span><span class="op">&gt;</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">sp_externalities::Error</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">register_with_type_id</span>(<span class="ident">type_id</span>, <span class="ident">extension</span>)
+	<span class="kw">fn </span>register_extension_with_type_id(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		type_id: TypeId,
+		extension: Box&lt;<span class="kw">dyn </span>sp_externalities::Extension&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_externalities::Error&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.register_with_type_id(type_id, extension)
 	}
 
-	<span class="kw">fn</span> <span class="ident">deregister_extension_by_type_id</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">type_id</span>: <span class="ident">TypeId</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">sp_externalities::Error</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">deregister</span>(<span class="ident">type_id</span>) {
+	<span class="kw">fn </span>deregister_extension_by_type_id(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		type_id: TypeId,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_externalities::Error&gt; {
+		<span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.deregister(type_id) {
 			<span class="prelude-val">Ok</span>(())
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">sp_externalities::Error::ExtensionIsNotRegistered</span>(<span class="ident">type_id</span>))
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Err</span>(sp_externalities::Error::ExtensionIsNotRegistered(type_id))
 		}
 	}
 }
 
-<span class="doccomment">/// An implementation of `SpawnNamed` on top of a futures&#39; thread pool.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is a light handle meaning it will only clone the handle not create a new thread pool.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">TaskSpawner</span>(<span class="ident">futures::executor::ThreadPool</span>);
+<span class="doccomment">/// An implementation of `SpawnNamed` on top of a futures&#39; thread pool.
+///
+/// This is a light handle meaning it will only clone the handle not create a new thread pool.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TaskSpawner(futures::executor::ThreadPool);
 
-<span class="kw">impl</span> <span class="ident">TaskSpawner</span> {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="ident">futures::executor::ThreadPoolBuilder::new</span>()
-			.<span class="ident">pool_size</span>(<span class="number">4</span>)
-			.<span class="ident">name_prefix</span>(<span class="string">&quot;pvf-task-executor&quot;</span>)
-			.<span class="ident">create</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_string</span>())
-			.<span class="ident">map</span>(<span class="self">Self</span>)
+<span class="kw">impl </span>TaskSpawner {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
+		futures::executor::ThreadPoolBuilder::new()
+			.pool_size(<span class="number">4</span>)
+			.name_prefix(<span class="string">&quot;pvf-task-executor&quot;</span>)
+			.create()
+			.map_err(|e| e.to_string())
+			.map(<span class="self">Self</span>)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">sp_core::traits::SpawnNamed</span> <span class="kw">for</span> <span class="ident">TaskSpawner</span> {
-	<span class="kw">fn</span> <span class="ident">spawn_blocking</span>(
+<span class="kw">impl </span>sp_core::traits::SpawnNamed <span class="kw">for </span>TaskSpawner {
+	<span class="kw">fn </span>spawn_blocking(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">_task_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-		<span class="ident">_subsystem_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
-		<span class="ident">future</span>: <span class="ident">futures::future::BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>,
+		_task_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+		_subsystem_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+		future: futures::future::BoxFuture&lt;<span class="lifetime">&#39;static</span>, ()&gt;,
 	) {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">spawn_ok</span>(<span class="ident">future</span>);
+		<span class="self">self</span>.<span class="number">0</span>.spawn_ok(future);
 	}
 
-	<span class="kw">fn</span> <span class="ident">spawn</span>(
+	<span class="kw">fn </span>spawn(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">_task_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-		<span class="ident">_subsystem_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
-		<span class="ident">future</span>: <span class="ident">futures::future::BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>,
+		_task_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+		_subsystem_name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
+		future: futures::future::BoxFuture&lt;<span class="lifetime">&#39;static</span>, ()&gt;,
 	) {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">spawn_ok</span>(<span class="ident">future</span>);
+		<span class="self">self</span>.<span class="number">0</span>.spawn_ok(future);
 	}
 }
 
-<span class="kw">struct</span> <span class="ident">ReadRuntimeVersion</span>;
+<span class="kw">struct </span>ReadRuntimeVersion;
 
-<span class="kw">impl</span> <span class="ident">sp_core::traits::ReadRuntimeVersion</span> <span class="kw">for</span> <span class="ident">ReadRuntimeVersion</span> {
-	<span class="kw">fn</span> <span class="ident">read_runtime_version</span>(
+<span class="kw">impl </span>sp_core::traits::ReadRuntimeVersion <span class="kw">for </span>ReadRuntimeVersion {
+	<span class="kw">fn </span>read_runtime_version(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">wasm_code</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-		<span class="ident">_ext</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">sp_externalities::Externalities</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">blob</span> <span class="op">=</span> <span class="ident">RuntimeBlob::uncompress_if_needed</span>(<span class="ident">wasm_code</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to read the PVF runtime blob: {:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+		wasm_code: <span class="kw-2">&amp;</span>[u8],
+		_ext: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>sp_externalities::Externalities,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, String&gt; {
+		<span class="kw">let </span>blob = RuntimeBlob::uncompress_if_needed(wasm_code)
+			.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to read the PVF runtime blob: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
 
-		<span class="kw">match</span> <span class="ident">sc_executor::read_embedded_version</span>(<span class="kw-2">&amp;</span><span class="ident">blob</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to read the static section from the PVF blob: {:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>
-		{
-			<span class="prelude-val">Some</span>(<span class="ident">version</span>) =&gt; {
-				<span class="kw">use</span> <span class="ident">parity_scale_codec::Encode</span>;
-				<span class="prelude-val">Ok</span>(<span class="ident">version</span>.<span class="ident">encode</span>())
+		<span class="kw">match </span>sc_executor::read_embedded_version(<span class="kw-2">&amp;</span>blob)
+			.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to read the static section from the PVF blob: {:?}&quot;</span>, e))<span class="question-mark">?
+		</span>{
+			<span class="prelude-val">Some</span>(version) =&gt; {
+				<span class="kw">use </span>parity_scale_codec::Encode;
+				<span class="prelude-val">Ok</span>(version.encode())
 			},
-			<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;runtime version section is not found&quot;</span>)),
+			<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;runtime version section is not found&quot;</span>)),
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

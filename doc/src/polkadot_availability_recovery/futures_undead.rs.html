@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/availability-recovery/src/futures_undead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>futures_undead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_availability_recovery/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_availability_recovery/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_availability_recovery/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/availability-recovery/src/futures_undead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>futures_undead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_availability_recovery/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_availability_recovery/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -241,243 +235,242 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! FuturesUndead: A `FuturesUnordered` with support for semi canceled futures. Those undead</span>
-<span class="doccomment">//! futures will still get polled, but will not count towards length. So length will only count</span>
-<span class="doccomment">//! futures, which are still considered live.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Use case: If futures take longer than we would like them too, we may be able to request the data</span>
-<span class="doccomment">//! from somewhere else as well. We don&#39;t really want to cancel the old future, because maybe it</span>
-<span class="doccomment">//! was almost done, thus we would have wasted time with our impatience. By simply making them</span>
-<span class="doccomment">//! not count towards length, we can make sure to have enough &quot;live&quot; requests ongoing, while at the</span>
-<span class="doccomment">//! same time taking advantage of some maybe &quot;late&quot; response from the undead.</span>
-<span class="doccomment">//!</span>
+</span><span class="doccomment">//! FuturesUndead: A `FuturesUnordered` with support for semi canceled futures. Those undead
+//! futures will still get polled, but will not count towards length. So length will only count
+//! futures, which are still considered live.
+//!
+//! Use case: If futures take longer than we would like them too, we may be able to request the data
+//! from somewhere else as well. We don&#39;t really want to cancel the old future, because maybe it
+//! was almost done, thus we would have wasted time with our impatience. By simply making them
+//! not count towards length, we can make sure to have enough &quot;live&quot; requests ongoing, while at the
+//! same time taking advantage of some maybe &quot;late&quot; response from the undead.
+//!
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">pin::Pin</span>,
-	<span class="ident">task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>},
-	<span class="ident">time::Duration</span>,
+</span><span class="kw">use </span>std::{
+	pin::Pin,
+	task::{Context, Poll},
+	time::Duration,
 };
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::BoxFuture</span>, <span class="ident">stream::FuturesUnordered</span>, <span class="ident">Future</span>, <span class="ident">Stream</span>, <span class="ident">StreamExt</span>};
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::TimeoutExt</span>;
+<span class="kw">use </span>futures::{future::BoxFuture, stream::FuturesUnordered, Future, Stream, StreamExt};
+<span class="kw">use </span>polkadot_node_subsystem_util::TimeoutExt;
 
-<span class="doccomment">/// FuturesUndead - `FuturesUnordered` with semi canceled (undead) futures.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Limitations: Keeps track of undead futures by means of a counter, which is limited to 64</span>
-<span class="doccomment">/// bits, so after `1.8*10^19` pushed futures, this implementation will panic.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FuturesUndead</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Actual `FuturesUnordered`.</span>
-	<span class="ident">inner</span>: <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">Undead</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Next sequence number to assign to the next future that gets pushed.</span>
-	<span class="ident">next_sequence</span>: <span class="ident">SequenceNumber</span>,
-	<span class="doccomment">/// Sequence number of first future considered live.</span>
-	<span class="ident">first_live</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SequenceNumber</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// How many undead are there right now.</span>
-	<span class="ident">undead</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// FuturesUndead - `FuturesUnordered` with semi canceled (undead) futures.
+///
+/// Limitations: Keeps track of undead futures by means of a counter, which is limited to 64
+/// bits, so after `1.8*10^19` pushed futures, this implementation will panic.
+</span><span class="kw">pub struct </span>FuturesUndead&lt;Output&gt; {
+	<span class="doccomment">/// Actual `FuturesUnordered`.
+	</span>inner: FuturesUnordered&lt;Undead&lt;Output&gt;&gt;,
+	<span class="doccomment">/// Next sequence number to assign to the next future that gets pushed.
+	</span>next_sequence: SequenceNumber,
+	<span class="doccomment">/// Sequence number of first future considered live.
+	</span>first_live: <span class="prelude-ty">Option</span>&lt;SequenceNumber&gt;,
+	<span class="doccomment">/// How many undead are there right now.
+	</span>undead: usize,
 }
 
-<span class="doccomment">/// All futures get a number, to determine which are live.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="kw">struct</span> <span class="ident">SequenceNumber</span>(<span class="ident">usize</span>);
+<span class="doccomment">/// All futures get a number, to determine which are live.
+</span><span class="attribute">#[derive(Eq, PartialEq, Copy, Clone, Debug, PartialOrd)]
+</span><span class="kw">struct </span>SequenceNumber(usize);
 
-<span class="kw">struct</span> <span class="ident">Undead</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
-	<span class="ident">inner</span>: <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">Output</span><span class="op">&gt;</span>,
-	<span class="ident">our_sequence</span>: <span class="ident">SequenceNumber</span>,
+<span class="kw">struct </span>Undead&lt;Output&gt; {
+	inner: BoxFuture&lt;<span class="lifetime">&#39;static</span>, Output&gt;,
+	our_sequence: SequenceNumber,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> <span class="ident">FuturesUndead</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">inner</span>: <span class="ident">FuturesUnordered::new</span>(),
-			<span class="ident">next_sequence</span>: <span class="ident">SequenceNumber</span>(<span class="number">0</span>),
-			<span class="ident">first_live</span>: <span class="prelude-val">None</span>,
-			<span class="ident">undead</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;Output&gt; FuturesUndead&lt;Output&gt; {
+	<span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			inner: FuturesUnordered::new(),
+			next_sequence: SequenceNumber(<span class="number">0</span>),
+			first_live: <span class="prelude-val">None</span>,
+			undead: <span class="number">0</span>,
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">Output</span><span class="op">&gt;</span>) {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">push</span>(<span class="ident">Undead</span> { <span class="ident">inner</span>: <span class="ident">f</span>, <span class="ident">our_sequence</span>: <span class="self">self</span>.<span class="ident">next_sequence</span> });
-		<span class="self">self</span>.<span class="ident">next_sequence</span>.<span class="ident">inc</span>();
+	<span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: BoxFuture&lt;<span class="lifetime">&#39;static</span>, Output&gt;) {
+		<span class="self">self</span>.inner.push(Undead { inner: f, our_sequence: <span class="self">self</span>.next_sequence });
+		<span class="self">self</span>.next_sequence.inc();
 	}
 
-	<span class="doccomment">/// Make all contained futures undead.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// They will no longer be counted on a call to `len`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">soft_cancel</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="self">self</span>.<span class="ident">undead</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">len</span>();
-		<span class="self">self</span>.<span class="ident">first_live</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">next_sequence</span>);
+	<span class="doccomment">/// Make all contained futures undead.
+	///
+	/// They will no longer be counted on a call to `len`.
+	</span><span class="kw">pub fn </span>soft_cancel(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="self">self</span>.undead = <span class="self">self</span>.inner.len();
+		<span class="self">self</span>.first_live = <span class="prelude-val">Some</span>(<span class="self">self</span>.next_sequence);
 	}
 
-	<span class="doccomment">/// Number of contained futures minus undead.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">undead</span>
+	<span class="doccomment">/// Number of contained futures minus undead.
+	</span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.inner.len() - <span class="self">self</span>.undead
 	}
 
-	<span class="doccomment">/// Total number of futures, including undead.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">len</span>()
+	<span class="doccomment">/// Total number of futures, including undead.
+	</span><span class="kw">pub fn </span>total_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.inner.len()
 	}
 
-	<span class="doccomment">/// Wait for next future to return with timeout.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// When timeout passes, return `None` and make all currently contained futures undead.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">next_with_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">Duration</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">next</span>().<span class="ident">timeout</span>(<span class="ident">timeout</span>).<span class="kw">await</span> {
-			<span class="comment">// Timeout:</span>
-			<span class="prelude-val">None</span> =&gt; {
-				<span class="self">self</span>.<span class="ident">soft_cancel</span>();
-				<span class="prelude-val">None</span>
-			},
-			<span class="prelude-val">Some</span>(<span class="ident">inner</span>) =&gt; <span class="ident">inner</span>,
+	<span class="doccomment">/// Wait for next future to return with timeout.
+	///
+	/// When timeout passes, return `None` and make all currently contained futures undead.
+	</span><span class="kw">pub async fn </span>next_with_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: Duration) -&gt; <span class="prelude-ty">Option</span>&lt;Output&gt; {
+		<span class="kw">match </span><span class="self">self</span>.next().timeout(timeout).<span class="kw">await </span>{
+			<span class="comment">// Timeout:
+			</span><span class="prelude-val">None </span>=&gt; {
+				<span class="self">self</span>.soft_cancel();
+				<span class="prelude-val">None
+			</span>},
+			<span class="prelude-val">Some</span>(inner) =&gt; inner,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> <span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">FuturesUndead</span><span class="op">&lt;</span><span class="ident">Output</span><span class="op">&gt;</span> {
-	<span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Output</span>;
+<span class="kw">impl</span>&lt;Output&gt; Stream <span class="kw">for </span>FuturesUndead&lt;Output&gt; {
+	<span class="kw">type </span>Item = Output;
 
-	<span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_next_unpin</span>(<span class="ident">cx</span>) {
-			<span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
-			<span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
-			<span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>((<span class="ident">sequence</span>, <span class="ident">v</span>))) =&gt; {
-				<span class="comment">// Cleanup in case we became completely empty:</span>
-				<span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
-					<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>();
-					<span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">v</span>))
+	<span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+		<span class="kw">match </span><span class="self">self</span>.inner.poll_next_unpin(cx) {
+			Poll::Pending =&gt; Poll::Pending,
+			Poll::Ready(<span class="prelude-val">None</span>) =&gt; Poll::Ready(<span class="prelude-val">None</span>),
+			Poll::Ready(<span class="prelude-val">Some</span>((sequence, v))) =&gt; {
+				<span class="comment">// Cleanup in case we became completely empty:
+				</span><span class="kw">if </span><span class="self">self</span>.inner.len() == <span class="number">0 </span>{
+					<span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::new();
+					<span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(v))
 				}
 
-				<span class="kw">let</span> <span class="ident">first_live</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">first_live</span> {
-					<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">v</span>)),
-					<span class="prelude-val">Some</span>(<span class="ident">first_live</span>) =&gt; <span class="ident">first_live</span>,
+				<span class="kw">let </span>first_live = <span class="kw">match </span><span class="self">self</span>.first_live {
+					<span class="prelude-val">None </span>=&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Some</span>(v)),
+					<span class="prelude-val">Some</span>(first_live) =&gt; first_live,
 				};
-				<span class="comment">// An undead came back:</span>
-				<span class="kw">if</span> <span class="ident">sequence</span> <span class="op">&lt;</span> <span class="ident">first_live</span> {
-					<span class="self">self</span>.<span class="ident">undead</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">undead</span>.<span class="ident">saturating_sub</span>(<span class="number">1</span>);
+				<span class="comment">// An undead came back:
+				</span><span class="kw">if </span>sequence &lt; first_live {
+					<span class="self">self</span>.undead = <span class="self">self</span>.undead.saturating_sub(<span class="number">1</span>);
 				}
-				<span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">v</span>))
+				Poll::Ready(<span class="prelude-val">Some</span>(v))
 			},
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">SequenceNumber</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(
-			<span class="string">&quot;We don&#39;t expect an `UndeadFuture` to live long enough for 2^64 entries ever getting inserted.&quot;</span>
-		);
+<span class="kw">impl </span>SequenceNumber {
+	<span class="kw">pub fn </span>inc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="self">self</span>.<span class="number">0 </span>= <span class="self">self</span>.<span class="number">0</span>.checked_add(<span class="number">1</span>).expect(
+			<span class="string">&quot;We don&#39;t expect an `UndeadFuture` to live long enough for 2^64 entries ever getting inserted.&quot;
+		</span>);
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Undead</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">SequenceNumber</span>, <span class="ident">T</span>);
-	<span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="ident">cx</span>) {
-			<span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
-			<span class="ident">Poll::Ready</span>(<span class="ident">v</span>) =&gt; <span class="ident">Poll::Ready</span>((<span class="self">self</span>.<span class="ident">our_sequence</span>, <span class="ident">v</span>)),
+<span class="kw">impl</span>&lt;T&gt; Future <span class="kw">for </span>Undead&lt;T&gt; {
+	<span class="kw">type </span>Output = (SequenceNumber, T);
+	<span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+		<span class="kw">match </span><span class="self">self</span>.inner.as_mut().poll(cx) {
+			Poll::Pending =&gt; Poll::Pending,
+			Poll::Ready(v) =&gt; Poll::Ready((<span class="self">self</span>.our_sequence, v)),
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">executor</span>, <span class="ident">pending</span>, <span class="ident">FutureExt</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>futures::{executor, pending, FutureExt};
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">cancel_sets_len_to_zero</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">undead</span> <span class="op">=</span> <span class="ident">FuturesUndead::new</span>();
-		<span class="ident">undead</span>.<span class="ident">push</span>((<span class="kw">async</span> { () }).<span class="ident">boxed</span>());
-		<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="ident">undead</span>.<span class="ident">soft_cancel</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>cancel_sets_len_to_zero() {
+		<span class="kw">let </span><span class="kw-2">mut </span>undead = FuturesUndead::new();
+		undead.push((<span class="kw">async </span>{ () }).boxed());
+		<span class="macro">assert_eq!</span>(undead.len(), <span class="number">1</span>);
+		undead.soft_cancel();
+		<span class="macro">assert_eq!</span>(undead.len(), <span class="number">0</span>);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">finished_undead_does_not_change_len</span>() {
-		<span class="ident">executor::block_on</span>(<span class="kw">async</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">undead</span> <span class="op">=</span> <span class="ident">FuturesUndead::new</span>();
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">1_i32</span> }.<span class="ident">boxed</span>());
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">2_i32</span> }.<span class="ident">boxed</span>());
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-			<span class="ident">undead</span>.<span class="ident">soft_cancel</span>();
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-			<span class="ident">undead</span>.<span class="ident">push</span>(
-				<span class="kw">async</span> {
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>finished_undead_does_not_change_len() {
+		executor::block_on(<span class="kw">async </span>{
+			<span class="kw">let </span><span class="kw-2">mut </span>undead = FuturesUndead::new();
+			undead.push(<span class="kw">async </span>{ <span class="number">1_i32 </span>}.boxed());
+			undead.push(<span class="kw">async </span>{ <span class="number">2_i32 </span>}.boxed());
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">2</span>);
+			undead.soft_cancel();
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">0</span>);
+			undead.push(
+				<span class="kw">async </span>{
 					<span class="macro">pending!</span>();
-					<span class="number">0_i32</span>
-				}
-				.<span class="ident">boxed</span>(),
+					<span class="number">0_i32
+				</span>}
+				.boxed(),
 			);
-			<span class="ident">undead</span>.<span class="ident">next</span>().<span class="kw">await</span>;
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">9_i32</span> }.<span class="ident">boxed</span>());
-			<span class="ident">undead</span>.<span class="ident">soft_cancel</span>();
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+			undead.next().<span class="kw">await</span>;
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">1</span>);
+			undead.push(<span class="kw">async </span>{ <span class="number">9_i32 </span>}.boxed());
+			undead.soft_cancel();
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">0</span>);
 		});
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">len_stays_correct_when_live_future_ends</span>() {
-		<span class="ident">executor::block_on</span>(<span class="kw">async</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">undead</span> <span class="op">=</span> <span class="ident">FuturesUndead::new</span>();
-			<span class="ident">undead</span>.<span class="ident">push</span>(
-				<span class="kw">async</span> {
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>len_stays_correct_when_live_future_ends() {
+		executor::block_on(<span class="kw">async </span>{
+			<span class="kw">let </span><span class="kw-2">mut </span>undead = FuturesUndead::new();
+			undead.push(
+				<span class="kw">async </span>{
 					<span class="macro">pending!</span>();
-					<span class="number">1_i32</span>
-				}
-				.<span class="ident">boxed</span>(),
+					<span class="number">1_i32
+				</span>}
+				.boxed(),
 			);
-			<span class="ident">undead</span>.<span class="ident">push</span>(
-				<span class="kw">async</span> {
+			undead.push(
+				<span class="kw">async </span>{
 					<span class="macro">pending!</span>();
-					<span class="number">2_i32</span>
-				}
-				.<span class="ident">boxed</span>(),
+					<span class="number">2_i32
+				</span>}
+				.boxed(),
 			);
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">2</span>);
-			<span class="ident">undead</span>.<span class="ident">soft_cancel</span>();
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">0_i32</span> }.<span class="ident">boxed</span>());
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">1_i32</span> }.<span class="ident">boxed</span>());
-			<span class="ident">undead</span>.<span class="ident">next</span>().<span class="kw">await</span>;
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-			<span class="ident">undead</span>.<span class="ident">next</span>().<span class="kw">await</span>;
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">9_i32</span> }.<span class="ident">boxed</span>());
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">2</span>);
+			undead.soft_cancel();
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">0</span>);
+			undead.push(<span class="kw">async </span>{ <span class="number">0_i32 </span>}.boxed());
+			undead.push(<span class="kw">async </span>{ <span class="number">1_i32 </span>}.boxed());
+			undead.next().<span class="kw">await</span>;
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">1</span>);
+			undead.next().<span class="kw">await</span>;
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">0</span>);
+			undead.push(<span class="kw">async </span>{ <span class="number">9_i32 </span>}.boxed());
+			<span class="macro">assert_eq!</span>(undead.len(), <span class="number">1</span>);
 		});
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">cleanup_works</span>() {
-		<span class="ident">executor::block_on</span>(<span class="kw">async</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">undead</span> <span class="op">=</span> <span class="ident">FuturesUndead::new</span>();
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">1_i32</span> }.<span class="ident">boxed</span>());
-			<span class="ident">undead</span>.<span class="ident">soft_cancel</span>();
-			<span class="ident">undead</span>.<span class="ident">push</span>(<span class="kw">async</span> { <span class="number">2_i32</span> }.<span class="ident">boxed</span>());
-			<span class="ident">undead</span>.<span class="ident">next</span>().<span class="kw">await</span>;
-			<span class="ident">undead</span>.<span class="ident">next</span>().<span class="kw">await</span>;
-			<span class="macro">assert_eq!</span>(<span class="ident">undead</span>.<span class="ident">first_live</span>, <span class="prelude-val">None</span>);
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>cleanup_works() {
+		executor::block_on(<span class="kw">async </span>{
+			<span class="kw">let </span><span class="kw-2">mut </span>undead = FuturesUndead::new();
+			undead.push(<span class="kw">async </span>{ <span class="number">1_i32 </span>}.boxed());
+			undead.soft_cancel();
+			undead.push(<span class="kw">async </span>{ <span class="number">2_i32 </span>}.boxed());
+			undead.next().<span class="kw">await</span>;
+			undead.next().<span class="kw">await</span>;
+			<span class="macro">assert_eq!</span>(undead.first_live, <span class="prelude-val">None</span>);
 		});
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_availability_recovery" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_availability_recovery" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

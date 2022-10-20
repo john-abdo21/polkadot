@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/dispute-coordinator/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_dispute_coordinator/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/dispute-coordinator/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_dispute_coordinator/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -402,404 +396,403 @@
 <span id="396">396</span>
 <span id="397">397</span>
 <span id="398">398</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Implements the dispute coordinator subsystem.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This is the central subsystem of the node-side components which participate in disputes.</span>
-<span class="doccomment">//! This subsystem wraps a database which tracks all statements observed by all validators over some window of sessions.</span>
-<span class="doccomment">//! Votes older than this session window are pruned.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This subsystem will be the point which produce dispute votes, either positive or negative, based on locally-observed</span>
-<span class="doccomment">//! validation results as well as a sink for votes received by other subsystems. When importing a dispute vote from</span>
-<span class="doccomment">//! another node, this will trigger dispute participation to recover and validate the block.</span>
+</span><span class="doccomment">//! Implements the dispute coordinator subsystem.
+//!
+//! This is the central subsystem of the node-side components which participate in disputes.
+//! This subsystem wraps a database which tracks all statements observed by all validators over some window of sessions.
+//! Votes older than this session window are pruned.
+//!
+//! This subsystem will be the point which produce dispute votes, either positive or negative, based on locally-observed
+//! validation results as well as a sink for votes received by other subsystems. When importing a dispute vote from
+//! another node, this will trigger dispute participation to recover and validate the block.
 
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+</span><span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use</span> <span class="ident">futures::FutureExt</span>;
+<span class="kw">use </span>futures::FutureExt;
 
-<span class="kw">use</span> <span class="ident">sc_keystore::LocalKeystore</span>;
+<span class="kw">use </span>sc_keystore::LocalKeystore;
 
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives</span>::{<span class="ident">CandidateVotes</span>, <span class="ident">DISPUTE_WINDOW</span>};
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{
-	<span class="ident">overseer</span>, <span class="ident">ActivatedLeaf</span>, <span class="ident">FromOrchestra</span>, <span class="ident">OverseerSignal</span>, <span class="ident">SpawnedSubsystem</span>, <span class="ident">SubsystemError</span>,
+<span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, DISPUTE_WINDOW};
+<span class="kw">use </span>polkadot_node_subsystem::{
+	overseer, ActivatedLeaf, FromOrchestra, OverseerSignal, SpawnedSubsystem, SubsystemError,
 };
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util</span>::{
-	<span class="ident">database::Database</span>, <span class="ident">rolling_session_window::RollingSessionWindow</span>,
+<span class="kw">use </span>polkadot_node_subsystem_util::{
+	database::Database, rolling_session_window::RollingSessionWindow,
 };
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">ScrapedOnChainVotes</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorPair</span>};
+<span class="kw">use </span>polkadot_primitives::v2::{ScrapedOnChainVotes, ValidatorIndex, ValidatorPair};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">error</span>::{<span class="ident">FatalResult</span>, <span class="ident">JfyiError</span>, <span class="prelude-ty">Result</span>},
-	<span class="ident">metrics::Metrics</span>,
-	<span class="ident">status</span>::{<span class="ident">get_active_with_status</span>, <span class="ident">SystemClock</span>},
+<span class="kw">use crate</span>::{
+	error::{FatalResult, JfyiError, <span class="prelude-ty">Result</span>},
+	metrics::Metrics,
+	status::{get_active_with_status, SystemClock},
 };
-<span class="kw">use</span> <span class="ident">backend</span>::{<span class="ident">Backend</span>, <span class="ident">OverlayedBackend</span>};
-<span class="kw">use</span> <span class="ident">db::v1::DbBackend</span>;
-<span class="kw">use</span> <span class="ident">fatality::Split</span>;
+<span class="kw">use </span>backend::{Backend, OverlayedBackend};
+<span class="kw">use </span>db::v1::DbBackend;
+<span class="kw">use </span>fatality::Split;
 
-<span class="kw">use</span> <span class="self">self</span>::{
-	<span class="ident">participation</span>::{<span class="ident">ParticipationPriority</span>, <span class="ident">ParticipationRequest</span>},
-	<span class="ident">spam_slots</span>::{<span class="ident">SpamSlots</span>, <span class="ident">UnconfirmedDisputes</span>},
+<span class="kw">use </span><span class="self">self</span>::{
+	participation::{ParticipationPriority, ParticipationRequest},
+	spam_slots::{SpamSlots, UnconfirmedDisputes},
 };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">backend</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">db</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>backend;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>db;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>error;
 
-<span class="doccomment">/// Subsystem after receiving the first active leaf.</span>
-<span class="kw">mod</span> <span class="ident">initialized</span>;
-<span class="kw">use</span> <span class="ident">initialized::Initialized</span>;
+<span class="doccomment">/// Subsystem after receiving the first active leaf.
+</span><span class="kw">mod </span>initialized;
+<span class="kw">use </span>initialized::Initialized;
 
-<span class="doccomment">/// Provider of data scraped from chain.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If we have seen a candidate included somewhere, we should treat it as priority and will be able</span>
-<span class="doccomment">/// to provide an ordering for participation. Thus a dispute for a candidate where we can get some</span>
-<span class="doccomment">/// ordering is high-priority (we know it is a valid dispute) and those can be ordered by</span>
-<span class="doccomment">/// `participation` based on `relay_parent` block number and other metrics, so each validator will</span>
-<span class="doccomment">/// participate in disputes in a similar order, which ensures we will be resolving disputes, even</span>
-<span class="doccomment">/// under heavy load.</span>
-<span class="kw">mod</span> <span class="ident">scraping</span>;
-<span class="kw">use</span> <span class="ident">scraping::ChainScraper</span>;
+<span class="doccomment">/// Provider of data scraped from chain.
+///
+/// If we have seen a candidate included somewhere, we should treat it as priority and will be able
+/// to provide an ordering for participation. Thus a dispute for a candidate where we can get some
+/// ordering is high-priority (we know it is a valid dispute) and those can be ordered by
+/// `participation` based on `relay_parent` block number and other metrics, so each validator will
+/// participate in disputes in a similar order, which ensures we will be resolving disputes, even
+/// under heavy load.
+</span><span class="kw">mod </span>scraping;
+<span class="kw">use </span>scraping::ChainScraper;
 
-<span class="doccomment">/// When importing votes we will check via the `ordering` module, whether or not we know of the</span>
-<span class="doccomment">/// candidate to be included somewhere. If not, the votes might be spam, in this case we want to</span>
-<span class="doccomment">/// limit the amount of locally imported votes, to prevent DoS attacks/resource exhaustion. The</span>
-<span class="doccomment">/// `spam_slots` module helps keeping track of unconfirmed disputes per validators, if a spam slot</span>
-<span class="doccomment">/// gets full, we will drop any further potential spam votes from that validator and report back</span>
-<span class="doccomment">/// that the import failed. Which will lead to any honest validator to retry, thus the spam slots</span>
-<span class="doccomment">/// can be relatively small, as a drop is not fatal.</span>
-<span class="kw">mod</span> <span class="ident">spam_slots</span>;
+<span class="doccomment">/// When importing votes we will check via the `ordering` module, whether or not we know of the
+/// candidate to be included somewhere. If not, the votes might be spam, in this case we want to
+/// limit the amount of locally imported votes, to prevent DoS attacks/resource exhaustion. The
+/// `spam_slots` module helps keeping track of unconfirmed disputes per validators, if a spam slot
+/// gets full, we will drop any further potential spam votes from that validator and report back
+/// that the import failed. Which will lead to any honest validator to retry, thus the spam slots
+/// can be relatively small, as a drop is not fatal.
+</span><span class="kw">mod </span>spam_slots;
 
-<span class="doccomment">/// Handling of participation requests via `Participation`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Participation` provides an API (`Participation::queue_participation`) for queuing of dispute participations and will process those</span>
-<span class="doccomment">/// participation requests, such that most important/urgent disputes will be resolved and processed</span>
-<span class="doccomment">/// first and more importantly it will order requests in a way so disputes will get resolved, even</span>
-<span class="doccomment">/// if there are lots of them.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">participation</span>;
+<span class="doccomment">/// Handling of participation requests via `Participation`.
+///
+/// `Participation` provides an API (`Participation::queue_participation`) for queuing of dispute participations and will process those
+/// participation requests, such that most important/urgent disputes will be resolved and processed
+/// first and more importantly it will order requests in a way so disputes will get resolved, even
+/// if there are lots of them.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>participation;
 
-<span class="doccomment">/// Pure processing of vote imports.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">import</span>;
+<span class="doccomment">/// Pure processing of vote imports.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>import;
 
-<span class="doccomment">/// Metrics types.</span>
-<span class="kw">mod</span> <span class="ident">metrics</span>;
+<span class="doccomment">/// Metrics types.
+</span><span class="kw">mod </span>metrics;
 
-<span class="doccomment">/// Status tracking of disputes (`DisputeStatus`).</span>
-<span class="kw">mod</span> <span class="ident">status</span>;
+<span class="doccomment">/// Status tracking of disputes (`DisputeStatus`).
+</span><span class="kw">mod </span>status;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::status::Clock</span>;
+<span class="kw">use </span><span class="kw">crate</span>::status::Clock;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LOG_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;parachain::dispute-coordinator&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;parachain::dispute-coordinator&quot;</span>;
 
-<span class="doccomment">/// An implementation of the dispute coordinator subsystem.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisputeCoordinatorSubsystem</span> {
-	<span class="ident">config</span>: <span class="ident">Config</span>,
-	<span class="ident">store</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>,
-	<span class="ident">keystore</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">LocalKeystore</span><span class="op">&gt;</span>,
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
+<span class="doccomment">/// An implementation of the dispute coordinator subsystem.
+</span><span class="kw">pub struct </span>DisputeCoordinatorSubsystem {
+	config: Config,
+	store: Arc&lt;<span class="kw">dyn </span>Database&gt;,
+	keystore: Arc&lt;LocalKeystore&gt;,
+	metrics: Metrics,
 }
 
-<span class="doccomment">/// Configuration for the dispute coordinator subsystem.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
-	<span class="doccomment">/// The data column in the store to use for dispute data.</span>
-	<span class="kw">pub</span> <span class="ident">col_data</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// Configuration for the dispute coordinator subsystem.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Config {
+	<span class="doccomment">/// The data column in the store to use for dispute data.
+	</span><span class="kw">pub </span>col_data: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">Config</span> {
-	<span class="kw">fn</span> <span class="ident">column_config</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">db::v1::ColumnConfiguration</span> {
-		<span class="ident">db::v1::ColumnConfiguration</span> { <span class="ident">col_data</span>: <span class="self">self</span>.<span class="ident">col_data</span> }
+<span class="kw">impl </span>Config {
+	<span class="kw">fn </span>column_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; db::v1::ColumnConfiguration {
+		db::v1::ColumnConfiguration { col_data: <span class="self">self</span>.col_data }
 	}
 }
 
-<span class="attribute">#[<span class="ident">overseer::subsystem</span>(<span class="ident">DisputeCoordinator</span>, <span class="ident">error</span><span class="op">=</span><span class="ident">SubsystemError</span>, <span class="ident">prefix</span><span class="op">=</span><span class="ident"><span class="self">self</span>::overseer</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Context</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">DisputeCoordinatorSubsystem</span> {
-	<span class="kw">fn</span> <span class="ident">start</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="ident">Context</span>) -&gt; <span class="ident">SpawnedSubsystem</span> {
-		<span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">async</span> {
-			<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">DbBackend::new</span>(
-				<span class="self">self</span>.<span class="ident">store</span>.<span class="ident">clone</span>(),
-				<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">column_config</span>(),
-				<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">clone</span>(),
+<span class="attribute">#[overseer::subsystem(DisputeCoordinator, error=SubsystemError, prefix=<span class="self">self</span>::overseer)]
+</span><span class="kw">impl</span>&lt;Context: Send&gt; DisputeCoordinatorSubsystem {
+	<span class="kw">fn </span>start(<span class="self">self</span>, ctx: Context) -&gt; SpawnedSubsystem {
+		<span class="kw">let </span>future = <span class="kw">async </span>{
+			<span class="kw">let </span>backend = DbBackend::new(
+				<span class="self">self</span>.store.clone(),
+				<span class="self">self</span>.config.column_config(),
+				<span class="self">self</span>.metrics.clone(),
 			);
-			<span class="self">self</span>.<span class="ident">run</span>(<span class="ident">ctx</span>, <span class="ident">backend</span>, <span class="ident">Box::new</span>(<span class="ident">SystemClock</span>))
-				.<span class="kw">await</span>
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SubsystemError::with_origin</span>(<span class="string">&quot;dispute-coordinator&quot;</span>, <span class="ident">e</span>))
+			<span class="self">self</span>.run(ctx, backend, Box::new(SystemClock))
+				.<span class="kw">await
+				</span>.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
 		}
-		.<span class="ident">boxed</span>();
+		.boxed();
 
-		<span class="ident">SpawnedSubsystem</span> { <span class="ident">name</span>: <span class="string">&quot;dispute-coordinator-subsystem&quot;</span>, <span class="ident">future</span> }
+		SpawnedSubsystem { name: <span class="string">&quot;dispute-coordinator-subsystem&quot;</span>, future }
 	}
 }
 
-<span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">DisputeCoordinator</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
-<span class="kw">impl</span> <span class="ident">DisputeCoordinatorSubsystem</span> {
-	<span class="doccomment">/// Create a new instance of the subsystem.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">store</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>,
-		<span class="ident">config</span>: <span class="ident">Config</span>,
-		<span class="ident">keystore</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">LocalKeystore</span><span class="op">&gt;</span>,
-		<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">store</span>, <span class="ident">config</span>, <span class="ident">keystore</span>, <span class="ident">metrics</span> }
+<span class="attribute">#[overseer::contextbounds(DisputeCoordinator, prefix = <span class="self">self</span>::overseer)]
+</span><span class="kw">impl </span>DisputeCoordinatorSubsystem {
+	<span class="doccomment">/// Create a new instance of the subsystem.
+	</span><span class="kw">pub fn </span>new(
+		store: Arc&lt;<span class="kw">dyn </span>Database&gt;,
+		config: Config,
+		keystore: Arc&lt;LocalKeystore&gt;,
+		metrics: Metrics,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ store, config, keystore, metrics }
 	}
 
-	<span class="doccomment">/// Initialize and afterwards run `Initialized::run`.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Context</span><span class="op">&gt;</span>(
+	<span class="doccomment">/// Initialize and afterwards run `Initialized::run`.
+	</span><span class="kw">async fn </span>run&lt;B, Context&gt;(
 		<span class="self">self</span>,
-		<span class="kw-2">mut</span> <span class="ident">ctx</span>: <span class="ident">Context</span>,
-		<span class="ident">backend</span>: <span class="ident">B</span>,
-		<span class="ident">clock</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Clock</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">FatalResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">B</span>: <span class="ident">Backend</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+		<span class="kw-2">mut </span>ctx: Context,
+		backend: B,
+		clock: Box&lt;<span class="kw">dyn </span>Clock&gt;,
+	) -&gt; FatalResult&lt;()&gt;
+	<span class="kw">where
+		</span>B: Backend + <span class="lifetime">&#39;static</span>,
 	{
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">initialize</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ctx</span>, <span class="ident">backend</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">clock</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">let </span>res = <span class="self">self</span>.initialize(<span class="kw-2">&amp;mut </span>ctx, backend, <span class="kw-2">&amp;*</span>clock).<span class="kw">await</span><span class="question-mark">?</span>;
 
-		<span class="kw">let</span> (<span class="ident">participations</span>, <span class="ident">votes</span>, <span class="ident">first_leaf</span>, <span class="ident">initialized</span>, <span class="ident">backend</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">res</span> {
-			<span class="comment">// Concluded:</span>
-			<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-			<span class="prelude-val">Some</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
+		<span class="kw">let </span>(participations, votes, first_leaf, initialized, backend) = <span class="kw">match </span>res {
+			<span class="comment">// Concluded:
+			</span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+			<span class="prelude-val">Some</span>(r) =&gt; r,
 		};
 
-		<span class="ident">initialized</span>
-			.<span class="ident">run</span>(<span class="ident">ctx</span>, <span class="ident">backend</span>, <span class="ident">participations</span>, <span class="ident">votes</span>, <span class="prelude-val">Some</span>(<span class="ident">first_leaf</span>), <span class="ident">clock</span>)
-			.<span class="kw">await</span>
-	}
+		initialized
+			.run(ctx, backend, participations, votes, <span class="prelude-val">Some</span>(first_leaf), clock)
+			.<span class="kw">await
+	</span>}
 
-	<span class="doccomment">/// Make sure to recover participations properly on startup.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">initialize</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Context</span><span class="op">&gt;</span>(
+	<span class="doccomment">/// Make sure to recover participations properly on startup.
+	</span><span class="kw">async fn </span>initialize&lt;B, Context&gt;(
 		<span class="self">self</span>,
-		<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-		<span class="kw-2">mut</span> <span class="ident">backend</span>: <span class="ident">B</span>,
-		<span class="ident">clock</span>: <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Clock</span>),
-	) -&gt; <span class="ident">FatalResult</span><span class="op">&lt;</span>
-		<span class="prelude-ty">Option</span><span class="op">&lt;</span>(
-			<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ParticipationPriority</span>, <span class="ident">ParticipationRequest</span>)<span class="op">&gt;</span>,
-			<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&gt;</span>,
-			<span class="ident">ActivatedLeaf</span>,
-			<span class="ident">Initialized</span>,
-			<span class="ident">B</span>,
-		)<span class="op">&gt;</span>,
-	<span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">B</span>: <span class="ident">Backend</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+		ctx: <span class="kw-2">&amp;mut </span>Context,
+		<span class="kw-2">mut </span>backend: B,
+		clock: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Clock),
+	) -&gt; FatalResult&lt;
+		<span class="prelude-ty">Option</span>&lt;(
+			Vec&lt;(ParticipationPriority, ParticipationRequest)&gt;,
+			Vec&lt;ScrapedOnChainVotes&gt;,
+			ActivatedLeaf,
+			Initialized,
+			B,
+		)&gt;,
+	&gt;
+	<span class="kw">where
+		</span>B: Backend + <span class="lifetime">&#39;static</span>,
 	{
-		<span class="kw">loop</span> {
-			<span class="kw">let</span> (<span class="ident">first_leaf</span>, <span class="ident">rolling_session_window</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">get_rolling_session_window</span>(<span class="ident">ctx</span>).<span class="kw">await</span> {
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">update</span>)) =&gt; <span class="ident">update</span>,
+		<span class="kw">loop </span>{
+			<span class="kw">let </span>(first_leaf, rolling_session_window) = <span class="kw">match </span>get_rolling_session_window(ctx).<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(update)) =&gt; update,
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-					<span class="macro">gum::info!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;received `Conclude` signal, exiting&quot;</span>);
-					<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+					<span class="macro">gum::info!</span>(target: LOG_TARGET, <span class="string">&quot;received `Conclude` signal, exiting&quot;</span>);
+					<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 				},
-				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-					<span class="ident">e</span>.<span class="ident">split</span>()<span class="question-mark">?</span>.<span class="ident">log</span>();
-					<span class="kw">continue</span>
-				},
+				<span class="prelude-val">Err</span>(e) =&gt; {
+					e.split()<span class="question-mark">?</span>.log();
+					<span class="kw">continue
+				</span>},
 			};
 
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">backend</span>);
-			<span class="kw">let</span> (<span class="ident">participations</span>, <span class="ident">votes</span>, <span class="ident">spam_slots</span>, <span class="ident">ordering_provider</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>
-				.<span class="ident">handle_startup</span>(
-					<span class="ident">ctx</span>,
-					<span class="ident">first_leaf</span>.<span class="ident">clone</span>(),
-					<span class="kw-2">&amp;</span><span class="ident">rolling_session_window</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">overlay_db</span>,
-					<span class="ident">clock</span>,
+			<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;mut </span>backend);
+			<span class="kw">let </span>(participations, votes, spam_slots, ordering_provider) = <span class="kw">match </span><span class="self">self
+				</span>.handle_startup(
+					ctx,
+					first_leaf.clone(),
+					<span class="kw-2">&amp;</span>rolling_session_window,
+					<span class="kw-2">&amp;mut </span>overlay_db,
+					clock,
 				)
-				.<span class="kw">await</span>
-			{
-				<span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
-				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-					<span class="ident">e</span>.<span class="ident">split</span>()<span class="question-mark">?</span>.<span class="ident">log</span>();
-					<span class="kw">continue</span>
-				},
+				.<span class="kw">await
+			</span>{
+				<span class="prelude-val">Ok</span>(v) =&gt; v,
+				<span class="prelude-val">Err</span>(e) =&gt; {
+					e.split()<span class="question-mark">?</span>.log();
+					<span class="kw">continue
+				</span>},
 			};
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">overlay_db</span>.<span class="ident">is_empty</span>() {
-				<span class="kw">let</span> <span class="ident">ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-				<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">ops</span>)<span class="question-mark">?</span>;
+			<span class="kw">if </span>!overlay_db.is_empty() {
+				<span class="kw">let </span>ops = overlay_db.into_write_ops();
+				backend.write(ops)<span class="question-mark">?</span>;
 			}
 
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((
-				<span class="ident">participations</span>,
-				<span class="ident">votes</span>,
-				<span class="ident">first_leaf</span>,
-				<span class="ident">Initialized::new</span>(<span class="self">self</span>, <span class="ident">rolling_session_window</span>, <span class="ident">spam_slots</span>, <span class="ident">ordering_provider</span>),
-				<span class="ident">backend</span>,
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((
+				participations,
+				votes,
+				first_leaf,
+				Initialized::new(<span class="self">self</span>, rolling_session_window, spam_slots, ordering_provider),
+				backend,
 			)))
 		}
 	}
 
-	<span class="comment">// Restores the subsystem&#39;s state before proceeding with the main event loop.</span>
-	<span class="comment">//</span>
-	<span class="comment">// - Prune any old disputes.</span>
-	<span class="comment">// - Find disputes we need to participate in.</span>
-	<span class="comment">// - Initialize spam slots &amp; OrderingProvider.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_startup</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
+	<span class="comment">// Restores the subsystem&#39;s state before proceeding with the main event loop.
+	//
+	// - Prune any old disputes.
+	// - Find disputes we need to participate in.
+	// - Initialize spam slots &amp; OrderingProvider.
+	</span><span class="kw">async fn </span>handle_startup&lt;Context&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-		<span class="ident">initial_head</span>: <span class="ident">ActivatedLeaf</span>,
-		<span class="ident">rolling_session_window</span>: <span class="kw-2">&amp;</span><span class="ident">RollingSessionWindow</span>,
-		<span class="ident">overlay_db</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-		<span class="ident">clock</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Clock</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(
-		<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ParticipationPriority</span>, <span class="ident">ParticipationRequest</span>)<span class="op">&gt;</span>,
-		<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&gt;</span>,
-		<span class="ident">SpamSlots</span>,
-		<span class="ident">ChainScraper</span>,
-	)<span class="op">&gt;</span> {
-		<span class="comment">// Prune obsolete disputes:</span>
-		<span class="ident">db::v1::note_current_session</span>(<span class="ident">overlay_db</span>, <span class="ident">rolling_session_window</span>.<span class="ident">latest_session</span>())<span class="question-mark">?</span>;
+		ctx: <span class="kw-2">&amp;mut </span>Context,
+		initial_head: ActivatedLeaf,
+		rolling_session_window: <span class="kw-2">&amp;</span>RollingSessionWindow,
+		overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+		clock: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Clock,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(
+		Vec&lt;(ParticipationPriority, ParticipationRequest)&gt;,
+		Vec&lt;ScrapedOnChainVotes&gt;,
+		SpamSlots,
+		ChainScraper,
+	)&gt; {
+		<span class="comment">// Prune obsolete disputes:
+		</span>db::v1::note_current_session(overlay_db, rolling_session_window.latest_session())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">active_disputes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">overlay_db</span>.<span class="ident">load_recent_disputes</span>() {
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">disputes</span>)) =&gt;
-				<span class="ident">get_active_with_status</span>(<span class="ident">disputes</span>.<span class="ident">into_iter</span>(), <span class="ident">clock</span>.<span class="ident">now</span>()).<span class="ident">collect</span>(),
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Vec::new</span>(),
-			<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-				<span class="macro">gum::error!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;Failed initial load of recent disputes: {:?}&quot;</span>, <span class="ident">e</span>);
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>())
+		<span class="kw">let </span>active_disputes = <span class="kw">match </span>overlay_db.load_recent_disputes() {
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(disputes)) =&gt;
+				get_active_with_status(disputes.into_iter(), clock.now()).collect(),
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Vec::new(),
+			<span class="prelude-val">Err</span>(e) =&gt; {
+				<span class="macro">gum::error!</span>(target: LOG_TARGET, <span class="string">&quot;Failed initial load of recent disputes: {:?}&quot;</span>, e);
+				<span class="kw">return </span><span class="prelude-val">Err</span>(e.into())
 			},
 		};
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">participation_requests</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unconfirmed_disputes</span>: <span class="ident">UnconfirmedDisputes</span> <span class="op">=</span> <span class="ident">UnconfirmedDisputes::new</span>();
-		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">scraper</span>, <span class="ident">votes</span>) <span class="op">=</span> <span class="ident">ChainScraper::new</span>(<span class="ident">ctx</span>.<span class="ident">sender</span>(), <span class="ident">initial_head</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="kw">for</span> ((<span class="ident">session</span>, <span class="kw-2">ref</span> <span class="ident">candidate_hash</span>), <span class="ident">status</span>) <span class="kw">in</span> <span class="ident">active_disputes</span> {
-			<span class="kw">let</span> <span class="ident">votes</span>: <span class="ident">CandidateVotes</span> <span class="op">=</span>
-				<span class="kw">match</span> <span class="ident">overlay_db</span>.<span class="ident">load_candidate_votes</span>(<span class="ident">session</span>, <span class="ident">candidate_hash</span>) {
-					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">votes</span>)) =&gt; <span class="ident">votes</span>.<span class="ident">into</span>(),
+		<span class="kw">let </span><span class="kw-2">mut </span>participation_requests = Vec::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>unconfirmed_disputes: UnconfirmedDisputes = UnconfirmedDisputes::new();
+		<span class="kw">let </span>(<span class="kw-2">mut </span>scraper, votes) = ChainScraper::new(ctx.sender(), initial_head).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">for </span>((session, <span class="kw-2">ref </span>candidate_hash), status) <span class="kw">in </span>active_disputes {
+			<span class="kw">let </span>votes: CandidateVotes =
+				<span class="kw">match </span>overlay_db.load_candidate_votes(session, candidate_hash) {
+					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(votes)) =&gt; votes.into(),
 					<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">continue</span>,
-					<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+					<span class="prelude-val">Err</span>(e) =&gt; {
 						<span class="macro">gum::error!</span>(
-							<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+							target: LOG_TARGET,
 							<span class="string">&quot;Failed initial load of candidate votes: {:?}&quot;</span>,
-							<span class="ident">e</span>
+							e
 						);
-						<span class="kw">continue</span>
-					},
+						<span class="kw">continue
+					</span>},
 				};
 
-			<span class="kw">let</span> <span class="ident">validators</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rolling_session_window</span>.<span class="ident">session_info</span>(<span class="ident">session</span>) {
-				<span class="prelude-val">None</span> =&gt; {
+			<span class="kw">let </span>validators = <span class="kw">match </span>rolling_session_window.session_info(session) {
+				<span class="prelude-val">None </span>=&gt; {
 					<span class="macro">gum::warn!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-						<span class="ident">session</span>,
+						target: LOG_TARGET,
+						session,
 						<span class="string">&quot;Missing info for session which has an active dispute&quot;</span>,
 					);
-					<span class="kw">continue</span>
-				},
-				<span class="prelude-val">Some</span>(<span class="ident">info</span>) =&gt; <span class="ident">info</span>.<span class="ident">validators</span>.<span class="ident">clone</span>(),
+					<span class="kw">continue
+				</span>},
+				<span class="prelude-val">Some</span>(info) =&gt; info.validators.clone(),
 			};
 
-			<span class="kw">let</span> <span class="ident">voted_indices</span> <span class="op">=</span> <span class="ident">votes</span>.<span class="ident">voted_indices</span>();
+			<span class="kw">let </span>voted_indices = votes.voted_indices();
 
-			<span class="comment">// Determine if there are any missing local statements for this dispute. Validators are</span>
-			<span class="comment">// filtered if:</span>
-			<span class="comment">//  1) their statement already exists, or</span>
-			<span class="comment">//  2) the validator key is not in the local keystore (i.e. the validator is remote).</span>
-			<span class="comment">// The remaining set only contains local validators that are also missing statements.</span>
-			<span class="kw">let</span> <span class="ident">missing_local_statement</span> <span class="op">=</span> <span class="ident">validators</span>
-				.<span class="ident">iter</span>()
-				.<span class="ident">enumerate</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">validator</span>)<span class="op">|</span> (<span class="ident">ValidatorIndex</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="kw">_</span>), <span class="ident">validator</span>))
-				.<span class="ident">any</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">validator</span>)<span class="op">|</span> {
-					<span class="op">!</span><span class="ident">voted_indices</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>) <span class="op">&amp;&amp;</span>
-						<span class="self">self</span>.<span class="ident">keystore</span>
-							.<span class="ident">key_pair</span>::<span class="op">&lt;</span><span class="ident">ValidatorPair</span><span class="op">&gt;</span>(<span class="ident">validator</span>)
-							.<span class="ident">ok</span>()
-							.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">is_some</span>())
+			<span class="comment">// Determine if there are any missing local statements for this dispute. Validators are
+			// filtered if:
+			//  1) their statement already exists, or
+			//  2) the validator key is not in the local keystore (i.e. the validator is remote).
+			// The remaining set only contains local validators that are also missing statements.
+			</span><span class="kw">let </span>missing_local_statement = validators
+				.iter()
+				.enumerate()
+				.map(|(index, validator)| (ValidatorIndex(index <span class="kw">as _</span>), validator))
+				.any(|(index, validator)| {
+					!voted_indices.contains(<span class="kw-2">&amp;</span>index) &amp;&amp;
+						<span class="self">self</span>.keystore
+							.key_pair::&lt;ValidatorPair&gt;(validator)
+							.ok()
+							.map_or(<span class="bool-val">false</span>, |v| v.is_some())
 				});
 
-			<span class="kw">let</span> <span class="ident">is_included</span> <span class="op">=</span> <span class="ident">scraper</span>.<span class="ident">is_candidate_included</span>(<span class="kw-2">&amp;</span><span class="ident">votes</span>.<span class="ident">candidate_receipt</span>.<span class="ident">hash</span>());
+			<span class="kw">let </span>is_included = scraper.is_candidate_included(<span class="kw-2">&amp;</span>votes.candidate_receipt.hash());
 
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">status</span>.<span class="ident">is_confirmed_concluded</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_included</span> {
-				<span class="ident">unconfirmed_disputes</span>.<span class="ident">insert</span>((<span class="ident">session</span>, <span class="kw-2">*</span><span class="ident">candidate_hash</span>), <span class="ident">voted_indices</span>);
+			<span class="kw">if </span>!status.is_confirmed_concluded() &amp;&amp; !is_included {
+				unconfirmed_disputes.insert((session, <span class="kw-2">*</span>candidate_hash), voted_indices);
 			}
 
-			<span class="comment">// Participate for all non-concluded disputes which do not have a</span>
-			<span class="comment">// recorded local statement.</span>
-			<span class="kw">if</span> <span class="ident">missing_local_statement</span> {
-				<span class="ident">participation_requests</span>.<span class="ident">push</span>((
-					<span class="ident">ParticipationPriority::with_priority_if</span>(<span class="ident">is_included</span>),
-					<span class="ident">ParticipationRequest::new</span>(<span class="ident">votes</span>.<span class="ident">candidate_receipt</span>.<span class="ident">clone</span>(), <span class="ident">session</span>),
+			<span class="comment">// Participate for all non-concluded disputes which do not have a
+			// recorded local statement.
+			</span><span class="kw">if </span>missing_local_statement {
+				participation_requests.push((
+					ParticipationPriority::with_priority_if(is_included),
+					ParticipationRequest::new(votes.candidate_receipt.clone(), session),
 				));
 			}
 		}
 
 		<span class="prelude-val">Ok</span>((
-			<span class="ident">participation_requests</span>,
-			<span class="ident">votes</span>,
-			<span class="ident">SpamSlots::recover_from_state</span>(<span class="ident">unconfirmed_disputes</span>),
-			<span class="ident">scraper</span>,
+			participation_requests,
+			votes,
+			SpamSlots::recover_from_state(unconfirmed_disputes),
+			scraper,
 		))
 	}
 }
 
-<span class="doccomment">/// Wait for `ActiveLeavesUpdate` on startup, returns `None` if `Conclude` signal came first.</span>
-<span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">DisputeCoordinator</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_rolling_session_window</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(
-	<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ActivatedLeaf</span>, <span class="ident">RollingSessionWindow</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">leaf</span>) <span class="op">=</span> { <span class="ident">wait_for_first_leaf</span>(<span class="ident">ctx</span>) }.<span class="kw">await</span><span class="question-mark">?</span> {
-		<span class="kw">let</span> <span class="ident">sender</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">sender</span>().<span class="ident">clone</span>();
+<span class="doccomment">/// Wait for `ActiveLeavesUpdate` on startup, returns `None` if `Conclude` signal came first.
+</span><span class="attribute">#[overseer::contextbounds(DisputeCoordinator, prefix = <span class="self">self</span>::overseer)]
+</span><span class="kw">async fn </span>get_rolling_session_window&lt;Context&gt;(
+	ctx: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(ActivatedLeaf, RollingSessionWindow)&gt;&gt; {
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(leaf) = { wait_for_first_leaf(ctx) }.<span class="kw">await</span><span class="question-mark">? </span>{
+		<span class="kw">let </span>sender = ctx.sender().clone();
 		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((
-			<span class="ident">leaf</span>.<span class="ident">clone</span>(),
-			<span class="ident">RollingSessionWindow::new</span>(<span class="ident">sender</span>, <span class="ident">DISPUTE_WINDOW</span>, <span class="ident">leaf</span>.<span class="ident">hash</span>)
-				.<span class="kw">await</span>
-				.<span class="ident">map_err</span>(<span class="ident">JfyiError::RollingSessionWindow</span>)<span class="question-mark">?</span>,
+			leaf.clone(),
+			RollingSessionWindow::new(sender, DISPUTE_WINDOW, leaf.hash)
+				.<span class="kw">await
+				</span>.map_err(JfyiError::RollingSessionWindow)<span class="question-mark">?</span>,
 		)))
-	} <span class="kw">else</span> {
+	} <span class="kw">else </span>{
 		<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 	}
 }
 
-<span class="doccomment">/// Wait for `ActiveLeavesUpdate`, returns `None` if `Conclude` signal came first.</span>
-<span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">DisputeCoordinator</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait_for_first_leaf</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ActivatedLeaf</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">loop</span> {
-		<span class="kw">match</span> <span class="ident">ctx</span>.<span class="ident">recv</span>().<span class="kw">await</span><span class="question-mark">?</span> {
-			<span class="ident">FromOrchestra::Signal</span>(<span class="ident">OverseerSignal::Conclude</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-			<span class="ident">FromOrchestra::Signal</span>(<span class="ident">OverseerSignal::ActiveLeaves</span>(<span class="ident">update</span>)) =&gt; {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">activated</span>) <span class="op">=</span> <span class="ident">update</span>.<span class="ident">activated</span> {
-					<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">activated</span>))
+<span class="doccomment">/// Wait for `ActiveLeavesUpdate`, returns `None` if `Conclude` signal came first.
+</span><span class="attribute">#[overseer::contextbounds(DisputeCoordinator, prefix = <span class="self">self</span>::overseer)]
+</span><span class="kw">async fn </span>wait_for_first_leaf&lt;Context&gt;(ctx: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ActivatedLeaf&gt;&gt; {
+	<span class="kw">loop </span>{
+		<span class="kw">match </span>ctx.recv().<span class="kw">await</span><span class="question-mark">? </span>{
+			FromOrchestra::Signal(OverseerSignal::Conclude) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+			FromOrchestra::Signal(OverseerSignal::ActiveLeaves(update)) =&gt; {
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(activated) = update.activated {
+					<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(activated))
 				}
 			},
-			<span class="ident">FromOrchestra::Signal</span>(<span class="ident">OverseerSignal::BlockFinalized</span>(<span class="kw">_</span>, <span class="kw">_</span>)) =&gt; {},
-			<span class="ident">FromOrchestra::Communication</span> { <span class="ident">msg</span> } =&gt;
-			<span class="comment">// NOTE: We could technically actually handle a couple of message types, even if</span>
-			<span class="comment">// not initialized (e.g. all requests that only query the database). The problem</span>
-			<span class="comment">// is, we would deliver potentially outdated information, especially in the event</span>
-			<span class="comment">// of bugs where initialization fails for a while (e.g. `SessionInfo`s are not</span>
-			<span class="comment">// available). So instead of telling subsystems, everything is fine, because of an</span>
-			<span class="comment">// hour old database state, we should rather cancel contained oneshots and delay</span>
-			<span class="comment">// finality until we are fully functional.</span>
-			{
+			FromOrchestra::Signal(OverseerSignal::BlockFinalized(<span class="kw">_</span>, <span class="kw">_</span>)) =&gt; {},
+			FromOrchestra::Communication { msg } =&gt;
+			<span class="comment">// NOTE: We could technically actually handle a couple of message types, even if
+			// not initialized (e.g. all requests that only query the database). The problem
+			// is, we would deliver potentially outdated information, especially in the event
+			// of bugs where initialization fails for a while (e.g. `SessionInfo`s are not
+			// available). So instead of telling subsystems, everything is fine, because of an
+			// hour old database state, we should rather cancel contained oneshots and delay
+			// finality until we are fully functional.
+			</span>{
 				<span class="macro">gum::warn!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">msg</span>,
-					<span class="string">&quot;Received msg before first active leaves update. This is not expected - message will be dropped.&quot;</span>
-				)
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>msg,
+					<span class="string">&quot;Received msg before first active leaves update. This is not expected - message will be dropped.&quot;
+				</span>)
 			},
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

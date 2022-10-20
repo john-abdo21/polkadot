@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/request_response/incoming/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/request_response/incoming/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -238,240 +232,239 @@
 <span id="232">232</span>
 <span id="233">233</span>
 <span id="234">234</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+</span><span class="kw">use </span>std::marker::PhantomData;
 
-<span class="kw">use</span> <span class="ident">futures</span>::{
-	<span class="ident">channel</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>},
-	<span class="ident">StreamExt</span>,
+<span class="kw">use </span>futures::{
+	channel::{mpsc, oneshot},
+	StreamExt,
 };
 
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 
-<span class="kw">use</span> <span class="ident">sc_network</span>::{<span class="ident">config</span> <span class="kw">as</span> <span class="ident">netconfig</span>, <span class="ident">config::RequestResponseConfig</span>, <span class="ident">PeerId</span>};
+<span class="kw">use </span>sc_network::{config <span class="kw">as </span>netconfig, config::RequestResponseConfig, PeerId};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">IsRequest</span>, <span class="ident">ReqProtocolNames</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::UnifiedReputationChange</span>;
+<span class="kw">use super</span>::{IsRequest, ReqProtocolNames};
+<span class="kw">use </span><span class="kw">crate</span>::UnifiedReputationChange;
 
-<span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">FatalError</span>, <span class="ident">JfyiError</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">mod </span>error;
+<span class="kw">pub use </span>error::{Error, FatalError, JfyiError, <span class="prelude-ty">Result</span>};
 
-<span class="doccomment">/// A request coming in, including a sender for sending responses.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Typed `IncomingRequest`s, see `IncomingRequest::get_config_receiver` and substrate</span>
-<span class="doccomment">/// `NetworkConfiguration` for more information.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// `PeerId` of sending peer.</span>
-	<span class="kw">pub</span> <span class="ident">peer</span>: <span class="ident">PeerId</span>,
-	<span class="doccomment">/// The sent request.</span>
-	<span class="kw">pub</span> <span class="ident">payload</span>: <span class="ident">Req</span>,
-	<span class="doccomment">/// Sender for sending response back.</span>
-	<span class="kw">pub</span> <span class="ident">pending_response</span>: <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A request coming in, including a sender for sending responses.
+///
+/// Typed `IncomingRequest`s, see `IncomingRequest::get_config_receiver` and substrate
+/// `NetworkConfiguration` for more information.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>IncomingRequest&lt;Req&gt; {
+	<span class="doccomment">/// `PeerId` of sending peer.
+	</span><span class="kw">pub </span>peer: PeerId,
+	<span class="doccomment">/// The sent request.
+	</span><span class="kw">pub </span>payload: Req,
+	<span class="doccomment">/// Sender for sending response back.
+	</span><span class="kw">pub </span>pending_response: OutgoingResponseSender&lt;Req&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span> <span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Req</span>: <span class="ident">IsRequest</span> <span class="op">+</span> <span class="ident">Decode</span> <span class="op">+</span> <span class="ident">Encode</span>,
-	<span class="ident">Req::Response</span>: <span class="ident">Encode</span>,
+<span class="kw">impl</span>&lt;Req&gt; IncomingRequest&lt;Req&gt;
+<span class="kw">where
+	</span>Req: IsRequest + Decode + Encode,
+	Req::Response: Encode,
 {
-	<span class="doccomment">/// Create configuration for `NetworkConfiguration::request_response_porotocols` and a</span>
-	<span class="doccomment">/// corresponding typed receiver.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This Register that config with substrate networking and receive incoming requests via the</span>
-	<span class="doccomment">/// returned `IncomingRequestReceiver`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_config_receiver</span>(
-		<span class="ident">req_protocol_names</span>: <span class="kw-2">&amp;</span><span class="ident">ReqProtocolNames</span>,
-	) -&gt; (<span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>, <span class="ident">RequestResponseConfig</span>) {
-		<span class="kw">let</span> (<span class="ident">raw</span>, <span class="ident">cfg</span>) <span class="op">=</span> <span class="ident">Req::PROTOCOL</span>.<span class="ident">get_config</span>(<span class="ident">req_protocol_names</span>);
-		(<span class="ident">IncomingRequestReceiver</span> { <span class="ident">raw</span>, <span class="ident">phantom</span>: <span class="ident">PhantomData</span> {} }, <span class="ident">cfg</span>)
+	<span class="doccomment">/// Create configuration for `NetworkConfiguration::request_response_porotocols` and a
+	/// corresponding typed receiver.
+	///
+	/// This Register that config with substrate networking and receive incoming requests via the
+	/// returned `IncomingRequestReceiver`.
+	</span><span class="kw">pub fn </span>get_config_receiver(
+		req_protocol_names: <span class="kw-2">&amp;</span>ReqProtocolNames,
+	) -&gt; (IncomingRequestReceiver&lt;Req&gt;, RequestResponseConfig) {
+		<span class="kw">let </span>(raw, cfg) = Req::PROTOCOL.get_config(req_protocol_names);
+		(IncomingRequestReceiver { raw, phantom: PhantomData {} }, cfg)
 	}
 
-	<span class="doccomment">/// Create new `IncomingRequest`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">peer</span>: <span class="ident">PeerId</span>,
-		<span class="ident">payload</span>: <span class="ident">Req</span>,
-		<span class="ident">pending_response</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">netconfig::OutgoingResponse</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">peer</span>,
-			<span class="ident">payload</span>,
-			<span class="ident">pending_response</span>: <span class="ident">OutgoingResponseSender</span> { <span class="ident">pending_response</span>, <span class="ident">phantom</span>: <span class="ident">PhantomData</span> {} },
+	<span class="doccomment">/// Create new `IncomingRequest`.
+	</span><span class="kw">pub fn </span>new(
+		peer: PeerId,
+		payload: Req,
+		pending_response: oneshot::Sender&lt;netconfig::OutgoingResponse&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			peer,
+			payload,
+			pending_response: OutgoingResponseSender { pending_response, phantom: PhantomData {} },
 		}
 	}
 
-	<span class="doccomment">/// Try building from raw substrate request.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This function will fail if the request cannot be decoded and will apply passed in</span>
-	<span class="doccomment">/// reputation changes in that case.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Params:</span>
-	<span class="doccomment">///		- The raw request to decode</span>
-	<span class="doccomment">///		- Reputation changes to apply for the peer in case decoding fails.</span>
-	<span class="kw">fn</span> <span class="ident">try_from_raw</span>(
-		<span class="ident">raw</span>: <span class="ident">sc_network::config::IncomingRequest</span>,
-		<span class="ident">reputation_changes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UnifiedReputationChange</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">JfyiError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">sc_network::config::IncomingRequest</span> { <span class="ident">payload</span>, <span class="ident">peer</span>, <span class="ident">pending_response</span> } <span class="op">=</span> <span class="ident">raw</span>;
-		<span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Req::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">payload</span>.<span class="ident">as_ref</span>()) {
-			<span class="prelude-val">Ok</span>(<span class="ident">payload</span>) =&gt; <span class="ident">payload</span>,
-			<span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-				<span class="kw">let</span> <span class="ident">reputation_changes</span> <span class="op">=</span>
-					<span class="ident">reputation_changes</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">into_base_rep</span>()).<span class="ident">collect</span>();
-				<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">sc_network::config::OutgoingResponse</span> {
-					<span class="ident">result</span>: <span class="prelude-val">Err</span>(()),
-					<span class="ident">reputation_changes</span>,
-					<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
+	<span class="doccomment">/// Try building from raw substrate request.
+	///
+	/// This function will fail if the request cannot be decoded and will apply passed in
+	/// reputation changes in that case.
+	///
+	/// Params:
+	///		- The raw request to decode
+	///		- Reputation changes to apply for the peer in case decoding fails.
+	</span><span class="kw">fn </span>try_from_raw(
+		raw: sc_network::config::IncomingRequest,
+		reputation_changes: Vec&lt;UnifiedReputationChange&gt;,
+	) -&gt; std::result::Result&lt;<span class="self">Self</span>, JfyiError&gt; {
+		<span class="kw">let </span>sc_network::config::IncomingRequest { payload, peer, pending_response } = raw;
+		<span class="kw">let </span>payload = <span class="kw">match </span>Req::decode(<span class="kw-2">&amp;mut </span>payload.as_ref()) {
+			<span class="prelude-val">Ok</span>(payload) =&gt; payload,
+			<span class="prelude-val">Err</span>(err) =&gt; {
+				<span class="kw">let </span>reputation_changes =
+					reputation_changes.into_iter().map(|r| r.into_base_rep()).collect();
+				<span class="kw">let </span>response = sc_network::config::OutgoingResponse {
+					result: <span class="prelude-val">Err</span>(()),
+					reputation_changes,
+					sent_feedback: <span class="prelude-val">None</span>,
 				};
 
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">pending_response</span>.<span class="ident">send</span>(<span class="ident">response</span>) {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JfyiError::DecodingErrorNoReputationChange</span>(<span class="ident">peer</span>, <span class="ident">err</span>))
+				<span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = pending_response.send(response) {
+					<span class="kw">return </span><span class="prelude-val">Err</span>(JfyiError::DecodingErrorNoReputationChange(peer, err))
 				}
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JfyiError::DecodingError</span>(<span class="ident">peer</span>, <span class="ident">err</span>))
+				<span class="kw">return </span><span class="prelude-val">Err</span>(JfyiError::DecodingError(peer, err))
 			},
 		};
-		<span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">peer</span>, <span class="ident">payload</span>, <span class="ident">pending_response</span>))
+		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(peer, payload, pending_response))
 	}
 
-	<span class="doccomment">/// Convert into raw untyped substrate `IncomingRequest`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is mostly useful for testing.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">sc_network::config::IncomingRequest</span> {
-		<span class="ident">sc_network::config::IncomingRequest</span> {
-			<span class="ident">peer</span>: <span class="self">self</span>.<span class="ident">peer</span>,
-			<span class="ident">payload</span>: <span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">encode</span>(),
-			<span class="ident">pending_response</span>: <span class="self">self</span>.<span class="ident">pending_response</span>.<span class="ident">pending_response</span>,
+	<span class="doccomment">/// Convert into raw untyped substrate `IncomingRequest`.
+	///
+	/// This is mostly useful for testing.
+	</span><span class="kw">pub fn </span>into_raw(<span class="self">self</span>) -&gt; sc_network::config::IncomingRequest {
+		sc_network::config::IncomingRequest {
+			peer: <span class="self">self</span>.peer,
+			payload: <span class="self">self</span>.payload.encode(),
+			pending_response: <span class="self">self</span>.pending_response.pending_response,
 		}
 	}
 
-	<span class="doccomment">/// Send the response back.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Calls [`OutgoingResponseSender::send_response`].</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_response</span>(<span class="self">self</span>, <span class="ident">resp</span>: <span class="ident">Req::Response</span>) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(), <span class="ident">Req::Response</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">pending_response</span>.<span class="ident">send_response</span>(<span class="ident">resp</span>)
+	<span class="doccomment">/// Send the response back.
+	///
+	/// Calls [`OutgoingResponseSender::send_response`].
+	</span><span class="kw">pub fn </span>send_response(<span class="self">self</span>, resp: Req::Response) -&gt; std::result::Result&lt;(), Req::Response&gt; {
+		<span class="self">self</span>.pending_response.send_response(resp)
 	}
 
-	<span class="doccomment">/// Send response with additional options.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Calls [`OutgoingResponseSender::send_outgoing_response`].</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_outgoing_response</span>(
+	<span class="doccomment">/// Send response with additional options.
+	///
+	/// Calls [`OutgoingResponseSender::send_outgoing_response`].
+	</span><span class="kw">pub fn </span>send_outgoing_response(
 		<span class="self">self</span>,
-		<span class="ident">resp</span>: <span class="ident">OutgoingResponse</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Req</span> <span class="kw">as</span> <span class="ident">IsRequest</span><span class="op">&gt;</span><span class="ident">::Response</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">pending_response</span>.<span class="ident">send_outgoing_response</span>(<span class="ident">resp</span>)
+		resp: OutgoingResponse&lt;&lt;Req <span class="kw">as </span>IsRequest&gt;::Response&gt;,
+	) -&gt; std::result::Result&lt;(), ()&gt; {
+		<span class="self">self</span>.pending_response.send_outgoing_response(resp)
 	}
 }
 
-<span class="doccomment">/// Sender for sending back responses on an `IncomingRequest`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span> {
-	<span class="ident">pending_response</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">netconfig::OutgoingResponse</span><span class="op">&gt;</span>,
-	<span class="ident">phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Sender for sending back responses on an `IncomingRequest`.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>OutgoingResponseSender&lt;Req&gt; {
+	pending_response: oneshot::Sender&lt;netconfig::OutgoingResponse&gt;,
+	phantom: PhantomData&lt;Req&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span> <span class="ident">OutgoingResponseSender</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Req</span>: <span class="ident">IsRequest</span> <span class="op">+</span> <span class="ident">Decode</span>,
-	<span class="ident">Req::Response</span>: <span class="ident">Encode</span>,
+<span class="kw">impl</span>&lt;Req&gt; OutgoingResponseSender&lt;Req&gt;
+<span class="kw">where
+	</span>Req: IsRequest + Decode,
+	Req::Response: Encode,
 {
-	<span class="doccomment">/// Send the response back.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// On success we return `Ok(())`, on error we return the not sent `Response`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// `netconfig::OutgoingResponse` exposes a way of modifying the peer&#39;s reputation. If needed we</span>
-	<span class="doccomment">/// can change this function to expose this feature as well.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_response</span>(<span class="self">self</span>, <span class="ident">resp</span>: <span class="ident">Req::Response</span>) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(), <span class="ident">Req::Response</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">pending_response</span>
-			.<span class="ident">send</span>(<span class="ident">netconfig::OutgoingResponse</span> {
-				<span class="ident">result</span>: <span class="prelude-val">Ok</span>(<span class="ident">resp</span>.<span class="ident">encode</span>()),
-				<span class="ident">reputation_changes</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">sent_feedback</span>: <span class="prelude-val">None</span>,
+	<span class="doccomment">/// Send the response back.
+	///
+	/// On success we return `Ok(())`, on error we return the not sent `Response`.
+	///
+	/// `netconfig::OutgoingResponse` exposes a way of modifying the peer&#39;s reputation. If needed we
+	/// can change this function to expose this feature as well.
+	</span><span class="kw">pub fn </span>send_response(<span class="self">self</span>, resp: Req::Response) -&gt; std::result::Result&lt;(), Req::Response&gt; {
+		<span class="self">self</span>.pending_response
+			.send(netconfig::OutgoingResponse {
+				result: <span class="prelude-val">Ok</span>(resp.encode()),
+				reputation_changes: Vec::new(),
+				sent_feedback: <span class="prelude-val">None</span>,
 			})
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">resp</span>)
+			.map_err(|<span class="kw">_</span>| resp)
 	}
 
-	<span class="doccomment">/// Send response with additional options.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This variant allows for waiting for the response to be sent out, allows for changing peer&#39;s</span>
-	<span class="doccomment">/// reputation and allows for not sending a response at all (for only changing the peer&#39;s</span>
-	<span class="doccomment">/// reputation).</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send_outgoing_response</span>(
+	<span class="doccomment">/// Send response with additional options.
+	///
+	/// This variant allows for waiting for the response to be sent out, allows for changing peer&#39;s
+	/// reputation and allows for not sending a response at all (for only changing the peer&#39;s
+	/// reputation).
+	</span><span class="kw">pub fn </span>send_outgoing_response(
 		<span class="self">self</span>,
-		<span class="ident">resp</span>: <span class="ident">OutgoingResponse</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Req</span> <span class="kw">as</span> <span class="ident">IsRequest</span><span class="op">&gt;</span><span class="ident">::Response</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">OutgoingResponse</span> { <span class="ident">result</span>, <span class="ident">reputation_changes</span>, <span class="ident">sent_feedback</span> } <span class="op">=</span> <span class="ident">resp</span>;
+		resp: OutgoingResponse&lt;&lt;Req <span class="kw">as </span>IsRequest&gt;::Response&gt;,
+	) -&gt; std::result::Result&lt;(), ()&gt; {
+		<span class="kw">let </span>OutgoingResponse { result, reputation_changes, sent_feedback } = resp;
 
-		<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">netconfig::OutgoingResponse</span> {
-			<span class="ident">result</span>: <span class="ident">result</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">encode</span>()),
-			<span class="ident">reputation_changes</span>: <span class="ident">reputation_changes</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">into_base_rep</span>()).<span class="ident">collect</span>(),
-			<span class="ident">sent_feedback</span>,
+		<span class="kw">let </span>response = netconfig::OutgoingResponse {
+			result: result.map(|v| v.encode()),
+			reputation_changes: reputation_changes.into_iter().map(|c| c.into_base_rep()).collect(),
+			sent_feedback,
 		};
 
-		<span class="self">self</span>.<span class="ident">pending_response</span>.<span class="ident">send</span>(<span class="ident">response</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+		<span class="self">self</span>.pending_response.send(response).map_err(|<span class="kw">_</span>| ())
 	}
 }
 
-<span class="doccomment">/// Typed variant of [`netconfig::OutgoingResponse`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Responses to `IncomingRequest`s.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OutgoingResponse</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// The payload of the response.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// `Err(())` if none is available e.g. due to an error while handling the request.</span>
-	<span class="kw">pub</span> <span class="ident">result</span>: <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">Response</span>, ()<span class="op">&gt;</span>,
+<span class="doccomment">/// Typed variant of [`netconfig::OutgoingResponse`].
+///
+/// Responses to `IncomingRequest`s.
+</span><span class="kw">pub struct </span>OutgoingResponse&lt;Response&gt; {
+	<span class="doccomment">/// The payload of the response.
+	///
+	/// `Err(())` if none is available e.g. due to an error while handling the request.
+	</span><span class="kw">pub </span>result: std::result::Result&lt;Response, ()&gt;,
 
-	<span class="doccomment">/// Reputation changes accrued while handling the request. To be applied to the reputation of</span>
-	<span class="doccomment">/// the peer sending the request.</span>
-	<span class="kw">pub</span> <span class="ident">reputation_changes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UnifiedReputationChange</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Reputation changes accrued while handling the request. To be applied to the reputation of
+	/// the peer sending the request.
+	</span><span class="kw">pub </span>reputation_changes: Vec&lt;UnifiedReputationChange&gt;,
 
-	<span class="doccomment">/// If provided, the `oneshot::Sender` will be notified when the request has been sent to the</span>
-	<span class="doccomment">/// peer.</span>
-	<span class="kw">pub</span> <span class="ident">sent_feedback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">oneshot::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// If provided, the `oneshot::Sender` will be notified when the request has been sent to the
+	/// peer.
+	</span><span class="kw">pub </span>sent_feedback: <span class="prelude-ty">Option</span>&lt;oneshot::Sender&lt;()&gt;&gt;,
 }
 
-<span class="doccomment">/// Receiver for incoming requests.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Takes care of decoding and handling of invalid encoded requests.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span> {
-	<span class="ident">raw</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">netconfig::IncomingRequest</span><span class="op">&gt;</span>,
-	<span class="ident">phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Receiver for incoming requests.
+///
+/// Takes care of decoding and handling of invalid encoded requests.
+</span><span class="kw">pub struct </span>IncomingRequestReceiver&lt;Req&gt; {
+	raw: mpsc::Receiver&lt;netconfig::IncomingRequest&gt;,
+	phantom: PhantomData&lt;Req&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span> <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Req</span>: <span class="ident">IsRequest</span> <span class="op">+</span> <span class="ident">Decode</span> <span class="op">+</span> <span class="ident">Encode</span>,
-	<span class="ident">Req::Response</span>: <span class="ident">Encode</span>,
+<span class="kw">impl</span>&lt;Req&gt; IncomingRequestReceiver&lt;Req&gt;
+<span class="kw">where
+	</span>Req: IsRequest + Decode + Encode,
+	Req::Response: Encode,
 {
-	<span class="doccomment">/// Try to receive the next incoming request.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Any received request will be decoded, on decoding errors the provided reputation changes</span>
-	<span class="doccomment">/// will be applied and an error will be reported.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">reputation_changes</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IncomingRequest</span><span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UnifiedReputationChange</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Try to receive the next incoming request.
+	///
+	/// Any received request will be decoded, on decoding errors the provided reputation changes
+	/// will be applied and an error will be reported.
+	</span><span class="kw">pub async fn </span>recv&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, reputation_changes: F) -&gt; <span class="prelude-ty">Result</span>&lt;IncomingRequest&lt;Req&gt;&gt;
+	<span class="kw">where
+		</span>F: FnOnce() -&gt; Vec&lt;UnifiedReputationChange&gt;,
 	{
-		<span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">next</span>().<span class="kw">await</span> {
-			<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">FatalError::RequestChannelExhausted</span>.<span class="ident">into</span>()),
-			<span class="prelude-val">Some</span>(<span class="ident">raw</span>) =&gt; <span class="ident">IncomingRequest</span>::<span class="op">&lt;</span><span class="ident">Req</span><span class="op">&gt;</span><span class="ident">::try_from_raw</span>(<span class="ident">raw</span>, <span class="ident">reputation_changes</span>())<span class="question-mark">?</span>,
+		<span class="kw">let </span>req = <span class="kw">match </span><span class="self">self</span>.raw.next().<span class="kw">await </span>{
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(FatalError::RequestChannelExhausted.into()),
+			<span class="prelude-val">Some</span>(raw) =&gt; IncomingRequest::&lt;Req&gt;::try_from_raw(raw, reputation_changes())<span class="question-mark">?</span>,
 		};
-		<span class="prelude-val">Ok</span>(<span class="ident">req</span>)
+		<span class="prelude-val">Ok</span>(req)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

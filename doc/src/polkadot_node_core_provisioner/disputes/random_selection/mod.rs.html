@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/provisioner/src/disputes/random_selection/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_node_core_provisioner/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/provisioner/src/disputes/random_selection/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_node_core_provisioner/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -198,200 +192,199 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! This module selects all RECENT disputes, fetches the votes for them from dispute-coordinator and</span>
-<span class="doccomment">//! returns them as `MultiDisputeStatementSet`. If the RECENT disputes are more than</span>
-<span class="doccomment">//! `MAX_DISPUTES_FORWARDED_TO_RUNTIME` constant - the ACTIVE disputes plus a random selection of</span>
-<span class="doccomment">//! RECENT disputes (up to `MAX_DISPUTES_FORWARDED_TO_RUNTIME`) are returned instead.</span>
-<span class="doccomment">//! If the ACTIVE disputes are also above `MAX_DISPUTES_FORWARDED_TO_RUNTIME` limit - a random selection</span>
-<span class="doccomment">//! of them is generated.</span>
+</span><span class="doccomment">//! This module selects all RECENT disputes, fetches the votes for them from dispute-coordinator and
+//! returns them as `MultiDisputeStatementSet`. If the RECENT disputes are more than
+//! `MAX_DISPUTES_FORWARDED_TO_RUNTIME` constant - the ACTIVE disputes plus a random selection of
+//! RECENT disputes (up to `MAX_DISPUTES_FORWARDED_TO_RUNTIME`) are returned instead.
+//! If the ACTIVE disputes are also above `MAX_DISPUTES_FORWARDED_TO_RUNTIME` limit - a random selection
+//! of them is generated.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">metrics</span>, <span class="ident">LOG_TARGET</span>};
-<span class="kw">use</span> <span class="ident">futures::channel::oneshot</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{<span class="ident">messages::DisputeCoordinatorMessage</span>, <span class="ident">overseer</span>};
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">CandidateHash</span>, <span class="ident">DisputeStatement</span>, <span class="ident">DisputeStatementSet</span>, <span class="ident">MultiDisputeStatementSet</span>, <span class="ident">SessionIndex</span>,
+</span><span class="kw">use crate</span>::{metrics, LOG_TARGET};
+<span class="kw">use </span>futures::channel::oneshot;
+<span class="kw">use </span>polkadot_node_subsystem::{messages::DisputeCoordinatorMessage, overseer};
+<span class="kw">use </span>polkadot_primitives::v2::{
+	CandidateHash, DisputeStatement, DisputeStatementSet, MultiDisputeStatementSet, SessionIndex,
 };
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span class="kw">use </span>std::collections::HashSet;
 
-<span class="doccomment">/// The maximum number of disputes Provisioner will include in the inherent data.</span>
-<span class="doccomment">/// Serves as a protection not to flood the Runtime with excessive data.</span>
-<span class="kw">const</span> <span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1_000</span>;
+<span class="doccomment">/// The maximum number of disputes Provisioner will include in the inherent data.
+/// Serves as a protection not to flood the Runtime with excessive data.
+</span><span class="kw">const </span>MAX_DISPUTES_FORWARDED_TO_RUNTIME: usize = <span class="number">1_000</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">RequestType</span> {
-	<span class="doccomment">/// Query recent disputes, could be an excessive amount.</span>
-	<span class="ident">Recent</span>,
-	<span class="doccomment">/// Query the currently active and very recently concluded disputes.</span>
-	<span class="ident">Active</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>RequestType {
+	<span class="doccomment">/// Query recent disputes, could be an excessive amount.
+	</span>Recent,
+	<span class="doccomment">/// Query the currently active and very recently concluded disputes.
+	</span>Active,
 }
 
-<span class="doccomment">/// Request open disputes identified by `CandidateHash` and the `SessionIndex`.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">request_disputes</span>(
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">overseer::ProvisionerSenderTrait</span>,
-	<span class="ident">active_or_recent</span>: <span class="ident">RequestType</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">disputes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">active_or_recent</span> {
-		<span class="ident">RequestType::Recent</span> =&gt; {
-			<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">DisputeCoordinatorMessage::RecentDisputes</span>(<span class="ident">tx</span>);
-			<span class="ident">sender</span>.<span class="ident">send_unbounded_message</span>(<span class="ident">msg</span>);
-			<span class="kw">let</span> <span class="ident">recent_disputes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rx</span>.<span class="kw">await</span> {
-				<span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
-				<span class="prelude-val">Err</span>(<span class="ident">oneshot::Canceled</span>) =&gt; {
+<span class="doccomment">/// Request open disputes identified by `CandidateHash` and the `SessionIndex`.
+</span><span class="kw">async fn </span>request_disputes(
+	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::ProvisionerSenderTrait,
+	active_or_recent: RequestType,
+) -&gt; Vec&lt;(SessionIndex, CandidateHash)&gt; {
+	<span class="kw">let </span>disputes = <span class="kw">match </span>active_or_recent {
+		RequestType::Recent =&gt; {
+			<span class="kw">let </span>(tx, rx) = oneshot::channel();
+			<span class="kw">let </span>msg = DisputeCoordinatorMessage::RecentDisputes(tx);
+			sender.send_unbounded_message(msg);
+			<span class="kw">let </span>recent_disputes = <span class="kw">match </span>rx.<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(r) =&gt; r,
+				<span class="prelude-val">Err</span>(oneshot::Canceled) =&gt; {
 					<span class="macro">gum::warn!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+						target: LOG_TARGET,
 						<span class="string">&quot;Channel closed: unable to gather {:?} disputes&quot;</span>,
-						<span class="ident">active_or_recent</span>
+						active_or_recent
 					);
-					<span class="ident">Vec::new</span>()
+					Vec::new()
 				},
 			};
-			<span class="ident">recent_disputes</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">sesion_idx</span>, <span class="ident">candodate_hash</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">sesion_idx</span>, <span class="ident">candodate_hash</span>))
-				.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+			recent_disputes
+				.into_iter()
+				.map(|(sesion_idx, candodate_hash, <span class="kw">_</span>)| (sesion_idx, candodate_hash))
+				.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 		},
-		<span class="ident">RequestType::Active</span> =&gt; {
-			<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">DisputeCoordinatorMessage::ActiveDisputes</span>(<span class="ident">tx</span>);
-			<span class="ident">sender</span>.<span class="ident">send_unbounded_message</span>(<span class="ident">msg</span>);
-			<span class="kw">let</span> <span class="ident">active_disputes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rx</span>.<span class="kw">await</span> {
-				<span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
-				<span class="prelude-val">Err</span>(<span class="ident">oneshot::Canceled</span>) =&gt; {
+		RequestType::Active =&gt; {
+			<span class="kw">let </span>(tx, rx) = oneshot::channel();
+			<span class="kw">let </span>msg = DisputeCoordinatorMessage::ActiveDisputes(tx);
+			sender.send_unbounded_message(msg);
+			<span class="kw">let </span>active_disputes = <span class="kw">match </span>rx.<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(r) =&gt; r,
+				<span class="prelude-val">Err</span>(oneshot::Canceled) =&gt; {
 					<span class="macro">gum::warn!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+						target: LOG_TARGET,
 						<span class="string">&quot;Unable to gather {:?} disputes&quot;</span>,
-						<span class="ident">active_or_recent</span>
+						active_or_recent
 					);
-					<span class="ident">Vec::new</span>()
+					Vec::new()
 				},
 			};
-			<span class="ident">active_disputes</span>
+			active_disputes
 		},
 	};
 
-	<span class="ident">disputes</span>
+	disputes
 }
 
-<span class="doccomment">/// Extend `acc` by `n` random, picks of not-yet-present in `acc` items of `recent` without repetition and additions of recent.</span>
-<span class="kw">fn</span> <span class="ident">extend_by_random_subset_without_repetition</span>(
-	<span class="ident">acc</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="ident">extension</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="ident">n</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Extend `acc` by `n` random, picks of not-yet-present in `acc` items of `recent` without repetition and additions of recent.
+</span><span class="kw">fn </span>extend_by_random_subset_without_repetition(
+	acc: <span class="kw-2">&amp;mut </span>Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	extension: Vec&lt;(SessionIndex, CandidateHash)&gt;,
+	n: usize,
 ) {
-	<span class="kw">use</span> <span class="ident">rand::Rng</span>;
+	<span class="kw">use </span>rand::Rng;
 
-	<span class="kw">let</span> <span class="ident">lut</span> <span class="op">=</span> <span class="ident">acc</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span><span class="op">&gt;</span>();
+	<span class="kw">let </span>lut = acc.iter().cloned().collect::&lt;HashSet&lt;(SessionIndex, CandidateHash)&gt;&gt;();
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unique_new</span> <span class="op">=</span>
-		<span class="ident">extension</span>.<span class="ident">into_iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">recent</span><span class="op">|</span> <span class="op">!</span><span class="ident">lut</span>.<span class="ident">contains</span>(<span class="ident">recent</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+	<span class="kw">let </span><span class="kw-2">mut </span>unique_new =
+		extension.into_iter().filter(|recent| !lut.contains(recent)).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-	<span class="comment">// we can simply add all</span>
-	<span class="kw">if</span> <span class="ident">unique_new</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">n</span> {
-		<span class="ident">acc</span>.<span class="ident">extend</span>(<span class="ident">unique_new</span>)
-	} <span class="kw">else</span> {
-		<span class="ident">acc</span>.<span class="ident">reserve</span>(<span class="ident">n</span>);
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">rand::thread_rng</span>();
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n</span> {
-			<span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">gen_range</span>(<span class="number">0</span>..<span class="ident">unique_new</span>.<span class="ident">len</span>());
-			<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">unique_new</span>.<span class="ident">swap_remove</span>(<span class="ident">idx</span>));
+	<span class="comment">// we can simply add all
+	</span><span class="kw">if </span>unique_new.len() &lt;= n {
+		acc.extend(unique_new)
+	} <span class="kw">else </span>{
+		acc.reserve(n);
+		<span class="kw">let </span><span class="kw-2">mut </span>rng = rand::thread_rng();
+		<span class="kw">for _ in </span><span class="number">0</span>..n {
+			<span class="kw">let </span>idx = rng.gen_range(<span class="number">0</span>..unique_new.len());
+			acc.push(unique_new.swap_remove(idx));
 		}
 	}
-	<span class="comment">// assure sorting stays candid according to session index</span>
-	<span class="ident">acc</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="number">0</span>));
+	<span class="comment">// assure sorting stays candid according to session index
+	</span>acc.sort_unstable_by(|a, b| a.<span class="number">0</span>.cmp(<span class="kw-2">&amp;</span>b.<span class="number">0</span>));
 }
 
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">select_disputes</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&gt;</span>(
-	<span class="ident">sender</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Sender</span>,
-	<span class="ident">metrics</span>: <span class="kw-2">&amp;</span><span class="ident">metrics::Metrics</span>,
-) -&gt; <span class="ident">MultiDisputeStatementSet</span>
-<span class="kw">where</span>
-	<span class="ident">Sender</span>: <span class="ident">overseer::ProvisionerSenderTrait</span>,
+<span class="kw">pub async fn </span>select_disputes&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
+	metrics: <span class="kw-2">&amp;</span>metrics::Metrics,
+) -&gt; MultiDisputeStatementSet
+<span class="kw">where
+	</span>Sender: overseer::ProvisionerSenderTrait,
 {
-	<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;Selecting disputes for inherent data using random selection&quot;</span>);
+	<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Selecting disputes for inherent data using random selection&quot;</span>);
 
-	<span class="comment">// We use `RecentDisputes` instead of `ActiveDisputes` because redundancy is fine.</span>
-	<span class="comment">// It&#39;s heavier than `ActiveDisputes` but ensures that everything from the dispute</span>
-	<span class="comment">// window gets on-chain, unlike `ActiveDisputes`.</span>
-	<span class="comment">// In case of an overload condition, we limit ourselves to active disputes, and fill up to the</span>
-	<span class="comment">// upper bound of disputes to pass to wasm `fn create_inherent_data`.</span>
-	<span class="comment">// If the active ones are already exceeding the bounds, randomly select a subset.</span>
-	<span class="kw">let</span> <span class="ident">recent</span> <span class="op">=</span> <span class="ident">request_disputes</span>(<span class="ident">sender</span>, <span class="ident">RequestType::Recent</span>).<span class="kw">await</span>;
-	<span class="kw">let</span> <span class="ident">disputes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">recent</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span> {
+	<span class="comment">// We use `RecentDisputes` instead of `ActiveDisputes` because redundancy is fine.
+	// It&#39;s heavier than `ActiveDisputes` but ensures that everything from the dispute
+	// window gets on-chain, unlike `ActiveDisputes`.
+	// In case of an overload condition, we limit ourselves to active disputes, and fill up to the
+	// upper bound of disputes to pass to wasm `fn create_inherent_data`.
+	// If the active ones are already exceeding the bounds, randomly select a subset.
+	</span><span class="kw">let </span>recent = request_disputes(sender, RequestType::Recent).<span class="kw">await</span>;
+	<span class="kw">let </span>disputes = <span class="kw">if </span>recent.len() &gt; MAX_DISPUTES_FORWARDED_TO_RUNTIME {
 		<span class="macro">gum::warn!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;Recent disputes are excessive ({} &gt; {}), reduce to active ones, and selected&quot;</span>,
-			<span class="ident">recent</span>.<span class="ident">len</span>(),
-			<span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span>
+			recent.len(),
+			MAX_DISPUTES_FORWARDED_TO_RUNTIME
 		);
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">active</span> <span class="op">=</span> <span class="ident">request_disputes</span>(<span class="ident">sender</span>, <span class="ident">RequestType::Active</span>).<span class="kw">await</span>;
-		<span class="kw">let</span> <span class="ident">n_active</span> <span class="op">=</span> <span class="ident">active</span>.<span class="ident">len</span>();
-		<span class="kw">let</span> <span class="ident">active</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">active</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">picked</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span>);
-			<span class="ident">extend_by_random_subset_without_repetition</span>(
-				<span class="kw-2">&amp;mut</span> <span class="ident">picked</span>,
-				<span class="ident">active</span>,
-				<span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span>,
+		<span class="kw">let </span><span class="kw-2">mut </span>active = request_disputes(sender, RequestType::Active).<span class="kw">await</span>;
+		<span class="kw">let </span>n_active = active.len();
+		<span class="kw">let </span>active = <span class="kw">if </span>active.len() &gt; MAX_DISPUTES_FORWARDED_TO_RUNTIME {
+			<span class="kw">let </span><span class="kw-2">mut </span>picked = Vec::with_capacity(MAX_DISPUTES_FORWARDED_TO_RUNTIME);
+			extend_by_random_subset_without_repetition(
+				<span class="kw-2">&amp;mut </span>picked,
+				active,
+				MAX_DISPUTES_FORWARDED_TO_RUNTIME,
 			);
-			<span class="ident">picked</span>
-		} <span class="kw">else</span> {
-			<span class="ident">extend_by_random_subset_without_repetition</span>(
-				<span class="kw-2">&amp;mut</span> <span class="ident">active</span>,
-				<span class="ident">recent</span>,
-				<span class="ident">MAX_DISPUTES_FORWARDED_TO_RUNTIME</span>.<span class="ident">saturating_sub</span>(<span class="ident">n_active</span>),
+			picked
+		} <span class="kw">else </span>{
+			extend_by_random_subset_without_repetition(
+				<span class="kw-2">&amp;mut </span>active,
+				recent,
+				MAX_DISPUTES_FORWARDED_TO_RUNTIME.saturating_sub(n_active),
 			);
-			<span class="ident">active</span>
+			active
 		};
-		<span class="ident">active</span>
-	} <span class="kw">else</span> {
-		<span class="ident">recent</span>
+		active
+	} <span class="kw">else </span>{
+		recent
 	};
 
-	<span class="comment">// Load all votes for all disputes from the coordinator.</span>
-	<span class="kw">let</span> <span class="ident">dispute_candidate_votes</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::request_votes</span>(<span class="ident">sender</span>, <span class="ident">disputes</span>).<span class="kw">await</span>;
+	<span class="comment">// Load all votes for all disputes from the coordinator.
+	</span><span class="kw">let </span>dispute_candidate_votes = <span class="kw">super</span>::request_votes(sender, disputes).<span class="kw">await</span>;
 
-	<span class="comment">// Transform all `CandidateVotes` into `MultiDisputeStatementSet`.</span>
-	<span class="ident">dispute_candidate_votes</span>
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">session_index</span>, <span class="ident">candidate_hash</span>, <span class="ident">votes</span>)<span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">valid_statements</span> <span class="op">=</span> <span class="ident">votes</span>
-				.<span class="ident">valid</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, (<span class="ident">s</span>, <span class="ident">sig</span>))<span class="op">|</span> (<span class="ident">DisputeStatement::Valid</span>(<span class="ident">s</span>), <span class="ident">i</span>, <span class="ident">sig</span>));
+	<span class="comment">// Transform all `CandidateVotes` into `MultiDisputeStatementSet`.
+	</span>dispute_candidate_votes
+		.into_iter()
+		.map(|(session_index, candidate_hash, votes)| {
+			<span class="kw">let </span>valid_statements = votes
+				.valid
+				.into_iter()
+				.map(|(i, (s, sig))| (DisputeStatement::Valid(s), i, sig));
 
-			<span class="kw">let</span> <span class="ident">invalid_statements</span> <span class="op">=</span> <span class="ident">votes</span>
-				.<span class="ident">invalid</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, (<span class="ident">s</span>, <span class="ident">sig</span>))<span class="op">|</span> (<span class="ident">DisputeStatement::Invalid</span>(<span class="ident">s</span>), <span class="ident">i</span>, <span class="ident">sig</span>));
+			<span class="kw">let </span>invalid_statements = votes
+				.invalid
+				.into_iter()
+				.map(|(i, (s, sig))| (DisputeStatement::Invalid(s), i, sig));
 
-			<span class="ident">metrics</span>.<span class="ident">inc_valid_statements_by</span>(<span class="ident">valid_statements</span>.<span class="ident">len</span>());
-			<span class="ident">metrics</span>.<span class="ident">inc_invalid_statements_by</span>(<span class="ident">invalid_statements</span>.<span class="ident">len</span>());
-			<span class="ident">metrics</span>.<span class="ident">inc_dispute_statement_sets_by</span>(<span class="number">1</span>);
+			metrics.inc_valid_statements_by(valid_statements.len());
+			metrics.inc_invalid_statements_by(invalid_statements.len());
+			metrics.inc_dispute_statement_sets_by(<span class="number">1</span>);
 
-			<span class="ident">DisputeStatementSet</span> {
-				<span class="ident">candidate_hash</span>,
-				<span class="ident">session</span>: <span class="ident">session_index</span>,
-				<span class="ident">statements</span>: <span class="ident">valid_statements</span>.<span class="ident">chain</span>(<span class="ident">invalid_statements</span>).<span class="ident">collect</span>(),
+			DisputeStatementSet {
+				candidate_hash,
+				session: session_index,
+				statements: valid_statements.chain(invalid_statements).collect(),
 			}
 		})
-		.<span class="ident">collect</span>()
+		.collect()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_node_core_provisioner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_node_core_provisioner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/execute/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/execute/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -361,363 +355,362 @@
 <span id="355">355</span>
 <span id="356">356</span>
 <span id="357">357</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! A queue that handles requests for PVF execution.</span>
+</span><span class="doccomment">//! A queue that handles requests for PVF execution.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::worker::Outcome</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">artifacts</span>::{<span class="ident">ArtifactId</span>, <span class="ident">ArtifactPathId</span>},
-	<span class="ident">host::ResultSender</span>,
-	<span class="ident">metrics::Metrics</span>,
-	<span class="ident">worker_common</span>::{<span class="ident">IdleWorker</span>, <span class="ident">WorkerHandle</span>},
-	<span class="ident">InvalidCandidate</span>, <span class="ident">ValidationError</span>, <span class="ident">LOG_TARGET</span>,
+</span><span class="kw">use </span><span class="kw">super</span>::worker::Outcome;
+<span class="kw">use crate</span>::{
+	artifacts::{ArtifactId, ArtifactPathId},
+	host::ResultSender,
+	metrics::Metrics,
+	worker_common::{IdleWorker, WorkerHandle},
+	InvalidCandidate, ValidationError, LOG_TARGET,
 };
-<span class="kw">use</span> <span class="ident">async_std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">futures</span>::{
-	<span class="ident">channel::mpsc</span>,
-	<span class="ident">future::BoxFuture</span>,
-	<span class="ident">stream</span>::{<span class="ident">FuturesUnordered</span>, <span class="ident">StreamExt</span> <span class="kw">as</span> <span class="kw">_</span>},
-	<span class="ident">Future</span>, <span class="ident">FutureExt</span>,
+<span class="kw">use </span>async_std::path::PathBuf;
+<span class="kw">use </span>futures::{
+	channel::mpsc,
+	future::BoxFuture,
+	stream::{FuturesUnordered, StreamExt <span class="kw">as _</span>},
+	Future, FutureExt,
 };
-<span class="kw">use</span> <span class="ident">slotmap::HopSlotMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::VecDeque</span>, <span class="ident">fmt</span>, <span class="ident">time::Duration</span>};
+<span class="kw">use </span>slotmap::HopSlotMap;
+<span class="kw">use </span>std::{collections::VecDeque, fmt, time::Duration};
 
-<span class="macro">slotmap::new_key_type!</span> { <span class="kw">struct</span> <span class="ident">Worker</span>; }
+<span class="macro">slotmap::new_key_type! </span>{ <span class="kw">struct </span>Worker; }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ToQueue</span> {
-	<span class="ident">Enqueue</span> {
-		<span class="ident">artifact</span>: <span class="ident">ArtifactPathId</span>,
-		<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-		<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ToQueue {
+	Enqueue {
+		artifact: ArtifactPathId,
+		execution_timeout: Duration,
+		params: Vec&lt;u8&gt;,
+		result_tx: ResultSender,
 	},
 }
 
-<span class="kw">struct</span> <span class="ident">ExecuteJob</span> {
-	<span class="ident">artifact</span>: <span class="ident">ArtifactPathId</span>,
-	<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-	<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
+<span class="kw">struct </span>ExecuteJob {
+	artifact: ArtifactPathId,
+	execution_timeout: Duration,
+	params: Vec&lt;u8&gt;,
+	result_tx: ResultSender,
 }
 
-<span class="kw">struct</span> <span class="ident">WorkerData</span> {
-	<span class="ident">idle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IdleWorker</span><span class="op">&gt;</span>,
-	<span class="ident">handle</span>: <span class="ident">WorkerHandle</span>,
+<span class="kw">struct </span>WorkerData {
+	idle: <span class="prelude-ty">Option</span>&lt;IdleWorker&gt;,
+	handle: WorkerHandle,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">WorkerData</span> {
-	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;WorkerData(pid={})&quot;</span>, <span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">id</span>())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>WorkerData {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+		<span class="macro">write!</span>(f, <span class="string">&quot;WorkerData(pid={})&quot;</span>, <span class="self">self</span>.handle.id())
 	}
 }
 
-<span class="kw">struct</span> <span class="ident">Workers</span> {
-	<span class="doccomment">/// The registry of running workers.</span>
-	<span class="ident">running</span>: <span class="ident">HopSlotMap</span><span class="op">&lt;</span><span class="ident">Worker</span>, <span class="ident">WorkerData</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Workers {
+	<span class="doccomment">/// The registry of running workers.
+	</span>running: HopSlotMap&lt;Worker, WorkerData&gt;,
 
-	<span class="doccomment">/// The number of spawning but not yet spawned workers.</span>
-	<span class="ident">spawn_inflight</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// The number of spawning but not yet spawned workers.
+	</span>spawn_inflight: usize,
 
-	<span class="doccomment">/// The maximum number of workers queue can have at once.</span>
-	<span class="ident">capacity</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// The maximum number of workers queue can have at once.
+	</span>capacity: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Workers</span> {
-	<span class="kw">fn</span> <span class="ident">can_afford_one_more</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">spawn_inflight</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">running</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">capacity</span>
+<span class="kw">impl </span>Workers {
+	<span class="kw">fn </span>can_afford_one_more(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.spawn_inflight + <span class="self">self</span>.running.len() &lt; <span class="self">self</span>.capacity
 	}
 
-	<span class="kw">fn</span> <span class="ident">find_available</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Worker</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">running</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">find_map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="kw">if</span> <span class="ident">d</span>.<span class="number">1</span>.<span class="ident">idle</span>.<span class="ident">is_some</span>() { <span class="prelude-val">Some</span>(<span class="ident">d</span>.<span class="number">0</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> })
+	<span class="kw">fn </span>find_available(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Worker&gt; {
+		<span class="self">self</span>.running
+			.iter()
+			.find_map(|d| <span class="kw">if </span>d.<span class="number">1</span>.idle.is_some() { <span class="prelude-val">Some</span>(d.<span class="number">0</span>) } <span class="kw">else </span>{ <span class="prelude-val">None </span>})
 	}
 
-	<span class="doccomment">/// Find the associated data by the worker token and extract it&#39;s [`IdleWorker`] token.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns `None` if either worker is not recognized or idle token is absent.</span>
-	<span class="kw">fn</span> <span class="ident">claim_idle</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">worker</span>: <span class="ident">Worker</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IdleWorker</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">running</span>.<span class="ident">get_mut</span>(<span class="ident">worker</span>)<span class="question-mark">?</span>.<span class="ident">idle</span>.<span class="ident">take</span>()
+	<span class="doccomment">/// Find the associated data by the worker token and extract it&#39;s [`IdleWorker`] token.
+	///
+	/// Returns `None` if either worker is not recognized or idle token is absent.
+	</span><span class="kw">fn </span>claim_idle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, worker: Worker) -&gt; <span class="prelude-ty">Option</span>&lt;IdleWorker&gt; {
+		<span class="self">self</span>.running.get_mut(worker)<span class="question-mark">?</span>.idle.take()
 	}
 }
 
-<span class="kw">enum</span> <span class="ident">QueueEvent</span> {
-	<span class="ident">Spawn</span>(<span class="ident">IdleWorker</span>, <span class="ident">WorkerHandle</span>),
-	<span class="ident">StartWork</span>(<span class="ident">Worker</span>, <span class="ident">Outcome</span>, <span class="ident">ArtifactId</span>, <span class="ident">ResultSender</span>),
+<span class="kw">enum </span>QueueEvent {
+	Spawn(IdleWorker, WorkerHandle),
+	StartWork(Worker, Outcome, ArtifactId, ResultSender),
 }
 
-<span class="kw">type</span> <span class="ident">Mux</span> <span class="op">=</span> <span class="ident">FuturesUnordered</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">QueueEvent</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">type </span>Mux = FuturesUnordered&lt;BoxFuture&lt;<span class="lifetime">&#39;static</span>, QueueEvent&gt;&gt;;
 
-<span class="kw">struct</span> <span class="ident">Queue</span> {
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
+<span class="kw">struct </span>Queue {
+	metrics: Metrics,
 
-	<span class="doccomment">/// The receiver that receives messages to the pool.</span>
-	<span class="ident">to_queue_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The receiver that receives messages to the pool.
+	</span>to_queue_rx: mpsc::Receiver&lt;ToQueue&gt;,
 
-	<span class="ident">program_path</span>: <span class="ident">PathBuf</span>,
-	<span class="ident">spawn_timeout</span>: <span class="ident">Duration</span>,
+	program_path: PathBuf,
+	spawn_timeout: Duration,
 
-	<span class="doccomment">/// The queue of jobs that are waiting for a worker to pick up.</span>
-	<span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">ExecuteJob</span><span class="op">&gt;</span>,
-	<span class="ident">workers</span>: <span class="ident">Workers</span>,
-	<span class="ident">mux</span>: <span class="ident">Mux</span>,
+	<span class="doccomment">/// The queue of jobs that are waiting for a worker to pick up.
+	</span>queue: VecDeque&lt;ExecuteJob&gt;,
+	workers: Workers,
+	mux: Mux,
 }
 
-<span class="kw">impl</span> <span class="ident">Queue</span> {
-	<span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
-		<span class="ident">program_path</span>: <span class="ident">PathBuf</span>,
-		<span class="ident">worker_capacity</span>: <span class="ident">usize</span>,
-		<span class="ident">spawn_timeout</span>: <span class="ident">Duration</span>,
-		<span class="ident">to_queue_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">metrics</span>,
-			<span class="ident">program_path</span>,
-			<span class="ident">spawn_timeout</span>,
-			<span class="ident">to_queue_rx</span>,
-			<span class="ident">queue</span>: <span class="ident">VecDeque::new</span>(),
-			<span class="ident">mux</span>: <span class="ident">Mux::new</span>(),
-			<span class="ident">workers</span>: <span class="ident">Workers</span> {
-				<span class="ident">running</span>: <span class="ident">HopSlotMap::with_capacity_and_key</span>(<span class="number">10</span>),
-				<span class="ident">spawn_inflight</span>: <span class="number">0</span>,
-				<span class="ident">capacity</span>: <span class="ident">worker_capacity</span>,
+<span class="kw">impl </span>Queue {
+	<span class="kw">fn </span>new(
+		metrics: Metrics,
+		program_path: PathBuf,
+		worker_capacity: usize,
+		spawn_timeout: Duration,
+		to_queue_rx: mpsc::Receiver&lt;ToQueue&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			metrics,
+			program_path,
+			spawn_timeout,
+			to_queue_rx,
+			queue: VecDeque::new(),
+			mux: Mux::new(),
+			workers: Workers {
+				running: HopSlotMap::with_capacity_and_key(<span class="number">10</span>),
+				spawn_inflight: <span class="number">0</span>,
+				capacity: worker_capacity,
 			},
 		}
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-		<span class="kw">loop</span> {
-			<span class="macro">futures::select!</span> {
-				<span class="ident">to_queue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_queue_rx</span>.<span class="ident">next</span>() =&gt; {
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">to_queue</span>) <span class="op">=</span> <span class="ident">to_queue</span> {
-						<span class="ident">handle_to_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">to_queue</span>);
-					} <span class="kw">else</span> {
+	<span class="kw">async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) {
+		<span class="kw">loop </span>{
+			<span class="macro">futures::select! </span>{
+				to_queue = <span class="self">self</span>.to_queue_rx.next() =&gt; {
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(to_queue) = to_queue {
+						handle_to_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, to_queue);
+					} <span class="kw">else </span>{
 						<span class="kw">break</span>;
 					}
 				}
-				<span class="ident">ev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mux</span>.<span class="ident">select_next_some</span>() =&gt; <span class="ident">handle_mux</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ev</span>).<span class="kw">await</span>,
+				ev = <span class="self">self</span>.mux.select_next_some() =&gt; handle_mux(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ev).<span class="kw">await</span>,
 			}
 
-			<span class="ident">purge_dead</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">metrics</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">workers</span>).<span class="kw">await</span>;
+			purge_dead(<span class="kw-2">&amp;</span><span class="self">self</span>.metrics, <span class="kw-2">&amp;mut </span><span class="self">self</span>.workers).<span class="kw">await</span>;
 		}
 	}
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">purge_dead</span>(<span class="ident">metrics</span>: <span class="kw-2">&amp;</span><span class="ident">Metrics</span>, <span class="ident">workers</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Workers</span>) {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to_remove</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-	<span class="kw">for</span> (<span class="ident">worker</span>, <span class="ident">data</span>) <span class="kw">in</span> <span class="ident">workers</span>.<span class="ident">running</span>.<span class="ident">iter_mut</span>() {
-		<span class="kw">if</span> <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">handle</span>).<span class="ident">is_ready</span>() {
-			<span class="comment">// a resolved future means that the worker has terminated. Weed it out.</span>
-			<span class="ident">to_remove</span>.<span class="ident">push</span>(<span class="ident">worker</span>);
+<span class="kw">async fn </span>purge_dead(metrics: <span class="kw-2">&amp;</span>Metrics, workers: <span class="kw-2">&amp;mut </span>Workers) {
+	<span class="kw">let </span><span class="kw-2">mut </span>to_remove = <span class="macro">vec!</span>[];
+	<span class="kw">for </span>(worker, data) <span class="kw">in </span>workers.running.iter_mut() {
+		<span class="kw">if </span><span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut </span>data.handle).is_ready() {
+			<span class="comment">// a resolved future means that the worker has terminated. Weed it out.
+			</span>to_remove.push(worker);
 		}
 	}
-	<span class="kw">for</span> <span class="ident">w</span> <span class="kw">in</span> <span class="ident">to_remove</span> {
-		<span class="kw">if</span> <span class="ident">workers</span>.<span class="ident">running</span>.<span class="ident">remove</span>(<span class="ident">w</span>).<span class="ident">is_some</span>() {
-			<span class="ident">metrics</span>.<span class="ident">execute_worker</span>().<span class="ident">on_retired</span>();
+	<span class="kw">for </span>w <span class="kw">in </span>to_remove {
+		<span class="kw">if </span>workers.running.remove(w).is_some() {
+			metrics.execute_worker().on_retired();
 		}
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">handle_to_queue</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">to_queue</span>: <span class="ident">ToQueue</span>) {
-	<span class="kw">let</span> <span class="ident">ToQueue::Enqueue</span> { <span class="ident">artifact</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">result_tx</span> } <span class="op">=</span> <span class="ident">to_queue</span>;
+<span class="kw">fn </span>handle_to_queue(queue: <span class="kw-2">&amp;mut </span>Queue, to_queue: ToQueue) {
+	<span class="kw">let </span>ToQueue::Enqueue { artifact, execution_timeout, params, result_tx } = to_queue;
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact</span>.<span class="ident">id</span>.<span class="ident">code_hash</span>,
+		target: LOG_TARGET,
+		validation_code_hash = <span class="question-mark">?</span>artifact.id.code_hash,
 		<span class="string">&quot;enqueueing an artifact for execution&quot;</span>,
 	);
-	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">execute_enqueued</span>();
-	<span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="ident">ExecuteJob</span> { <span class="ident">artifact</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">result_tx</span> };
+	queue.metrics.execute_enqueued();
+	<span class="kw">let </span>job = ExecuteJob { artifact, execution_timeout, params, result_tx };
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">available</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">find_available</span>() {
-		<span class="ident">assign</span>(<span class="ident">queue</span>, <span class="ident">available</span>, <span class="ident">job</span>);
-	} <span class="kw">else</span> {
-		<span class="kw">if</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">can_afford_one_more</span>() {
-			<span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>);
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(available) = queue.workers.find_available() {
+		assign(queue, available, job);
+	} <span class="kw">else </span>{
+		<span class="kw">if </span>queue.workers.can_afford_one_more() {
+			spawn_extra_worker(queue);
 		}
-		<span class="ident">queue</span>.<span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">job</span>);
+		queue.queue.push_back(job);
 	}
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_mux</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">event</span>: <span class="ident">QueueEvent</span>) {
-	<span class="kw">match</span> <span class="ident">event</span> {
-		<span class="ident">QueueEvent::Spawn</span>(<span class="ident">idle</span>, <span class="ident">handle</span>) =&gt; {
-			<span class="ident">handle_worker_spawned</span>(<span class="ident">queue</span>, <span class="ident">idle</span>, <span class="ident">handle</span>);
+<span class="kw">async fn </span>handle_mux(queue: <span class="kw-2">&amp;mut </span>Queue, event: QueueEvent) {
+	<span class="kw">match </span>event {
+		QueueEvent::Spawn(idle, handle) =&gt; {
+			handle_worker_spawned(queue, idle, handle);
 		},
-		<span class="ident">QueueEvent::StartWork</span>(<span class="ident">worker</span>, <span class="ident">outcome</span>, <span class="ident">artifact_id</span>, <span class="ident">result_tx</span>) =&gt; {
-			<span class="ident">handle_job_finish</span>(<span class="ident">queue</span>, <span class="ident">worker</span>, <span class="ident">outcome</span>, <span class="ident">artifact_id</span>, <span class="ident">result_tx</span>);
+		QueueEvent::StartWork(worker, outcome, artifact_id, result_tx) =&gt; {
+			handle_job_finish(queue, worker, outcome, artifact_id, result_tx);
 		},
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">handle_worker_spawned</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">idle</span>: <span class="ident">IdleWorker</span>, <span class="ident">handle</span>: <span class="ident">WorkerHandle</span>) {
-	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">execute_worker</span>().<span class="ident">on_spawned</span>();
-	<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">spawn_inflight</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-	<span class="kw">let</span> <span class="ident">worker</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">running</span>.<span class="ident">insert</span>(<span class="ident">WorkerData</span> { <span class="ident">idle</span>: <span class="prelude-val">Some</span>(<span class="ident">idle</span>), <span class="ident">handle</span> });
+<span class="kw">fn </span>handle_worker_spawned(queue: <span class="kw-2">&amp;mut </span>Queue, idle: IdleWorker, handle: WorkerHandle) {
+	queue.metrics.execute_worker().on_spawned();
+	queue.workers.spawn_inflight -= <span class="number">1</span>;
+	<span class="kw">let </span>worker = queue.workers.running.insert(WorkerData { idle: <span class="prelude-val">Some</span>(idle), handle });
 
-	<span class="macro">gum::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">worker</span>, <span class="string">&quot;execute worker spawned&quot;</span>);
+	<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="question-mark">?</span>worker, <span class="string">&quot;execute worker spawned&quot;</span>);
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
-		<span class="ident">assign</span>(<span class="ident">queue</span>, <span class="ident">worker</span>, <span class="ident">job</span>);
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(job) = queue.queue.pop_front() {
+		assign(queue, worker, job);
 	}
 }
 
-<span class="doccomment">/// If there are pending jobs in the queue, schedules the next of them onto the just freed up</span>
-<span class="doccomment">/// worker. Otherwise, puts back into the available workers list.</span>
-<span class="kw">fn</span> <span class="ident">handle_job_finish</span>(
-	<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>,
-	<span class="ident">worker</span>: <span class="ident">Worker</span>,
-	<span class="ident">outcome</span>: <span class="ident">Outcome</span>,
-	<span class="ident">artifact_id</span>: <span class="ident">ArtifactId</span>,
-	<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
+<span class="doccomment">/// If there are pending jobs in the queue, schedules the next of them onto the just freed up
+/// worker. Otherwise, puts back into the available workers list.
+</span><span class="kw">fn </span>handle_job_finish(
+	queue: <span class="kw-2">&amp;mut </span>Queue,
+	worker: Worker,
+	outcome: Outcome,
+	artifact_id: ArtifactId,
+	result_tx: ResultSender,
 ) {
-	<span class="kw">let</span> (<span class="ident">idle_worker</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">outcome</span> {
-		<span class="ident">Outcome::Ok</span> { <span class="ident">result_descriptor</span>, <span class="ident">duration_ms</span>, <span class="ident">idle_worker</span> } =&gt; {
-			<span class="comment">// TODO: propagate the soft timeout</span>
-			<span class="ident">drop</span>(<span class="ident">duration_ms</span>);
+	<span class="kw">let </span>(idle_worker, result) = <span class="kw">match </span>outcome {
+		Outcome::Ok { result_descriptor, duration_ms, idle_worker } =&gt; {
+			<span class="comment">// TODO: propagate the soft timeout
+			</span>drop(duration_ms);
 
-			(<span class="prelude-val">Some</span>(<span class="ident">idle_worker</span>), <span class="prelude-val">Ok</span>(<span class="ident">result_descriptor</span>))
+			(<span class="prelude-val">Some</span>(idle_worker), <span class="prelude-val">Ok</span>(result_descriptor))
 		},
-		<span class="ident">Outcome::InvalidCandidate</span> { <span class="ident">err</span>, <span class="ident">idle_worker</span> } =&gt; (
-			<span class="prelude-val">Some</span>(<span class="ident">idle_worker</span>),
-			<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::WorkerReportedError</span>(<span class="ident">err</span>))),
+		Outcome::InvalidCandidate { err, idle_worker } =&gt; (
+			<span class="prelude-val">Some</span>(idle_worker),
+			<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::WorkerReportedError(err))),
 		),
-		<span class="ident">Outcome::InternalError</span> { <span class="ident">err</span>, <span class="ident">idle_worker</span> } =&gt;
-			(<span class="prelude-val">Some</span>(<span class="ident">idle_worker</span>), <span class="prelude-val">Err</span>(<span class="ident">ValidationError::InternalError</span>(<span class="ident">err</span>))),
-		<span class="ident">Outcome::HardTimeout</span> =&gt;
-			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::HardTimeout</span>))),
-		<span class="ident">Outcome::IoErr</span> =&gt;
-			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>))),
+		Outcome::InternalError { err, idle_worker } =&gt;
+			(<span class="prelude-val">Some</span>(idle_worker), <span class="prelude-val">Err</span>(ValidationError::InternalError(err))),
+		Outcome::HardTimeout =&gt;
+			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::HardTimeout))),
+		Outcome::IoErr =&gt;
+			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath))),
 	};
 
-	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">execute_finished</span>();
+	queue.metrics.execute_finished();
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact_id</span>.<span class="ident">code_hash</span>,
-		<span class="ident">worker_rip</span> <span class="op">=</span> <span class="ident">idle_worker</span>.<span class="ident">is_none</span>(),
-		<span class="question-mark">?</span><span class="ident">result</span>,
+		target: LOG_TARGET,
+		validation_code_hash = <span class="question-mark">?</span>artifact_id.code_hash,
+		worker_rip = idle_worker.is_none(),
+		<span class="question-mark">?</span>result,
 		<span class="string">&quot;job finished.&quot;</span>,
 	);
 
-	<span class="comment">// First we send the result. It may fail due the other end of the channel being dropped, that&#39;s</span>
-	<span class="comment">// legitimate and we don&#39;t treat that as an error.</span>
-	<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">result_tx</span>.<span class="ident">send</span>(<span class="ident">result</span>);
+	<span class="comment">// First we send the result. It may fail due the other end of the channel being dropped, that&#39;s
+	// legitimate and we don&#39;t treat that as an error.
+	</span><span class="kw">let _ </span>= result_tx.send(result);
 
-	<span class="comment">// Then, we should deal with the worker:</span>
-	<span class="comment">//</span>
-	<span class="comment">// - if the `idle_worker` token was returned we should either schedule the next task or just put</span>
-	<span class="comment">//   it back so that the next incoming job will be able to claim it</span>
-	<span class="comment">//</span>
-	<span class="comment">// - if the `idle_worker` token was consumed, all the metadata pertaining to that worker should</span>
-	<span class="comment">//   be removed.</span>
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idle_worker</span>) <span class="op">=</span> <span class="ident">idle_worker</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">running</span>.<span class="ident">get_mut</span>(<span class="ident">worker</span>) {
-			<span class="ident">data</span>.<span class="ident">idle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">idle_worker</span>);
+	<span class="comment">// Then, we should deal with the worker:
+	//
+	// - if the `idle_worker` token was returned we should either schedule the next task or just put
+	//   it back so that the next incoming job will be able to claim it
+	//
+	// - if the `idle_worker` token was consumed, all the metadata pertaining to that worker should
+	//   be removed.
+	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(idle_worker) = idle_worker {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(data) = queue.workers.running.get_mut(worker) {
+			data.idle = <span class="prelude-val">Some</span>(idle_worker);
 
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>() {
-				<span class="ident">assign</span>(<span class="ident">queue</span>, <span class="ident">worker</span>, <span class="ident">job</span>);
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(job) = queue.queue.pop_front() {
+				assign(queue, worker, job);
 			}
 		}
-	} <span class="kw">else</span> {
-		<span class="comment">// Note it&#39;s possible that the worker was purged already by `purge_dead`</span>
-		<span class="kw">if</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">running</span>.<span class="ident">remove</span>(<span class="ident">worker</span>).<span class="ident">is_some</span>() {
-			<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">execute_worker</span>().<span class="ident">on_retired</span>();
+	} <span class="kw">else </span>{
+		<span class="comment">// Note it&#39;s possible that the worker was purged already by `purge_dead`
+		</span><span class="kw">if </span>queue.workers.running.remove(worker).is_some() {
+			queue.metrics.execute_worker().on_retired();
 		}
 
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">queue</span>.<span class="ident">queue</span>.<span class="ident">is_empty</span>() {
-			<span class="comment">// The worker has died and we still have work we have to do. Request an extra worker.</span>
-			<span class="comment">//</span>
-			<span class="comment">// That can potentially overshoot, but that should be OK.</span>
-			<span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>);
+		<span class="kw">if </span>!queue.queue.is_empty() {
+			<span class="comment">// The worker has died and we still have work we have to do. Request an extra worker.
+			//
+			// That can potentially overshoot, but that should be OK.
+			</span>spawn_extra_worker(queue);
 		}
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>) {
-	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">execute_worker</span>().<span class="ident">on_begin_spawn</span>();
-	<span class="macro">gum::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;spawning an extra worker&quot;</span>);
+<span class="kw">fn </span>spawn_extra_worker(queue: <span class="kw-2">&amp;mut </span>Queue) {
+	queue.metrics.execute_worker().on_begin_spawn();
+	<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="string">&quot;spawning an extra worker&quot;</span>);
 
-	<span class="ident">queue</span>
-		.<span class="ident">mux</span>
-		.<span class="ident">push</span>(<span class="ident">spawn_worker_task</span>(<span class="ident">queue</span>.<span class="ident">program_path</span>.<span class="ident">clone</span>(), <span class="ident">queue</span>.<span class="ident">spawn_timeout</span>).<span class="ident">boxed</span>());
-	<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">spawn_inflight</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+	queue
+		.mux
+		.push(spawn_worker_task(queue.program_path.clone(), queue.spawn_timeout).boxed());
+	queue.workers.spawn_inflight += <span class="number">1</span>;
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">spawn_worker_task</span>(<span class="ident">program_path</span>: <span class="ident">PathBuf</span>, <span class="ident">spawn_timeout</span>: <span class="ident">Duration</span>) -&gt; <span class="ident">QueueEvent</span> {
-	<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
+<span class="kw">async fn </span>spawn_worker_task(program_path: PathBuf, spawn_timeout: Duration) -&gt; QueueEvent {
+	<span class="kw">use </span>futures_timer::Delay;
 
-	<span class="kw">loop</span> {
-		<span class="kw">match</span> <span class="ident"><span class="kw">super</span>::worker::spawn</span>(<span class="kw-2">&amp;</span><span class="ident">program_path</span>, <span class="ident">spawn_timeout</span>).<span class="kw">await</span> {
-			<span class="prelude-val">Ok</span>((<span class="ident">idle</span>, <span class="ident">handle</span>)) =&gt; <span class="kw">break</span> <span class="ident">QueueEvent::Spawn</span>(<span class="ident">idle</span>, <span class="ident">handle</span>),
-			<span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-				<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;failed to spawn an execute worker: {:?}&quot;</span>, <span class="ident">err</span>);
+	<span class="kw">loop </span>{
+		<span class="kw">match </span><span class="kw">super</span>::worker::spawn(<span class="kw-2">&amp;</span>program_path, spawn_timeout).<span class="kw">await </span>{
+			<span class="prelude-val">Ok</span>((idle, handle)) =&gt; <span class="kw">break </span>QueueEvent::Spawn(idle, handle),
+			<span class="prelude-val">Err</span>(err) =&gt; {
+				<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="string">&quot;failed to spawn an execute worker: {:?}&quot;</span>, err);
 
-				<span class="comment">// Assume that the failure intermittent and retry after a delay.</span>
-				<span class="ident">Delay::new</span>(<span class="ident">Duration::from_secs</span>(<span class="number">3</span>)).<span class="kw">await</span>;
+				<span class="comment">// Assume that the failure intermittent and retry after a delay.
+				</span>Delay::new(Duration::from_secs(<span class="number">3</span>)).<span class="kw">await</span>;
 			},
 		}
 	}
 }
 
-<span class="doccomment">/// Ask the given worker to perform the given job.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The worker must be running and idle.</span>
-<span class="kw">fn</span> <span class="ident">assign</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">worker</span>: <span class="ident">Worker</span>, <span class="ident">job</span>: <span class="ident">ExecuteJob</span>) {
+<span class="doccomment">/// Ask the given worker to perform the given job.
+///
+/// The worker must be running and idle.
+</span><span class="kw">fn </span>assign(queue: <span class="kw-2">&amp;mut </span>Queue, worker: Worker, job: ExecuteJob) {
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">job</span>.<span class="ident">artifact</span>.<span class="ident">id</span>,
-		<span class="question-mark">?</span><span class="ident">worker</span>,
+		target: LOG_TARGET,
+		validation_code_hash = <span class="question-mark">?</span>job.artifact.id,
+		<span class="question-mark">?</span>worker,
 		<span class="string">&quot;assigning the execute worker&quot;</span>,
 	);
 
-	<span class="kw">let</span> <span class="ident">idle</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">claim_idle</span>(<span class="ident">worker</span>).<span class="ident">expect</span>(
+	<span class="kw">let </span>idle = queue.workers.claim_idle(worker).expect(
 		<span class="string">&quot;this caller must supply a worker which is idle and running;
 			thus claim_idle cannot return None;
 			qed.&quot;</span>,
 	);
-	<span class="kw">let</span> <span class="ident">execution_timer</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">time_execution</span>();
-	<span class="ident">queue</span>.<span class="ident">mux</span>.<span class="ident">push</span>(
-		<span class="kw">async</span> <span class="kw">move</span> {
-			<span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">execution_timer</span>;
-			<span class="kw">let</span> <span class="ident">outcome</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::worker::start_work</span>(
-				<span class="ident">idle</span>,
-				<span class="ident">job</span>.<span class="ident">artifact</span>.<span class="ident">clone</span>(),
-				<span class="ident">job</span>.<span class="ident">execution_timeout</span>,
-				<span class="ident">job</span>.<span class="ident">params</span>,
+	<span class="kw">let </span>execution_timer = queue.metrics.time_execution();
+	queue.mux.push(
+		<span class="kw">async move </span>{
+			<span class="kw">let </span>_timer = execution_timer;
+			<span class="kw">let </span>outcome = <span class="kw">super</span>::worker::start_work(
+				idle,
+				job.artifact.clone(),
+				job.execution_timeout,
+				job.params,
 			)
 			.<span class="kw">await</span>;
-			<span class="ident">QueueEvent::StartWork</span>(<span class="ident">worker</span>, <span class="ident">outcome</span>, <span class="ident">job</span>.<span class="ident">artifact</span>.<span class="ident">id</span>, <span class="ident">job</span>.<span class="ident">result_tx</span>)
+			QueueEvent::StartWork(worker, outcome, job.artifact.id, job.result_tx)
 		}
-		.<span class="ident">boxed</span>(),
+		.boxed(),
 	);
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
-	<span class="ident">program_path</span>: <span class="ident">PathBuf</span>,
-	<span class="ident">worker_capacity</span>: <span class="ident">usize</span>,
-	<span class="ident">spawn_timeout</span>: <span class="ident">Duration</span>,
-) -&gt; (<span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>) {
-	<span class="kw">let</span> (<span class="ident">to_queue_tx</span>, <span class="ident">to_queue_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">20</span>);
-	<span class="kw">let</span> <span class="ident">run</span> <span class="op">=</span> <span class="ident">Queue::new</span>(<span class="ident">metrics</span>, <span class="ident">program_path</span>, <span class="ident">worker_capacity</span>, <span class="ident">spawn_timeout</span>, <span class="ident">to_queue_rx</span>).<span class="ident">run</span>();
-	(<span class="ident">to_queue_tx</span>, <span class="ident">run</span>)
+<span class="kw">pub fn </span>start(
+	metrics: Metrics,
+	program_path: PathBuf,
+	worker_capacity: usize,
+	spawn_timeout: Duration,
+) -&gt; (mpsc::Sender&lt;ToQueue&gt;, <span class="kw">impl </span>Future&lt;Output = ()&gt;) {
+	<span class="kw">let </span>(to_queue_tx, to_queue_rx) = mpsc::channel(<span class="number">20</span>);
+	<span class="kw">let </span>run = Queue::new(metrics, program_path, worker_capacity, spawn_timeout, to_queue_rx).run();
+	(to_queue_tx, run)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

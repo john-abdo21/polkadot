@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/execute/worker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>worker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/execute/worker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>worker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -233,235 +227,234 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">artifacts::ArtifactPathId</span>,
-	<span class="ident">executor_intf::Executor</span>,
-	<span class="ident">worker_common</span>::{
-		<span class="ident">bytes_to_path</span>, <span class="ident">framed_recv</span>, <span class="ident">framed_send</span>, <span class="ident">path_to_bytes</span>, <span class="ident">spawn_with_program_path</span>,
-		<span class="ident">worker_event_loop</span>, <span class="ident">IdleWorker</span>, <span class="ident">SpawnErr</span>, <span class="ident">WorkerHandle</span>,
+</span><span class="kw">use crate</span>::{
+	artifacts::ArtifactPathId,
+	executor_intf::Executor,
+	worker_common::{
+		bytes_to_path, framed_recv, framed_send, path_to_bytes, spawn_with_program_path,
+		worker_event_loop, IdleWorker, SpawnErr, WorkerHandle,
 	},
-	<span class="ident">LOG_TARGET</span>,
+	LOG_TARGET,
 };
-<span class="kw">use</span> <span class="ident">async_std</span>::{
-	<span class="ident">io</span>,
-	<span class="ident">os::unix::net::UnixStream</span>,
-	<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+<span class="kw">use </span>async_std::{
+	io,
+	os::unix::net::UnixStream,
+	path::{Path, PathBuf},
 };
-<span class="kw">use</span> <span class="ident">futures::FutureExt</span>;
-<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="kw">use</span> <span class="ident">polkadot_parachain::primitives::ValidationResult</span>;
-<span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+<span class="kw">use </span>futures::FutureExt;
+<span class="kw">use </span>futures_timer::Delay;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+<span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
+<span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The program should be able to handle `&lt;program-path&gt; execute-worker &lt;socket-path&gt;` invocation.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">spawn</span>(
-	<span class="ident">program_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">spawn_timeout</span>: <span class="ident">Duration</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">IdleWorker</span>, <span class="ident">WorkerHandle</span>), <span class="ident">SpawnErr</span><span class="op">&gt;</span> {
-	<span class="ident">spawn_with_program_path</span>(<span class="string">&quot;execute&quot;</span>, <span class="ident">program_path</span>, <span class="kw-2">&amp;</span>[<span class="string">&quot;execute-worker&quot;</span>], <span class="ident">spawn_timeout</span>).<span class="kw">await</span>
+<span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.
+///
+/// The program should be able to handle `&lt;program-path&gt; execute-worker &lt;socket-path&gt;` invocation.
+</span><span class="kw">pub async fn </span>spawn(
+	program_path: <span class="kw-2">&amp;</span>Path,
+	spawn_timeout: Duration,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(IdleWorker, WorkerHandle), SpawnErr&gt; {
+	spawn_with_program_path(<span class="string">&quot;execute&quot;</span>, program_path, <span class="kw-2">&amp;</span>[<span class="string">&quot;execute-worker&quot;</span>], spawn_timeout).<span class="kw">await
+</span>}
+
+<span class="doccomment">/// Outcome of PVF execution.
+</span><span class="kw">pub enum </span>Outcome {
+	<span class="doccomment">/// PVF execution completed successfully and the result is returned. The worker is ready for
+	/// another job.
+	</span><span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration_ms: u64, idle_worker: IdleWorker },
+	<span class="doccomment">/// The candidate validation failed. It may be for example because the wasm execution triggered a trap.
+	/// Errors related to the preparation process are not expected to be encountered by the execution workers.
+	</span>InvalidCandidate { err: String, idle_worker: IdleWorker },
+	<span class="doccomment">/// An internal error happened during the validation. Such an error is most likely related to
+	/// some transient glitch.
+	</span>InternalError { err: String, idle_worker: IdleWorker },
+	<span class="doccomment">/// The execution time exceeded the hard limit. The worker is terminated.
+	</span>HardTimeout,
+	<span class="doccomment">/// An I/O error happened during communication with the worker. This may mean that the worker
+	/// process already died. The token is not returned in any case.
+	</span>IoErr,
 }
 
-<span class="doccomment">/// Outcome of PVF execution.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Outcome</span> {
-	<span class="doccomment">/// PVF execution completed successfully and the result is returned. The worker is ready for</span>
-	<span class="doccomment">/// another job.</span>
-	<span class="prelude-val">Ok</span> { <span class="ident">result_descriptor</span>: <span class="ident">ValidationResult</span>, <span class="ident">duration_ms</span>: <span class="ident">u64</span>, <span class="ident">idle_worker</span>: <span class="ident">IdleWorker</span> },
-	<span class="doccomment">/// The candidate validation failed. It may be for example because the wasm execution triggered a trap.</span>
-	<span class="doccomment">/// Errors related to the preparation process are not expected to be encountered by the execution workers.</span>
-	<span class="ident">InvalidCandidate</span> { <span class="ident">err</span>: <span class="ident">String</span>, <span class="ident">idle_worker</span>: <span class="ident">IdleWorker</span> },
-	<span class="doccomment">/// An internal error happened during the validation. Such an error is most likely related to</span>
-	<span class="doccomment">/// some transient glitch.</span>
-	<span class="ident">InternalError</span> { <span class="ident">err</span>: <span class="ident">String</span>, <span class="ident">idle_worker</span>: <span class="ident">IdleWorker</span> },
-	<span class="doccomment">/// The execution time exceeded the hard limit. The worker is terminated.</span>
-	<span class="ident">HardTimeout</span>,
-	<span class="doccomment">/// An I/O error happened during communication with the worker. This may mean that the worker</span>
-	<span class="doccomment">/// process already died. The token is not returned in any case.</span>
-	<span class="ident">IoErr</span>,
-}
-
-<span class="doccomment">/// Given the idle token of a worker and parameters of work, communicates with the worker and</span>
-<span class="doccomment">/// returns the outcome.</span>
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_work</span>(
-	<span class="ident">worker</span>: <span class="ident">IdleWorker</span>,
-	<span class="ident">artifact</span>: <span class="ident">ArtifactPathId</span>,
-	<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-	<span class="ident">validation_params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">Outcome</span> {
-	<span class="kw">let</span> <span class="ident">IdleWorker</span> { <span class="kw-2">mut</span> <span class="ident">stream</span>, <span class="ident">pid</span> } <span class="op">=</span> <span class="ident">worker</span>;
+<span class="doccomment">/// Given the idle token of a worker and parameters of work, communicates with the worker and
+/// returns the outcome.
+</span><span class="kw">pub async fn </span>start_work(
+	worker: IdleWorker,
+	artifact: ArtifactPathId,
+	execution_timeout: Duration,
+	validation_params: Vec&lt;u8&gt;,
+) -&gt; Outcome {
+	<span class="kw">let </span>IdleWorker { <span class="kw-2">mut </span>stream, pid } = worker;
 
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="ident">worker_pid</span> <span class="op">=</span> <span class="op">%</span><span class="ident">pid</span>,
-		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact</span>.<span class="ident">id</span>.<span class="ident">code_hash</span>,
+		target: LOG_TARGET,
+		worker_pid = %pid,
+		validation_code_hash = <span class="question-mark">?</span>artifact.id.code_hash,
 		<span class="string">&quot;starting execute for {}&quot;</span>,
-		<span class="ident">artifact</span>.<span class="ident">path</span>.<span class="ident">display</span>(),
+		artifact.path.display(),
 	);
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">send_request</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>, <span class="kw-2">&amp;</span><span class="ident">artifact</span>.<span class="ident">path</span>, <span class="kw-2">&amp;</span><span class="ident">validation_params</span>).<span class="kw">await</span> {
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(error) = send_request(<span class="kw-2">&amp;mut </span>stream, <span class="kw-2">&amp;</span>artifact.path, <span class="kw-2">&amp;</span>validation_params).<span class="kw">await </span>{
 		<span class="macro">gum::warn!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="ident">worker_pid</span> <span class="op">=</span> <span class="op">%</span><span class="ident">pid</span>,
-			<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact</span>.<span class="ident">id</span>.<span class="ident">code_hash</span>,
-			<span class="question-mark">?</span><span class="ident">error</span>,
+			target: LOG_TARGET,
+			worker_pid = %pid,
+			validation_code_hash = <span class="question-mark">?</span>artifact.id.code_hash,
+			<span class="question-mark">?</span>error,
 			<span class="string">&quot;failed to send an execute request&quot;</span>,
 		);
-		<span class="kw">return</span> <span class="ident">Outcome::IoErr</span>
+		<span class="kw">return </span>Outcome::IoErr
 	}
 
-	<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="macro">futures::select!</span> {
-		<span class="ident">response</span> <span class="op">=</span> <span class="ident">recv_response</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>).<span class="ident">fuse</span>() =&gt; {
-			<span class="kw">match</span> <span class="ident">response</span> {
-				<span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
+	<span class="kw">let </span>response = <span class="macro">futures::select! </span>{
+		response = recv_response(<span class="kw-2">&amp;mut </span>stream).fuse() =&gt; {
+			<span class="kw">match </span>response {
+				<span class="prelude-val">Err</span>(error) =&gt; {
 					<span class="macro">gum::warn!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-						<span class="ident">worker_pid</span> <span class="op">=</span> <span class="op">%</span><span class="ident">pid</span>,
-						<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact</span>.<span class="ident">id</span>.<span class="ident">code_hash</span>,
-						<span class="question-mark">?</span><span class="ident">error</span>,
+						target: LOG_TARGET,
+						worker_pid = %pid,
+						validation_code_hash = <span class="question-mark">?</span>artifact.id.code_hash,
+						<span class="question-mark">?</span>error,
 						<span class="string">&quot;failed to recv an execute response&quot;</span>,
 					);
-					<span class="kw">return</span> <span class="ident">Outcome::IoErr</span>
+					<span class="kw">return </span>Outcome::IoErr
 				},
-				<span class="prelude-val">Ok</span>(<span class="ident">response</span>) =&gt; <span class="ident">response</span>,
+				<span class="prelude-val">Ok</span>(response) =&gt; response,
 			}
 		},
-		<span class="kw">_</span> <span class="op">=</span> <span class="ident">Delay::new</span>(<span class="ident">execution_timeout</span>).<span class="ident">fuse</span>() =&gt; {
+		<span class="kw">_ </span>= Delay::new(execution_timeout).fuse() =&gt; {
 			<span class="macro">gum::warn!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="ident">worker_pid</span> <span class="op">=</span> <span class="op">%</span><span class="ident">pid</span>,
-				<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact</span>.<span class="ident">id</span>.<span class="ident">code_hash</span>,
+				target: LOG_TARGET,
+				worker_pid = %pid,
+				validation_code_hash = <span class="question-mark">?</span>artifact.id.code_hash,
 				<span class="string">&quot;execution worker exceeded alloted time for execution&quot;</span>,
 			);
-			<span class="kw">return</span> <span class="ident">Outcome::HardTimeout</span>;
+			<span class="kw">return </span>Outcome::HardTimeout;
 		},
 	};
 
-	<span class="kw">match</span> <span class="ident">response</span> {
-		<span class="ident">Response::Ok</span> { <span class="ident">result_descriptor</span>, <span class="ident">duration_ms</span> } =&gt;
-			<span class="ident">Outcome::Ok</span> { <span class="ident">result_descriptor</span>, <span class="ident">duration_ms</span>, <span class="ident">idle_worker</span>: <span class="ident">IdleWorker</span> { <span class="ident">stream</span>, <span class="ident">pid</span> } },
-		<span class="ident">Response::InvalidCandidate</span>(<span class="ident">err</span>) =&gt;
-			<span class="ident">Outcome::InvalidCandidate</span> { <span class="ident">err</span>, <span class="ident">idle_worker</span>: <span class="ident">IdleWorker</span> { <span class="ident">stream</span>, <span class="ident">pid</span> } },
-		<span class="ident">Response::InternalError</span>(<span class="ident">err</span>) =&gt;
-			<span class="ident">Outcome::InternalError</span> { <span class="ident">err</span>, <span class="ident">idle_worker</span>: <span class="ident">IdleWorker</span> { <span class="ident">stream</span>, <span class="ident">pid</span> } },
+	<span class="kw">match </span>response {
+		Response::Ok { result_descriptor, duration_ms } =&gt;
+			Outcome::Ok { result_descriptor, duration_ms, idle_worker: IdleWorker { stream, pid } },
+		Response::InvalidCandidate(err) =&gt;
+			Outcome::InvalidCandidate { err, idle_worker: IdleWorker { stream, pid } },
+		Response::InternalError(err) =&gt;
+			Outcome::InternalError { err, idle_worker: IdleWorker { stream, pid } },
 	}
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_request</span>(
-	<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixStream</span>,
-	<span class="ident">artifact_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">validation_params</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-	<span class="ident">framed_send</span>(<span class="ident">stream</span>, <span class="ident">path_to_bytes</span>(<span class="ident">artifact_path</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
-	<span class="ident">framed_send</span>(<span class="ident">stream</span>, <span class="ident">validation_params</span>).<span class="kw">await</span>
-}
+<span class="kw">async fn </span>send_request(
+	stream: <span class="kw-2">&amp;mut </span>UnixStream,
+	artifact_path: <span class="kw-2">&amp;</span>Path,
+	validation_params: <span class="kw-2">&amp;</span>[u8],
+) -&gt; io::Result&lt;()&gt; {
+	framed_send(stream, path_to_bytes(artifact_path)).<span class="kw">await</span><span class="question-mark">?</span>;
+	framed_send(stream, validation_params).<span class="kw">await
+</span>}
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_request</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">PathBuf</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">artifact_path</span> <span class="op">=</span> <span class="ident">framed_recv</span>(<span class="ident">stream</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-	<span class="kw">let</span> <span class="ident">artifact_path</span> <span class="op">=</span> <span class="ident">bytes_to_path</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_path</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-		<span class="ident">io::Error::new</span>(
-			<span class="ident">io::ErrorKind::Other</span>,
-			<span class="string">&quot;execute pvf recv_request: non utf-8 artifact path&quot;</span>.<span class="ident">to_string</span>(),
+<span class="kw">async fn </span>recv_request(stream: <span class="kw-2">&amp;mut </span>UnixStream) -&gt; io::Result&lt;(PathBuf, Vec&lt;u8&gt;)&gt; {
+	<span class="kw">let </span>artifact_path = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">let </span>artifact_path = bytes_to_path(<span class="kw-2">&amp;</span>artifact_path).ok_or_else(|| {
+		io::Error::new(
+			io::ErrorKind::Other,
+			<span class="string">&quot;execute pvf recv_request: non utf-8 artifact path&quot;</span>.to_string(),
 		)
 	})<span class="question-mark">?</span>;
-	<span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">framed_recv</span>(<span class="ident">stream</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-	<span class="prelude-val">Ok</span>((<span class="ident">artifact_path</span>, <span class="ident">params</span>))
+	<span class="kw">let </span>params = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="prelude-val">Ok</span>((artifact_path, params))
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_response</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixStream</span>, <span class="ident">response</span>: <span class="ident">Response</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-	<span class="ident">framed_send</span>(<span class="ident">stream</span>, <span class="kw-2">&amp;</span><span class="ident">response</span>.<span class="ident">encode</span>()).<span class="kw">await</span>
-}
+<span class="kw">async fn </span>send_response(stream: <span class="kw-2">&amp;mut </span>UnixStream, response: Response) -&gt; io::Result&lt;()&gt; {
+	framed_send(stream, <span class="kw-2">&amp;</span>response.encode()).<span class="kw">await
+</span>}
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_response</span>(<span class="ident">stream</span>: <span class="kw-2">&amp;mut</span> <span class="ident">UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">response_bytes</span> <span class="op">=</span> <span class="ident">framed_recv</span>(<span class="ident">stream</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-	<span class="ident">Response::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">response_bytes</span>[..]).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-		<span class="ident">io::Error::new</span>(
-			<span class="ident">io::ErrorKind::Other</span>,
-			<span class="macro">format!</span>(<span class="string">&quot;execute pvf recv_response: decode error: {:?}&quot;</span>, <span class="ident">e</span>),
+<span class="kw">async fn </span>recv_response(stream: <span class="kw-2">&amp;mut </span>UnixStream) -&gt; io::Result&lt;Response&gt; {
+	<span class="kw">let </span>response_bytes = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+	Response::decode(<span class="kw-2">&amp;mut &amp;</span>response_bytes[..]).map_err(|e| {
+		io::Error::new(
+			io::ErrorKind::Other,
+			<span class="macro">format!</span>(<span class="string">&quot;execute pvf recv_response: decode error: {:?}&quot;</span>, e),
 		)
 	})
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Response</span> {
-	<span class="prelude-val">Ok</span> { <span class="ident">result_descriptor</span>: <span class="ident">ValidationResult</span>, <span class="ident">duration_ms</span>: <span class="ident">u64</span> },
-	<span class="ident">InvalidCandidate</span>(<span class="ident">String</span>),
-	<span class="ident">InternalError</span>(<span class="ident">String</span>),
+<span class="attribute">#[derive(Encode, Decode)]
+</span><span class="kw">enum </span>Response {
+	<span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration_ms: u64 },
+	InvalidCandidate(String),
+	InternalError(String),
 }
 
-<span class="kw">impl</span> <span class="ident">Response</span> {
-	<span class="kw">fn</span> <span class="ident">format_invalid</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">is_empty</span>() {
-			<span class="ident"><span class="self">Self</span>::InvalidCandidate</span>(<span class="ident">ctx</span>.<span class="ident">to_string</span>())
-		} <span class="kw">else</span> {
-			<span class="ident"><span class="self">Self</span>::InvalidCandidate</span>(<span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">ctx</span>, <span class="ident">msg</span>))
+<span class="kw">impl </span>Response {
+	<span class="kw">fn </span>format_invalid(ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, msg: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+		<span class="kw">if </span>msg.is_empty() {
+			<span class="self">Self</span>::InvalidCandidate(ctx.to_string())
+		} <span class="kw">else </span>{
+			<span class="self">Self</span>::InvalidCandidate(<span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, ctx, msg))
 		}
 	}
 }
 
-<span class="doccomment">/// The entrypoint that the spawned execute worker should start with. The `socket_path` specifies</span>
-<span class="doccomment">/// the path to the socket used to communicate with the host.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">worker_entrypoint</span>(<span class="ident">socket_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-	<span class="ident">worker_event_loop</span>(<span class="string">&quot;execute&quot;</span>, <span class="ident">socket_path</span>, <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">stream</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-		<span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">Executor::new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-			<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::Other</span>, <span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, <span class="ident">e</span>))
+<span class="doccomment">/// The entrypoint that the spawned execute worker should start with. The `socket_path` specifies
+/// the path to the socket used to communicate with the host.
+</span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str) {
+	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, |<span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
+		<span class="kw">let </span>executor = Executor::new().map_err(|e| {
+			io::Error::new(io::ErrorKind::Other, <span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, e))
 		})<span class="question-mark">?</span>;
-		<span class="kw">loop</span> {
-			<span class="kw">let</span> (<span class="ident">artifact_path</span>, <span class="ident">params</span>) <span class="op">=</span> <span class="ident">recv_request</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">loop </span>{
+			<span class="kw">let </span>(artifact_path, params) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
 			<span class="macro">gum::debug!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="ident">worker_pid</span> <span class="op">=</span> <span class="op">%</span><span class="ident">std::process::id</span>(),
+				target: LOG_TARGET,
+				worker_pid = %std::process::id(),
 				<span class="string">&quot;worker: validating artifact {}&quot;</span>,
-				<span class="ident">artifact_path</span>.<span class="ident">display</span>(),
+				artifact_path.display(),
 			);
-			<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">validate_using_artifact</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_path</span>, <span class="kw-2">&amp;</span><span class="ident">params</span>, <span class="kw-2">&amp;</span><span class="ident">executor</span>).<span class="kw">await</span>;
-			<span class="ident">send_response</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stream</span>, <span class="ident">response</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let </span>response = validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, <span class="kw-2">&amp;</span>executor).<span class="kw">await</span>;
+			send_response(<span class="kw-2">&amp;mut </span>stream, response).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 	});
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">validate_using_artifact</span>(
-	<span class="ident">artifact_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">params</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-	<span class="ident">executor</span>: <span class="kw-2">&amp;</span><span class="ident">Executor</span>,
-) -&gt; <span class="ident">Response</span> {
-	<span class="kw">let</span> <span class="ident">validation_started_at</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-	<span class="kw">let</span> <span class="ident">descriptor_bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> {
-		<span class="comment">// SAFETY: this should be safe since the compiled artifact passed here comes from the</span>
-		<span class="comment">//         file created by the prepare workers. These files are obtained by calling</span>
-		<span class="comment">//         [`executor_intf::prepare`].</span>
-		<span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">artifact_path</span>.<span class="ident">as_ref</span>(), <span class="ident">params</span>)
+<span class="kw">async fn </span>validate_using_artifact(
+	artifact_path: <span class="kw-2">&amp;</span>Path,
+	params: <span class="kw-2">&amp;</span>[u8],
+	executor: <span class="kw-2">&amp;</span>Executor,
+) -&gt; Response {
+	<span class="kw">let </span>validation_started_at = Instant::now();
+	<span class="kw">let </span>descriptor_bytes = <span class="kw">match unsafe </span>{
+		<span class="comment">// SAFETY: this should be safe since the compiled artifact passed here comes from the
+		//         file created by the prepare workers. These files are obtained by calling
+		//         [`executor_intf::prepare`].
+		</span>executor.execute(artifact_path.as_ref(), params)
 	} {
-		<span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="ident">Response::format_invalid</span>(<span class="string">&quot;execute&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">err</span>.<span class="ident">to_string</span>()),
-		<span class="prelude-val">Ok</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
+		<span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Response::format_invalid(<span class="string">&quot;execute&quot;</span>, <span class="kw-2">&amp;</span>err.to_string()),
+		<span class="prelude-val">Ok</span>(d) =&gt; d,
 	};
 
-	<span class="kw">let</span> <span class="ident">duration_ms</span> <span class="op">=</span> <span class="ident">validation_started_at</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+	<span class="kw">let </span>duration_ms = validation_started_at.elapsed().as_millis() <span class="kw">as </span>u64;
 
-	<span class="kw">let</span> <span class="ident">result_descriptor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ValidationResult::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">descriptor_bytes</span>[..]) {
-		<span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt;
-			<span class="kw">return</span> <span class="ident">Response::InvalidCandidate</span>(<span class="macro">format!</span>(<span class="string">&quot;validation result decoding failed: {}&quot;</span>, <span class="ident">err</span>)),
-		<span class="prelude-val">Ok</span>(<span class="ident">r</span>) =&gt; <span class="ident">r</span>,
+	<span class="kw">let </span>result_descriptor = <span class="kw">match </span>ValidationResult::decode(<span class="kw-2">&amp;mut &amp;</span>descriptor_bytes[..]) {
+		<span class="prelude-val">Err</span>(err) =&gt;
+			<span class="kw">return </span>Response::InvalidCandidate(<span class="macro">format!</span>(<span class="string">&quot;validation result decoding failed: {}&quot;</span>, err)),
+		<span class="prelude-val">Ok</span>(r) =&gt; r,
 	};
 
-	<span class="ident">Response::Ok</span> { <span class="ident">result_descriptor</span>, <span class="ident">duration_ms</span> }
+	Response::Ok { result_descriptor, duration_ms }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

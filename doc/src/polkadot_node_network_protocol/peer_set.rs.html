@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/peer_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>peer_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/peer_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>peer_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -543,518 +537,518 @@
 <span id="537">537</span>
 <span id="538">538</span>
 <span id="539">539</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! All peersets and protocols used for parachains.</span>
+</span><span class="doccomment">//! All peersets and protocols used for parachains.
 
-<span class="kw">use</span> <span class="ident">derive_more::Display</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2::Hash</span>;
-<span class="kw">use</span> <span class="ident">sc_network_common</span>::{
-	<span class="ident">config</span>::{<span class="ident">NonDefaultSetConfig</span>, <span class="ident">SetConfig</span>},
-	<span class="ident">protocol::ProtocolName</span>,
+</span><span class="kw">use </span>derive_more::Display;
+<span class="kw">use </span>polkadot_primitives::v2::Hash;
+<span class="kw">use </span>sc_network_common::{
+	config::{NonDefaultSetConfig, SetConfig},
+	protocol::ProtocolName,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections</span>::{<span class="ident">hash_map::Entry</span>, <span class="ident">HashMap</span>},
-	<span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>},
+<span class="kw">use </span>std::{
+	collections::{hash_map::Entry, HashMap},
+	ops::{Index, IndexMut},
 };
-<span class="kw">use</span> <span class="ident">strum</span>::{<span class="ident">EnumIter</span>, <span class="ident">IntoEnumIterator</span>};
+<span class="kw">use </span>strum::{EnumIter, IntoEnumIterator};
 
-<span class="doccomment">/// The legacy protocol names. Only supported on version = 1.</span>
-<span class="kw">const</span> <span class="ident">LEGACY_VALIDATION_PROTOCOL_V1</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/polkadot/validation/1&quot;</span>;
-<span class="kw">const</span> <span class="ident">LEGACY_COLLATION_PROTOCOL_V1</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/polkadot/collation/1&quot;</span>;
+<span class="doccomment">/// The legacy protocol names. Only supported on version = 1.
+</span><span class="kw">const </span>LEGACY_VALIDATION_PROTOCOL_V1: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/polkadot/validation/1&quot;</span>;
+<span class="kw">const </span>LEGACY_COLLATION_PROTOCOL_V1: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/polkadot/collation/1&quot;</span>;
 
-<span class="doccomment">/// The legacy protocol version. Is always 1 for both validation &amp; collation.</span>
-<span class="kw">const</span> <span class="ident">LEGACY_PROTOCOL_VERSION_V1</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="doccomment">/// The legacy protocol version. Is always 1 for both validation &amp; collation.
+</span><span class="kw">const </span>LEGACY_PROTOCOL_VERSION_V1: u32 = <span class="number">1</span>;
 
-<span class="doccomment">/// Max notification size is currently constant.</span>
-<span class="kw">const</span> <span class="ident">MAX_NOTIFICATION_SIZE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="number">1024</span>;
+<span class="doccomment">/// Max notification size is currently constant.
+</span><span class="kw">const </span>MAX_NOTIFICATION_SIZE: u64 = <span class="number">100 </span>* <span class="number">1024</span>;
 
-<span class="doccomment">/// The peer-sets and thus the protocols which are used for the network.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EnumIter</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PeerSet</span> {
-	<span class="doccomment">/// The validation peer-set is responsible for all messages related to candidate validation and</span>
-	<span class="doccomment">/// communication among validators.</span>
-	<span class="ident">Validation</span>,
-	<span class="doccomment">/// The collation peer-set is used for validator&lt;&gt;collator communication.</span>
-	<span class="ident">Collation</span>,
+<span class="doccomment">/// The peer-sets and thus the protocols which are used for the network.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
+</span><span class="kw">pub enum </span>PeerSet {
+	<span class="doccomment">/// The validation peer-set is responsible for all messages related to candidate validation and
+	/// communication among validators.
+	</span>Validation,
+	<span class="doccomment">/// The collation peer-set is used for validator&lt;&gt;collator communication.
+	</span>Collation,
 }
 
-<span class="doccomment">/// Whether a node is an authority or not.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Peer set configuration gets adjusted accordingly.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IsAuthority</span> {
-	<span class="doccomment">/// Node is authority.</span>
-	<span class="ident">Yes</span>,
-	<span class="doccomment">/// Node is not an authority.</span>
-	<span class="ident">No</span>,
+<span class="doccomment">/// Whether a node is an authority or not.
+///
+/// Peer set configuration gets adjusted accordingly.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>IsAuthority {
+	<span class="doccomment">/// Node is authority.
+	</span>Yes,
+	<span class="doccomment">/// Node is not an authority.
+	</span>No,
 }
 
-<span class="kw">impl</span> <span class="ident">PeerSet</span> {
-	<span class="doccomment">/// Get `sc_network` peer set configurations for each peerset on the default version.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Those should be used in the network configuration to register the protocols with the</span>
-	<span class="doccomment">/// network service.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_info</span>(
+<span class="kw">impl </span>PeerSet {
+	<span class="doccomment">/// Get `sc_network` peer set configurations for each peerset on the default version.
+	///
+	/// Those should be used in the network configuration to register the protocols with the
+	/// network service.
+	</span><span class="kw">pub fn </span>get_info(
 		<span class="self">self</span>,
-		<span class="ident">is_authority</span>: <span class="ident">IsAuthority</span>,
-		<span class="ident">peerset_protocol_names</span>: <span class="kw-2">&amp;</span><span class="ident">PeerSetProtocolNames</span>,
-	) -&gt; <span class="ident">NonDefaultSetConfig</span> {
-		<span class="comment">// Networking layer relies on `get_main_name()` being the main name of the protocol</span>
-		<span class="comment">// for peersets and connection management.</span>
-		<span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <span class="ident">peerset_protocol_names</span>.<span class="ident">get_main_name</span>(<span class="self">self</span>);
-		<span class="kw">let</span> <span class="ident">fallback_names</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::get_fallback_names</span>(<span class="self">self</span>);
-		<span class="kw">let</span> <span class="ident">max_notification_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_max_notification_size</span>(<span class="ident">is_authority</span>);
+		is_authority: IsAuthority,
+		peerset_protocol_names: <span class="kw-2">&amp;</span>PeerSetProtocolNames,
+	) -&gt; NonDefaultSetConfig {
+		<span class="comment">// Networking layer relies on `get_main_name()` being the main name of the protocol
+		// for peersets and connection management.
+		</span><span class="kw">let </span>protocol = peerset_protocol_names.get_main_name(<span class="self">self</span>);
+		<span class="kw">let </span>fallback_names = PeerSetProtocolNames::get_fallback_names(<span class="self">self</span>);
+		<span class="kw">let </span>max_notification_size = <span class="self">self</span>.get_max_notification_size(is_authority);
 
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="ident">NonDefaultSetConfig</span> {
-				<span class="ident">notifications_protocol</span>: <span class="ident">protocol</span>,
-				<span class="ident">fallback_names</span>,
-				<span class="ident">max_notification_size</span>,
-				<span class="ident">handshake</span>: <span class="prelude-val">None</span>,
-				<span class="ident">set_config</span>: <span class="ident">sc_network_common::config::SetConfig</span> {
-					<span class="comment">// we allow full nodes to connect to validators for gossip</span>
-					<span class="comment">// to ensure any `MIN_GOSSIP_PEERS` always include reserved peers</span>
-					<span class="comment">// we limit the amount of non-reserved slots to be less</span>
-					<span class="comment">// than `MIN_GOSSIP_PEERS` in total</span>
-					<span class="ident">in_peers</span>: <span class="ident"><span class="kw">super</span>::MIN_GOSSIP_PEERS</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">/</span> <span class="number">2</span> <span class="op">-</span> <span class="number">1</span>,
-					<span class="ident">out_peers</span>: <span class="ident"><span class="kw">super</span>::MIN_GOSSIP_PEERS</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">/</span> <span class="number">2</span> <span class="op">-</span> <span class="number">1</span>,
-					<span class="ident">reserved_nodes</span>: <span class="ident">Vec::new</span>(),
-					<span class="ident">non_reserved_mode</span>: <span class="ident">sc_network_common::config::NonReservedPeerMode::Accept</span>,
+		<span class="kw">match </span><span class="self">self </span>{
+			PeerSet::Validation =&gt; NonDefaultSetConfig {
+				notifications_protocol: protocol,
+				fallback_names,
+				max_notification_size,
+				handshake: <span class="prelude-val">None</span>,
+				set_config: sc_network_common::config::SetConfig {
+					<span class="comment">// we allow full nodes to connect to validators for gossip
+					// to ensure any `MIN_GOSSIP_PEERS` always include reserved peers
+					// we limit the amount of non-reserved slots to be less
+					// than `MIN_GOSSIP_PEERS` in total
+					</span>in_peers: <span class="kw">super</span>::MIN_GOSSIP_PEERS <span class="kw">as </span>u32 / <span class="number">2 </span>- <span class="number">1</span>,
+					out_peers: <span class="kw">super</span>::MIN_GOSSIP_PEERS <span class="kw">as </span>u32 / <span class="number">2 </span>- <span class="number">1</span>,
+					reserved_nodes: Vec::new(),
+					non_reserved_mode: sc_network_common::config::NonReservedPeerMode::Accept,
 				},
 			},
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="ident">NonDefaultSetConfig</span> {
-				<span class="ident">notifications_protocol</span>: <span class="ident">protocol</span>,
-				<span class="ident">fallback_names</span>,
-				<span class="ident">max_notification_size</span>,
-				<span class="ident">handshake</span>: <span class="prelude-val">None</span>,
-				<span class="ident">set_config</span>: <span class="ident">SetConfig</span> {
-					<span class="comment">// Non-authority nodes don&#39;t need to accept incoming connections on this peer set:</span>
-					<span class="ident">in_peers</span>: <span class="kw">if</span> <span class="ident">is_authority</span> <span class="op">==</span> <span class="ident">IsAuthority::Yes</span> { <span class="number">100</span> } <span class="kw">else</span> { <span class="number">0</span> },
-					<span class="ident">out_peers</span>: <span class="number">0</span>,
-					<span class="ident">reserved_nodes</span>: <span class="ident">Vec::new</span>(),
-					<span class="ident">non_reserved_mode</span>: <span class="kw">if</span> <span class="ident">is_authority</span> <span class="op">==</span> <span class="ident">IsAuthority::Yes</span> {
-						<span class="ident">sc_network_common::config::NonReservedPeerMode::Accept</span>
-					} <span class="kw">else</span> {
-						<span class="ident">sc_network_common::config::NonReservedPeerMode::Deny</span>
+			PeerSet::Collation =&gt; NonDefaultSetConfig {
+				notifications_protocol: protocol,
+				fallback_names,
+				max_notification_size,
+				handshake: <span class="prelude-val">None</span>,
+				set_config: SetConfig {
+					<span class="comment">// Non-authority nodes don&#39;t need to accept incoming connections on this peer set:
+					</span>in_peers: <span class="kw">if </span>is_authority == IsAuthority::Yes { <span class="number">100 </span>} <span class="kw">else </span>{ <span class="number">0 </span>},
+					out_peers: <span class="number">0</span>,
+					reserved_nodes: Vec::new(),
+					non_reserved_mode: <span class="kw">if </span>is_authority == IsAuthority::Yes {
+						sc_network_common::config::NonReservedPeerMode::Accept
+					} <span class="kw">else </span>{
+						sc_network_common::config::NonReservedPeerMode::Deny
 					},
 				},
 			},
 		}
 	}
 
-	<span class="doccomment">/// Get the main protocol version for this peer set.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Networking layer relies on `get_main_version()` being the version</span>
-	<span class="doccomment">/// of the main protocol name reported by [`PeerSetProtocolNames::get_main_name()`].</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_main_version</span>(<span class="self">self</span>) -&gt; <span class="ident">ProtocolVersion</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="ident">ValidationVersion::V1</span>.<span class="ident">into</span>(),
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="ident">CollationVersion::V1</span>.<span class="ident">into</span>(),
+	<span class="doccomment">/// Get the main protocol version for this peer set.
+	///
+	/// Networking layer relies on `get_main_version()` being the version
+	/// of the main protocol name reported by [`PeerSetProtocolNames::get_main_name()`].
+	</span><span class="kw">pub fn </span>get_main_version(<span class="self">self</span>) -&gt; ProtocolVersion {
+		<span class="kw">match </span><span class="self">self </span>{
+			PeerSet::Validation =&gt; ValidationVersion::V1.into(),
+			PeerSet::Collation =&gt; CollationVersion::V1.into(),
 		}
 	}
 
-	<span class="doccomment">/// Get the max notification size for this peer set.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_max_notification_size</span>(<span class="self">self</span>, <span class="kw">_</span>: <span class="ident">IsAuthority</span>) -&gt; <span class="ident">u64</span> {
-		<span class="ident">MAX_NOTIFICATION_SIZE</span>
+	<span class="doccomment">/// Get the max notification size for this peer set.
+	</span><span class="kw">pub fn </span>get_max_notification_size(<span class="self">self</span>, <span class="kw">_</span>: IsAuthority) -&gt; u64 {
+		MAX_NOTIFICATION_SIZE
 	}
 
-	<span class="doccomment">/// Get the peer set label for metrics reporting.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_label</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="string">&quot;validation&quot;</span>,
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="string">&quot;collation&quot;</span>,
+	<span class="doccomment">/// Get the peer set label for metrics reporting.
+	</span><span class="kw">pub fn </span>get_label(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+		<span class="kw">match </span><span class="self">self </span>{
+			PeerSet::Validation =&gt; <span class="string">&quot;validation&quot;</span>,
+			PeerSet::Collation =&gt; <span class="string">&quot;collation&quot;</span>,
 		}
 	}
 
-	<span class="doccomment">/// Get the protocol label for metrics reporting.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_protocol_label</span>(<span class="self">self</span>, <span class="ident">version</span>: <span class="ident">ProtocolVersion</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="comment">// Unfortunately, labels must be static strings, so we must manually cover them</span>
-		<span class="comment">// for all protocol versions here.</span>
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt;
-				<span class="kw">if</span> <span class="ident">version</span> <span class="op">==</span> <span class="ident">ValidationVersion::V1</span>.<span class="ident">into</span>() {
+	<span class="doccomment">/// Get the protocol label for metrics reporting.
+	</span><span class="kw">pub fn </span>get_protocol_label(<span class="self">self</span>, version: ProtocolVersion) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="comment">// Unfortunately, labels must be static strings, so we must manually cover them
+		// for all protocol versions here.
+		</span><span class="kw">match </span><span class="self">self </span>{
+			PeerSet::Validation =&gt;
+				<span class="kw">if </span>version == ValidationVersion::V1.into() {
 					<span class="prelude-val">Some</span>(<span class="string">&quot;validation/1&quot;</span>)
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				},
-			<span class="ident">PeerSet::Collation</span> =&gt;
-				<span class="kw">if</span> <span class="ident">version</span> <span class="op">==</span> <span class="ident">CollationVersion::V1</span>.<span class="ident">into</span>() {
+				} <span class="kw">else </span>{
+					<span class="prelude-val">None
+				</span>},
+			PeerSet::Collation =&gt;
+				<span class="kw">if </span>version == CollationVersion::V1.into() {
 					<span class="prelude-val">Some</span>(<span class="string">&quot;collation/1&quot;</span>)
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				},
+				} <span class="kw">else </span>{
+					<span class="prelude-val">None
+				</span>},
 		}
 	}
 }
 
-<span class="doccomment">/// A small and nifty collection that allows to store data pertaining to each peer set.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PerPeerSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="ident">validation</span>: <span class="ident">T</span>,
-	<span class="ident">collation</span>: <span class="ident">T</span>,
+<span class="doccomment">/// A small and nifty collection that allows to store data pertaining to each peer set.
+</span><span class="attribute">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>PerPeerSet&lt;T&gt; {
+	validation: T,
+	collation: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">PeerSet</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PerPeerSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
-	<span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">PeerSet</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
-		<span class="kw">match</span> <span class="ident">index</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">validation</span>,
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">collation</span>,
+<span class="kw">impl</span>&lt;T&gt; Index&lt;PeerSet&gt; <span class="kw">for </span>PerPeerSet&lt;T&gt; {
+	<span class="kw">type </span>Output = T;
+	<span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: PeerSet) -&gt; <span class="kw-2">&amp;</span>T {
+		<span class="kw">match </span>index {
+			PeerSet::Validation =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.validation,
+			PeerSet::Collation =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.collation,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">PeerSet</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PerPeerSet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">PeerSet</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
-		<span class="kw">match</span> <span class="ident">index</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">validation</span>,
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">collation</span>,
+<span class="kw">impl</span>&lt;T&gt; IndexMut&lt;PeerSet&gt; <span class="kw">for </span>PerPeerSet&lt;T&gt; {
+	<span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: PeerSet) -&gt; <span class="kw-2">&amp;mut </span>T {
+		<span class="kw">match </span>index {
+			PeerSet::Validation =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.validation,
+			PeerSet::Collation =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.collation,
 		}
 	}
 }
 
-<span class="doccomment">/// Get `NonDefaultSetConfig`s for all available peer sets, at their default versions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Should be used during network configuration (added to [`NetworkConfiguration::extra_sets`])</span>
-<span class="doccomment">/// or shortly after startup to register the protocols with the network service.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_sets_info</span>(
-	<span class="ident">is_authority</span>: <span class="ident">IsAuthority</span>,
-	<span class="ident">peerset_protocol_names</span>: <span class="kw-2">&amp;</span><span class="ident">PeerSetProtocolNames</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">sc_network_common::config::NonDefaultSetConfig</span><span class="op">&gt;</span> {
-	<span class="ident">PeerSet::iter</span>()
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">get_info</span>(<span class="ident">is_authority</span>, <span class="kw-2">&amp;</span><span class="ident">peerset_protocol_names</span>))
-		.<span class="ident">collect</span>()
+<span class="doccomment">/// Get `NonDefaultSetConfig`s for all available peer sets, at their default versions.
+///
+/// Should be used during network configuration (added to [`NetworkConfiguration::extra_sets`])
+/// or shortly after startup to register the protocols with the network service.
+</span><span class="kw">pub fn </span>peer_sets_info(
+	is_authority: IsAuthority,
+	peerset_protocol_names: <span class="kw-2">&amp;</span>PeerSetProtocolNames,
+) -&gt; Vec&lt;sc_network_common::config::NonDefaultSetConfig&gt; {
+	PeerSet::iter()
+		.map(|s| s.get_info(is_authority, <span class="kw-2">&amp;</span>peerset_protocol_names))
+		.collect()
 }
 
-<span class="doccomment">/// A generic version of the protocol. This struct must not be created directly.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Display</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProtocolVersion</span>(<span class="ident">u32</span>);
+<span class="doccomment">/// A generic version of the protocol. This struct must not be created directly.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, Display, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>ProtocolVersion(u32);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ProtocolVersion</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">version</span>: <span class="ident">ProtocolVersion</span>) -&gt; <span class="ident">u32</span> {
-		<span class="ident">version</span>.<span class="number">0</span>
+<span class="kw">impl </span>From&lt;ProtocolVersion&gt; <span class="kw">for </span>u32 {
+	<span class="kw">fn </span>from(version: ProtocolVersion) -&gt; u32 {
+		version.<span class="number">0
+	</span>}
+}
+
+<span class="doccomment">/// Supported validation protocol versions. Only versions defined here must be used in the codebase.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
+</span><span class="kw">pub enum </span>ValidationVersion {
+	<span class="doccomment">/// The first version.
+	</span>V1 = <span class="number">1</span>,
+}
+
+<span class="doccomment">/// Supported collation protocol versions. Only versions defined here must be used in the codebase.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
+</span><span class="kw">pub enum </span>CollationVersion {
+	<span class="doccomment">/// The first version.
+	</span>V1 = <span class="number">1</span>,
+}
+
+<span class="kw">impl </span>From&lt;ValidationVersion&gt; <span class="kw">for </span>ProtocolVersion {
+	<span class="kw">fn </span>from(version: ValidationVersion) -&gt; ProtocolVersion {
+		ProtocolVersion(version <span class="kw">as </span>u32)
 	}
 }
 
-<span class="doccomment">/// Supported validation protocol versions. Only versions defined here must be used in the codebase.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EnumIter</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ValidationVersion</span> {
-	<span class="doccomment">/// The first version.</span>
-	<span class="ident">V1</span> <span class="op">=</span> <span class="number">1</span>,
-}
-
-<span class="doccomment">/// Supported collation protocol versions. Only versions defined here must be used in the codebase.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">EnumIter</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CollationVersion</span> {
-	<span class="doccomment">/// The first version.</span>
-	<span class="ident">V1</span> <span class="op">=</span> <span class="number">1</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ValidationVersion</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProtocolVersion</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">version</span>: <span class="ident">ValidationVersion</span>) -&gt; <span class="ident">ProtocolVersion</span> {
-		<span class="ident">ProtocolVersion</span>(<span class="ident">version</span> <span class="kw">as</span> <span class="ident">u32</span>)
+<span class="kw">impl </span>From&lt;CollationVersion&gt; <span class="kw">for </span>ProtocolVersion {
+	<span class="kw">fn </span>from(version: CollationVersion) -&gt; ProtocolVersion {
+		ProtocolVersion(version <span class="kw">as </span>u32)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CollationVersion</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProtocolVersion</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">version</span>: <span class="ident">CollationVersion</span>) -&gt; <span class="ident">ProtocolVersion</span> {
-		<span class="ident">ProtocolVersion</span>(<span class="ident">version</span> <span class="kw">as</span> <span class="ident">u32</span>)
-	}
+<span class="doccomment">/// On the wire protocol name to [`PeerSet`] mapping.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>PeerSetProtocolNames {
+	protocols: HashMap&lt;ProtocolName, (PeerSet, ProtocolVersion)&gt;,
+	names: HashMap&lt;(PeerSet, ProtocolVersion), ProtocolName&gt;,
 }
 
-<span class="doccomment">/// On the wire protocol name to [`PeerSet`] mapping.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeerSetProtocolNames</span> {
-	<span class="ident">protocols</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ProtocolName</span>, (<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>)<span class="op">&gt;</span>,
-	<span class="ident">names</span>: <span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>), <span class="ident">ProtocolName</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">PeerSetProtocolNames</span> {
-	<span class="doccomment">/// Construct [`PeerSetProtocols`] using `genesis_hash` and `fork_id`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">genesis_hash</span>: <span class="ident">Hash</span>, <span class="ident">fork_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">protocols</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">names</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-		<span class="kw">for</span> <span class="ident">protocol</span> <span class="kw">in</span> <span class="ident">PeerSet::iter</span>() {
-			<span class="kw">match</span> <span class="ident">protocol</span> {
-				<span class="ident">PeerSet::Validation</span> =&gt;
-					<span class="kw">for</span> <span class="ident">version</span> <span class="kw">in</span> <span class="ident">ValidationVersion::iter</span>() {
-						<span class="ident"><span class="self">Self</span>::register_main_protocol</span>(
-							<span class="kw-2">&amp;mut</span> <span class="ident">protocols</span>,
-							<span class="kw-2">&amp;mut</span> <span class="ident">names</span>,
-							<span class="ident">protocol</span>,
-							<span class="ident">version</span>.<span class="ident">into</span>(),
-							<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
-							<span class="ident">fork_id</span>,
+<span class="kw">impl </span>PeerSetProtocolNames {
+	<span class="doccomment">/// Construct [`PeerSetProtocols`] using `genesis_hash` and `fork_id`.
+	</span><span class="kw">pub fn </span>new(genesis_hash: Hash, fork_id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span><span class="kw-2">mut </span>protocols = HashMap::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>names = HashMap::new();
+		<span class="kw">for </span>protocol <span class="kw">in </span>PeerSet::iter() {
+			<span class="kw">match </span>protocol {
+				PeerSet::Validation =&gt;
+					<span class="kw">for </span>version <span class="kw">in </span>ValidationVersion::iter() {
+						<span class="self">Self</span>::register_main_protocol(
+							<span class="kw-2">&amp;mut </span>protocols,
+							<span class="kw-2">&amp;mut </span>names,
+							protocol,
+							version.into(),
+							<span class="kw-2">&amp;</span>genesis_hash,
+							fork_id,
 						);
 					},
-				<span class="ident">PeerSet::Collation</span> =&gt;
-					<span class="kw">for</span> <span class="ident">version</span> <span class="kw">in</span> <span class="ident">CollationVersion::iter</span>() {
-						<span class="ident"><span class="self">Self</span>::register_main_protocol</span>(
-							<span class="kw-2">&amp;mut</span> <span class="ident">protocols</span>,
-							<span class="kw-2">&amp;mut</span> <span class="ident">names</span>,
-							<span class="ident">protocol</span>,
-							<span class="ident">version</span>.<span class="ident">into</span>(),
-							<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
-							<span class="ident">fork_id</span>,
+				PeerSet::Collation =&gt;
+					<span class="kw">for </span>version <span class="kw">in </span>CollationVersion::iter() {
+						<span class="self">Self</span>::register_main_protocol(
+							<span class="kw-2">&amp;mut </span>protocols,
+							<span class="kw-2">&amp;mut </span>names,
+							protocol,
+							version.into(),
+							<span class="kw-2">&amp;</span>genesis_hash,
+							fork_id,
 						);
 					},
 			}
-			<span class="ident"><span class="self">Self</span>::register_legacy_protocol</span>(<span class="kw-2">&amp;mut</span> <span class="ident">protocols</span>, <span class="ident">protocol</span>);
+			<span class="self">Self</span>::register_legacy_protocol(<span class="kw-2">&amp;mut </span>protocols, protocol);
 		}
-		<span class="self">Self</span> { <span class="ident">protocols</span>, <span class="ident">names</span> }
+		<span class="self">Self </span>{ protocols, names }
 	}
 
-	<span class="doccomment">/// Helper function to register main protocol.</span>
-	<span class="kw">fn</span> <span class="ident">register_main_protocol</span>(
-		<span class="ident">protocols</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ProtocolName</span>, (<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>)<span class="op">&gt;</span>,
-		<span class="ident">names</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>), <span class="ident">ProtocolName</span><span class="op">&gt;</span>,
-		<span class="ident">protocol</span>: <span class="ident">PeerSet</span>,
-		<span class="ident">version</span>: <span class="ident">ProtocolVersion</span>,
-		<span class="ident">genesis_hash</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-		<span class="ident">fork_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Helper function to register main protocol.
+	</span><span class="kw">fn </span>register_main_protocol(
+		protocols: <span class="kw-2">&amp;mut </span>HashMap&lt;ProtocolName, (PeerSet, ProtocolVersion)&gt;,
+		names: <span class="kw-2">&amp;mut </span>HashMap&lt;(PeerSet, ProtocolVersion), ProtocolName&gt;,
+		protocol: PeerSet,
+		version: ProtocolVersion,
+		genesis_hash: <span class="kw-2">&amp;</span>Hash,
+		fork_id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 	) {
-		<span class="kw">let</span> <span class="ident">protocol_name</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::generate_name</span>(<span class="ident">genesis_hash</span>, <span class="ident">fork_id</span>, <span class="ident">protocol</span>, <span class="ident">version</span>);
-		<span class="ident">names</span>.<span class="ident">insert</span>((<span class="ident">protocol</span>, <span class="ident">version</span>), <span class="ident">protocol_name</span>.<span class="ident">clone</span>());
-		<span class="ident"><span class="self">Self</span>::insert_protocol_or_panic</span>(<span class="ident">protocols</span>, <span class="ident">protocol_name</span>, <span class="ident">protocol</span>, <span class="ident">version</span>);
+		<span class="kw">let </span>protocol_name = <span class="self">Self</span>::generate_name(genesis_hash, fork_id, protocol, version);
+		names.insert((protocol, version), protocol_name.clone());
+		<span class="self">Self</span>::insert_protocol_or_panic(protocols, protocol_name, protocol, version);
 	}
 
-	<span class="doccomment">/// Helper function to register legacy protocol.</span>
-	<span class="kw">fn</span> <span class="ident">register_legacy_protocol</span>(
-		<span class="ident">protocols</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ProtocolName</span>, (<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>)<span class="op">&gt;</span>,
-		<span class="ident">protocol</span>: <span class="ident">PeerSet</span>,
+	<span class="doccomment">/// Helper function to register legacy protocol.
+	</span><span class="kw">fn </span>register_legacy_protocol(
+		protocols: <span class="kw-2">&amp;mut </span>HashMap&lt;ProtocolName, (PeerSet, ProtocolVersion)&gt;,
+		protocol: PeerSet,
 	) {
-		<span class="ident"><span class="self">Self</span>::insert_protocol_or_panic</span>(
-			<span class="ident">protocols</span>,
-			<span class="ident"><span class="self">Self</span>::get_legacy_name</span>(<span class="ident">protocol</span>),
-			<span class="ident">protocol</span>,
-			<span class="ident">ProtocolVersion</span>(<span class="ident">LEGACY_PROTOCOL_VERSION_V1</span>),
+		<span class="self">Self</span>::insert_protocol_or_panic(
+			protocols,
+			<span class="self">Self</span>::get_legacy_name(protocol),
+			protocol,
+			ProtocolVersion(LEGACY_PROTOCOL_VERSION_V1),
 		)
 	}
 
-	<span class="doccomment">/// Helper function to make sure no protocols have the same name.</span>
-	<span class="kw">fn</span> <span class="ident">insert_protocol_or_panic</span>(
-		<span class="ident">protocols</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ProtocolName</span>, (<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>)<span class="op">&gt;</span>,
-		<span class="ident">name</span>: <span class="ident">ProtocolName</span>,
-		<span class="ident">protocol</span>: <span class="ident">PeerSet</span>,
-		<span class="ident">version</span>: <span class="ident">ProtocolVersion</span>,
+	<span class="doccomment">/// Helper function to make sure no protocols have the same name.
+	</span><span class="kw">fn </span>insert_protocol_or_panic(
+		protocols: <span class="kw-2">&amp;mut </span>HashMap&lt;ProtocolName, (PeerSet, ProtocolVersion)&gt;,
+		name: ProtocolName,
+		protocol: PeerSet,
+		version: ProtocolVersion,
 	) {
-		<span class="kw">match</span> <span class="ident">protocols</span>.<span class="ident">entry</span>(<span class="ident">name</span>) {
-			<span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; {
-				<span class="ident">entry</span>.<span class="ident">insert</span>((<span class="ident">protocol</span>, <span class="ident">version</span>));
+		<span class="kw">match </span>protocols.entry(name) {
+			Entry::Vacant(entry) =&gt; {
+				entry.insert((protocol, version));
 			},
-			<span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; {
+			Entry::Occupied(entry) =&gt; {
 				<span class="macro">panic!</span>(
 					<span class="string">&quot;Protocol {:?} (version {}) has the same on-the-wire name as protocol {:?} (version {}): `{}`.&quot;</span>,
-					<span class="ident">protocol</span>,
-					<span class="ident">version</span>,
-					<span class="ident">entry</span>.<span class="ident">get</span>().<span class="number">0</span>,
-					<span class="ident">entry</span>.<span class="ident">get</span>().<span class="number">1</span>,
-					<span class="ident">entry</span>.<span class="ident">key</span>(),
+					protocol,
+					version,
+					entry.get().<span class="number">0</span>,
+					entry.get().<span class="number">1</span>,
+					entry.key(),
 				);
 			},
 		}
 	}
 
-	<span class="doccomment">/// Lookup the protocol using its on the wire name.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_get_protocol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">ProtocolName</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">PeerSet</span>, <span class="ident">ProtocolVersion</span>)<span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">protocols</span>.<span class="ident">get</span>(<span class="ident">name</span>).<span class="ident">map</span>(<span class="ident">ToOwned::to_owned</span>)
+	<span class="doccomment">/// Lookup the protocol using its on the wire name.
+	</span><span class="kw">pub fn </span>try_get_protocol(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>ProtocolName) -&gt; <span class="prelude-ty">Option</span>&lt;(PeerSet, ProtocolVersion)&gt; {
+		<span class="self">self</span>.protocols.get(name).map(ToOwned::to_owned)
 	}
 
-	<span class="doccomment">/// Get the main protocol name. It&#39;s used by the networking for keeping track</span>
-	<span class="doccomment">/// of peersets and connections.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_main_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">protocol</span>: <span class="ident">PeerSet</span>) -&gt; <span class="ident">ProtocolName</span> {
-		<span class="self">self</span>.<span class="ident">get_name</span>(<span class="ident">protocol</span>, <span class="ident">protocol</span>.<span class="ident">get_main_version</span>())
+	<span class="doccomment">/// Get the main protocol name. It&#39;s used by the networking for keeping track
+	/// of peersets and connections.
+	</span><span class="kw">pub fn </span>get_main_name(<span class="kw-2">&amp;</span><span class="self">self</span>, protocol: PeerSet) -&gt; ProtocolName {
+		<span class="self">self</span>.get_name(protocol, protocol.get_main_version())
 	}
 
-	<span class="doccomment">/// Get the protocol name for specific version.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">protocol</span>: <span class="ident">PeerSet</span>, <span class="ident">version</span>: <span class="ident">ProtocolVersion</span>) -&gt; <span class="ident">ProtocolName</span> {
-		<span class="self">self</span>.<span class="ident">names</span>
-			.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">protocol</span>, <span class="ident">version</span>))
-			.<span class="ident">expect</span>(<span class="string">&quot;Protocols &amp; versions are specified via enums defined above, and they are all registered in `new()`; qed&quot;</span>)
-			.<span class="ident">clone</span>()
+	<span class="doccomment">/// Get the protocol name for specific version.
+	</span><span class="kw">pub fn </span>get_name(<span class="kw-2">&amp;</span><span class="self">self</span>, protocol: PeerSet, version: ProtocolVersion) -&gt; ProtocolName {
+		<span class="self">self</span>.names
+			.get(<span class="kw-2">&amp;</span>(protocol, version))
+			.expect(<span class="string">&quot;Protocols &amp; versions are specified via enums defined above, and they are all registered in `new()`; qed&quot;</span>)
+			.clone()
 	}
 
-	<span class="doccomment">/// The protocol name of this protocol based on `genesis_hash` and `fork_id`.</span>
-	<span class="kw">fn</span> <span class="ident">generate_name</span>(
-		<span class="ident">genesis_hash</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>,
-		<span class="ident">fork_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-		<span class="ident">protocol</span>: <span class="ident">PeerSet</span>,
-		<span class="ident">version</span>: <span class="ident">ProtocolVersion</span>,
-	) -&gt; <span class="ident">ProtocolName</span> {
-		<span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fork_id</span>) <span class="op">=</span> <span class="ident">fork_id</span> {
-			<span class="macro">format!</span>(<span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">hex::encode</span>(<span class="ident">genesis_hash</span>), <span class="ident">fork_id</span>)
-		} <span class="kw">else</span> {
-			<span class="macro">format!</span>(<span class="string">&quot;/{}&quot;</span>, <span class="ident">hex::encode</span>(<span class="ident">genesis_hash</span>))
+	<span class="doccomment">/// The protocol name of this protocol based on `genesis_hash` and `fork_id`.
+	</span><span class="kw">fn </span>generate_name(
+		genesis_hash: <span class="kw-2">&amp;</span>Hash,
+		fork_id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+		protocol: PeerSet,
+		version: ProtocolVersion,
+	) -&gt; ProtocolName {
+		<span class="kw">let </span>prefix = <span class="kw">if let </span><span class="prelude-val">Some</span>(fork_id) = fork_id {
+			<span class="macro">format!</span>(<span class="string">&quot;/{}/{}&quot;</span>, hex::encode(genesis_hash), fork_id)
+		} <span class="kw">else </span>{
+			<span class="macro">format!</span>(<span class="string">&quot;/{}&quot;</span>, hex::encode(genesis_hash))
 		};
 
-		<span class="kw">let</span> <span class="ident">short_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">protocol</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="string">&quot;validation&quot;</span>,
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="string">&quot;collation&quot;</span>,
+		<span class="kw">let </span>short_name = <span class="kw">match </span>protocol {
+			PeerSet::Validation =&gt; <span class="string">&quot;validation&quot;</span>,
+			PeerSet::Collation =&gt; <span class="string">&quot;collation&quot;</span>,
 		};
 
-		<span class="macro">format!</span>(<span class="string">&quot;{}/{}/{}&quot;</span>, <span class="ident">prefix</span>, <span class="ident">short_name</span>, <span class="ident">version</span>).<span class="ident">into</span>()
+		<span class="macro">format!</span>(<span class="string">&quot;{}/{}/{}&quot;</span>, prefix, short_name, version).into()
 	}
 
-	<span class="doccomment">/// Get the legacy protocol name, only `LEGACY_PROTOCOL_VERSION` = 1 is supported.</span>
-	<span class="kw">fn</span> <span class="ident">get_legacy_name</span>(<span class="ident">protocol</span>: <span class="ident">PeerSet</span>) -&gt; <span class="ident">ProtocolName</span> {
-		<span class="kw">match</span> <span class="ident">protocol</span> {
-			<span class="ident">PeerSet::Validation</span> =&gt; <span class="ident">LEGACY_VALIDATION_PROTOCOL_V1</span>,
-			<span class="ident">PeerSet::Collation</span> =&gt; <span class="ident">LEGACY_COLLATION_PROTOCOL_V1</span>,
+	<span class="doccomment">/// Get the legacy protocol name, only `LEGACY_PROTOCOL_VERSION` = 1 is supported.
+	</span><span class="kw">fn </span>get_legacy_name(protocol: PeerSet) -&gt; ProtocolName {
+		<span class="kw">match </span>protocol {
+			PeerSet::Validation =&gt; LEGACY_VALIDATION_PROTOCOL_V1,
+			PeerSet::Collation =&gt; LEGACY_COLLATION_PROTOCOL_V1,
 		}
-		.<span class="ident">into</span>()
+		.into()
 	}
 
-	<span class="doccomment">/// Get the protocol fallback names. Currently only holds the legacy name</span>
-	<span class="doccomment">/// for `LEGACY_PROTOCOL_VERSION` = 1.</span>
-	<span class="kw">fn</span> <span class="ident">get_fallback_names</span>(<span class="ident">protocol</span>: <span class="ident">PeerSet</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ProtocolName</span><span class="op">&gt;</span> {
-		<span class="ident">std::iter::once</span>(<span class="ident"><span class="self">Self</span>::get_legacy_name</span>(<span class="ident">protocol</span>)).<span class="ident">collect</span>()
+	<span class="doccomment">/// Get the protocol fallback names. Currently only holds the legacy name
+	/// for `LEGACY_PROTOCOL_VERSION` = 1.
+	</span><span class="kw">fn </span>get_fallback_names(protocol: PeerSet) -&gt; Vec&lt;ProtocolName&gt; {
+		std::iter::once(<span class="self">Self</span>::get_legacy_name(protocol)).collect()
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::{
-		<span class="ident">CollationVersion</span>, <span class="ident">Hash</span>, <span class="ident">PeerSet</span>, <span class="ident">PeerSetProtocolNames</span>, <span class="ident">ProtocolVersion</span>, <span class="ident">ValidationVersion</span>,
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::{
+		CollationVersion, Hash, PeerSet, PeerSetProtocolNames, ProtocolVersion, ValidationVersion,
 	};
-	<span class="kw">use</span> <span class="ident">strum::IntoEnumIterator</span>;
+	<span class="kw">use </span>strum::IntoEnumIterator;
 
-	<span class="kw">struct</span> <span class="ident">TestVersion</span>(<span class="ident">u32</span>);
+	<span class="kw">struct </span>TestVersion(u32);
 
-	<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TestVersion</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ProtocolVersion</span> {
-		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">version</span>: <span class="ident">TestVersion</span>) -&gt; <span class="ident">ProtocolVersion</span> {
-			<span class="ident">ProtocolVersion</span>(<span class="ident">version</span>.<span class="number">0</span>)
+	<span class="kw">impl </span>From&lt;TestVersion&gt; <span class="kw">for </span>ProtocolVersion {
+		<span class="kw">fn </span>from(version: TestVersion) -&gt; ProtocolVersion {
+			ProtocolVersion(version.<span class="number">0</span>)
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">protocol_names_are_correctly_generated</span>() {
-		<span class="kw">let</span> <span class="ident">genesis_hash</span> <span class="op">=</span> <span class="ident">Hash::from</span>([
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>protocol_names_are_correctly_generated() {
+		<span class="kw">let </span>genesis_hash = Hash::from([
 			<span class="number">122</span>, <span class="number">200</span>, <span class="number">116</span>, <span class="number">29</span>, <span class="number">232</span>, <span class="number">183</span>, <span class="number">20</span>, <span class="number">109</span>, <span class="number">138</span>, <span class="number">86</span>, <span class="number">23</span>, <span class="number">253</span>, <span class="number">70</span>, <span class="number">41</span>, <span class="number">20</span>, <span class="number">85</span>, <span class="number">127</span>, <span class="number">230</span>, <span class="number">60</span>,
 			<span class="number">38</span>, <span class="number">90</span>, <span class="number">127</span>, <span class="number">28</span>, <span class="number">16</span>, <span class="number">231</span>, <span class="number">218</span>, <span class="number">227</span>, <span class="number">40</span>, <span class="number">88</span>, <span class="number">238</span>, <span class="number">187</span>, <span class="number">128</span>,
 		]);
-		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::generate_name</span>(
-			<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
+		<span class="kw">let </span>name = PeerSetProtocolNames::generate_name(
+			<span class="kw-2">&amp;</span>genesis_hash,
 			<span class="prelude-val">None</span>,
-			<span class="ident">PeerSet::Validation</span>,
-			<span class="ident">TestVersion</span>(<span class="number">3</span>).<span class="ident">into</span>(),
+			PeerSet::Validation,
+			TestVersion(<span class="number">3</span>).into(),
 		);
-		<span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+		<span class="kw">let </span>expected =
 			<span class="string">&quot;/7ac8741de8b7146d8a5617fd462914557fe63c265a7f1c10e7dae32858eebb80/validation/3&quot;</span>;
-		<span class="macro">assert_eq!</span>(<span class="ident">name</span>, <span class="ident">expected</span>.<span class="ident">into</span>());
+		<span class="macro">assert_eq!</span>(name, expected.into());
 
-		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::generate_name</span>(
-			<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
+		<span class="kw">let </span>name = PeerSetProtocolNames::generate_name(
+			<span class="kw-2">&amp;</span>genesis_hash,
 			<span class="prelude-val">None</span>,
-			<span class="ident">PeerSet::Collation</span>,
-			<span class="ident">TestVersion</span>(<span class="number">5</span>).<span class="ident">into</span>(),
+			PeerSet::Collation,
+			TestVersion(<span class="number">5</span>).into(),
 		);
-		<span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+		<span class="kw">let </span>expected =
 			<span class="string">&quot;/7ac8741de8b7146d8a5617fd462914557fe63c265a7f1c10e7dae32858eebb80/collation/5&quot;</span>;
-		<span class="macro">assert_eq!</span>(<span class="ident">name</span>, <span class="ident">expected</span>.<span class="ident">into</span>());
+		<span class="macro">assert_eq!</span>(name, expected.into());
 
-		<span class="kw">let</span> <span class="ident">fork_id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;test-fork&quot;</span>);
-		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::generate_name</span>(
-			<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
-			<span class="ident">fork_id</span>,
-			<span class="ident">PeerSet::Validation</span>,
-			<span class="ident">TestVersion</span>(<span class="number">7</span>).<span class="ident">into</span>(),
+		<span class="kw">let </span>fork_id = <span class="prelude-val">Some</span>(<span class="string">&quot;test-fork&quot;</span>);
+		<span class="kw">let </span>name = PeerSetProtocolNames::generate_name(
+			<span class="kw-2">&amp;</span>genesis_hash,
+			fork_id,
+			PeerSet::Validation,
+			TestVersion(<span class="number">7</span>).into(),
 		);
-		<span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+		<span class="kw">let </span>expected =
 			<span class="string">&quot;/7ac8741de8b7146d8a5617fd462914557fe63c265a7f1c10e7dae32858eebb80/test-fork/validation/7&quot;</span>;
-		<span class="macro">assert_eq!</span>(<span class="ident">name</span>, <span class="ident">expected</span>.<span class="ident">into</span>());
+		<span class="macro">assert_eq!</span>(name, expected.into());
 
-		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::generate_name</span>(
-			<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
-			<span class="ident">fork_id</span>,
-			<span class="ident">PeerSet::Collation</span>,
-			<span class="ident">TestVersion</span>(<span class="number">11</span>).<span class="ident">into</span>(),
+		<span class="kw">let </span>name = PeerSetProtocolNames::generate_name(
+			<span class="kw-2">&amp;</span>genesis_hash,
+			fork_id,
+			PeerSet::Collation,
+			TestVersion(<span class="number">11</span>).into(),
 		);
-		<span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span>
+		<span class="kw">let </span>expected =
 			<span class="string">&quot;/7ac8741de8b7146d8a5617fd462914557fe63c265a7f1c10e7dae32858eebb80/test-fork/collation/11&quot;</span>;
-		<span class="macro">assert_eq!</span>(<span class="ident">name</span>, <span class="ident">expected</span>.<span class="ident">into</span>());
+		<span class="macro">assert_eq!</span>(name, expected.into());
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">all_protocol_names_are_known</span>() {
-		<span class="kw">let</span> <span class="ident">genesis_hash</span> <span class="op">=</span> <span class="ident">Hash::from</span>([
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>all_protocol_names_are_known() {
+		<span class="kw">let </span>genesis_hash = Hash::from([
 			<span class="number">122</span>, <span class="number">200</span>, <span class="number">116</span>, <span class="number">29</span>, <span class="number">232</span>, <span class="number">183</span>, <span class="number">20</span>, <span class="number">109</span>, <span class="number">138</span>, <span class="number">86</span>, <span class="number">23</span>, <span class="number">253</span>, <span class="number">70</span>, <span class="number">41</span>, <span class="number">20</span>, <span class="number">85</span>, <span class="number">127</span>, <span class="number">230</span>, <span class="number">60</span>,
 			<span class="number">38</span>, <span class="number">90</span>, <span class="number">127</span>, <span class="number">28</span>, <span class="number">16</span>, <span class="number">231</span>, <span class="number">218</span>, <span class="number">227</span>, <span class="number">40</span>, <span class="number">88</span>, <span class="number">238</span>, <span class="number">187</span>, <span class="number">128</span>,
 		]);
-		<span class="kw">let</span> <span class="ident">protocol_names</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::new</span>(<span class="ident">genesis_hash</span>, <span class="prelude-val">None</span>);
+		<span class="kw">let </span>protocol_names = PeerSetProtocolNames::new(genesis_hash, <span class="prelude-val">None</span>);
 
-		<span class="kw">let</span> <span class="ident">validation_main</span> <span class="op">=</span>
+		<span class="kw">let </span>validation_main =
 			<span class="string">&quot;/7ac8741de8b7146d8a5617fd462914557fe63c265a7f1c10e7dae32858eebb80/validation/1&quot;</span>;
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">protocol_names</span>.<span class="ident">try_get_protocol</span>(<span class="kw-2">&amp;</span><span class="ident">validation_main</span>.<span class="ident">into</span>()),
-			<span class="prelude-val">Some</span>((<span class="ident">PeerSet::Validation</span>, <span class="ident">TestVersion</span>(<span class="number">1</span>).<span class="ident">into</span>())),
+			protocol_names.try_get_protocol(<span class="kw-2">&amp;</span>validation_main.into()),
+			<span class="prelude-val">Some</span>((PeerSet::Validation, TestVersion(<span class="number">1</span>).into())),
 		);
 
-		<span class="kw">let</span> <span class="ident">validation_legacy</span> <span class="op">=</span> <span class="string">&quot;/polkadot/validation/1&quot;</span>;
+		<span class="kw">let </span>validation_legacy = <span class="string">&quot;/polkadot/validation/1&quot;</span>;
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">protocol_names</span>.<span class="ident">try_get_protocol</span>(<span class="kw-2">&amp;</span><span class="ident">validation_legacy</span>.<span class="ident">into</span>()),
-			<span class="prelude-val">Some</span>((<span class="ident">PeerSet::Validation</span>, <span class="ident">TestVersion</span>(<span class="number">1</span>).<span class="ident">into</span>())),
+			protocol_names.try_get_protocol(<span class="kw-2">&amp;</span>validation_legacy.into()),
+			<span class="prelude-val">Some</span>((PeerSet::Validation, TestVersion(<span class="number">1</span>).into())),
 		);
 
-		<span class="kw">let</span> <span class="ident">collation_main</span> <span class="op">=</span>
+		<span class="kw">let </span>collation_main =
 			<span class="string">&quot;/7ac8741de8b7146d8a5617fd462914557fe63c265a7f1c10e7dae32858eebb80/collation/1&quot;</span>;
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">protocol_names</span>.<span class="ident">try_get_protocol</span>(<span class="kw-2">&amp;</span><span class="ident">collation_main</span>.<span class="ident">into</span>()),
-			<span class="prelude-val">Some</span>((<span class="ident">PeerSet::Collation</span>, <span class="ident">TestVersion</span>(<span class="number">1</span>).<span class="ident">into</span>())),
+			protocol_names.try_get_protocol(<span class="kw-2">&amp;</span>collation_main.into()),
+			<span class="prelude-val">Some</span>((PeerSet::Collation, TestVersion(<span class="number">1</span>).into())),
 		);
 
-		<span class="kw">let</span> <span class="ident">collation_legacy</span> <span class="op">=</span> <span class="string">&quot;/polkadot/collation/1&quot;</span>;
+		<span class="kw">let </span>collation_legacy = <span class="string">&quot;/polkadot/collation/1&quot;</span>;
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">protocol_names</span>.<span class="ident">try_get_protocol</span>(<span class="kw-2">&amp;</span><span class="ident">collation_legacy</span>.<span class="ident">into</span>()),
-			<span class="prelude-val">Some</span>((<span class="ident">PeerSet::Collation</span>, <span class="ident">TestVersion</span>(<span class="number">1</span>).<span class="ident">into</span>())),
+			protocol_names.try_get_protocol(<span class="kw-2">&amp;</span>collation_legacy.into()),
+			<span class="prelude-val">Some</span>((PeerSet::Collation, TestVersion(<span class="number">1</span>).into())),
 		);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">all_protocol_versions_are_registered</span>() {
-		<span class="kw">let</span> <span class="ident">genesis_hash</span> <span class="op">=</span> <span class="ident">Hash::from</span>([
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>all_protocol_versions_are_registered() {
+		<span class="kw">let </span>genesis_hash = Hash::from([
 			<span class="number">122</span>, <span class="number">200</span>, <span class="number">116</span>, <span class="number">29</span>, <span class="number">232</span>, <span class="number">183</span>, <span class="number">20</span>, <span class="number">109</span>, <span class="number">138</span>, <span class="number">86</span>, <span class="number">23</span>, <span class="number">253</span>, <span class="number">70</span>, <span class="number">41</span>, <span class="number">20</span>, <span class="number">85</span>, <span class="number">127</span>, <span class="number">230</span>, <span class="number">60</span>,
 			<span class="number">38</span>, <span class="number">90</span>, <span class="number">127</span>, <span class="number">28</span>, <span class="number">16</span>, <span class="number">231</span>, <span class="number">218</span>, <span class="number">227</span>, <span class="number">40</span>, <span class="number">88</span>, <span class="number">238</span>, <span class="number">187</span>, <span class="number">128</span>,
 		]);
-		<span class="kw">let</span> <span class="ident">protocol_names</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::new</span>(<span class="ident">genesis_hash</span>, <span class="prelude-val">None</span>);
+		<span class="kw">let </span>protocol_names = PeerSetProtocolNames::new(genesis_hash, <span class="prelude-val">None</span>);
 
-		<span class="kw">for</span> <span class="ident">protocol</span> <span class="kw">in</span> <span class="ident">PeerSet::iter</span>() {
-			<span class="kw">match</span> <span class="ident">protocol</span> {
-				<span class="ident">PeerSet::Validation</span> =&gt;
-					<span class="kw">for</span> <span class="ident">version</span> <span class="kw">in</span> <span class="ident">ValidationVersion::iter</span>() {
+		<span class="kw">for </span>protocol <span class="kw">in </span>PeerSet::iter() {
+			<span class="kw">match </span>protocol {
+				PeerSet::Validation =&gt;
+					<span class="kw">for </span>version <span class="kw">in </span>ValidationVersion::iter() {
 						<span class="macro">assert_eq!</span>(
-							<span class="ident">protocol_names</span>.<span class="ident">get_name</span>(<span class="ident">protocol</span>, <span class="ident">version</span>.<span class="ident">into</span>()),
-							<span class="ident">PeerSetProtocolNames::generate_name</span>(
-								<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
+							protocol_names.get_name(protocol, version.into()),
+							PeerSetProtocolNames::generate_name(
+								<span class="kw-2">&amp;</span>genesis_hash,
 								<span class="prelude-val">None</span>,
-								<span class="ident">protocol</span>,
-								<span class="ident">version</span>.<span class="ident">into</span>(),
+								protocol,
+								version.into(),
 							),
 						);
 					},
-				<span class="ident">PeerSet::Collation</span> =&gt;
-					<span class="kw">for</span> <span class="ident">version</span> <span class="kw">in</span> <span class="ident">CollationVersion::iter</span>() {
+				PeerSet::Collation =&gt;
+					<span class="kw">for </span>version <span class="kw">in </span>CollationVersion::iter() {
 						<span class="macro">assert_eq!</span>(
-							<span class="ident">protocol_names</span>.<span class="ident">get_name</span>(<span class="ident">protocol</span>, <span class="ident">version</span>.<span class="ident">into</span>()),
-							<span class="ident">PeerSetProtocolNames::generate_name</span>(
-								<span class="kw-2">&amp;</span><span class="ident">genesis_hash</span>,
+							protocol_names.get_name(protocol, version.into()),
+							PeerSetProtocolNames::generate_name(
+								<span class="kw-2">&amp;</span>genesis_hash,
 								<span class="prelude-val">None</span>,
-								<span class="ident">protocol</span>,
-								<span class="ident">version</span>.<span class="ident">into</span>(),
+								protocol,
+								version.into(),
 							),
 						);
 					},
@@ -1062,26 +1056,25 @@
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">all_protocol_versions_have_labels</span>() {
-		<span class="kw">for</span> <span class="ident">protocol</span> <span class="kw">in</span> <span class="ident">PeerSet::iter</span>() {
-			<span class="kw">match</span> <span class="ident">protocol</span> {
-				<span class="ident">PeerSet::Validation</span> =&gt;
-					<span class="kw">for</span> <span class="ident">version</span> <span class="kw">in</span> <span class="ident">ValidationVersion::iter</span>() {
-						<span class="ident">protocol</span>
-							.<span class="ident">get_protocol_label</span>(<span class="ident">version</span>.<span class="ident">into</span>())
-							.<span class="ident">expect</span>(<span class="string">&quot;All validation protocol versions must have a label.&quot;</span>);
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>all_protocol_versions_have_labels() {
+		<span class="kw">for </span>protocol <span class="kw">in </span>PeerSet::iter() {
+			<span class="kw">match </span>protocol {
+				PeerSet::Validation =&gt;
+					<span class="kw">for </span>version <span class="kw">in </span>ValidationVersion::iter() {
+						protocol
+							.get_protocol_label(version.into())
+							.expect(<span class="string">&quot;All validation protocol versions must have a label.&quot;</span>);
 					},
-				<span class="ident">PeerSet::Collation</span> =&gt;
-					<span class="kw">for</span> <span class="ident">version</span> <span class="kw">in</span> <span class="ident">CollationVersion::iter</span>() {
-						<span class="ident">protocol</span>
-							.<span class="ident">get_protocol_label</span>(<span class="ident">version</span>.<span class="ident">into</span>())
-							.<span class="ident">expect</span>(<span class="string">&quot;All collation protocol versions must have a label.&quot;</span>);
+				PeerSet::Collation =&gt;
+					<span class="kw">for </span>version <span class="kw">in </span>CollationVersion::iter() {
+						protocol
+							.get_protocol_label(version.into())
+							.expect(<span class="string">&quot;All collation protocol versions must have a label.&quot;</span>);
 					},
 			}
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

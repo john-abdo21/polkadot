@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/host.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>host.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/host.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>host.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1202,468 +1196,468 @@
 <span id="1196">1196</span>
 <span id="1197">1197</span>
 <span id="1198">1198</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Validation host - is the primary interface for this crate. It allows the clients to enqueue</span>
-<span class="doccomment">//! jobs for PVF execution or preparation.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The validation host is represented by a future/task that runs an event-loop and by a handle,</span>
-<span class="doccomment">//! [`ValidationHost`], that allows communication with that event-loop.</span>
+</span><span class="doccomment">//! Validation host - is the primary interface for this crate. It allows the clients to enqueue
+//! jobs for PVF execution or preparation.
+//!
+//! The validation host is represented by a future/task that runs an event-loop and by a handle,
+//! [`ValidationHost`], that allows communication with that event-loop.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">artifacts</span>::{<span class="ident">ArtifactId</span>, <span class="ident">ArtifactPathId</span>, <span class="ident">ArtifactState</span>, <span class="ident">Artifacts</span>},
-	<span class="ident">execute</span>,
-	<span class="ident">metrics::Metrics</span>,
-	<span class="ident">prepare</span>, <span class="ident">PrepareResult</span>, <span class="ident">Priority</span>, <span class="ident">Pvf</span>, <span class="ident">ValidationError</span>, <span class="ident">LOG_TARGET</span>,
+</span><span class="kw">use crate</span>::{
+	artifacts::{ArtifactId, ArtifactPathId, ArtifactState, Artifacts},
+	execute,
+	metrics::Metrics,
+	prepare, PrepareResult, Priority, Pvf, ValidationError, LOG_TARGET,
 };
-<span class="kw">use</span> <span class="ident">always_assert::never</span>;
-<span class="kw">use</span> <span class="ident">async_std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">futures</span>::{
-	<span class="ident">channel</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>},
-	<span class="ident">Future</span>, <span class="ident">FutureExt</span>, <span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>,
+<span class="kw">use </span>always_assert::never;
+<span class="kw">use </span>async_std::path::{Path, PathBuf};
+<span class="kw">use </span>futures::{
+	channel::{mpsc, oneshot},
+	Future, FutureExt, SinkExt, StreamExt,
 };
-<span class="kw">use</span> <span class="ident">polkadot_parachain::primitives::ValidationResult</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections::HashMap</span>,
-	<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">SystemTime</span>},
+<span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
+<span class="kw">use </span>std::{
+	collections::HashMap,
+	time::{Duration, SystemTime},
 };
 
-<span class="doccomment">/// The time period after which the precheck preparation worker is considered unresponsive and will</span>
-<span class="doccomment">/// be killed.</span>
-<span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">60</span>);
+<span class="doccomment">/// The time period after which the precheck preparation worker is considered unresponsive and will
+/// be killed.
+</span><span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.
+</span><span class="kw">pub const </span>PRECHECK_COMPILATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">60</span>);
 
-<span class="doccomment">/// The time period after which the execute preparation worker is considered unresponsive and will</span>
-<span class="doccomment">/// be killed.</span>
-<span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXECUTE_COMPILATION_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">180</span>);
+<span class="doccomment">/// The time period after which the execute preparation worker is considered unresponsive and will
+/// be killed.
+</span><span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.
+</span><span class="kw">pub const </span>EXECUTE_COMPILATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">180</span>);
 
-<span class="doccomment">/// An alias to not spell the type for the oneshot sender for the PVF execution result.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ResultSender</span> <span class="op">=</span> <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ValidationResult</span>, <span class="ident">ValidationError</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An alias to not spell the type for the oneshot sender for the PVF execution result.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ResultSender = oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;ValidationResult, ValidationError&gt;&gt;;
 
-<span class="doccomment">/// Transmission end used for sending the PVF preparation result.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">PrepareResultSender</span> <span class="op">=</span> <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">PrepareResult</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Transmission end used for sending the PVF preparation result.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PrepareResultSender = oneshot::Sender&lt;PrepareResult&gt;;
 
-<span class="doccomment">/// A handle to the async process serving the validation host requests.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValidationHost</span> {
-	<span class="ident">to_host_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">ToHost</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A handle to the async process serving the validation host requests.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>ValidationHost {
+	to_host_tx: mpsc::Sender&lt;ToHost&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ValidationHost</span> {
-	<span class="doccomment">/// Precheck PVF with the given code, i.e. verify that it compiles within a reasonable time</span>
-	<span class="doccomment">/// limit. This will prepare the PVF. The result of preparation will be sent to the provided</span>
-	<span class="doccomment">/// result sender.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is async to accommodate the possibility of back-pressure. In the vast majority of</span>
-	<span class="doccomment">/// situations this function should return immediately.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">precheck_pvf</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-		<span class="ident">result_tx</span>: <span class="ident">PrepareResultSender</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">to_host_tx</span>
-			.<span class="ident">send</span>(<span class="ident">ToHost::PrecheckPvf</span> { <span class="ident">pvf</span>, <span class="ident">result_tx</span> })
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;the inner loop hung up&quot;</span>.<span class="ident">to_string</span>())
+<span class="kw">impl </span>ValidationHost {
+	<span class="doccomment">/// Precheck PVF with the given code, i.e. verify that it compiles within a reasonable time
+	/// limit. This will prepare the PVF. The result of preparation will be sent to the provided
+	/// result sender.
+	///
+	/// This is async to accommodate the possibility of back-pressure. In the vast majority of
+	/// situations this function should return immediately.
+	///
+	/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.
+	</span><span class="kw">pub async fn </span>precheck_pvf(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		pvf: Pvf,
+		result_tx: PrepareResultSender,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+		<span class="self">self</span>.to_host_tx
+			.send(ToHost::PrecheckPvf { pvf, result_tx })
+			.<span class="kw">await
+			</span>.map_err(|<span class="kw">_</span>| <span class="string">&quot;the inner loop hung up&quot;</span>.to_string())
 	}
 
-	<span class="doccomment">/// Execute PVF with the given code, execution timeout, parameters and priority.</span>
-	<span class="doccomment">/// The result of execution will be sent to the provided result sender.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is async to accommodate the possibility of back-pressure. In the vast majority of</span>
-	<span class="doccomment">/// situations this function should return immediately.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">execute_pvf</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-		<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-		<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="ident">priority</span>: <span class="ident">Priority</span>,
-		<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">to_host_tx</span>
-			.<span class="ident">send</span>(<span class="ident">ToHost::ExecutePvf</span> { <span class="ident">pvf</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">priority</span>, <span class="ident">result_tx</span> })
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;the inner loop hung up&quot;</span>.<span class="ident">to_string</span>())
+	<span class="doccomment">/// Execute PVF with the given code, execution timeout, parameters and priority.
+	/// The result of execution will be sent to the provided result sender.
+	///
+	/// This is async to accommodate the possibility of back-pressure. In the vast majority of
+	/// situations this function should return immediately.
+	///
+	/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.
+	</span><span class="kw">pub async fn </span>execute_pvf(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		pvf: Pvf,
+		execution_timeout: Duration,
+		params: Vec&lt;u8&gt;,
+		priority: Priority,
+		result_tx: ResultSender,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+		<span class="self">self</span>.to_host_tx
+			.send(ToHost::ExecutePvf { pvf, execution_timeout, params, priority, result_tx })
+			.<span class="kw">await
+			</span>.map_err(|<span class="kw">_</span>| <span class="string">&quot;the inner loop hung up&quot;</span>.to_string())
 	}
 
-	<span class="doccomment">/// Sends a signal to the validation host requesting to prepare a list of the given PVFs.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is async to accommodate the possibility of back-pressure. In the vast majority of</span>
-	<span class="doccomment">/// situations this function should return immediately.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">heads_up</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">active_pvfs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pvf</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">to_host_tx</span>
-			.<span class="ident">send</span>(<span class="ident">ToHost::HeadsUp</span> { <span class="ident">active_pvfs</span> })
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;the inner loop hung up&quot;</span>.<span class="ident">to_string</span>())
+	<span class="doccomment">/// Sends a signal to the validation host requesting to prepare a list of the given PVFs.
+	///
+	/// This is async to accommodate the possibility of back-pressure. In the vast majority of
+	/// situations this function should return immediately.
+	///
+	/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.
+	</span><span class="kw">pub async fn </span>heads_up(<span class="kw-2">&amp;mut </span><span class="self">self</span>, active_pvfs: Vec&lt;Pvf&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+		<span class="self">self</span>.to_host_tx
+			.send(ToHost::HeadsUp { active_pvfs })
+			.<span class="kw">await
+			</span>.map_err(|<span class="kw">_</span>| <span class="string">&quot;the inner loop hung up&quot;</span>.to_string())
 	}
 }
 
-<span class="kw">enum</span> <span class="ident">ToHost</span> {
-	<span class="ident">PrecheckPvf</span> {
-		<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-		<span class="ident">result_tx</span>: <span class="ident">PrepareResultSender</span>,
+<span class="kw">enum </span>ToHost {
+	PrecheckPvf {
+		pvf: Pvf,
+		result_tx: PrepareResultSender,
 	},
-	<span class="ident">ExecutePvf</span> {
-		<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-		<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-		<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="ident">priority</span>: <span class="ident">Priority</span>,
-		<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
+	ExecutePvf {
+		pvf: Pvf,
+		execution_timeout: Duration,
+		params: Vec&lt;u8&gt;,
+		priority: Priority,
+		result_tx: ResultSender,
 	},
-	<span class="ident">HeadsUp</span> {
-		<span class="ident">active_pvfs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pvf</span><span class="op">&gt;</span>,
+	HeadsUp {
+		active_pvfs: Vec&lt;Pvf&gt;,
 	},
 }
 
-<span class="doccomment">/// Configuration for the validation host.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Config</span> {
-	<span class="doccomment">/// The root directory where the prepared artifacts can be stored.</span>
-	<span class="kw">pub</span> <span class="ident">cache_path</span>: <span class="ident">PathBuf</span>,
-	<span class="doccomment">/// The path to the program that can be used to spawn the prepare workers.</span>
-	<span class="kw">pub</span> <span class="ident">prepare_worker_program_path</span>: <span class="ident">PathBuf</span>,
-	<span class="doccomment">/// The time allotted for a prepare worker to spawn and report to the host.</span>
-	<span class="kw">pub</span> <span class="ident">prepare_worker_spawn_timeout</span>: <span class="ident">Duration</span>,
-	<span class="doccomment">/// The maximum number of workers that can be spawned in the prepare pool for tasks with the</span>
-	<span class="doccomment">/// priority below critical.</span>
-	<span class="kw">pub</span> <span class="ident">prepare_workers_soft_max_num</span>: <span class="ident">usize</span>,
-	<span class="doccomment">/// The absolute number of workers that can be spawned in the prepare pool.</span>
-	<span class="kw">pub</span> <span class="ident">prepare_workers_hard_max_num</span>: <span class="ident">usize</span>,
-	<span class="doccomment">/// The path to the program that can be used to spawn the execute workers.</span>
-	<span class="kw">pub</span> <span class="ident">execute_worker_program_path</span>: <span class="ident">PathBuf</span>,
-	<span class="doccomment">/// The time allotted for an execute worker to spawn and report to the host.</span>
-	<span class="kw">pub</span> <span class="ident">execute_worker_spawn_timeout</span>: <span class="ident">Duration</span>,
-	<span class="doccomment">/// The maximum number of execute workers that can run at the same time.</span>
-	<span class="kw">pub</span> <span class="ident">execute_workers_max_num</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Configuration for the validation host.
+</span><span class="kw">pub struct </span>Config {
+	<span class="doccomment">/// The root directory where the prepared artifacts can be stored.
+	</span><span class="kw">pub </span>cache_path: PathBuf,
+	<span class="doccomment">/// The path to the program that can be used to spawn the prepare workers.
+	</span><span class="kw">pub </span>prepare_worker_program_path: PathBuf,
+	<span class="doccomment">/// The time allotted for a prepare worker to spawn and report to the host.
+	</span><span class="kw">pub </span>prepare_worker_spawn_timeout: Duration,
+	<span class="doccomment">/// The maximum number of workers that can be spawned in the prepare pool for tasks with the
+	/// priority below critical.
+	</span><span class="kw">pub </span>prepare_workers_soft_max_num: usize,
+	<span class="doccomment">/// The absolute number of workers that can be spawned in the prepare pool.
+	</span><span class="kw">pub </span>prepare_workers_hard_max_num: usize,
+	<span class="doccomment">/// The path to the program that can be used to spawn the execute workers.
+	</span><span class="kw">pub </span>execute_worker_program_path: PathBuf,
+	<span class="doccomment">/// The time allotted for an execute worker to spawn and report to the host.
+	</span><span class="kw">pub </span>execute_worker_spawn_timeout: Duration,
+	<span class="doccomment">/// The maximum number of execute workers that can run at the same time.
+	</span><span class="kw">pub </span>execute_workers_max_num: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Config</span> {
-	<span class="doccomment">/// Create a new instance of the configuration.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cache_path</span>: <span class="ident">std::path::PathBuf</span>, <span class="ident">program_path</span>: <span class="ident">std::path::PathBuf</span>) -&gt; <span class="self">Self</span> {
-		<span class="comment">// Do not contaminate the other parts of the codebase with the types from `async_std`.</span>
-		<span class="kw">let</span> <span class="ident">cache_path</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">cache_path</span>);
-		<span class="kw">let</span> <span class="ident">program_path</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">program_path</span>);
+<span class="kw">impl </span>Config {
+	<span class="doccomment">/// Create a new instance of the configuration.
+	</span><span class="kw">pub fn </span>new(cache_path: std::path::PathBuf, program_path: std::path::PathBuf) -&gt; <span class="self">Self </span>{
+		<span class="comment">// Do not contaminate the other parts of the codebase with the types from `async_std`.
+		</span><span class="kw">let </span>cache_path = PathBuf::from(cache_path);
+		<span class="kw">let </span>program_path = PathBuf::from(program_path);
 
-		<span class="self">Self</span> {
-			<span class="ident">cache_path</span>,
-			<span class="ident">prepare_worker_program_path</span>: <span class="ident">program_path</span>.<span class="ident">clone</span>(),
-			<span class="ident">prepare_worker_spawn_timeout</span>: <span class="ident">Duration::from_secs</span>(<span class="number">3</span>),
-			<span class="ident">prepare_workers_soft_max_num</span>: <span class="number">1</span>,
-			<span class="ident">prepare_workers_hard_max_num</span>: <span class="number">1</span>,
-			<span class="ident">execute_worker_program_path</span>: <span class="ident">program_path</span>,
-			<span class="ident">execute_worker_spawn_timeout</span>: <span class="ident">Duration::from_secs</span>(<span class="number">3</span>),
-			<span class="ident">execute_workers_max_num</span>: <span class="number">2</span>,
+		<span class="self">Self </span>{
+			cache_path,
+			prepare_worker_program_path: program_path.clone(),
+			prepare_worker_spawn_timeout: Duration::from_secs(<span class="number">3</span>),
+			prepare_workers_soft_max_num: <span class="number">1</span>,
+			prepare_workers_hard_max_num: <span class="number">1</span>,
+			execute_worker_program_path: program_path,
+			execute_worker_spawn_timeout: Duration::from_secs(<span class="number">3</span>),
+			execute_workers_max_num: <span class="number">2</span>,
 		}
 	}
 }
 
-<span class="doccomment">/// Start the validation host.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Returns a [handle][`ValidationHost`] to the started validation host and the future. The future</span>
-<span class="doccomment">/// must be polled in order for validation host to function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The future should not return normally but if it does then that indicates an unrecoverable error.</span>
-<span class="doccomment">/// In that case all pending requests will be canceled, dropping the result senders and new ones</span>
-<span class="doccomment">/// will be rejected.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">config</span>: <span class="ident">Config</span>, <span class="ident">metrics</span>: <span class="ident">Metrics</span>) -&gt; (<span class="ident">ValidationHost</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>) {
-	<span class="kw">let</span> (<span class="ident">to_host_tx</span>, <span class="ident">to_host_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">10</span>);
+<span class="doccomment">/// Start the validation host.
+///
+/// Returns a [handle][`ValidationHost`] to the started validation host and the future. The future
+/// must be polled in order for validation host to function.
+///
+/// The future should not return normally but if it does then that indicates an unrecoverable error.
+/// In that case all pending requests will be canceled, dropping the result senders and new ones
+/// will be rejected.
+</span><span class="kw">pub fn </span>start(config: Config, metrics: Metrics) -&gt; (ValidationHost, <span class="kw">impl </span>Future&lt;Output = ()&gt;) {
+	<span class="kw">let </span>(to_host_tx, to_host_rx) = mpsc::channel(<span class="number">10</span>);
 
-	<span class="kw">let</span> <span class="ident">validation_host</span> <span class="op">=</span> <span class="ident">ValidationHost</span> { <span class="ident">to_host_tx</span> };
+	<span class="kw">let </span>validation_host = ValidationHost { to_host_tx };
 
-	<span class="kw">let</span> (<span class="ident">to_prepare_pool</span>, <span class="ident">from_prepare_pool</span>, <span class="ident">run_prepare_pool</span>) <span class="op">=</span> <span class="ident">prepare::start_pool</span>(
-		<span class="ident">metrics</span>.<span class="ident">clone</span>(),
-		<span class="ident">config</span>.<span class="ident">prepare_worker_program_path</span>.<span class="ident">clone</span>(),
-		<span class="ident">config</span>.<span class="ident">cache_path</span>.<span class="ident">clone</span>(),
-		<span class="ident">config</span>.<span class="ident">prepare_worker_spawn_timeout</span>,
+	<span class="kw">let </span>(to_prepare_pool, from_prepare_pool, run_prepare_pool) = prepare::start_pool(
+		metrics.clone(),
+		config.prepare_worker_program_path.clone(),
+		config.cache_path.clone(),
+		config.prepare_worker_spawn_timeout,
 	);
 
-	<span class="kw">let</span> (<span class="ident">to_prepare_queue_tx</span>, <span class="ident">from_prepare_queue_rx</span>, <span class="ident">run_prepare_queue</span>) <span class="op">=</span> <span class="ident">prepare::start_queue</span>(
-		<span class="ident">metrics</span>.<span class="ident">clone</span>(),
-		<span class="ident">config</span>.<span class="ident">prepare_workers_soft_max_num</span>,
-		<span class="ident">config</span>.<span class="ident">prepare_workers_hard_max_num</span>,
-		<span class="ident">config</span>.<span class="ident">cache_path</span>.<span class="ident">clone</span>(),
-		<span class="ident">to_prepare_pool</span>,
-		<span class="ident">from_prepare_pool</span>,
+	<span class="kw">let </span>(to_prepare_queue_tx, from_prepare_queue_rx, run_prepare_queue) = prepare::start_queue(
+		metrics.clone(),
+		config.prepare_workers_soft_max_num,
+		config.prepare_workers_hard_max_num,
+		config.cache_path.clone(),
+		to_prepare_pool,
+		from_prepare_pool,
 	);
 
-	<span class="kw">let</span> (<span class="ident">to_execute_queue_tx</span>, <span class="ident">run_execute_queue</span>) <span class="op">=</span> <span class="ident">execute::start</span>(
-		<span class="ident">metrics</span>.<span class="ident">clone</span>(),
-		<span class="ident">config</span>.<span class="ident">execute_worker_program_path</span>.<span class="ident">to_owned</span>(),
-		<span class="ident">config</span>.<span class="ident">execute_workers_max_num</span>,
-		<span class="ident">config</span>.<span class="ident">execute_worker_spawn_timeout</span>,
+	<span class="kw">let </span>(to_execute_queue_tx, run_execute_queue) = execute::start(
+		metrics.clone(),
+		config.execute_worker_program_path.to_owned(),
+		config.execute_workers_max_num,
+		config.execute_worker_spawn_timeout,
 	);
 
-	<span class="kw">let</span> (<span class="ident">to_sweeper_tx</span>, <span class="ident">to_sweeper_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">100</span>);
-	<span class="kw">let</span> <span class="ident">run_sweeper</span> <span class="op">=</span> <span class="ident">sweeper_task</span>(<span class="ident">to_sweeper_rx</span>);
+	<span class="kw">let </span>(to_sweeper_tx, to_sweeper_rx) = mpsc::channel(<span class="number">100</span>);
+	<span class="kw">let </span>run_sweeper = sweeper_task(to_sweeper_rx);
 
-	<span class="kw">let</span> <span class="ident">run_host</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-		<span class="kw">let</span> <span class="ident">artifacts</span> <span class="op">=</span> <span class="ident">Artifacts::new</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">cache_path</span>).<span class="kw">await</span>;
+	<span class="kw">let </span>run_host = <span class="kw">async move </span>{
+		<span class="kw">let </span>artifacts = Artifacts::new(<span class="kw-2">&amp;</span>config.cache_path).<span class="kw">await</span>;
 
-		<span class="ident">run</span>(<span class="ident">Inner</span> {
-			<span class="ident">cache_path</span>: <span class="ident">config</span>.<span class="ident">cache_path</span>,
-			<span class="ident">cleanup_pulse_interval</span>: <span class="ident">Duration::from_secs</span>(<span class="number">3600</span>),
-			<span class="ident">artifact_ttl</span>: <span class="ident">Duration::from_secs</span>(<span class="number">3600</span> <span class="op">*</span> <span class="number">24</span>),
-			<span class="ident">artifacts</span>,
-			<span class="ident">to_host_rx</span>,
-			<span class="ident">to_prepare_queue_tx</span>,
-			<span class="ident">from_prepare_queue_rx</span>,
-			<span class="ident">to_execute_queue_tx</span>,
-			<span class="ident">to_sweeper_tx</span>,
-			<span class="ident">awaiting_prepare</span>: <span class="ident">AwaitingPrepare::default</span>(),
+		run(Inner {
+			cache_path: config.cache_path,
+			cleanup_pulse_interval: Duration::from_secs(<span class="number">3600</span>),
+			artifact_ttl: Duration::from_secs(<span class="number">3600 </span>* <span class="number">24</span>),
+			artifacts,
+			to_host_rx,
+			to_prepare_queue_tx,
+			from_prepare_queue_rx,
+			to_execute_queue_tx,
+			to_sweeper_tx,
+			awaiting_prepare: AwaitingPrepare::default(),
 		})
-		.<span class="kw">await</span>
-	};
+		.<span class="kw">await
+	</span>};
 
-	<span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-		<span class="comment">// Bundle the sub-components&#39; tasks together into a single future.</span>
-		<span class="macro">futures::select!</span> {
-			<span class="kw">_</span> <span class="op">=</span> <span class="ident">run_host</span>.<span class="ident">fuse</span>() =&gt; {},
-			<span class="kw">_</span> <span class="op">=</span> <span class="ident">run_prepare_queue</span>.<span class="ident">fuse</span>() =&gt; {},
-			<span class="kw">_</span> <span class="op">=</span> <span class="ident">run_prepare_pool</span>.<span class="ident">fuse</span>() =&gt; {},
-			<span class="kw">_</span> <span class="op">=</span> <span class="ident">run_execute_queue</span>.<span class="ident">fuse</span>() =&gt; {},
-			<span class="kw">_</span> <span class="op">=</span> <span class="ident">run_sweeper</span>.<span class="ident">fuse</span>() =&gt; {},
+	<span class="kw">let </span>task = <span class="kw">async move </span>{
+		<span class="comment">// Bundle the sub-components&#39; tasks together into a single future.
+		</span><span class="macro">futures::select! </span>{
+			<span class="kw">_ </span>= run_host.fuse() =&gt; {},
+			<span class="kw">_ </span>= run_prepare_queue.fuse() =&gt; {},
+			<span class="kw">_ </span>= run_prepare_pool.fuse() =&gt; {},
+			<span class="kw">_ </span>= run_execute_queue.fuse() =&gt; {},
+			<span class="kw">_ </span>= run_sweeper.fuse() =&gt; {},
 		};
 	};
 
-	(<span class="ident">validation_host</span>, <span class="ident">task</span>)
+	(validation_host, task)
 }
 
-<span class="doccomment">/// An execution request that should execute the PVF (known in the context) and send the results</span>
-<span class="doccomment">/// to the given result sender.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">PendingExecutionRequest</span> {
-	<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-	<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
+<span class="doccomment">/// An execution request that should execute the PVF (known in the context) and send the results
+/// to the given result sender.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>PendingExecutionRequest {
+	execution_timeout: Duration,
+	params: Vec&lt;u8&gt;,
+	result_tx: ResultSender,
 }
 
-<span class="doccomment">/// A mapping from an artifact ID which is in preparation state to the list of pending execution</span>
-<span class="doccomment">/// requests that should be executed once the artifact&#39;s preparation is finished.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">AwaitingPrepare</span>(<span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ArtifactId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PendingExecutionRequest</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A mapping from an artifact ID which is in preparation state to the list of pending execution
+/// requests that should be executed once the artifact&#39;s preparation is finished.
+</span><span class="attribute">#[derive(Default)]
+</span><span class="kw">struct </span>AwaitingPrepare(HashMap&lt;ArtifactId, Vec&lt;PendingExecutionRequest&gt;&gt;);
 
-<span class="kw">impl</span> <span class="ident">AwaitingPrepare</span> {
-	<span class="kw">fn</span> <span class="ident">add</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">artifact_id</span>: <span class="ident">ArtifactId</span>,
-		<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-		<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
+<span class="kw">impl </span>AwaitingPrepare {
+	<span class="kw">fn </span>add(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		artifact_id: ArtifactId,
+		execution_timeout: Duration,
+		params: Vec&lt;u8&gt;,
+		result_tx: ResultSender,
 	) {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">entry</span>(<span class="ident">artifact_id</span>).<span class="ident">or_default</span>().<span class="ident">push</span>(<span class="ident">PendingExecutionRequest</span> {
-			<span class="ident">execution_timeout</span>,
-			<span class="ident">params</span>,
-			<span class="ident">result_tx</span>,
+		<span class="self">self</span>.<span class="number">0</span>.entry(artifact_id).or_default().push(PendingExecutionRequest {
+			execution_timeout,
+			params,
+			result_tx,
 		});
 	}
 
-	<span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">artifact_id</span>: <span class="kw-2">&amp;</span><span class="ident">ArtifactId</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PendingExecutionRequest</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">remove</span>(<span class="ident">artifact_id</span>).<span class="ident">unwrap_or_default</span>()
+	<span class="kw">fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, artifact_id: <span class="kw-2">&amp;</span>ArtifactId) -&gt; Vec&lt;PendingExecutionRequest&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.remove(artifact_id).unwrap_or_default()
 	}
 }
 
-<span class="kw">struct</span> <span class="ident">Inner</span> {
-	<span class="ident">cache_path</span>: <span class="ident">PathBuf</span>,
-	<span class="ident">cleanup_pulse_interval</span>: <span class="ident">Duration</span>,
-	<span class="ident">artifact_ttl</span>: <span class="ident">Duration</span>,
-	<span class="ident">artifacts</span>: <span class="ident">Artifacts</span>,
+<span class="kw">struct </span>Inner {
+	cache_path: PathBuf,
+	cleanup_pulse_interval: Duration,
+	artifact_ttl: Duration,
+	artifacts: Artifacts,
 
-	<span class="ident">to_host_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">ToHost</span><span class="op">&gt;</span>,
+	to_host_rx: mpsc::Receiver&lt;ToHost&gt;,
 
-	<span class="ident">to_prepare_queue_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">from_prepare_queue_rx</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">prepare::FromQueue</span><span class="op">&gt;</span>,
+	to_prepare_queue_tx: mpsc::Sender&lt;prepare::ToQueue&gt;,
+	from_prepare_queue_rx: mpsc::UnboundedReceiver&lt;prepare::FromQueue&gt;,
 
-	<span class="ident">to_execute_queue_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">execute::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">to_sweeper_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+	to_execute_queue_tx: mpsc::Sender&lt;execute::ToQueue&gt;,
+	to_sweeper_tx: mpsc::Sender&lt;PathBuf&gt;,
 
-	<span class="ident">awaiting_prepare</span>: <span class="ident">AwaitingPrepare</span>,
+	awaiting_prepare: AwaitingPrepare,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Fatal</span>;
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Fatal;
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(
-	<span class="ident">Inner</span> {
-		<span class="ident">cache_path</span>,
-		<span class="ident">cleanup_pulse_interval</span>,
-		<span class="ident">artifact_ttl</span>,
-		<span class="kw-2">mut</span> <span class="ident">artifacts</span>,
-		<span class="ident">to_host_rx</span>,
-		<span class="ident">from_prepare_queue_rx</span>,
-		<span class="kw-2">mut</span> <span class="ident">to_prepare_queue_tx</span>,
-		<span class="kw-2">mut</span> <span class="ident">to_execute_queue_tx</span>,
-		<span class="kw-2">mut</span> <span class="ident">to_sweeper_tx</span>,
-		<span class="kw-2">mut</span> <span class="ident">awaiting_prepare</span>,
-	}: <span class="ident">Inner</span>,
+<span class="kw">async fn </span>run(
+	Inner {
+		cache_path,
+		cleanup_pulse_interval,
+		artifact_ttl,
+		<span class="kw-2">mut </span>artifacts,
+		to_host_rx,
+		from_prepare_queue_rx,
+		<span class="kw-2">mut </span>to_prepare_queue_tx,
+		<span class="kw-2">mut </span>to_execute_queue_tx,
+		<span class="kw-2">mut </span>to_sweeper_tx,
+		<span class="kw-2">mut </span>awaiting_prepare,
+	}: Inner,
 ) {
-	<span class="macro">macro_rules!</span> <span class="ident">break_if_fatal</span> {
-		(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
-			<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
-				<span class="prelude-val">Err</span>(<span class="ident">Fatal</span>) =&gt; {
+	<span class="macro">macro_rules! </span>break_if_fatal {
+		(<span class="macro-nonterminal">$expr</span>:expr) =&gt; {
+			<span class="kw">match </span><span class="macro-nonterminal">$expr </span>{
+				<span class="prelude-val">Err</span>(Fatal) =&gt; {
 					<span class="macro">gum::error!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+						target: LOG_TARGET,
 						<span class="string">&quot;Fatal error occurred, terminating the host. Line: {}&quot;</span>,
 						<span class="macro">line!</span>(),
 					);
-					<span class="kw">break</span>
-				},
-				<span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+					<span class="kw">break
+				</span>},
+				<span class="prelude-val">Ok</span>(v) =&gt; v,
 			}
 		};
 	}
 
-	<span class="kw">let</span> <span class="ident">cleanup_pulse</span> <span class="op">=</span> <span class="ident">pulse_every</span>(<span class="ident">cleanup_pulse_interval</span>).<span class="ident">fuse</span>();
-	<span class="macro">futures::pin_mut!</span>(<span class="ident">cleanup_pulse</span>);
+	<span class="kw">let </span>cleanup_pulse = pulse_every(cleanup_pulse_interval).fuse();
+	<span class="macro">futures::pin_mut!</span>(cleanup_pulse);
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to_host_rx</span> <span class="op">=</span> <span class="ident">to_host_rx</span>.<span class="ident">fuse</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">from_prepare_queue_rx</span> <span class="op">=</span> <span class="ident">from_prepare_queue_rx</span>.<span class="ident">fuse</span>();
+	<span class="kw">let </span><span class="kw-2">mut </span>to_host_rx = to_host_rx.fuse();
+	<span class="kw">let </span><span class="kw-2">mut </span>from_prepare_queue_rx = from_prepare_queue_rx.fuse();
 
-	<span class="kw">loop</span> {
-		<span class="comment">// biased to make it behave deterministically for tests.</span>
-		<span class="macro">futures::select_biased!</span> {
-			() <span class="op">=</span> <span class="ident">cleanup_pulse</span>.<span class="ident">select_next_some</span>() =&gt; {
-				<span class="comment">// `select_next_some` because we don&#39;t expect this to fail, but if it does, we</span>
-				<span class="comment">// still don&#39;t fail. The tradeoff is that the compiled cache will start growing</span>
-				<span class="comment">// in size. That is, however, rather a slow process and hopefully the operator</span>
-				<span class="comment">// will notice it.</span>
+	<span class="kw">loop </span>{
+		<span class="comment">// biased to make it behave deterministically for tests.
+		</span><span class="macro">futures::select_biased! </span>{
+			() = cleanup_pulse.select_next_some() =&gt; {
+				<span class="comment">// `select_next_some` because we don&#39;t expect this to fail, but if it does, we
+				// still don&#39;t fail. The tradeoff is that the compiled cache will start growing
+				// in size. That is, however, rather a slow process and hopefully the operator
+				// will notice it.
 
-				<span class="macro">break_if_fatal!</span>(<span class="ident">handle_cleanup_pulse</span>(
-					<span class="kw-2">&amp;</span><span class="ident">cache_path</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">to_sweeper_tx</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">artifacts</span>,
-					<span class="ident">artifact_ttl</span>,
+				</span><span class="macro">break_if_fatal!</span>(handle_cleanup_pulse(
+					<span class="kw-2">&amp;</span>cache_path,
+					<span class="kw-2">&amp;mut </span>to_sweeper_tx,
+					<span class="kw-2">&amp;mut </span>artifacts,
+					artifact_ttl,
 				).<span class="kw">await</span>);
 			},
-			<span class="ident">to_host</span> <span class="op">=</span> <span class="ident">to_host_rx</span>.<span class="ident">next</span>() =&gt; {
-				<span class="kw">let</span> <span class="ident">to_host</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">to_host</span> {
-					<span class="prelude-val">None</span> =&gt; {
-						<span class="comment">// The sending half of the channel has been closed, meaning the</span>
-						<span class="comment">// `ValidationHost` struct was dropped. Shutting down gracefully.</span>
-						<span class="kw">break</span>;
+			to_host = to_host_rx.next() =&gt; {
+				<span class="kw">let </span>to_host = <span class="kw">match </span>to_host {
+					<span class="prelude-val">None </span>=&gt; {
+						<span class="comment">// The sending half of the channel has been closed, meaning the
+						// `ValidationHost` struct was dropped. Shutting down gracefully.
+						</span><span class="kw">break</span>;
 					},
-					<span class="prelude-val">Some</span>(<span class="ident">to_host</span>) =&gt; <span class="ident">to_host</span>,
+					<span class="prelude-val">Some</span>(to_host) =&gt; to_host,
 				};
 
-				<span class="macro">break_if_fatal!</span>(<span class="ident">handle_to_host</span>(
-					<span class="kw-2">&amp;</span><span class="ident">cache_path</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">artifacts</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">to_prepare_queue_tx</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">to_execute_queue_tx</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">awaiting_prepare</span>,
-					<span class="ident">to_host</span>,
+				<span class="macro">break_if_fatal!</span>(handle_to_host(
+					<span class="kw-2">&amp;</span>cache_path,
+					<span class="kw-2">&amp;mut </span>artifacts,
+					<span class="kw-2">&amp;mut </span>to_prepare_queue_tx,
+					<span class="kw-2">&amp;mut </span>to_execute_queue_tx,
+					<span class="kw-2">&amp;mut </span>awaiting_prepare,
+					to_host,
 				)
 				.<span class="kw">await</span>);
 			},
-			<span class="ident">from_prepare_queue</span> <span class="op">=</span> <span class="ident">from_prepare_queue_rx</span>.<span class="ident">next</span>() =&gt; {
-				<span class="kw">let</span> <span class="ident">from_queue</span> <span class="op">=</span> <span class="macro">break_if_fatal!</span>(<span class="ident">from_prepare_queue</span>.<span class="ident">ok_or</span>(<span class="ident">Fatal</span>));
+			from_prepare_queue = from_prepare_queue_rx.next() =&gt; {
+				<span class="kw">let </span>from_queue = <span class="macro">break_if_fatal!</span>(from_prepare_queue.ok_or(Fatal));
 
-				<span class="comment">// Note that preparation always succeeds.</span>
-				<span class="comment">//</span>
-				<span class="comment">// That&#39;s because the error conditions are written into the artifact and will be</span>
-				<span class="comment">// reported at the time of the  execution. It potentially, but not necessarily,</span>
-				<span class="comment">// can be scheduled as a result of this function call, in case there are pending</span>
-				<span class="comment">// executions.</span>
-				<span class="comment">//</span>
-				<span class="comment">// We could be eager in terms of reporting and plumb the result from the preparation</span>
-				<span class="comment">// worker but we don&#39;t for the sake of simplicity.</span>
-				<span class="macro">break_if_fatal!</span>(<span class="ident">handle_prepare_done</span>(
-					<span class="kw-2">&amp;</span><span class="ident">cache_path</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">artifacts</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">to_execute_queue_tx</span>,
-					<span class="kw-2">&amp;mut</span> <span class="ident">awaiting_prepare</span>,
-					<span class="ident">from_queue</span>,
+				<span class="comment">// Note that preparation always succeeds.
+				//
+				// That&#39;s because the error conditions are written into the artifact and will be
+				// reported at the time of the  execution. It potentially, but not necessarily,
+				// can be scheduled as a result of this function call, in case there are pending
+				// executions.
+				//
+				// We could be eager in terms of reporting and plumb the result from the preparation
+				// worker but we don&#39;t for the sake of simplicity.
+				</span><span class="macro">break_if_fatal!</span>(handle_prepare_done(
+					<span class="kw-2">&amp;</span>cache_path,
+					<span class="kw-2">&amp;mut </span>artifacts,
+					<span class="kw-2">&amp;mut </span>to_execute_queue_tx,
+					<span class="kw-2">&amp;mut </span>awaiting_prepare,
+					from_queue,
 				).<span class="kw">await</span>);
 			},
 		}
 	}
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_to_host</span>(
-	<span class="ident">cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
-	<span class="ident">prepare_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">execute_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">execute::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">awaiting_prepare</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AwaitingPrepare</span>,
-	<span class="ident">to_host</span>: <span class="ident">ToHost</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">match</span> <span class="ident">to_host</span> {
-		<span class="ident">ToHost::PrecheckPvf</span> { <span class="ident">pvf</span>, <span class="ident">result_tx</span> } =&gt; {
-			<span class="ident">handle_precheck_pvf</span>(<span class="ident">artifacts</span>, <span class="ident">prepare_queue</span>, <span class="ident">pvf</span>, <span class="ident">result_tx</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">async fn </span>handle_to_host(
+	cache_path: <span class="kw-2">&amp;</span>Path,
+	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
+	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
+	execute_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;execute::ToQueue&gt;,
+	awaiting_prepare: <span class="kw-2">&amp;mut </span>AwaitingPrepare,
+	to_host: ToHost,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">match </span>to_host {
+		ToHost::PrecheckPvf { pvf, result_tx } =&gt; {
+			handle_precheck_pvf(artifacts, prepare_queue, pvf, result_tx).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
-		<span class="ident">ToHost::ExecutePvf</span> { <span class="ident">pvf</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">priority</span>, <span class="ident">result_tx</span> } =&gt; {
-			<span class="ident">handle_execute_pvf</span>(
-				<span class="ident">cache_path</span>,
-				<span class="ident">artifacts</span>,
-				<span class="ident">prepare_queue</span>,
-				<span class="ident">execute_queue</span>,
-				<span class="ident">awaiting_prepare</span>,
-				<span class="ident">pvf</span>,
-				<span class="ident">execution_timeout</span>,
-				<span class="ident">params</span>,
-				<span class="ident">priority</span>,
-				<span class="ident">result_tx</span>,
+		ToHost::ExecutePvf { pvf, execution_timeout, params, priority, result_tx } =&gt; {
+			handle_execute_pvf(
+				cache_path,
+				artifacts,
+				prepare_queue,
+				execute_queue,
+				awaiting_prepare,
+				pvf,
+				execution_timeout,
+				params,
+				priority,
+				result_tx,
 			)
 			.<span class="kw">await</span><span class="question-mark">?</span>;
 		},
-		<span class="ident">ToHost::HeadsUp</span> { <span class="ident">active_pvfs</span> } =&gt; {
-			<span class="ident">handle_heads_up</span>(<span class="ident">artifacts</span>, <span class="ident">prepare_queue</span>, <span class="ident">active_pvfs</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		ToHost::HeadsUp { active_pvfs } =&gt; {
+			handle_heads_up(artifacts, prepare_queue, active_pvfs).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
 	}
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Handles PVF prechecking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This tries to prepare the PVF by compiling the WASM blob within a given timeout ([`PRECHECK_COMPILATION_TIMEOUT`]).</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_precheck_pvf</span>(
-	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
-	<span class="ident">prepare_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-	<span class="ident">result_sender</span>: <span class="ident">PrepareResultSender</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">artifact_id</span> <span class="op">=</span> <span class="ident">pvf</span>.<span class="ident">as_artifact_id</span>();
+<span class="doccomment">/// Handles PVF prechecking.
+///
+/// This tries to prepare the PVF by compiling the WASM blob within a given timeout ([`PRECHECK_COMPILATION_TIMEOUT`]).
+</span><span class="kw">async fn </span>handle_precheck_pvf(
+	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
+	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
+	pvf: Pvf,
+	result_sender: PrepareResultSender,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="ident">artifacts</span>.<span class="ident">artifact_state_mut</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>) {
-		<span class="kw">match</span> <span class="ident">state</span> {
-			<span class="ident">ArtifactState::Prepared</span> { <span class="ident">last_time_needed</span> } =&gt; {
-				<span class="kw-2">*</span><span class="ident">last_time_needed</span> <span class="op">=</span> <span class="ident">SystemTime::now</span>();
-				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">result_sender</span>.<span class="ident">send</span>(<span class="prelude-val">Ok</span>(()));
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
+		<span class="kw">match </span>state {
+			ArtifactState::Prepared { last_time_needed } =&gt; {
+				<span class="kw-2">*</span>last_time_needed = SystemTime::now();
+				<span class="kw">let _ </span>= result_sender.send(<span class="prelude-val">Ok</span>(()));
 			},
-			<span class="ident">ArtifactState::Preparing</span> { <span class="ident">waiting_for_response</span> } =&gt;
-				<span class="ident">waiting_for_response</span>.<span class="ident">push</span>(<span class="ident">result_sender</span>),
-			<span class="ident">ArtifactState::FailedToProcess</span>(<span class="ident">result</span>) =&gt; {
-				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">result_sender</span>.<span class="ident">send</span>(<span class="ident">PrepareResult::Err</span>(<span class="ident">result</span>.<span class="ident">clone</span>()));
+			ArtifactState::Preparing { waiting_for_response } =&gt;
+				waiting_for_response.push(result_sender),
+			ArtifactState::FailedToProcess(result) =&gt; {
+				<span class="kw">let _ </span>= result_sender.send(PrepareResult::Err(result.clone()));
 			},
 		}
-	} <span class="kw">else</span> {
-		<span class="ident">artifacts</span>.<span class="ident">insert_preparing</span>(<span class="ident">artifact_id</span>, <span class="macro">vec!</span>[<span class="ident">result_sender</span>]);
-		<span class="ident">send_prepare</span>(
-			<span class="ident">prepare_queue</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> {
-				<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
-				<span class="ident">pvf</span>,
-				<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+	} <span class="kw">else </span>{
+		artifacts.insert_preparing(artifact_id, <span class="macro">vec!</span>[result_sender]);
+		send_prepare(
+			prepare_queue,
+			prepare::ToQueue::Enqueue {
+				priority: Priority::Normal,
+				pvf,
+				compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
 			},
 		)
 		.<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1671,97 +1665,97 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Handles PVF execution.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will first try to prepare the PVF, if a prepared artifact does not already exist. If there is already a</span>
-<span class="doccomment">/// preparation job, we coalesce the two preparation jobs. When preparing for execution, we use a more lenient timeout</span>
-<span class="doccomment">/// ([`EXECUTE_COMPILATION_TIMEOUT`]) than when prechecking.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_execute_pvf</span>(
-	<span class="ident">cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
-	<span class="ident">prepare_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">execute_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">execute::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">awaiting_prepare</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AwaitingPrepare</span>,
-	<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-	<span class="ident">execution_timeout</span>: <span class="ident">Duration</span>,
-	<span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">priority</span>: <span class="ident">Priority</span>,
-	<span class="ident">result_tx</span>: <span class="ident">ResultSender</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">artifact_id</span> <span class="op">=</span> <span class="ident">pvf</span>.<span class="ident">as_artifact_id</span>();
+<span class="doccomment">/// Handles PVF execution.
+///
+/// This will first try to prepare the PVF, if a prepared artifact does not already exist. If there is already a
+/// preparation job, we coalesce the two preparation jobs. When preparing for execution, we use a more lenient timeout
+/// ([`EXECUTE_COMPILATION_TIMEOUT`]) than when prechecking.
+</span><span class="kw">async fn </span>handle_execute_pvf(
+	cache_path: <span class="kw-2">&amp;</span>Path,
+	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
+	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
+	execute_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;execute::ToQueue&gt;,
+	awaiting_prepare: <span class="kw-2">&amp;mut </span>AwaitingPrepare,
+	pvf: Pvf,
+	execution_timeout: Duration,
+	params: Vec&lt;u8&gt;,
+	priority: Priority,
+	result_tx: ResultSender,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="ident">artifacts</span>.<span class="ident">artifact_state_mut</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>) {
-		<span class="kw">match</span> <span class="ident">state</span> {
-			<span class="ident">ArtifactState::Prepared</span> { <span class="ident">last_time_needed</span> } =&gt; {
-				<span class="kw-2">*</span><span class="ident">last_time_needed</span> <span class="op">=</span> <span class="ident">SystemTime::now</span>();
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
+		<span class="kw">match </span>state {
+			ArtifactState::Prepared { last_time_needed } =&gt; {
+				<span class="kw-2">*</span>last_time_needed = SystemTime::now();
 
-				<span class="ident">send_execute</span>(
-					<span class="ident">execute_queue</span>,
-					<span class="ident">execute::ToQueue::Enqueue</span> {
-						<span class="ident">artifact</span>: <span class="ident">ArtifactPathId::new</span>(<span class="ident">artifact_id</span>, <span class="ident">cache_path</span>),
-						<span class="ident">execution_timeout</span>,
-						<span class="ident">params</span>,
-						<span class="ident">result_tx</span>,
+				send_execute(
+					execute_queue,
+					execute::ToQueue::Enqueue {
+						artifact: ArtifactPathId::new(artifact_id, cache_path),
+						execution_timeout,
+						params,
+						result_tx,
 					},
 				)
 				.<span class="kw">await</span><span class="question-mark">?</span>;
 			},
-			<span class="ident">ArtifactState::Preparing</span> { <span class="ident">waiting_for_response</span>: <span class="kw">_</span> } =&gt; {
-				<span class="ident">awaiting_prepare</span>.<span class="ident">add</span>(<span class="ident">artifact_id</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">result_tx</span>);
+			ArtifactState::Preparing { waiting_for_response: <span class="kw">_ </span>} =&gt; {
+				awaiting_prepare.add(artifact_id, execution_timeout, params, result_tx);
 			},
-			<span class="ident">ArtifactState::FailedToProcess</span>(<span class="ident">error</span>) =&gt; {
-				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">result_tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">ValidationError::from</span>(<span class="ident">error</span>.<span class="ident">clone</span>())));
+			ArtifactState::FailedToProcess(error) =&gt; {
+				<span class="kw">let _ </span>= result_tx.send(<span class="prelude-val">Err</span>(ValidationError::from(error.clone())));
 			},
 		}
-	} <span class="kw">else</span> {
-		<span class="comment">// Artifact is unknown: register it and enqueue a job with the corresponding priority and</span>
-		<span class="comment">// PVF.</span>
-		<span class="ident">artifacts</span>.<span class="ident">insert_preparing</span>(<span class="ident">artifact_id</span>.<span class="ident">clone</span>(), <span class="ident">Vec::new</span>());
-		<span class="ident">send_prepare</span>(
-			<span class="ident">prepare_queue</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> {
-				<span class="ident">priority</span>,
-				<span class="ident">pvf</span>,
-				<span class="ident">compilation_timeout</span>: <span class="ident">EXECUTE_COMPILATION_TIMEOUT</span>,
+	} <span class="kw">else </span>{
+		<span class="comment">// Artifact is unknown: register it and enqueue a job with the corresponding priority and
+		// PVF.
+		</span>artifacts.insert_preparing(artifact_id.clone(), Vec::new());
+		send_prepare(
+			prepare_queue,
+			prepare::ToQueue::Enqueue {
+				priority,
+				pvf,
+				compilation_timeout: EXECUTE_COMPILATION_TIMEOUT,
 			},
 		)
 		.<span class="kw">await</span><span class="question-mark">?</span>;
 
-		<span class="ident">awaiting_prepare</span>.<span class="ident">add</span>(<span class="ident">artifact_id</span>, <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">result_tx</span>);
+		awaiting_prepare.add(artifact_id, execution_timeout, params, result_tx);
 	}
 
-	<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+	<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_heads_up</span>(
-	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
-	<span class="ident">prepare_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">active_pvfs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pvf</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">SystemTime::now</span>();
+<span class="kw">async fn </span>handle_heads_up(
+	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
+	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
+	active_pvfs: Vec&lt;Pvf&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>now = SystemTime::now();
 
-	<span class="kw">for</span> <span class="ident">active_pvf</span> <span class="kw">in</span> <span class="ident">active_pvfs</span> {
-		<span class="kw">let</span> <span class="ident">artifact_id</span> <span class="op">=</span> <span class="ident">active_pvf</span>.<span class="ident">as_artifact_id</span>();
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="ident">artifacts</span>.<span class="ident">artifact_state_mut</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>) {
-			<span class="kw">match</span> <span class="ident">state</span> {
-				<span class="ident">ArtifactState::Prepared</span> { <span class="ident">last_time_needed</span>, .. } =&gt; {
-					<span class="kw-2">*</span><span class="ident">last_time_needed</span> <span class="op">=</span> <span class="ident">now</span>;
+	<span class="kw">for </span>active_pvf <span class="kw">in </span>active_pvfs {
+		<span class="kw">let </span>artifact_id = active_pvf.as_artifact_id();
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
+			<span class="kw">match </span>state {
+				ArtifactState::Prepared { last_time_needed, .. } =&gt; {
+					<span class="kw-2">*</span>last_time_needed = now;
 				},
-				<span class="ident">ArtifactState::Preparing</span> { <span class="ident">waiting_for_response</span>: <span class="kw">_</span> } =&gt; {
-					<span class="comment">// The artifact is already being prepared, so we don&#39;t need to do anything.</span>
-				},
-				<span class="ident">ArtifactState::FailedToProcess</span>(<span class="kw">_</span>) =&gt; {},
+				ArtifactState::Preparing { waiting_for_response: <span class="kw">_ </span>} =&gt; {
+					<span class="comment">// The artifact is already being prepared, so we don&#39;t need to do anything.
+				</span>},
+				ArtifactState::FailedToProcess(<span class="kw">_</span>) =&gt; {},
 			}
-		} <span class="kw">else</span> {
-			<span class="comment">// It&#39;s not in the artifacts, so we need to enqueue a job to prepare it.</span>
-			<span class="ident">artifacts</span>.<span class="ident">insert_preparing</span>(<span class="ident">artifact_id</span>.<span class="ident">clone</span>(), <span class="ident">Vec::new</span>());
+		} <span class="kw">else </span>{
+			<span class="comment">// It&#39;s not in the artifacts, so we need to enqueue a job to prepare it.
+			</span>artifacts.insert_preparing(artifact_id.clone(), Vec::new());
 
-			<span class="ident">send_prepare</span>(
-				<span class="ident">prepare_queue</span>,
-				<span class="ident">prepare::ToQueue::Enqueue</span> {
-					<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
-					<span class="ident">pvf</span>: <span class="ident">active_pvf</span>,
-					<span class="ident">compilation_timeout</span>: <span class="ident">EXECUTE_COMPILATION_TIMEOUT</span>,
+			send_prepare(
+				prepare_queue,
+				prepare::ToQueue::Enqueue {
+					priority: Priority::Normal,
+					pvf: active_pvf,
+					compilation_timeout: EXECUTE_COMPILATION_TIMEOUT,
 				},
 			)
 			.<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1771,635 +1765,634 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_prepare_done</span>(
-	<span class="ident">cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
-	<span class="ident">execute_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">execute::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">awaiting_prepare</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AwaitingPrepare</span>,
-	<span class="ident">from_queue</span>: <span class="ident">prepare::FromQueue</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">prepare::FromQueue</span> { <span class="ident">artifact_id</span>, <span class="ident">result</span> } <span class="op">=</span> <span class="ident">from_queue</span>;
+<span class="kw">async fn </span>handle_prepare_done(
+	cache_path: <span class="kw-2">&amp;</span>Path,
+	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
+	execute_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;execute::ToQueue&gt;,
+	awaiting_prepare: <span class="kw-2">&amp;mut </span>AwaitingPrepare,
+	from_queue: prepare::FromQueue,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>prepare::FromQueue { artifact_id, result } = from_queue;
 
-	<span class="comment">// Make some sanity checks and extract the current state.</span>
-	<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">artifacts</span>.<span class="ident">artifact_state_mut</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>) {
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="comment">// before sending request to prepare, the artifact is inserted with `preparing` state;</span>
-			<span class="comment">// the requests are deduplicated for the same artifact id;</span>
-			<span class="comment">// there is only one possible state change: prepare is done;</span>
-			<span class="comment">// thus the artifact cannot be unknown, only preparing;</span>
-			<span class="comment">// qed.</span>
-			<span class="macro">never!</span>(<span class="string">&quot;an unknown artifact was prepared: {:?}&quot;</span>, <span class="ident">artifact_id</span>);
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+	<span class="comment">// Make some sanity checks and extract the current state.
+	</span><span class="kw">let </span>state = <span class="kw">match </span>artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
+		<span class="prelude-val">None </span>=&gt; {
+			<span class="comment">// before sending request to prepare, the artifact is inserted with `preparing` state;
+			// the requests are deduplicated for the same artifact id;
+			// there is only one possible state change: prepare is done;
+			// thus the artifact cannot be unknown, only preparing;
+			// qed.
+			</span><span class="macro">never!</span>(<span class="string">&quot;an unknown artifact was prepared: {:?}&quot;</span>, artifact_id);
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 		},
-		<span class="prelude-val">Some</span>(<span class="ident">ArtifactState::Prepared</span> { .. }) =&gt; {
-			<span class="comment">// before sending request to prepare, the artifact is inserted with `preparing` state;</span>
-			<span class="comment">// the requests are deduplicated for the same artifact id;</span>
-			<span class="comment">// there is only one possible state change: prepare is done;</span>
-			<span class="comment">// thus the artifact cannot be prepared, only preparing;</span>
-			<span class="comment">// qed.</span>
-			<span class="macro">never!</span>(<span class="string">&quot;the artifact is already prepared: {:?}&quot;</span>, <span class="ident">artifact_id</span>);
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Some</span>(ArtifactState::Prepared { .. }) =&gt; {
+			<span class="comment">// before sending request to prepare, the artifact is inserted with `preparing` state;
+			// the requests are deduplicated for the same artifact id;
+			// there is only one possible state change: prepare is done;
+			// thus the artifact cannot be prepared, only preparing;
+			// qed.
+			</span><span class="macro">never!</span>(<span class="string">&quot;the artifact is already prepared: {:?}&quot;</span>, artifact_id);
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 		},
-		<span class="prelude-val">Some</span>(<span class="ident">ArtifactState::FailedToProcess</span>(<span class="kw">_</span>)) =&gt; {
-			<span class="comment">// The reasoning is similar to the above, the artifact cannot be</span>
-			<span class="comment">// processed at this point.</span>
-			<span class="macro">never!</span>(<span class="string">&quot;the artifact is already processed unsuccessfully: {:?}&quot;</span>, <span class="ident">artifact_id</span>);
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Some</span>(ArtifactState::FailedToProcess(<span class="kw">_</span>)) =&gt; {
+			<span class="comment">// The reasoning is similar to the above, the artifact cannot be
+			// processed at this point.
+			</span><span class="macro">never!</span>(<span class="string">&quot;the artifact is already processed unsuccessfully: {:?}&quot;</span>, artifact_id);
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 		},
-		<span class="prelude-val">Some</span>(<span class="ident">state</span> @ <span class="ident">ArtifactState::Preparing</span> { <span class="ident">waiting_for_response</span>: <span class="kw">_</span> }) =&gt; <span class="ident">state</span>,
+		<span class="prelude-val">Some</span>(state @ ArtifactState::Preparing { waiting_for_response: <span class="kw">_ </span>}) =&gt; state,
 	};
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="ident">ArtifactState::Preparing</span> { <span class="ident">waiting_for_response</span> } <span class="op">=</span> <span class="ident">state</span> {
-		<span class="kw">for</span> <span class="ident">result_sender</span> <span class="kw">in</span> <span class="ident">waiting_for_response</span>.<span class="ident">drain</span>(..) {
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">result_sender</span>.<span class="ident">send</span>(<span class="ident">result</span>.<span class="ident">clone</span>());
+	<span class="kw">if let </span>ArtifactState::Preparing { waiting_for_response } = state {
+		<span class="kw">for </span>result_sender <span class="kw">in </span>waiting_for_response.drain(..) {
+			<span class="kw">let _ </span>= result_sender.send(result.clone());
 		}
 	}
 
-	<span class="comment">// It&#39;s finally time to dispatch all the execution requests that were waiting for this artifact</span>
-	<span class="comment">// to be prepared.</span>
-	<span class="kw">let</span> <span class="ident">pending_requests</span> <span class="op">=</span> <span class="ident">awaiting_prepare</span>.<span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>);
-	<span class="kw">for</span> <span class="ident">PendingExecutionRequest</span> { <span class="ident">execution_timeout</span>, <span class="ident">params</span>, <span class="ident">result_tx</span> } <span class="kw">in</span> <span class="ident">pending_requests</span> {
-		<span class="kw">if</span> <span class="ident">result_tx</span>.<span class="ident">is_canceled</span>() {
-			<span class="comment">// Preparation could&#39;ve taken quite a bit of time and the requester may be not interested</span>
-			<span class="comment">// in execution anymore, in which case we just skip the request.</span>
-			<span class="kw">continue</span>
-		}
+	<span class="comment">// It&#39;s finally time to dispatch all the execution requests that were waiting for this artifact
+	// to be prepared.
+	</span><span class="kw">let </span>pending_requests = awaiting_prepare.take(<span class="kw-2">&amp;</span>artifact_id);
+	<span class="kw">for </span>PendingExecutionRequest { execution_timeout, params, result_tx } <span class="kw">in </span>pending_requests {
+		<span class="kw">if </span>result_tx.is_canceled() {
+			<span class="comment">// Preparation could&#39;ve taken quite a bit of time and the requester may be not interested
+			// in execution anymore, in which case we just skip the request.
+			</span><span class="kw">continue
+		</span>}
 
-		<span class="comment">// Don&#39;t send failed artifacts to the execution&#39;s queue.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">error</span>) <span class="op">=</span> <span class="ident">result</span> {
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">result_tx</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">ValidationError::from</span>(<span class="ident">error</span>.<span class="ident">clone</span>())));
-			<span class="kw">continue</span>
-		}
+		<span class="comment">// Don&#39;t send failed artifacts to the execution&#39;s queue.
+		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>error) = result {
+			<span class="kw">let _ </span>= result_tx.send(<span class="prelude-val">Err</span>(ValidationError::from(error.clone())));
+			<span class="kw">continue
+		</span>}
 
-		<span class="ident">send_execute</span>(
-			<span class="ident">execute_queue</span>,
-			<span class="ident">execute::ToQueue::Enqueue</span> {
-				<span class="ident">artifact</span>: <span class="ident">ArtifactPathId::new</span>(<span class="ident">artifact_id</span>.<span class="ident">clone</span>(), <span class="ident">cache_path</span>),
-				<span class="ident">execution_timeout</span>,
-				<span class="ident">params</span>,
-				<span class="ident">result_tx</span>,
+		send_execute(
+			execute_queue,
+			execute::ToQueue::Enqueue {
+				artifact: ArtifactPathId::new(artifact_id.clone(), cache_path),
+				execution_timeout,
+				params,
+				result_tx,
 			},
 		)
 		.<span class="kw">await</span><span class="question-mark">?</span>;
 	}
 
-	<span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
-		<span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">ArtifactState::Prepared</span> { <span class="ident">last_time_needed</span>: <span class="ident">SystemTime::now</span>() },
-		<span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; <span class="ident">ArtifactState::FailedToProcess</span>(<span class="ident">error</span>.<span class="ident">clone</span>()),
+	<span class="kw-2">*</span>state = <span class="kw">match </span>result {
+		<span class="prelude-val">Ok</span>(()) =&gt; ArtifactState::Prepared { last_time_needed: SystemTime::now() },
+		<span class="prelude-val">Err</span>(error) =&gt; ArtifactState::FailedToProcess(error.clone()),
 	};
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_prepare</span>(
-	<span class="ident">prepare_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">to_queue</span>: <span class="ident">prepare::ToQueue</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="ident">prepare_queue</span>.<span class="ident">send</span>(<span class="ident">to_queue</span>).<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Fatal</span>)
+<span class="kw">async fn </span>send_prepare(
+	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
+	to_queue: prepare::ToQueue,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	prepare_queue.send(to_queue).<span class="kw">await</span>.map_err(|<span class="kw">_</span>| Fatal)
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_execute</span>(
-	<span class="ident">execute_queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">execute::ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">to_queue</span>: <span class="ident">execute::ToQueue</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="ident">execute_queue</span>.<span class="ident">send</span>(<span class="ident">to_queue</span>).<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Fatal</span>)
+<span class="kw">async fn </span>send_execute(
+	execute_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;execute::ToQueue&gt;,
+	to_queue: execute::ToQueue,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	execute_queue.send(to_queue).<span class="kw">await</span>.map_err(|<span class="kw">_</span>| Fatal)
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_cleanup_pulse</span>(
-	<span class="ident">cache_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-	<span class="ident">sweeper_tx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
-	<span class="ident">artifacts</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Artifacts</span>,
-	<span class="ident">artifact_ttl</span>: <span class="ident">Duration</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">to_remove</span> <span class="op">=</span> <span class="ident">artifacts</span>.<span class="ident">prune</span>(<span class="ident">artifact_ttl</span>);
+<span class="kw">async fn </span>handle_cleanup_pulse(
+	cache_path: <span class="kw-2">&amp;</span>Path,
+	sweeper_tx: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;PathBuf&gt;,
+	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
+	artifact_ttl: Duration,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>to_remove = artifacts.prune(artifact_ttl);
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+		target: LOG_TARGET,
 		<span class="string">&quot;PVF pruning: {} artifacts reached their end of life&quot;</span>,
-		<span class="ident">to_remove</span>.<span class="ident">len</span>(),
+		to_remove.len(),
 	);
-	<span class="kw">for</span> <span class="ident">artifact_id</span> <span class="kw">in</span> <span class="ident">to_remove</span> {
+	<span class="kw">for </span>artifact_id <span class="kw">in </span>to_remove {
 		<span class="macro">gum::debug!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact_id</span>.<span class="ident">code_hash</span>,
+			target: LOG_TARGET,
+			validation_code_hash = <span class="question-mark">?</span>artifact_id.code_hash,
 			<span class="string">&quot;pruning artifact&quot;</span>,
 		);
-		<span class="kw">let</span> <span class="ident">artifact_path</span> <span class="op">=</span> <span class="ident">artifact_id</span>.<span class="ident">path</span>(<span class="ident">cache_path</span>);
-		<span class="ident">sweeper_tx</span>.<span class="ident">send</span>(<span class="ident">artifact_path</span>).<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Fatal</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>artifact_path = artifact_id.path(cache_path);
+		sweeper_tx.send(artifact_path).<span class="kw">await</span>.map_err(|<span class="kw">_</span>| Fatal)<span class="question-mark">?</span>;
 	}
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// A simple task which sole purpose is to delete files thrown at it.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sweeper_task</span>(<span class="kw-2">mut</span> <span class="ident">sweeper_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>) {
-	<span class="kw">loop</span> {
-		<span class="kw">match</span> <span class="ident">sweeper_rx</span>.<span class="ident">next</span>().<span class="kw">await</span> {
-			<span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">condemned</span>) =&gt; {
-				<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">async_std::fs::remove_file</span>(<span class="kw-2">&amp;</span><span class="ident">condemned</span>).<span class="kw">await</span>;
+<span class="doccomment">/// A simple task which sole purpose is to delete files thrown at it.
+</span><span class="kw">async fn </span>sweeper_task(<span class="kw-2">mut </span>sweeper_rx: mpsc::Receiver&lt;PathBuf&gt;) {
+	<span class="kw">loop </span>{
+		<span class="kw">match </span>sweeper_rx.next().<span class="kw">await </span>{
+			<span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
+			<span class="prelude-val">Some</span>(condemned) =&gt; {
+				<span class="kw">let </span>result = async_std::fs::remove_file(<span class="kw-2">&amp;</span>condemned).<span class="kw">await</span>;
 				<span class="macro">gum::trace!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">result</span>,
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>result,
 					<span class="string">&quot;Sweeping the artifact file {}&quot;</span>,
-					<span class="ident">condemned</span>.<span class="ident">display</span>(),
+					condemned.display(),
 				);
 			},
 		}
 	}
 }
 
-<span class="doccomment">/// A stream that yields a pulse continuously at a given interval.</span>
-<span class="kw">fn</span> <span class="ident">pulse_every</span>(<span class="ident">interval</span>: <span class="ident">std::time::Duration</span>) -&gt; <span class="kw">impl</span> <span class="ident">futures::Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> ()<span class="op">&gt;</span> {
-	<span class="ident">futures::stream::unfold</span>(<span class="ident">interval</span>, {
-		<span class="op">|</span><span class="ident">interval</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-			<span class="ident">futures_timer::Delay::new</span>(<span class="ident">interval</span>).<span class="kw">await</span>;
-			<span class="prelude-val">Some</span>(((), <span class="ident">interval</span>))
+<span class="doccomment">/// A stream that yields a pulse continuously at a given interval.
+</span><span class="kw">fn </span>pulse_every(interval: std::time::Duration) -&gt; <span class="kw">impl </span>futures::Stream&lt;Item = ()&gt; {
+	futures::stream::unfold(interval, {
+		|interval| <span class="kw">async move </span>{
+			futures_timer::Delay::new(interval).<span class="kw">await</span>;
+			<span class="prelude-val">Some</span>(((), interval))
 		}
 	})
-	.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+	.map(|<span class="kw">_</span>| ())
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">InvalidCandidate</span>, <span class="ident">PrepareError</span>};
-	<span class="kw">use</span> <span class="ident">assert_matches::assert_matches</span>;
-	<span class="kw">use</span> <span class="ident">futures::future::BoxFuture</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use crate</span>::{InvalidCandidate, PrepareError};
+	<span class="kw">use </span>assert_matches::assert_matches;
+	<span class="kw">use </span>futures::future::BoxFuture;
 
-	<span class="kw">const</span> <span class="ident">TEST_EXECUTION_TIMEOUT</span>: <span class="ident">Duration</span> <span class="op">=</span> <span class="ident">Duration::from_secs</span>(<span class="number">3</span>);
+	<span class="kw">const </span>TEST_EXECUTION_TIMEOUT: Duration = Duration::from_secs(<span class="number">3</span>);
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">pulse_test</span>() {
-		<span class="kw">let</span> <span class="ident">pulse</span> <span class="op">=</span> <span class="ident">pulse_every</span>(<span class="ident">Duration::from_millis</span>(<span class="number">100</span>));
-		<span class="macro">futures::pin_mut!</span>(<span class="ident">pulse</span>);
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>pulse_test() {
+		<span class="kw">let </span>pulse = pulse_every(Duration::from_millis(<span class="number">100</span>));
+		<span class="macro">futures::pin_mut!</span>(pulse);
 
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0usize</span>..<span class="number">5usize</span> {
-			<span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">std::time::Instant::now</span>();
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">pulse</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>();
+		<span class="kw">for _ in </span><span class="number">0usize</span>..<span class="number">5usize </span>{
+			<span class="kw">let </span>start = std::time::Instant::now();
+			<span class="kw">let _ </span>= pulse.next().<span class="kw">await</span>.unwrap();
 
-			<span class="kw">let</span> <span class="ident">el</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>();
-			<span class="macro">assert!</span>(<span class="ident">el</span> <span class="op">&gt;</span> <span class="number">50</span> <span class="op">&amp;&amp;</span> <span class="ident">el</span> <span class="op">&lt;</span> <span class="number">150</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">el</span>);
+			<span class="kw">let </span>el = start.elapsed().as_millis();
+			<span class="macro">assert!</span>(el &gt; <span class="number">50 </span>&amp;&amp; el &lt; <span class="number">150</span>, <span class="string">&quot;{}&quot;</span>, el);
 		}
 	}
 
-	<span class="doccomment">/// Creates a new PVF which artifact id can be uniquely identified by the given number.</span>
-	<span class="kw">fn</span> <span class="ident">artifact_id</span>(<span class="ident">descriminator</span>: <span class="ident">u32</span>) -&gt; <span class="ident">ArtifactId</span> {
-		<span class="ident">Pvf::from_discriminator</span>(<span class="ident">descriminator</span>).<span class="ident">as_artifact_id</span>()
+	<span class="doccomment">/// Creates a new PVF which artifact id can be uniquely identified by the given number.
+	</span><span class="kw">fn </span>artifact_id(descriminator: u32) -&gt; ArtifactId {
+		Pvf::from_discriminator(descriminator).as_artifact_id()
 	}
 
-	<span class="kw">fn</span> <span class="ident">artifact_path</span>(<span class="ident">descriminator</span>: <span class="ident">u32</span>) -&gt; <span class="ident">PathBuf</span> {
-		<span class="ident">artifact_id</span>(<span class="ident">descriminator</span>).<span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="ident">PathBuf::from</span>(<span class="ident">std::env::temp_dir</span>())).<span class="ident">to_owned</span>()
+	<span class="kw">fn </span>artifact_path(descriminator: u32) -&gt; PathBuf {
+		artifact_id(descriminator).path(<span class="kw-2">&amp;</span>PathBuf::from(std::env::temp_dir())).to_owned()
 	}
 
-	<span class="kw">struct</span> <span class="ident">Builder</span> {
-		<span class="ident">cleanup_pulse_interval</span>: <span class="ident">Duration</span>,
-		<span class="ident">artifact_ttl</span>: <span class="ident">Duration</span>,
-		<span class="ident">artifacts</span>: <span class="ident">Artifacts</span>,
+	<span class="kw">struct </span>Builder {
+		cleanup_pulse_interval: Duration,
+		artifact_ttl: Duration,
+		artifacts: Artifacts,
 	}
 
-	<span class="kw">impl</span> <span class="ident">Builder</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-			<span class="self">Self</span> {
-				<span class="comment">// these are selected high to not interfere in tests in which pruning is irrelevant.</span>
-				<span class="ident">cleanup_pulse_interval</span>: <span class="ident">Duration::from_secs</span>(<span class="number">3600</span>),
-				<span class="ident">artifact_ttl</span>: <span class="ident">Duration::from_secs</span>(<span class="number">3600</span>),
+	<span class="kw">impl </span>Builder {
+		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+			<span class="self">Self </span>{
+				<span class="comment">// these are selected high to not interfere in tests in which pruning is irrelevant.
+				</span>cleanup_pulse_interval: Duration::from_secs(<span class="number">3600</span>),
+				artifact_ttl: Duration::from_secs(<span class="number">3600</span>),
 
-				<span class="ident">artifacts</span>: <span class="ident">Artifacts::empty</span>(),
+				artifacts: Artifacts::empty(),
 			}
 		}
 
-		<span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">Test</span> {
-			<span class="ident">Test::new</span>(<span class="self">self</span>)
+		<span class="kw">fn </span>build(<span class="self">self</span>) -&gt; Test {
+			Test::new(<span class="self">self</span>)
 		}
 	}
 
-	<span class="kw">struct</span> <span class="ident">Test</span> {
-		<span class="ident">to_host_tx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">ToHost</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="kw">struct </span>Test {
+		to_host_tx: <span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;ToHost&gt;&gt;,
 
-		<span class="ident">to_prepare_queue_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">prepare::ToQueue</span><span class="op">&gt;</span>,
-		<span class="ident">from_prepare_queue_tx</span>: <span class="ident">mpsc::UnboundedSender</span><span class="op">&lt;</span><span class="ident">prepare::FromQueue</span><span class="op">&gt;</span>,
-		<span class="ident">to_execute_queue_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">execute::ToQueue</span><span class="op">&gt;</span>,
-		<span class="ident">to_sweeper_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+		to_prepare_queue_rx: mpsc::Receiver&lt;prepare::ToQueue&gt;,
+		from_prepare_queue_tx: mpsc::UnboundedSender&lt;prepare::FromQueue&gt;,
+		to_execute_queue_rx: mpsc::Receiver&lt;execute::ToQueue&gt;,
+		to_sweeper_rx: mpsc::Receiver&lt;PathBuf&gt;,
 
-		<span class="ident">run</span>: <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>,
+		run: BoxFuture&lt;<span class="lifetime">&#39;static</span>, ()&gt;,
 	}
 
-	<span class="kw">impl</span> <span class="ident">Test</span> {
-		<span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">Builder</span> { <span class="ident">cleanup_pulse_interval</span>, <span class="ident">artifact_ttl</span>, <span class="ident">artifacts</span> }: <span class="ident">Builder</span>) -&gt; <span class="self">Self</span> {
-			<span class="kw">let</span> <span class="ident">cache_path</span> <span class="op">=</span> <span class="ident">PathBuf::from</span>(<span class="ident">std::env::temp_dir</span>());
+	<span class="kw">impl </span>Test {
+		<span class="kw">fn </span>new(Builder { cleanup_pulse_interval, artifact_ttl, artifacts }: Builder) -&gt; <span class="self">Self </span>{
+			<span class="kw">let </span>cache_path = PathBuf::from(std::env::temp_dir());
 
-			<span class="kw">let</span> (<span class="ident">to_host_tx</span>, <span class="ident">to_host_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">10</span>);
-			<span class="kw">let</span> (<span class="ident">to_prepare_queue_tx</span>, <span class="ident">to_prepare_queue_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">10</span>);
-			<span class="kw">let</span> (<span class="ident">from_prepare_queue_tx</span>, <span class="ident">from_prepare_queue_rx</span>) <span class="op">=</span> <span class="ident">mpsc::unbounded</span>();
-			<span class="kw">let</span> (<span class="ident">to_execute_queue_tx</span>, <span class="ident">to_execute_queue_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">10</span>);
-			<span class="kw">let</span> (<span class="ident">to_sweeper_tx</span>, <span class="ident">to_sweeper_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">10</span>);
+			<span class="kw">let </span>(to_host_tx, to_host_rx) = mpsc::channel(<span class="number">10</span>);
+			<span class="kw">let </span>(to_prepare_queue_tx, to_prepare_queue_rx) = mpsc::channel(<span class="number">10</span>);
+			<span class="kw">let </span>(from_prepare_queue_tx, from_prepare_queue_rx) = mpsc::unbounded();
+			<span class="kw">let </span>(to_execute_queue_tx, to_execute_queue_rx) = mpsc::channel(<span class="number">10</span>);
+			<span class="kw">let </span>(to_sweeper_tx, to_sweeper_rx) = mpsc::channel(<span class="number">10</span>);
 
-			<span class="kw">let</span> <span class="ident">run</span> <span class="op">=</span> <span class="ident">run</span>(<span class="ident">Inner</span> {
-				<span class="ident">cache_path</span>,
-				<span class="ident">cleanup_pulse_interval</span>,
-				<span class="ident">artifact_ttl</span>,
-				<span class="ident">artifacts</span>,
-				<span class="ident">to_host_rx</span>,
-				<span class="ident">to_prepare_queue_tx</span>,
-				<span class="ident">from_prepare_queue_rx</span>,
-				<span class="ident">to_execute_queue_tx</span>,
-				<span class="ident">to_sweeper_tx</span>,
-				<span class="ident">awaiting_prepare</span>: <span class="ident">AwaitingPrepare::default</span>(),
+			<span class="kw">let </span>run = run(Inner {
+				cache_path,
+				cleanup_pulse_interval,
+				artifact_ttl,
+				artifacts,
+				to_host_rx,
+				to_prepare_queue_tx,
+				from_prepare_queue_rx,
+				to_execute_queue_tx,
+				to_sweeper_tx,
+				awaiting_prepare: AwaitingPrepare::default(),
 			})
-			.<span class="ident">boxed</span>();
+			.boxed();
 
-			<span class="self">Self</span> {
-				<span class="ident">to_host_tx</span>: <span class="prelude-val">Some</span>(<span class="ident">to_host_tx</span>),
-				<span class="ident">to_prepare_queue_rx</span>,
-				<span class="ident">from_prepare_queue_tx</span>,
-				<span class="ident">to_execute_queue_rx</span>,
-				<span class="ident">to_sweeper_rx</span>,
-				<span class="ident">run</span>,
+			<span class="self">Self </span>{
+				to_host_tx: <span class="prelude-val">Some</span>(to_host_tx),
+				to_prepare_queue_rx,
+				from_prepare_queue_tx,
+				to_execute_queue_rx,
+				to_sweeper_rx,
+				run,
 			}
 		}
 
-		<span class="kw">fn</span> <span class="ident">host_handle</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">ValidationHost</span> {
-			<span class="kw">let</span> <span class="ident">to_host_tx</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_host_tx</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-			<span class="ident">ValidationHost</span> { <span class="ident">to_host_tx</span> }
+		<span class="kw">fn </span>host_handle(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ValidationHost {
+			<span class="kw">let </span>to_host_tx = <span class="self">self</span>.to_host_tx.take().unwrap();
+			ValidationHost { to_host_tx }
 		}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_and_recv_to_prepare_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">prepare::ToQueue</span> {
-			<span class="kw">let</span> <span class="ident">to_prepare_queue_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_prepare_queue_rx</span>;
-			<span class="ident">run_until</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>, <span class="kw">async</span> { <span class="ident">to_prepare_queue_rx</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>() }.<span class="ident">boxed</span>())
-				.<span class="kw">await</span>
-		}
+		<span class="kw">async fn </span>poll_and_recv_to_prepare_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; prepare::ToQueue {
+			<span class="kw">let </span>to_prepare_queue_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.to_prepare_queue_rx;
+			run_until(<span class="kw-2">&amp;mut </span><span class="self">self</span>.run, <span class="kw">async </span>{ to_prepare_queue_rx.next().<span class="kw">await</span>.unwrap() }.boxed())
+				.<span class="kw">await
+		</span>}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_and_recv_to_execute_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">execute::ToQueue</span> {
-			<span class="kw">let</span> <span class="ident">to_execute_queue_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_execute_queue_rx</span>;
-			<span class="ident">run_until</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>, <span class="kw">async</span> { <span class="ident">to_execute_queue_rx</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>() }.<span class="ident">boxed</span>())
-				.<span class="kw">await</span>
-		}
+		<span class="kw">async fn </span>poll_and_recv_to_execute_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; execute::ToQueue {
+			<span class="kw">let </span>to_execute_queue_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.to_execute_queue_rx;
+			run_until(<span class="kw-2">&amp;mut </span><span class="self">self</span>.run, <span class="kw">async </span>{ to_execute_queue_rx.next().<span class="kw">await</span>.unwrap() }.boxed())
+				.<span class="kw">await
+		</span>}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_ensure_to_execute_queue_is_empty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-			<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
+		<span class="kw">async fn </span>poll_ensure_to_execute_queue_is_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+			<span class="kw">use </span>futures_timer::Delay;
 
-			<span class="kw">let</span> <span class="ident">to_execute_queue_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_execute_queue_rx</span>;
-			<span class="ident">run_until</span>(
-				<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>,
-				<span class="kw">async</span> {
-					<span class="macro">futures::select!</span> {
-						<span class="kw">_</span> <span class="op">=</span> <span class="ident">Delay::new</span>(<span class="ident">Duration::from_millis</span>(<span class="number">500</span>)).<span class="ident">fuse</span>() =&gt; (),
-						<span class="kw">_</span> <span class="op">=</span> <span class="ident">to_execute_queue_rx</span>.<span class="ident">next</span>().<span class="ident">fuse</span>() =&gt; {
+			<span class="kw">let </span>to_execute_queue_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.to_execute_queue_rx;
+			run_until(
+				<span class="kw-2">&amp;mut </span><span class="self">self</span>.run,
+				<span class="kw">async </span>{
+					<span class="macro">futures::select! </span>{
+						<span class="kw">_ </span>= Delay::new(Duration::from_millis(<span class="number">500</span>)).fuse() =&gt; (),
+						<span class="kw">_ </span>= to_execute_queue_rx.next().fuse() =&gt; {
 							<span class="macro">panic!</span>(<span class="string">&quot;the execute queue supposed to be empty&quot;</span>)
 						}
 					}
 				}
-				.<span class="ident">boxed</span>(),
+				.boxed(),
 			)
-			.<span class="kw">await</span>
-		}
+			.<span class="kw">await
+		</span>}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_ensure_to_sweeper_is_empty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-			<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
+		<span class="kw">async fn </span>poll_ensure_to_sweeper_is_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+			<span class="kw">use </span>futures_timer::Delay;
 
-			<span class="kw">let</span> <span class="ident">to_sweeper_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_sweeper_rx</span>;
-			<span class="ident">run_until</span>(
-				<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>,
-				<span class="kw">async</span> {
-					<span class="macro">futures::select!</span> {
-						<span class="kw">_</span> <span class="op">=</span> <span class="ident">Delay::new</span>(<span class="ident">Duration::from_millis</span>(<span class="number">500</span>)).<span class="ident">fuse</span>() =&gt; (),
-						<span class="ident">msg</span> <span class="op">=</span> <span class="ident">to_sweeper_rx</span>.<span class="ident">next</span>().<span class="ident">fuse</span>() =&gt; {
-							<span class="macro">panic!</span>(<span class="string">&quot;the sweeper supposed to be empty, but received: {:?}&quot;</span>, <span class="ident">msg</span>)
+			<span class="kw">let </span>to_sweeper_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.to_sweeper_rx;
+			run_until(
+				<span class="kw-2">&amp;mut </span><span class="self">self</span>.run,
+				<span class="kw">async </span>{
+					<span class="macro">futures::select! </span>{
+						<span class="kw">_ </span>= Delay::new(Duration::from_millis(<span class="number">500</span>)).fuse() =&gt; (),
+						msg = to_sweeper_rx.next().fuse() =&gt; {
+							<span class="macro">panic!</span>(<span class="string">&quot;the sweeper supposed to be empty, but received: {:?}&quot;</span>, msg)
 						}
 					}
 				}
-				.<span class="ident">boxed</span>(),
+				.boxed(),
 			)
-			.<span class="kw">await</span>
-		}
+			.<span class="kw">await
+		</span>}
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_until</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-		<span class="ident">task</span>: <span class="kw-2">&amp;mut</span> (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Unpin</span>),
-		<span class="kw-2">mut</span> <span class="ident">fut</span>: (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Unpin</span>),
-	) -&gt; <span class="ident">R</span> {
-		<span class="kw">use</span> <span class="ident">std::task::Poll</span>;
+	<span class="kw">async fn </span>run_until&lt;R&gt;(
+		task: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span>Future&lt;Output = ()&gt; + Unpin),
+		<span class="kw-2">mut </span>fut: (<span class="kw">impl </span>Future&lt;Output = R&gt; + Unpin),
+	) -&gt; R {
+		<span class="kw">use </span>std::task::Poll;
 
-		<span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">std::time::Instant::now</span>();
-		<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">fut</span>;
-		<span class="kw">loop</span> {
-			<span class="kw">if</span> <span class="ident">start</span>.<span class="ident">elapsed</span>() <span class="op">&gt;</span> <span class="ident">std::time::Duration::from_secs</span>(<span class="number">2</span>) {
-				<span class="comment">// We expect that this will take only a couple of iterations and thus to take way</span>
-				<span class="comment">// less than a second.</span>
-				<span class="macro">panic!</span>(<span class="string">&quot;timeout&quot;</span>);
+		<span class="kw">let </span>start = std::time::Instant::now();
+		<span class="kw">let </span>fut = <span class="kw-2">&amp;mut </span>fut;
+		<span class="kw">loop </span>{
+			<span class="kw">if </span>start.elapsed() &gt; std::time::Duration::from_secs(<span class="number">2</span>) {
+				<span class="comment">// We expect that this will take only a couple of iterations and thus to take way
+				// less than a second.
+				</span><span class="macro">panic!</span>(<span class="string">&quot;timeout&quot;</span>);
 			}
 
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">fut</span>) {
-				<span class="kw">break</span> <span class="ident">r</span>
+			<span class="kw">if let </span>Poll::Ready(r) = <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut *</span>fut) {
+				<span class="kw">break </span>r
 			}
 
-			<span class="kw">if</span> <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">task</span>).<span class="ident">is_ready</span>() {
+			<span class="kw">if </span><span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut *</span>task).is_ready() {
 				<span class="macro">panic!</span>()
 			}
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">shutdown_on_handle_drop</span>() {
-		<span class="kw">let</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Builder::default</span>().<span class="ident">build</span>();
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>shutdown_on_handle_drop() {
+		<span class="kw">let </span>test = Builder::default().build();
 
-		<span class="kw">let</span> <span class="ident">join_handle</span> <span class="op">=</span> <span class="ident">async_std::task::spawn</span>(<span class="ident">test</span>.<span class="ident">run</span>);
+		<span class="kw">let </span>join_handle = async_std::task::spawn(test.run);
 
-		<span class="comment">// Dropping the handle will lead to conclusion of the read part and thus will make the event</span>
-		<span class="comment">// loop to stop, which in turn will resolve the join handle.</span>
-		<span class="ident">drop</span>(<span class="ident">test</span>.<span class="ident">to_host_tx</span>);
-		<span class="ident">join_handle</span>.<span class="kw">await</span>;
+		<span class="comment">// Dropping the handle will lead to conclusion of the read part and thus will make the event
+		// loop to stop, which in turn will resolve the join handle.
+		</span>drop(test.to_host_tx);
+		join_handle.<span class="kw">await</span>;
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">pruning</span>() {
-		<span class="kw">let</span> <span class="ident">mock_now</span> <span class="op">=</span> <span class="ident">SystemTime::now</span>() <span class="op">-</span> <span class="ident">Duration::from_millis</span>(<span class="number">1000</span>);
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>pruning() {
+		<span class="kw">let </span>mock_now = SystemTime::now() - Duration::from_millis(<span class="number">1000</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">Builder::default</span>();
-		<span class="ident">builder</span>.<span class="ident">cleanup_pulse_interval</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">100</span>);
-		<span class="ident">builder</span>.<span class="ident">artifact_ttl</span> <span class="op">=</span> <span class="ident">Duration::from_millis</span>(<span class="number">500</span>);
-		<span class="ident">builder</span>.<span class="ident">artifacts</span>.<span class="ident">insert_prepared</span>(<span class="ident">artifact_id</span>(<span class="number">1</span>), <span class="ident">mock_now</span>);
-		<span class="ident">builder</span>.<span class="ident">artifacts</span>.<span class="ident">insert_prepared</span>(<span class="ident">artifact_id</span>(<span class="number">2</span>), <span class="ident">mock_now</span>);
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">host_handle</span>();
+		<span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::default();
+		builder.cleanup_pulse_interval = Duration::from_millis(<span class="number">100</span>);
+		builder.artifact_ttl = Duration::from_millis(<span class="number">500</span>);
+		builder.artifacts.insert_prepared(artifact_id(<span class="number">1</span>), mock_now);
+		builder.artifacts.insert_prepared(artifact_id(<span class="number">2</span>), mock_now);
+		<span class="kw">let </span><span class="kw-2">mut </span>test = builder.build();
+		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
-		<span class="ident">host</span>.<span class="ident">heads_up</span>(<span class="macro">vec!</span>[<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>)]).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+		host.heads_up(<span class="macro">vec!</span>[Pvf::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
 
-		<span class="kw">let</span> <span class="ident">to_sweeper_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">test</span>.<span class="ident">to_sweeper_rx</span>;
-		<span class="ident">run_until</span>(
-			<span class="kw-2">&amp;mut</span> <span class="ident">test</span>.<span class="ident">run</span>,
-			<span class="kw">async</span> {
-				<span class="macro">assert_eq!</span>(<span class="ident">to_sweeper_rx</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>(), <span class="ident">artifact_path</span>(<span class="number">2</span>));
+		<span class="kw">let </span>to_sweeper_rx = <span class="kw-2">&amp;mut </span>test.to_sweeper_rx;
+		run_until(
+			<span class="kw-2">&amp;mut </span>test.run,
+			<span class="kw">async </span>{
+				<span class="macro">assert_eq!</span>(to_sweeper_rx.next().<span class="kw">await</span>.unwrap(), artifact_path(<span class="number">2</span>));
 			}
-			.<span class="ident">boxed</span>(),
+			.boxed(),
 		)
 		.<span class="kw">await</span>;
 
-		<span class="comment">// Extend TTL for the first artifact and make sure we don&#39;t receive another file removal</span>
-		<span class="comment">// request.</span>
-		<span class="ident">host</span>.<span class="ident">heads_up</span>(<span class="macro">vec!</span>[<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>)]).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-		<span class="ident">test</span>.<span class="ident">poll_ensure_to_sweeper_is_empty</span>().<span class="kw">await</span>;
+		<span class="comment">// Extend TTL for the first artifact and make sure we don&#39;t receive another file removal
+		// request.
+		</span>host.heads_up(<span class="macro">vec!</span>[Pvf::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
+		test.poll_ensure_to_sweeper_is_empty().<span class="kw">await</span>;
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">execute_pvf_requests</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Builder::default</span>().<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">host_handle</span>();
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>execute_pvf_requests() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
+		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx_pvf_1_1</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">execute_pvf</span>(
-			<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>),
-			<span class="ident">TEST_EXECUTION_TIMEOUT</span>,
-			<span class="string">b&quot;pvf1&quot;</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">Priority::Normal</span>,
-			<span class="ident">result_tx</span>,
+		<span class="kw">let </span>(result_tx, result_rx_pvf_1_1) = oneshot::channel();
+		host.execute_pvf(
+			Pvf::from_discriminator(<span class="number">1</span>),
+			TEST_EXECUTION_TIMEOUT,
+			<span class="string">b&quot;pvf1&quot;</span>.to_vec(),
+			Priority::Normal,
+			result_tx,
 		)
-		.<span class="kw">await</span>
-		.<span class="ident">unwrap</span>();
+		.<span class="kw">await
+		</span>.unwrap();
 
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx_pvf_1_2</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">execute_pvf</span>(
-			<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>),
-			<span class="ident">TEST_EXECUTION_TIMEOUT</span>,
-			<span class="string">b&quot;pvf1&quot;</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">Priority::Critical</span>,
-			<span class="ident">result_tx</span>,
+		<span class="kw">let </span>(result_tx, result_rx_pvf_1_2) = oneshot::channel();
+		host.execute_pvf(
+			Pvf::from_discriminator(<span class="number">1</span>),
+			TEST_EXECUTION_TIMEOUT,
+			<span class="string">b&quot;pvf1&quot;</span>.to_vec(),
+			Priority::Critical,
+			result_tx,
 		)
-		.<span class="kw">await</span>
-		.<span class="ident">unwrap</span>();
+		.<span class="kw">await
+		</span>.unwrap();
 
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx_pvf_2</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">execute_pvf</span>(
-			<span class="ident">Pvf::from_discriminator</span>(<span class="number">2</span>),
-			<span class="ident">TEST_EXECUTION_TIMEOUT</span>,
-			<span class="string">b&quot;pvf2&quot;</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">Priority::Normal</span>,
-			<span class="ident">result_tx</span>,
+		<span class="kw">let </span>(result_tx, result_rx_pvf_2) = oneshot::channel();
+		host.execute_pvf(
+			Pvf::from_discriminator(<span class="number">2</span>),
+			TEST_EXECUTION_TIMEOUT,
+			<span class="string">b&quot;pvf2&quot;</span>.to_vec(),
+			Priority::Normal,
+			result_tx,
 		)
-		.<span class="kw">await</span>
-		.<span class="ident">unwrap</span>();
+		.<span class="kw">await
+		</span>.unwrap();
 
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
 
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> { <span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">1</span>), <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) })
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">result_tx_pvf_1_1</span> <span class="op">=</span> <span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_execute_queue</span>().<span class="kw">await</span>,
-			<span class="ident">execute::ToQueue::Enqueue</span> { <span class="ident">result_tx</span>, .. } =&gt; <span class="ident">result_tx</span>
+		test.from_prepare_queue_tx
+			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">1</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.<span class="kw">await
+			</span>.unwrap();
+		<span class="kw">let </span>result_tx_pvf_1_1 = <span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
+			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
 		);
-		<span class="kw">let</span> <span class="ident">result_tx_pvf_1_2</span> <span class="op">=</span> <span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_execute_queue</span>().<span class="kw">await</span>,
-			<span class="ident">execute::ToQueue::Enqueue</span> { <span class="ident">result_tx</span>, .. } =&gt; <span class="ident">result_tx</span>
-		);
-
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> { <span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">2</span>), <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) })
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">result_tx_pvf_2</span> <span class="op">=</span> <span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_execute_queue</span>().<span class="kw">await</span>,
-			<span class="ident">execute::ToQueue::Enqueue</span> { <span class="ident">result_tx</span>, .. } =&gt; <span class="ident">result_tx</span>
+		<span class="kw">let </span>result_tx_pvf_1_2 = <span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
+			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
 		);
 
-		<span class="ident">result_tx_pvf_1_1</span>
-			.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>)))
-			.<span class="ident">unwrap</span>();
+		test.from_prepare_queue_tx
+			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">2</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.<span class="kw">await
+			</span>.unwrap();
+		<span class="kw">let </span>result_tx_pvf_2 = <span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
+			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
+		);
+
+		result_tx_pvf_1_1
+			.send(<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath)))
+			.unwrap();
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">result_rx_pvf_1_1</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-			<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>))
+			result_rx_pvf_1_1.now_or_never().unwrap().unwrap(),
+			<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath))
 		);
 
-		<span class="ident">result_tx_pvf_1_2</span>
-			.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>)))
-			.<span class="ident">unwrap</span>();
+		result_tx_pvf_1_2
+			.send(<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath)))
+			.unwrap();
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">result_rx_pvf_1_2</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-			<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>))
+			result_rx_pvf_1_2.now_or_never().unwrap().unwrap(),
+			<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath))
 		);
 
-		<span class="ident">result_tx_pvf_2</span>
-			.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>)))
-			.<span class="ident">unwrap</span>();
+		result_tx_pvf_2
+			.send(<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath)))
+			.unwrap();
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">result_rx_pvf_2</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-			<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InvalidCandidate</span>(<span class="ident">InvalidCandidate::AmbiguousWorkerDeath</span>))
+			result_rx_pvf_2.now_or_never().unwrap().unwrap(),
+			<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath))
 		);
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">precheck_pvf</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Builder::default</span>().<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">host_handle</span>();
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>precheck_pvf() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
+		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
-		<span class="comment">// First, test a simple precheck request.</span>
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">precheck_pvf</span>(<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>), <span class="ident">result_tx</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+		<span class="comment">// First, test a simple precheck request.
+		</span><span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
+		host.precheck_pvf(Pvf::from_discriminator(<span class="number">1</span>), result_tx).<span class="kw">await</span>.unwrap();
 
-		<span class="comment">// The queue received the prepare request.</span>
-		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+		<span class="comment">// The queue received the prepare request.
+		</span><span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
-		<span class="comment">// Send `Ok` right away and poll the host.</span>
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> { <span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">1</span>), <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) })
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
-		<span class="comment">// No pending execute requests.</span>
-		<span class="ident">test</span>.<span class="ident">poll_ensure_to_execute_queue_is_empty</span>().<span class="kw">await</span>;
-		<span class="comment">// Received the precheck result.</span>
-		<span class="macro">assert_matches!</span>(<span class="ident">result_rx</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="prelude-val">Ok</span>(()));
+		<span class="comment">// Send `Ok` right away and poll the host.
+		</span>test.from_prepare_queue_tx
+			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">1</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.<span class="kw">await
+			</span>.unwrap();
+		<span class="comment">// No pending execute requests.
+		</span>test.poll_ensure_to_execute_queue_is_empty().<span class="kw">await</span>;
+		<span class="comment">// Received the precheck result.
+		</span><span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Ok</span>(()));
 
-		<span class="comment">// Send multiple requests for the same PVF.</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">precheck_receivers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
-			<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="ident">host</span>.<span class="ident">precheck_pvf</span>(<span class="ident">Pvf::from_discriminator</span>(<span class="number">2</span>), <span class="ident">result_tx</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-			<span class="ident">precheck_receivers</span>.<span class="ident">push</span>(<span class="ident">result_rx</span>);
+		<span class="comment">// Send multiple requests for the same PVF.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>precheck_receivers = Vec::new();
+		<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
+			<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
+			host.precheck_pvf(Pvf::from_discriminator(<span class="number">2</span>), result_tx).<span class="kw">await</span>.unwrap();
+			precheck_receivers.push(result_rx);
 		}
-		<span class="comment">// Received prepare request.</span>
-		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+		<span class="comment">// Received prepare request.
+		</span><span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> {
-				<span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">2</span>),
-				<span class="ident">result</span>: <span class="prelude-val">Err</span>(<span class="ident">PrepareError::TimedOut</span>),
+		test.from_prepare_queue_tx
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">2</span>),
+				result: <span class="prelude-val">Err</span>(PrepareError::TimedOut),
 			})
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
-		<span class="ident">test</span>.<span class="ident">poll_ensure_to_execute_queue_is_empty</span>().<span class="kw">await</span>;
-		<span class="kw">for</span> <span class="ident">result_rx</span> <span class="kw">in</span> <span class="ident">precheck_receivers</span> {
+			.<span class="kw">await
+			</span>.unwrap();
+		test.poll_ensure_to_execute_queue_is_empty().<span class="kw">await</span>;
+		<span class="kw">for </span>result_rx <span class="kw">in </span>precheck_receivers {
 			<span class="macro">assert_matches!</span>(
-				<span class="ident">result_rx</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-				<span class="prelude-val">Err</span>(<span class="ident">PrepareError::TimedOut</span>)
+				result_rx.now_or_never().unwrap().unwrap(),
+				<span class="prelude-val">Err</span>(PrepareError::TimedOut)
 			);
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">test_prepare_done</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Builder::default</span>().<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">host_handle</span>();
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>test_prepare_done() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
+		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
-		<span class="comment">// Test mixed cases of receiving execute and precheck requests</span>
-		<span class="comment">// for the same PVF.</span>
+		<span class="comment">// Test mixed cases of receiving execute and precheck requests
+		// for the same PVF.
 
-		<span class="comment">// Send PVF for the execution and request the prechecking for it.</span>
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx_execute</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">execute_pvf</span>(
-			<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>),
-			<span class="ident">TEST_EXECUTION_TIMEOUT</span>,
-			<span class="string">b&quot;pvf2&quot;</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">Priority::Critical</span>,
-			<span class="ident">result_tx</span>,
+		// Send PVF for the execution and request the prechecking for it.
+		</span><span class="kw">let </span>(result_tx, result_rx_execute) = oneshot::channel();
+		host.execute_pvf(
+			Pvf::from_discriminator(<span class="number">1</span>),
+			TEST_EXECUTION_TIMEOUT,
+			<span class="string">b&quot;pvf2&quot;</span>.to_vec(),
+			Priority::Critical,
+			result_tx,
 		)
-		.<span class="kw">await</span>
-		.<span class="ident">unwrap</span>();
+		.<span class="kw">await
+		</span>.unwrap();
 
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
 
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">precheck_pvf</span>(<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>), <span class="ident">result_tx</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
+		<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
+		host.precheck_pvf(Pvf::from_discriminator(<span class="number">1</span>), result_tx).<span class="kw">await</span>.unwrap();
 
-		<span class="comment">// Suppose the preparation failed, the execution queue is empty and both</span>
-		<span class="comment">// &quot;clients&quot; receive their results.</span>
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> {
-				<span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">1</span>),
-				<span class="ident">result</span>: <span class="prelude-val">Err</span>(<span class="ident">PrepareError::TimedOut</span>),
+		<span class="comment">// Suppose the preparation failed, the execution queue is empty and both
+		// &quot;clients&quot; receive their results.
+		</span>test.from_prepare_queue_tx
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">1</span>),
+				result: <span class="prelude-val">Err</span>(PrepareError::TimedOut),
 			})
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
-		<span class="ident">test</span>.<span class="ident">poll_ensure_to_execute_queue_is_empty</span>().<span class="kw">await</span>;
-		<span class="macro">assert_matches!</span>(<span class="ident">result_rx</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="prelude-val">Err</span>(<span class="ident">PrepareError::TimedOut</span>));
+			.<span class="kw">await
+			</span>.unwrap();
+		test.poll_ensure_to_execute_queue_is_empty().<span class="kw">await</span>;
+		<span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Err</span>(PrepareError::TimedOut));
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">result_rx_execute</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-			<span class="prelude-val">Err</span>(<span class="ident">ValidationError::InternalError</span>(<span class="kw">_</span>))
+			result_rx_execute.now_or_never().unwrap().unwrap(),
+			<span class="prelude-val">Err</span>(ValidationError::InternalError(<span class="kw">_</span>))
 		);
 
-		<span class="comment">// Reversed case: first send multiple precheck requests, then ask for an execution.</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">precheck_receivers</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
-			<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="ident">host</span>.<span class="ident">precheck_pvf</span>(<span class="ident">Pvf::from_discriminator</span>(<span class="number">2</span>), <span class="ident">result_tx</span>).<span class="kw">await</span>.<span class="ident">unwrap</span>();
-			<span class="ident">precheck_receivers</span>.<span class="ident">push</span>(<span class="ident">result_rx</span>);
+		<span class="comment">// Reversed case: first send multiple precheck requests, then ask for an execution.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>precheck_receivers = Vec::new();
+		<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
+			<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
+			host.precheck_pvf(Pvf::from_discriminator(<span class="number">2</span>), result_tx).<span class="kw">await</span>.unwrap();
+			precheck_receivers.push(result_rx);
 		}
 
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">_result_rx_execute</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">execute_pvf</span>(
-			<span class="ident">Pvf::from_discriminator</span>(<span class="number">2</span>),
-			<span class="ident">TEST_EXECUTION_TIMEOUT</span>,
-			<span class="string">b&quot;pvf2&quot;</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">Priority::Critical</span>,
-			<span class="ident">result_tx</span>,
+		<span class="kw">let </span>(result_tx, _result_rx_execute) = oneshot::channel();
+		host.execute_pvf(
+			Pvf::from_discriminator(<span class="number">2</span>),
+			TEST_EXECUTION_TIMEOUT,
+			<span class="string">b&quot;pvf2&quot;</span>.to_vec(),
+			Priority::Critical,
+			result_tx,
 		)
-		.<span class="kw">await</span>
-		.<span class="ident">unwrap</span>();
-		<span class="comment">// Received prepare request.</span>
-		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+		.<span class="kw">await
+		</span>.unwrap();
+		<span class="comment">// Received prepare request.
+		</span><span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> { <span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">2</span>), <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) })
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
-		<span class="comment">// The execute queue receives new request, preckecking is finished and we can</span>
-		<span class="comment">// fetch results.</span>
-		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_execute_queue</span>().<span class="kw">await</span>,
-			<span class="ident">execute::ToQueue::Enqueue</span> { .. }
+		test.from_prepare_queue_tx
+			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">2</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.<span class="kw">await
+			</span>.unwrap();
+		<span class="comment">// The execute queue receives new request, preckecking is finished and we can
+		// fetch results.
+		</span><span class="macro">assert_matches!</span>(
+			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
+			execute::ToQueue::Enqueue { .. }
 		);
-		<span class="kw">for</span> <span class="ident">result_rx</span> <span class="kw">in</span> <span class="ident">precheck_receivers</span> {
-			<span class="macro">assert_matches!</span>(<span class="ident">result_rx</span>.<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="prelude-val">Ok</span>(()));
+		<span class="kw">for </span>result_rx <span class="kw">in </span>precheck_receivers {
+			<span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Ok</span>(()));
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">cancellation</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Builder::default</span>().<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">host_handle</span>();
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>cancellation() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
+		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
-		<span class="kw">let</span> (<span class="ident">result_tx</span>, <span class="ident">result_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="ident">host</span>.<span class="ident">execute_pvf</span>(
-			<span class="ident">Pvf::from_discriminator</span>(<span class="number">1</span>),
-			<span class="ident">TEST_EXECUTION_TIMEOUT</span>,
-			<span class="string">b&quot;pvf1&quot;</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">Priority::Normal</span>,
-			<span class="ident">result_tx</span>,
+		<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
+		host.execute_pvf(
+			Pvf::from_discriminator(<span class="number">1</span>),
+			TEST_EXECUTION_TIMEOUT,
+			<span class="string">b&quot;pvf1&quot;</span>.to_vec(),
+			Priority::Normal,
+			result_tx,
 		)
-		.<span class="kw">await</span>
-		.<span class="ident">unwrap</span>();
+		.<span class="kw">await
+		</span>.unwrap();
 
 		<span class="macro">assert_matches!</span>(
-			<span class="ident">test</span>.<span class="ident">poll_and_recv_to_prepare_queue</span>().<span class="kw">await</span>,
-			<span class="ident">prepare::ToQueue::Enqueue</span> { .. }
+			test.poll_and_recv_to_prepare_queue().<span class="kw">await</span>,
+			prepare::ToQueue::Enqueue { .. }
 		);
 
-		<span class="ident">test</span>.<span class="ident">from_prepare_queue_tx</span>
-			.<span class="ident">send</span>(<span class="ident">prepare::FromQueue</span> { <span class="ident">artifact_id</span>: <span class="ident">artifact_id</span>(<span class="number">1</span>), <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) })
-			.<span class="kw">await</span>
-			.<span class="ident">unwrap</span>();
+		test.from_prepare_queue_tx
+			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">1</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.<span class="kw">await
+			</span>.unwrap();
 
-		<span class="ident">drop</span>(<span class="ident">result_rx</span>);
+		drop(result_rx);
 
-		<span class="ident">test</span>.<span class="ident">poll_ensure_to_execute_queue_is_empty</span>().<span class="kw">await</span>;
+		test.poll_ensure_to_execute_queue_is_empty().<span class="kw">await</span>;
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

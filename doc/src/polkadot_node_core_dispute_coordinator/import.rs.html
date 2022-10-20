@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/dispute-coordinator/src/import.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>import.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_dispute_coordinator/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/dispute-coordinator/src/import.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>import.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_dispute_coordinator/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -568,570 +562,569 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Vote import logic.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module encapsulates the actual logic for importing new votes and provides easy access of</span>
-<span class="doccomment">//! the current state for votes for a particular candidate.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In particular there is `CandidateVoteState` which tells what can be concluded for a particular set of</span>
-<span class="doccomment">//! votes. E.g. whether a dispute is ongoing, whether it is confirmed, concluded, ..</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Then there is `ImportResult` which reveals information about what changed once additional votes</span>
-<span class="doccomment">//! got imported on top of an existing `CandidateVoteState` and reveals &quot;dynamic&quot; information, like whether</span>
-<span class="doccomment">//! due to the import a dispute was raised/got confirmed, ...</span>
+</span><span class="doccomment">//! Vote import logic.
+//!
+//! This module encapsulates the actual logic for importing new votes and provides easy access of
+//! the current state for votes for a particular candidate.
+//!
+//! In particular there is `CandidateVoteState` which tells what can be concluded for a particular set of
+//! votes. E.g. whether a dispute is ongoing, whether it is confirmed, concluded, ..
+//!
+//! Then there is `ImportResult` which reveals information about what changed once additional votes
+//! got imported on top of an existing `CandidateVoteState` and reveals &quot;dynamic&quot; information, like whether
+//! due to the import a dispute was raised/got confirmed, ...
 
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
+</span><span class="kw">use </span>std::collections::{BTreeMap, HashMap, HashSet};
 
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives</span>::{<span class="ident">CandidateVotes</span>, <span class="ident">SignedDisputeStatement</span>};
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::rolling_session_window::RollingSessionWindow</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">CandidateReceipt</span>, <span class="ident">DisputeStatement</span>, <span class="ident">SessionIndex</span>, <span class="ident">SessionInfo</span>, <span class="ident">ValidDisputeStatementKind</span>,
-	<span class="ident">ValidatorId</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorPair</span>, <span class="ident">ValidatorSignature</span>,
+<span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, SignedDisputeStatement};
+<span class="kw">use </span>polkadot_node_subsystem_util::rolling_session_window::RollingSessionWindow;
+<span class="kw">use </span>polkadot_primitives::v2::{
+	CandidateReceipt, DisputeStatement, SessionIndex, SessionInfo, ValidDisputeStatementKind,
+	ValidatorId, ValidatorIndex, ValidatorPair, ValidatorSignature,
 };
-<span class="kw">use</span> <span class="ident">sc_keystore::LocalKeystore</span>;
+<span class="kw">use </span>sc_keystore::LocalKeystore;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LOG_TARGET</span>;
+<span class="kw">use </span><span class="kw">crate</span>::LOG_TARGET;
 
-<span class="doccomment">/// (Session) environment of a candidate.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CandidateEnvironment</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// The session the candidate appeared in.</span>
-	<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
-	<span class="doccomment">/// Session for above index.</span>
-	<span class="ident">session</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SessionInfo</span>,
-	<span class="doccomment">/// Validator indices controlled by this node.</span>
-	<span class="ident">controlled_indices</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span>,
+<span class="doccomment">/// (Session) environment of a candidate.
+</span><span class="kw">pub struct </span>CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt; {
+	<span class="doccomment">/// The session the candidate appeared in.
+	</span>session_index: SessionIndex,
+	<span class="doccomment">/// Session for above index.
+	</span>session: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SessionInfo,
+	<span class="doccomment">/// Validator indices controlled by this node.
+	</span>controlled_indices: HashSet&lt;ValidatorIndex&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CandidateEnvironment</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Create `CandidateEnvironment`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Return: `None` in case session is outside of session window.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">keystore</span>: <span class="kw-2">&amp;</span><span class="ident">LocalKeystore</span>,
-		<span class="ident">session_window</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RollingSessionWindow</span>,
-		<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">session</span> <span class="op">=</span> <span class="ident">session_window</span>.<span class="ident">session_info</span>(<span class="ident">session_index</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">controlled_indices</span> <span class="op">=</span> <span class="ident">find_controlled_validator_indices</span>(<span class="ident">keystore</span>, <span class="kw-2">&amp;</span><span class="ident">session</span>.<span class="ident">validators</span>);
-		<span class="prelude-val">Some</span>(<span class="self">Self</span> { <span class="ident">session_index</span>, <span class="ident">session</span>, <span class="ident">controlled_indices</span> })
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt; {
+	<span class="doccomment">/// Create `CandidateEnvironment`.
+	///
+	/// Return: `None` in case session is outside of session window.
+	</span><span class="kw">pub fn </span>new(
+		keystore: <span class="kw-2">&amp;</span>LocalKeystore,
+		session_window: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RollingSessionWindow,
+		session_index: SessionIndex,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">let </span>session = session_window.session_info(session_index)<span class="question-mark">?</span>;
+		<span class="kw">let </span>controlled_indices = find_controlled_validator_indices(keystore, <span class="kw-2">&amp;</span>session.validators);
+		<span class="prelude-val">Some</span>(<span class="self">Self </span>{ session_index, session, controlled_indices })
 	}
 
-	<span class="doccomment">/// Validators in the candidate&#39;s session.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validators</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorId</span><span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">session</span>.<span class="ident">validators</span>
+	<span class="doccomment">/// Validators in the candidate&#39;s session.
+	</span><span class="kw">pub fn </span>validators(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;ValidatorId&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.session.validators
 	}
 
-	<span class="doccomment">/// `SessionInfo` for the candidate&#39;s session.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">session_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">SessionInfo</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">session</span>
+	<span class="doccomment">/// `SessionInfo` for the candidate&#39;s session.
+	</span><span class="kw">pub fn </span>session_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SessionInfo {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.session
 	}
 
-	<span class="doccomment">/// Retrieve `SessionIndex` for this environment.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">session_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SessionIndex</span> {
-		<span class="self">self</span>.<span class="ident">session_index</span>
+	<span class="doccomment">/// Retrieve `SessionIndex` for this environment.
+	</span><span class="kw">pub fn </span>session_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SessionIndex {
+		<span class="self">self</span>.session_index
 	}
 
-	<span class="doccomment">/// Indices controlled by this node.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">controlled_indices</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">controlled_indices</span>
+	<span class="doccomment">/// Indices controlled by this node.
+	</span><span class="kw">pub fn </span>controlled_indices(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashSet&lt;ValidatorIndex&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.controlled_indices
 	}
 }
 
-<span class="doccomment">/// Whether or not we already issued some statement about a candidate.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OwnVoteState</span> {
-	<span class="doccomment">/// We already voted/issued a statement for the candidate.</span>
-	<span class="ident">Voted</span>,
-	<span class="doccomment">/// We already voted/issued a statement for the candidate and it was an approval vote.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Needs special treatment as we have to make sure to propagate it to peers, to guarantee the</span>
-	<span class="doccomment">/// dispute can conclude.</span>
-	<span class="ident">VotedApproval</span>(<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>)<span class="op">&gt;</span>),
-	<span class="doccomment">/// We not yet voted for the dispute.</span>
-	<span class="ident">NoVote</span>,
+<span class="doccomment">/// Whether or not we already issued some statement about a candidate.
+</span><span class="kw">pub enum </span>OwnVoteState {
+	<span class="doccomment">/// We already voted/issued a statement for the candidate.
+	</span>Voted,
+	<span class="doccomment">/// We already voted/issued a statement for the candidate and it was an approval vote.
+	///
+	/// Needs special treatment as we have to make sure to propagate it to peers, to guarantee the
+	/// dispute can conclude.
+	</span>VotedApproval(Vec&lt;(ValidatorIndex, ValidatorSignature)&gt;),
+	<span class="doccomment">/// We not yet voted for the dispute.
+	</span>NoVote,
 }
 
-<span class="kw">impl</span> <span class="ident">OwnVoteState</span> {
-	<span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">votes</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateVotes</span>, <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateEnvironment</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">our_valid_votes</span> <span class="op">=</span> <span class="ident">env</span>
-			.<span class="ident">controlled_indices</span>()
-			.<span class="ident">iter</span>()
-			.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">votes</span>.<span class="ident">valid</span>.<span class="ident">get_key_value</span>(<span class="ident">i</span>))
-			.<span class="ident">peekable</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">our_invalid_votes</span> <span class="op">=</span>
-			<span class="ident">env</span>.<span class="ident">controlled_indices</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">votes</span>.<span class="ident">invalid</span>.<span class="ident">get_key_value</span>(<span class="ident">i</span>));
-		<span class="kw">let</span> <span class="ident">has_valid_votes</span> <span class="op">=</span> <span class="ident">our_valid_votes</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>();
-		<span class="kw">let</span> <span class="ident">has_invalid_votes</span> <span class="op">=</span> <span class="ident">our_invalid_votes</span>.<span class="ident">next</span>().<span class="ident">is_some</span>();
-		<span class="kw">let</span> <span class="ident">our_approval_votes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">our_valid_votes</span>
-			.<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">index</span>, (<span class="ident">k</span>, <span class="ident">sig</span>))<span class="op">|</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="ident">ValidDisputeStatementKind::ApprovalChecking</span> <span class="op">=</span> <span class="ident">k</span> {
-					<span class="prelude-val">Some</span>((<span class="kw-2">*</span><span class="ident">index</span>, <span class="ident">sig</span>.<span class="ident">clone</span>()))
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				}
+<span class="kw">impl </span>OwnVoteState {
+	<span class="kw">fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(votes: <span class="kw-2">&amp;</span>CandidateVotes, env: <span class="kw-2">&amp;</span>CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span><span class="kw-2">mut </span>our_valid_votes = env
+			.controlled_indices()
+			.iter()
+			.filter_map(|i| votes.valid.get_key_value(i))
+			.peekable();
+		<span class="kw">let </span><span class="kw-2">mut </span>our_invalid_votes =
+			env.controlled_indices.iter().filter_map(|i| votes.invalid.get_key_value(i));
+		<span class="kw">let </span>has_valid_votes = our_valid_votes.peek().is_some();
+		<span class="kw">let </span>has_invalid_votes = our_invalid_votes.next().is_some();
+		<span class="kw">let </span>our_approval_votes: Vec&lt;<span class="kw">_</span>&gt; = our_valid_votes
+			.filter_map(|(index, (k, sig))| {
+				<span class="kw">if let </span>ValidDisputeStatementKind::ApprovalChecking = k {
+					<span class="prelude-val">Some</span>((<span class="kw-2">*</span>index, sig.clone()))
+				} <span class="kw">else </span>{
+					<span class="prelude-val">None
+				</span>}
 			})
-			.<span class="ident">collect</span>();
+			.collect();
 
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">our_approval_votes</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::VotedApproval</span>(<span class="ident">our_approval_votes</span>)
+		<span class="kw">if </span>!our_approval_votes.is_empty() {
+			<span class="kw">return </span><span class="self">Self</span>::VotedApproval(our_approval_votes)
 		}
-		<span class="kw">if</span> <span class="ident">has_valid_votes</span> <span class="op">|</span><span class="op">|</span> <span class="ident">has_invalid_votes</span> {
-			<span class="kw">return</span> <span class="ident"><span class="self">Self</span>::Voted</span>
+		<span class="kw">if </span>has_valid_votes || has_invalid_votes {
+			<span class="kw">return </span><span class="self">Self</span>::Voted
 		}
-		<span class="ident"><span class="self">Self</span>::NoVote</span>
+		<span class="self">Self</span>::NoVote
 	}
 
-	<span class="doccomment">/// Whether or not we issued a statement for the candidate already.</span>
-	<span class="kw">fn</span> <span class="ident">voted</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Voted</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::VotedApproval</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-			<span class="ident"><span class="self">Self</span>::NoVote</span> =&gt; <span class="bool-val">false</span>,
+	<span class="doccomment">/// Whether or not we issued a statement for the candidate already.
+	</span><span class="kw">fn </span>voted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Voted | <span class="self">Self</span>::VotedApproval(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+			<span class="self">Self</span>::NoVote =&gt; <span class="bool-val">false</span>,
 		}
 	}
 
-	<span class="doccomment">/// Get own approval votes, if any.</span>
-	<span class="kw">fn</span> <span class="ident">approval_votes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::VotedApproval</span>(<span class="ident">votes</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">votes</span>),
-			<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+	<span class="doccomment">/// Get own approval votes, if any.
+	</span><span class="kw">fn </span>approval_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(ValidatorIndex, ValidatorSignature)&gt;&gt; {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::VotedApproval(votes) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>votes),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		}
 	}
 }
 
-<span class="doccomment">/// Complete state of votes for a candidate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// All votes + information whether a dispute is ongoing, confirmed, concluded, whether we already</span>
-<span class="doccomment">/// voted, ...</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CandidateVoteState</span><span class="op">&lt;</span><span class="ident">Votes</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Votes already existing for the candidate + receipt.</span>
-	<span class="ident">votes</span>: <span class="ident">Votes</span>,
+<span class="doccomment">/// Complete state of votes for a candidate.
+///
+/// All votes + information whether a dispute is ongoing, confirmed, concluded, whether we already
+/// voted, ...
+</span><span class="kw">pub struct </span>CandidateVoteState&lt;Votes&gt; {
+	<span class="doccomment">/// Votes already existing for the candidate + receipt.
+	</span>votes: Votes,
 
-	<span class="doccomment">/// Information about own votes:</span>
-	<span class="ident">own_vote</span>: <span class="ident">OwnVoteState</span>,
+	<span class="doccomment">/// Information about own votes:
+	</span>own_vote: OwnVoteState,
 
-	<span class="doccomment">/// Whether or not the dispute concluded invalid.</span>
-	<span class="ident">concluded_invalid</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Whether or not the dispute concluded invalid.
+	</span>concluded_invalid: bool,
 
-	<span class="doccomment">/// Whether or not the dispute concluded valid.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Note: Due to equivocations it is technically possible for a dispute to conclude both valid</span>
-	<span class="doccomment">/// and invalid. In that case the invalid result takes precedence.</span>
-	<span class="ident">concluded_valid</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Whether or not the dispute concluded valid.
+	///
+	/// Note: Due to equivocations it is technically possible for a dispute to conclude both valid
+	/// and invalid. In that case the invalid result takes precedence.
+	</span>concluded_valid: bool,
 
-	<span class="doccomment">/// There is an ongoing dispute and we reached f+1 votes -&gt; the dispute is confirmed</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// as at least one honest validator cast a vote for the candidate.</span>
-	<span class="ident">is_confirmed</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// There is an ongoing dispute and we reached f+1 votes -&gt; the dispute is confirmed
+	///
+	/// as at least one honest validator cast a vote for the candidate.
+	</span>is_confirmed: bool,
 
-	<span class="doccomment">/// Whether or not we have an ongoing dispute.</span>
-	<span class="ident">is_disputed</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Whether or not we have an ongoing dispute.
+	</span>is_disputed: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">CandidateVoteState</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Create an empty `CandidateVoteState`</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// in case there have not been any previous votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_from_receipt</span>(<span class="ident">candidate_receipt</span>: <span class="ident">CandidateReceipt</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">votes</span> <span class="op">=</span>
-			<span class="ident">CandidateVotes</span> { <span class="ident">candidate_receipt</span>, <span class="ident">valid</span>: <span class="ident">BTreeMap::new</span>(), <span class="ident">invalid</span>: <span class="ident">BTreeMap::new</span>() };
-		<span class="self">Self</span> {
-			<span class="ident">votes</span>,
-			<span class="ident">own_vote</span>: <span class="ident">OwnVoteState::NoVote</span>,
-			<span class="ident">concluded_invalid</span>: <span class="bool-val">false</span>,
-			<span class="ident">concluded_valid</span>: <span class="bool-val">false</span>,
-			<span class="ident">is_confirmed</span>: <span class="bool-val">false</span>,
-			<span class="ident">is_disputed</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>CandidateVoteState&lt;CandidateVotes&gt; {
+	<span class="doccomment">/// Create an empty `CandidateVoteState`
+	///
+	/// in case there have not been any previous votes.
+	</span><span class="kw">pub fn </span>new_from_receipt(candidate_receipt: CandidateReceipt) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>votes =
+			CandidateVotes { candidate_receipt, valid: BTreeMap::new(), invalid: BTreeMap::new() };
+		<span class="self">Self </span>{
+			votes,
+			own_vote: OwnVoteState::NoVote,
+			concluded_invalid: <span class="bool-val">false</span>,
+			concluded_valid: <span class="bool-val">false</span>,
+			is_confirmed: <span class="bool-val">false</span>,
+			is_disputed: <span class="bool-val">false</span>,
 		}
 	}
 
-	<span class="doccomment">/// Create a new `CandidateVoteState` from already existing votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">votes</span>: <span class="ident">CandidateVotes</span>, <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateEnvironment</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">own_vote</span> <span class="op">=</span> <span class="ident">OwnVoteState::new</span>(<span class="kw-2">&amp;</span><span class="ident">votes</span>, <span class="ident">env</span>);
+	<span class="doccomment">/// Create a new `CandidateVoteState` from already existing votes.
+	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(votes: CandidateVotes, env: <span class="kw-2">&amp;</span>CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>own_vote = OwnVoteState::new(<span class="kw-2">&amp;</span>votes, env);
 
-		<span class="kw">let</span> <span class="ident">n_validators</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">validators</span>().<span class="ident">len</span>();
+		<span class="kw">let </span>n_validators = env.validators().len();
 
-		<span class="kw">let</span> <span class="ident">supermajority_threshold</span> <span class="op">=</span>
-			<span class="ident">polkadot_primitives::v2::supermajority_threshold</span>(<span class="ident">n_validators</span>);
+		<span class="kw">let </span>supermajority_threshold =
+			polkadot_primitives::v2::supermajority_threshold(n_validators);
 
-		<span class="kw">let</span> <span class="ident">concluded_invalid</span> <span class="op">=</span> <span class="ident">votes</span>.<span class="ident">invalid</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">supermajority_threshold</span>;
-		<span class="kw">let</span> <span class="ident">concluded_valid</span> <span class="op">=</span> <span class="ident">votes</span>.<span class="ident">valid</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">supermajority_threshold</span>;
+		<span class="kw">let </span>concluded_invalid = votes.invalid.len() &gt;= supermajority_threshold;
+		<span class="kw">let </span>concluded_valid = votes.valid.len() &gt;= supermajority_threshold;
 
-		<span class="comment">// We have a dispute, if we have votes on both sides:</span>
-		<span class="kw">let</span> <span class="ident">is_disputed</span> <span class="op">=</span> <span class="op">!</span><span class="ident">votes</span>.<span class="ident">invalid</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">votes</span>.<span class="ident">valid</span>.<span class="ident">is_empty</span>();
+		<span class="comment">// We have a dispute, if we have votes on both sides:
+		</span><span class="kw">let </span>is_disputed = !votes.invalid.is_empty() &amp;&amp; !votes.valid.is_empty();
 
-		<span class="kw">let</span> <span class="ident">byzantine_threshold</span> <span class="op">=</span> <span class="ident">polkadot_primitives::v2::byzantine_threshold</span>(<span class="ident">n_validators</span>);
-		<span class="kw">let</span> <span class="ident">is_confirmed</span> <span class="op">=</span> <span class="ident">votes</span>.<span class="ident">voted_indices</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">byzantine_threshold</span> <span class="op">&amp;&amp;</span> <span class="ident">is_disputed</span>;
+		<span class="kw">let </span>byzantine_threshold = polkadot_primitives::v2::byzantine_threshold(n_validators);
+		<span class="kw">let </span>is_confirmed = votes.voted_indices().len() &gt; byzantine_threshold &amp;&amp; is_disputed;
 
-		<span class="self">Self</span> { <span class="ident">votes</span>, <span class="ident">own_vote</span>, <span class="ident">concluded_invalid</span>, <span class="ident">concluded_valid</span>, <span class="ident">is_confirmed</span>, <span class="ident">is_disputed</span> }
+		<span class="self">Self </span>{ votes, own_vote, concluded_invalid, concluded_valid, is_confirmed, is_disputed }
 	}
 
-	<span class="doccomment">/// Import fresh statements.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Result will be a new state plus information about things that changed due to the import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import_statements</span>(
+	<span class="doccomment">/// Import fresh statements.
+	///
+	/// Result will be a new state plus information about things that changed due to the import.
+	</span><span class="kw">pub fn </span>import_statements(
 		<span class="self">self</span>,
-		<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateEnvironment</span>,
-		<span class="ident">statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SignedDisputeStatement</span>, <span class="ident">ValidatorIndex</span>)<span class="op">&gt;</span>,
-	) -&gt; <span class="ident">ImportResult</span> {
-		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">votes</span>, <span class="ident">old_state</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_old_state</span>();
+		env: <span class="kw-2">&amp;</span>CandidateEnvironment,
+		statements: Vec&lt;(SignedDisputeStatement, ValidatorIndex)&gt;,
+	) -&gt; ImportResult {
+		<span class="kw">let </span>(<span class="kw-2">mut </span>votes, old_state) = <span class="self">self</span>.into_old_state();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_invalid_voters</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">imported_invalid_votes</span> <span class="op">=</span> <span class="number">0</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">imported_valid_votes</span> <span class="op">=</span> <span class="number">0</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>new_invalid_voters = Vec::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>imported_invalid_votes = <span class="number">0</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>imported_valid_votes = <span class="number">0</span>;
 
-		<span class="kw">let</span> <span class="ident">expected_candidate_hash</span> <span class="op">=</span> <span class="ident">votes</span>.<span class="ident">candidate_receipt</span>.<span class="ident">hash</span>();
+		<span class="kw">let </span>expected_candidate_hash = votes.candidate_receipt.hash();
 
-		<span class="kw">for</span> (<span class="ident">statement</span>, <span class="ident">val_index</span>) <span class="kw">in</span> <span class="ident">statements</span> {
-			<span class="kw">if</span> <span class="ident">env</span>
-				.<span class="ident">validators</span>()
-				.<span class="ident">get</span>(<span class="ident">val_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>)
-				.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span> <span class="op">!</span><span class="op">=</span> <span class="ident">statement</span>.<span class="ident">validator_public</span>())
+		<span class="kw">for </span>(statement, val_index) <span class="kw">in </span>statements {
+			<span class="kw">if </span>env
+				.validators()
+				.get(val_index.<span class="number">0 </span><span class="kw">as </span>usize)
+				.map_or(<span class="bool-val">true</span>, |v| v != statement.validator_public())
 			{
 				<span class="macro">gum::error!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">val_index</span>,
-					<span class="ident">session</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">env</span>.<span class="ident">session_index</span>,
-					<span class="ident">claimed_key</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">statement</span>.<span class="ident">validator_public</span>(),
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>val_index,
+					session= <span class="question-mark">?</span>env.session_index,
+					claimed_key = <span class="question-mark">?</span>statement.validator_public(),
 					<span class="string">&quot;Validator index doesn&#39;t match claimed key&quot;</span>,
 				);
 
-				<span class="kw">continue</span>
-			}
-			<span class="kw">if</span> <span class="ident">statement</span>.<span class="ident">candidate_hash</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">expected_candidate_hash</span> {
+				<span class="kw">continue
+			</span>}
+			<span class="kw">if </span>statement.candidate_hash() != <span class="kw-2">&amp;</span>expected_candidate_hash {
 				<span class="macro">gum::error!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">val_index</span>,
-					<span class="ident">session</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">env</span>.<span class="ident">session_index</span>,
-					<span class="ident">given_candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">statement</span>.<span class="ident">candidate_hash</span>(),
-					<span class="question-mark">?</span><span class="ident">expected_candidate_hash</span>,
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>val_index,
+					session= <span class="question-mark">?</span>env.session_index,
+					given_candidate_hash = <span class="question-mark">?</span>statement.candidate_hash(),
+					<span class="question-mark">?</span>expected_candidate_hash,
 					<span class="string">&quot;Vote is for unexpected candidate!&quot;</span>,
 				);
-				<span class="kw">continue</span>
-			}
-			<span class="kw">if</span> <span class="ident">statement</span>.<span class="ident">session_index</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">env</span>.<span class="ident">session_index</span>() {
+				<span class="kw">continue
+			</span>}
+			<span class="kw">if </span>statement.session_index() != env.session_index() {
 				<span class="macro">gum::error!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">val_index</span>,
-					<span class="ident">session</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">env</span>.<span class="ident">session_index</span>,
-					<span class="ident">given_candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">statement</span>.<span class="ident">candidate_hash</span>(),
-					<span class="question-mark">?</span><span class="ident">expected_candidate_hash</span>,
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>val_index,
+					session= <span class="question-mark">?</span>env.session_index,
+					given_candidate_hash = <span class="question-mark">?</span>statement.candidate_hash(),
+					<span class="question-mark">?</span>expected_candidate_hash,
 					<span class="string">&quot;Vote is for unexpected session!&quot;</span>,
 				);
-				<span class="kw">continue</span>
-			}
+				<span class="kw">continue
+			</span>}
 
-			<span class="kw">match</span> <span class="ident">statement</span>.<span class="ident">statement</span>() {
-				<span class="ident">DisputeStatement::Valid</span>(<span class="ident">valid_kind</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">fresh</span> <span class="op">=</span> <span class="ident">insert_into_statements</span>(
-						<span class="kw-2">&amp;mut</span> <span class="ident">votes</span>.<span class="ident">valid</span>,
-						<span class="kw-2">*</span><span class="ident">valid_kind</span>,
-						<span class="ident">val_index</span>,
-						<span class="ident">statement</span>.<span class="ident">into_validator_signature</span>(),
+			<span class="kw">match </span>statement.statement() {
+				DisputeStatement::Valid(valid_kind) =&gt; {
+					<span class="kw">let </span>fresh = insert_into_statements(
+						<span class="kw-2">&amp;mut </span>votes.valid,
+						<span class="kw-2">*</span>valid_kind,
+						val_index,
+						statement.into_validator_signature(),
 					);
 
-					<span class="kw">if</span> <span class="ident">fresh</span> {
-						<span class="ident">imported_valid_votes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+					<span class="kw">if </span>fresh {
+						imported_valid_votes += <span class="number">1</span>;
 					}
 				},
-				<span class="ident">DisputeStatement::Invalid</span>(<span class="ident">invalid_kind</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">fresh</span> <span class="op">=</span> <span class="ident">insert_into_statements</span>(
-						<span class="kw-2">&amp;mut</span> <span class="ident">votes</span>.<span class="ident">invalid</span>,
-						<span class="kw-2">*</span><span class="ident">invalid_kind</span>,
-						<span class="ident">val_index</span>,
-						<span class="ident">statement</span>.<span class="ident">into_validator_signature</span>(),
+				DisputeStatement::Invalid(invalid_kind) =&gt; {
+					<span class="kw">let </span>fresh = insert_into_statements(
+						<span class="kw-2">&amp;mut </span>votes.invalid,
+						<span class="kw-2">*</span>invalid_kind,
+						val_index,
+						statement.into_validator_signature(),
 					);
 
-					<span class="kw">if</span> <span class="ident">fresh</span> {
-						<span class="ident">new_invalid_voters</span>.<span class="ident">push</span>(<span class="ident">val_index</span>);
-						<span class="ident">imported_invalid_votes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+					<span class="kw">if </span>fresh {
+						new_invalid_voters.push(val_index);
+						imported_invalid_votes += <span class="number">1</span>;
 					}
 				},
 			}
 		}
 
-		<span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">votes</span>, <span class="ident">env</span>);
+		<span class="kw">let </span>new_state = <span class="self">Self</span>::new(votes, env);
 
-		<span class="ident">ImportResult</span> {
-			<span class="ident">old_state</span>,
-			<span class="ident">new_state</span>,
-			<span class="ident">imported_invalid_votes</span>,
-			<span class="ident">imported_valid_votes</span>,
-			<span class="ident">imported_approval_votes</span>: <span class="number">0</span>,
-			<span class="ident">new_invalid_voters</span>,
+		ImportResult {
+			old_state,
+			new_state,
+			imported_invalid_votes,
+			imported_valid_votes,
+			imported_approval_votes: <span class="number">0</span>,
+			new_invalid_voters,
 		}
 	}
 
-	<span class="doccomment">/// Retrieve `CandidateReceipt` in `CandidateVotes`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_receipt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CandidateReceipt</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">votes</span>.<span class="ident">candidate_receipt</span>
+	<span class="doccomment">/// Retrieve `CandidateReceipt` in `CandidateVotes`.
+	</span><span class="kw">pub fn </span>candidate_receipt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CandidateReceipt {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.votes.candidate_receipt
 	}
 
-	<span class="doccomment">/// Extract `CandidateVotes` for handling import of new statements.</span>
-	<span class="kw">fn</span> <span class="ident">into_old_state</span>(<span class="self">self</span>) -&gt; (<span class="ident">CandidateVotes</span>, <span class="ident">CandidateVoteState</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">CandidateVoteState</span> {
-			<span class="ident">votes</span>,
-			<span class="ident">own_vote</span>,
-			<span class="ident">concluded_invalid</span>,
-			<span class="ident">concluded_valid</span>,
-			<span class="ident">is_confirmed</span>,
-			<span class="ident">is_disputed</span>,
-		} <span class="op">=</span> <span class="self">self</span>;
+	<span class="doccomment">/// Extract `CandidateVotes` for handling import of new statements.
+	</span><span class="kw">fn </span>into_old_state(<span class="self">self</span>) -&gt; (CandidateVotes, CandidateVoteState&lt;()&gt;) {
+		<span class="kw">let </span>CandidateVoteState {
+			votes,
+			own_vote,
+			concluded_invalid,
+			concluded_valid,
+			is_confirmed,
+			is_disputed,
+		} = <span class="self">self</span>;
 		(
-			<span class="ident">votes</span>,
-			<span class="ident">CandidateVoteState</span> {
-				<span class="ident">votes</span>: (),
-				<span class="ident">own_vote</span>,
-				<span class="ident">concluded_invalid</span>,
-				<span class="ident">concluded_valid</span>,
-				<span class="ident">is_confirmed</span>,
-				<span class="ident">is_disputed</span>,
+			votes,
+			CandidateVoteState {
+				votes: (),
+				own_vote,
+				concluded_invalid,
+				concluded_valid,
+				is_confirmed,
+				is_disputed,
 			},
 		)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> <span class="ident">CandidateVoteState</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Whether or not we have an ongoing dispute.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_disputed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">is_disputed</span>
+<span class="kw">impl</span>&lt;V&gt; CandidateVoteState&lt;V&gt; {
+	<span class="doccomment">/// Whether or not we have an ongoing dispute.
+	</span><span class="kw">pub fn </span>is_disputed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.is_disputed
 	}
 
-	<span class="doccomment">/// Whether there is an ongoing confirmed dispute.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This checks whether there is a dispute ongoing and we have more than byzantine threshold</span>
-	<span class="doccomment">/// votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_confirmed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">is_confirmed</span>
+	<span class="doccomment">/// Whether there is an ongoing confirmed dispute.
+	///
+	/// This checks whether there is a dispute ongoing and we have more than byzantine threshold
+	/// votes.
+	</span><span class="kw">pub fn </span>is_confirmed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.is_confirmed
 	}
 
-	<span class="doccomment">/// This machine already cast some vote in that dispute/for that candidate.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_own_vote</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">own_vote</span>.<span class="ident">voted</span>()
+	<span class="doccomment">/// This machine already cast some vote in that dispute/for that candidate.
+	</span><span class="kw">pub fn </span>has_own_vote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.own_vote.voted()
 	}
 
-	<span class="doccomment">/// Own approval votes if any:</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">own_approval_votes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">own_vote</span>.<span class="ident">approval_votes</span>()
+	<span class="doccomment">/// Own approval votes if any:
+	</span><span class="kw">pub fn </span>own_approval_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(ValidatorIndex, ValidatorSignature)&gt;&gt; {
+		<span class="self">self</span>.own_vote.approval_votes()
 	}
 
-	<span class="doccomment">/// Whether or not this dispute has already enough valid votes to conclude.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concluded_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">concluded_valid</span>
+	<span class="doccomment">/// Whether or not this dispute has already enough valid votes to conclude.
+	</span><span class="kw">pub fn </span>is_concluded_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.concluded_valid
 	}
 
-	<span class="doccomment">/// Whether or not this dispute has already enough invalid votes to conclude.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concluded_invalid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">concluded_invalid</span>
+	<span class="doccomment">/// Whether or not this dispute has already enough invalid votes to conclude.
+	</span><span class="kw">pub fn </span>is_concluded_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.concluded_invalid
 	}
 
-	<span class="doccomment">/// Access to underlying votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">votes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">V</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">votes</span>
+	<span class="doccomment">/// Access to underlying votes.
+	</span><span class="kw">pub fn </span>votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>V {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.votes
 	}
 }
 
-<span class="doccomment">/// An ongoing statement/vote import.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImportResult</span> {
-	<span class="doccomment">/// The state we had before importing new statements.</span>
-	<span class="ident">old_state</span>: <span class="ident">CandidateVoteState</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
-	<span class="doccomment">/// The new state after importing the new statements.</span>
-	<span class="ident">new_state</span>: <span class="ident">CandidateVoteState</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// New invalid voters as of this import.</span>
-	<span class="ident">new_invalid_voters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Number of successfully imported valid votes.</span>
-	<span class="ident">imported_invalid_votes</span>: <span class="ident">u32</span>,
-	<span class="doccomment">/// Number of successfully imported invalid votes.</span>
-	<span class="ident">imported_valid_votes</span>: <span class="ident">u32</span>,
-	<span class="doccomment">/// Number of approval votes imported via `import_approval_votes()`.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// And only those: If normal import included approval votes, those are not counted here.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// In other words, without a call `import_approval_votes()` this will always be 0.</span>
-	<span class="ident">imported_approval_votes</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// An ongoing statement/vote import.
+</span><span class="kw">pub struct </span>ImportResult {
+	<span class="doccomment">/// The state we had before importing new statements.
+	</span>old_state: CandidateVoteState&lt;()&gt;,
+	<span class="doccomment">/// The new state after importing the new statements.
+	</span>new_state: CandidateVoteState&lt;CandidateVotes&gt;,
+	<span class="doccomment">/// New invalid voters as of this import.
+	</span>new_invalid_voters: Vec&lt;ValidatorIndex&gt;,
+	<span class="doccomment">/// Number of successfully imported valid votes.
+	</span>imported_invalid_votes: u32,
+	<span class="doccomment">/// Number of successfully imported invalid votes.
+	</span>imported_valid_votes: u32,
+	<span class="doccomment">/// Number of approval votes imported via `import_approval_votes()`.
+	///
+	/// And only those: If normal import included approval votes, those are not counted here.
+	///
+	/// In other words, without a call `import_approval_votes()` this will always be 0.
+	</span>imported_approval_votes: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">ImportResult</span> {
-	<span class="doccomment">/// Whether or not anything has changed due to the import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">votes_changed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">imported_valid_votes</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">imported_invalid_votes</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+<span class="kw">impl </span>ImportResult {
+	<span class="doccomment">/// Whether or not anything has changed due to the import.
+	</span><span class="kw">pub fn </span>votes_changed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.imported_valid_votes != <span class="number">0 </span>|| <span class="self">self</span>.imported_invalid_votes != <span class="number">0
+	</span>}
+
+	<span class="doccomment">/// The dispute state has changed in some way.
+	///
+	/// - freshly disputed
+	/// - freshly confirmed
+	/// - freshly concluded (valid or invalid)
+	</span><span class="kw">pub fn </span>dispute_state_changed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.is_freshly_disputed() || <span class="self">self</span>.is_freshly_confirmed() || <span class="self">self</span>.is_freshly_concluded()
 	}
 
-	<span class="doccomment">/// The dispute state has changed in some way.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// - freshly disputed</span>
-	<span class="doccomment">/// - freshly confirmed</span>
-	<span class="doccomment">/// - freshly concluded (valid or invalid)</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dispute_state_changed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">is_freshly_disputed</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_freshly_confirmed</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_freshly_concluded</span>()
+	<span class="doccomment">/// State as it was before import.
+	</span><span class="kw">pub fn </span>old_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CandidateVoteState&lt;()&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.old_state
 	}
 
-	<span class="doccomment">/// State as it was before import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">old_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CandidateVoteState</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">old_state</span>
+	<span class="doccomment">/// State after import
+	</span><span class="kw">pub fn </span>new_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CandidateVoteState&lt;CandidateVotes&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.new_state
 	}
 
-	<span class="doccomment">/// State after import</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CandidateVoteState</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">new_state</span>
+	<span class="doccomment">/// New &quot;invalid&quot; voters encountered during import.
+	</span><span class="kw">pub fn </span>new_invalid_voters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;ValidatorIndex&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.new_invalid_voters
 	}
 
-	<span class="doccomment">/// New &quot;invalid&quot; voters encountered during import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_invalid_voters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">new_invalid_voters</span>
+	<span class="doccomment">/// Number of imported valid votes.
+	</span><span class="kw">pub fn </span>imported_valid_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+		<span class="self">self</span>.imported_valid_votes
 	}
 
-	<span class="doccomment">/// Number of imported valid votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">imported_valid_votes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-		<span class="self">self</span>.<span class="ident">imported_valid_votes</span>
+	<span class="doccomment">/// Number of imported invalid votes.
+	</span><span class="kw">pub fn </span>imported_invalid_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+		<span class="self">self</span>.imported_invalid_votes
 	}
 
-	<span class="doccomment">/// Number of imported invalid votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">imported_invalid_votes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-		<span class="self">self</span>.<span class="ident">imported_invalid_votes</span>
+	<span class="doccomment">/// Number of imported approval votes.
+	</span><span class="kw">pub fn </span>imported_approval_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+		<span class="self">self</span>.imported_approval_votes
 	}
 
-	<span class="doccomment">/// Number of imported approval votes.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">imported_approval_votes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-		<span class="self">self</span>.<span class="ident">imported_approval_votes</span>
+	<span class="doccomment">/// Whether we now have a dispute and did not prior to the import.
+	</span><span class="kw">pub fn </span>is_freshly_disputed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().is_disputed() &amp;&amp; <span class="self">self</span>.new_state().is_disputed()
 	}
 
-	<span class="doccomment">/// Whether we now have a dispute and did not prior to the import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_freshly_disputed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="op">!</span><span class="self">self</span>.<span class="ident">old_state</span>().<span class="ident">is_disputed</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">new_state</span>().<span class="ident">is_disputed</span>()
+	<span class="doccomment">/// Whether we just surpassed the byzantine threshold.
+	</span><span class="kw">pub fn </span>is_freshly_confirmed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().is_confirmed() &amp;&amp; <span class="self">self</span>.new_state().is_confirmed()
 	}
 
-	<span class="doccomment">/// Whether we just surpassed the byzantine threshold.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_freshly_confirmed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="op">!</span><span class="self">self</span>.<span class="ident">old_state</span>().<span class="ident">is_confirmed</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">new_state</span>().<span class="ident">is_confirmed</span>()
+	<span class="doccomment">/// Whether or not any dispute just concluded valid due to the import.
+	</span><span class="kw">pub fn </span>is_freshly_concluded_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().is_concluded_valid() &amp;&amp; <span class="self">self</span>.new_state().is_concluded_valid()
 	}
 
-	<span class="doccomment">/// Whether or not any dispute just concluded valid due to the import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_freshly_concluded_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="op">!</span><span class="self">self</span>.<span class="ident">old_state</span>().<span class="ident">is_concluded_valid</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">new_state</span>().<span class="ident">is_concluded_valid</span>()
+	<span class="doccomment">/// Whether or not any dispute just concluded invalid due to the import.
+	</span><span class="kw">pub fn </span>is_freshly_concluded_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().is_concluded_invalid() &amp;&amp; <span class="self">self</span>.new_state().is_concluded_invalid()
 	}
 
-	<span class="doccomment">/// Whether or not any dispute just concluded invalid due to the import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_freshly_concluded_invalid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="op">!</span><span class="self">self</span>.<span class="ident">old_state</span>().<span class="ident">is_concluded_invalid</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">new_state</span>().<span class="ident">is_concluded_invalid</span>()
+	<span class="doccomment">/// Whether or not any dispute just concluded either invalid or valid due to the import.
+	</span><span class="kw">pub fn </span>is_freshly_concluded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.is_freshly_concluded_invalid() || <span class="self">self</span>.is_freshly_concluded_valid()
 	}
 
-	<span class="doccomment">/// Whether or not any dispute just concluded either invalid or valid due to the import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_freshly_concluded</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">is_freshly_concluded_invalid</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_freshly_concluded_valid</span>()
-	}
-
-	<span class="doccomment">/// Modify this `ImportResult`s, by importing additional approval votes.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Both results and `new_state` will be changed as if those approval votes had been in the</span>
-	<span class="doccomment">/// original import.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import_approval_votes</span>(
+	<span class="doccomment">/// Modify this `ImportResult`s, by importing additional approval votes.
+	///
+	/// Both results and `new_state` will be changed as if those approval votes had been in the
+	/// original import.
+	</span><span class="kw">pub fn </span>import_approval_votes(
 		<span class="self">self</span>,
-		<span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateEnvironment</span>,
-		<span class="ident">approval_votes</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="self">Self</span> {
-			<span class="ident">old_state</span>,
-			<span class="ident">new_state</span>,
-			<span class="ident">new_invalid_voters</span>,
-			<span class="kw-2">mut</span> <span class="ident">imported_valid_votes</span>,
-			<span class="ident">imported_invalid_votes</span>,
-			<span class="kw-2">mut</span> <span class="ident">imported_approval_votes</span>,
-		} <span class="op">=</span> <span class="self">self</span>;
+		env: <span class="kw-2">&amp;</span>CandidateEnvironment,
+		approval_votes: HashMap&lt;ValidatorIndex, ValidatorSignature&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span><span class="self">Self </span>{
+			old_state,
+			new_state,
+			new_invalid_voters,
+			<span class="kw-2">mut </span>imported_valid_votes,
+			imported_invalid_votes,
+			<span class="kw-2">mut </span>imported_approval_votes,
+		} = <span class="self">self</span>;
 
-		<span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">votes</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">new_state</span>.<span class="ident">into_old_state</span>();
+		<span class="kw">let </span>(<span class="kw-2">mut </span>votes, <span class="kw">_</span>) = new_state.into_old_state();
 
-		<span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">sig</span>) <span class="kw">in</span> <span class="ident">approval_votes</span>.<span class="ident">into_iter</span>() {
+		<span class="kw">for </span>(index, sig) <span class="kw">in </span>approval_votes.into_iter() {
 			<span class="macro">debug_assert!</span>(
 				{
-					<span class="kw">let</span> <span class="ident">pub_key</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">session_info</span>().<span class="ident">validators</span>[<span class="ident">index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>];
-					<span class="kw">let</span> <span class="ident">candidate_hash</span> <span class="op">=</span> <span class="ident">votes</span>.<span class="ident">candidate_receipt</span>.<span class="ident">hash</span>();
-					<span class="kw">let</span> <span class="ident">session_index</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">session_index</span>();
-					<span class="ident">DisputeStatement::Valid</span>(<span class="ident">ValidDisputeStatementKind::ApprovalChecking</span>)
-						.<span class="ident">check_signature</span>(<span class="ident">pub_key</span>, <span class="ident">candidate_hash</span>, <span class="ident">session_index</span>, <span class="kw-2">&amp;</span><span class="ident">sig</span>)
-						.<span class="ident">is_ok</span>()
+					<span class="kw">let </span>pub_key = <span class="kw-2">&amp;</span>env.session_info().validators[index.<span class="number">0 </span><span class="kw">as </span>usize];
+					<span class="kw">let </span>candidate_hash = votes.candidate_receipt.hash();
+					<span class="kw">let </span>session_index = env.session_index();
+					DisputeStatement::Valid(ValidDisputeStatementKind::ApprovalChecking)
+						.check_signature(pub_key, candidate_hash, session_index, <span class="kw-2">&amp;</span>sig)
+						.is_ok()
 				},
-				<span class="string">&quot;Signature check for imported approval votes failed! This is a serious bug. Session: {:?}, candidate hash: {:?}, validator index: {:?}&quot;</span>, <span class="ident">env</span>.<span class="ident">session_index</span>(), <span class="ident">votes</span>.<span class="ident">candidate_receipt</span>.<span class="ident">hash</span>(), <span class="ident">index</span>
+				<span class="string">&quot;Signature check for imported approval votes failed! This is a serious bug. Session: {:?}, candidate hash: {:?}, validator index: {:?}&quot;</span>, env.session_index(), votes.candidate_receipt.hash(), index
 			);
-			<span class="kw">if</span> <span class="ident">insert_into_statements</span>(
-				<span class="kw-2">&amp;mut</span> <span class="ident">votes</span>.<span class="ident">valid</span>,
-				<span class="ident">ValidDisputeStatementKind::ApprovalChecking</span>,
-				<span class="ident">index</span>,
-				<span class="ident">sig</span>,
+			<span class="kw">if </span>insert_into_statements(
+				<span class="kw-2">&amp;mut </span>votes.valid,
+				ValidDisputeStatementKind::ApprovalChecking,
+				index,
+				sig,
 			) {
-				<span class="ident">imported_valid_votes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				<span class="ident">imported_approval_votes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+				imported_valid_votes += <span class="number">1</span>;
+				imported_approval_votes += <span class="number">1</span>;
 			}
 		}
 
-		<span class="kw">let</span> <span class="ident">new_state</span> <span class="op">=</span> <span class="ident">CandidateVoteState::new</span>(<span class="ident">votes</span>, <span class="ident">env</span>);
+		<span class="kw">let </span>new_state = CandidateVoteState::new(votes, env);
 
-		<span class="self">Self</span> {
-			<span class="ident">old_state</span>,
-			<span class="ident">new_state</span>,
-			<span class="ident">new_invalid_voters</span>,
-			<span class="ident">imported_valid_votes</span>,
-			<span class="ident">imported_invalid_votes</span>,
-			<span class="ident">imported_approval_votes</span>,
+		<span class="self">Self </span>{
+			old_state,
+			new_state,
+			new_invalid_voters,
+			imported_valid_votes,
+			imported_invalid_votes,
+			imported_approval_votes,
 		}
 	}
 
-	<span class="doccomment">/// All done, give me those votes.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns: `None` in case nothing has changed (import was redundant).</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_updated_votes</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">votes_changed</span>() {
-			<span class="kw">let</span> <span class="ident">CandidateVoteState</span> { <span class="ident">votes</span>, .. } <span class="op">=</span> <span class="self">self</span>.<span class="ident">new_state</span>;
-			<span class="prelude-val">Some</span>(<span class="ident">votes</span>)
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+	<span class="doccomment">/// All done, give me those votes.
+	///
+	/// Returns: `None` in case nothing has changed (import was redundant).
+	</span><span class="kw">pub fn </span>into_updated_votes(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;CandidateVotes&gt; {
+		<span class="kw">if </span><span class="self">self</span>.votes_changed() {
+			<span class="kw">let </span>CandidateVoteState { votes, .. } = <span class="self">self</span>.new_state;
+			<span class="prelude-val">Some</span>(votes)
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 }
 
-<span class="doccomment">/// Find indices controlled by this validator.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// That is all `ValidatorIndex`es we have private keys for. Usually this will only be one.</span>
-<span class="kw">fn</span> <span class="ident">find_controlled_validator_indices</span>(
-	<span class="ident">keystore</span>: <span class="kw-2">&amp;</span><span class="ident">LocalKeystore</span>,
-	<span class="ident">validators</span>: <span class="kw-2">&amp;</span>[<span class="ident">ValidatorId</span>],
-) -&gt; <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">controlled</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
-	<span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">validator</span>) <span class="kw">in</span> <span class="ident">validators</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-		<span class="kw">if</span> <span class="ident">keystore</span>.<span class="ident">key_pair</span>::<span class="op">&lt;</span><span class="ident">ValidatorPair</span><span class="op">&gt;</span>(<span class="ident">validator</span>).<span class="ident">ok</span>().<span class="ident">flatten</span>().<span class="ident">is_none</span>() {
-			<span class="kw">continue</span>
-		}
+<span class="doccomment">/// Find indices controlled by this validator.
+///
+/// That is all `ValidatorIndex`es we have private keys for. Usually this will only be one.
+</span><span class="kw">fn </span>find_controlled_validator_indices(
+	keystore: <span class="kw-2">&amp;</span>LocalKeystore,
+	validators: <span class="kw-2">&amp;</span>[ValidatorId],
+) -&gt; HashSet&lt;ValidatorIndex&gt; {
+	<span class="kw">let </span><span class="kw-2">mut </span>controlled = HashSet::new();
+	<span class="kw">for </span>(index, validator) <span class="kw">in </span>validators.iter().enumerate() {
+		<span class="kw">if </span>keystore.key_pair::&lt;ValidatorPair&gt;(validator).ok().flatten().is_none() {
+			<span class="kw">continue
+		</span>}
 
-		<span class="ident">controlled</span>.<span class="ident">insert</span>(<span class="ident">ValidatorIndex</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="kw">_</span>));
+		controlled.insert(ValidatorIndex(index <span class="kw">as _</span>));
 	}
 
-	<span class="ident">controlled</span>
+	controlled
 }
 
-<span class="comment">// Returns &#39;true&#39; if no other vote by that validator was already</span>
-<span class="comment">// present and &#39;false&#39; otherwise. Same semantics as `HashSet`.</span>
-<span class="kw">fn</span> <span class="ident">insert_into_statements</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-	<span class="ident">m</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span>, (<span class="ident">T</span>, <span class="ident">ValidatorSignature</span>)<span class="op">&gt;</span>,
-	<span class="ident">tag</span>: <span class="ident">T</span>,
-	<span class="ident">val_index</span>: <span class="ident">ValidatorIndex</span>,
-	<span class="ident">val_signature</span>: <span class="ident">ValidatorSignature</span>,
-) -&gt; <span class="ident">bool</span> {
-	<span class="ident">m</span>.<span class="ident">insert</span>(<span class="ident">val_index</span>, (<span class="ident">tag</span>, <span class="ident">val_signature</span>)).<span class="ident">is_none</span>()
+<span class="comment">// Returns &#39;true&#39; if no other vote by that validator was already
+// present and &#39;false&#39; otherwise. Same semantics as `HashSet`.
+</span><span class="kw">fn </span>insert_into_statements&lt;T&gt;(
+	m: <span class="kw-2">&amp;mut </span>BTreeMap&lt;ValidatorIndex, (T, ValidatorSignature)&gt;,
+	tag: T,
+	val_index: ValidatorIndex,
+	val_signature: ValidatorSignature,
+) -&gt; bool {
+	m.insert(val_index, (tag, val_signature)).is_none()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/scheduler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheduler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/scheduler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scheduler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -769,415 +763,415 @@
 <span id="763">763</span>
 <span id="764">764</span>
 <span id="765">765</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! The scheduler module for parachains and parathreads.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module is responsible for two main tasks:</span>
-<span class="doccomment">//!   - Partitioning validators into groups and assigning groups to parachains and parathreads</span>
-<span class="doccomment">//!   - Scheduling parachains and parathreads</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! It aims to achieve these tasks with these goals in mind:</span>
-<span class="doccomment">//! - It should be possible to know at least a block ahead-of-time, ideally more,</span>
-<span class="doccomment">//!   which validators are going to be assigned to which parachains.</span>
-<span class="doccomment">//! - Parachains that have a candidate pending availability in this fork of the chain</span>
-<span class="doccomment">//!   should not be assigned.</span>
-<span class="doccomment">//! - Validator assignments should not be gameable. Malicious cartels should not be able to</span>
-<span class="doccomment">//!   manipulate the scheduler to assign themselves as desired.</span>
-<span class="doccomment">//! - High or close to optimal throughput of parachains and parathreads. Work among validator groups should be balanced.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The Scheduler manages resource allocation using the concept of &quot;Availability Cores&quot;.</span>
-<span class="doccomment">//! There will be one availability core for each parachain, and a fixed number of cores</span>
-<span class="doccomment">//! used for multiplexing parathreads. Validators will be partitioned into groups, with the same</span>
-<span class="doccomment">//! number of groups as availability cores. Validator groups will be assigned to different availability cores</span>
-<span class="doccomment">//! over time.</span>
+</span><span class="doccomment">//! The scheduler module for parachains and parathreads.
+//!
+//! This module is responsible for two main tasks:
+//!   - Partitioning validators into groups and assigning groups to parachains and parathreads
+//!   - Scheduling parachains and parathreads
+//!
+//! It aims to achieve these tasks with these goals in mind:
+//! - It should be possible to know at least a block ahead-of-time, ideally more,
+//!   which validators are going to be assigned to which parachains.
+//! - Parachains that have a candidate pending availability in this fork of the chain
+//!   should not be assigned.
+//! - Validator assignments should not be gameable. Malicious cartels should not be able to
+//!   manipulate the scheduler to assign themselves as desired.
+//! - High or close to optimal throughput of parachains and parathreads. Work among validator groups should be balanced.
+//!
+//! The Scheduler manages resource allocation using the concept of &quot;Availability Cores&quot;.
+//! There will be one availability core for each parachain, and a fixed number of cores
+//! used for multiplexing parathreads. Validators will be partitioned into groups, with the same
+//! number of groups as availability cores. Validator groups will be assigned to different availability cores
+//! over time.
 
-<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">primitives::v2</span>::{
-	<span class="ident">CollatorId</span>, <span class="ident">CoreIndex</span>, <span class="ident">CoreOccupied</span>, <span class="ident">GroupIndex</span>, <span class="ident">GroupRotationInfo</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>,
-	<span class="ident">ParathreadClaim</span>, <span class="ident">ParathreadEntry</span>, <span class="ident">ScheduledCore</span>, <span class="ident">ValidatorIndex</span>,
+</span><span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>primitives::v2::{
+	CollatorId, CoreIndex, CoreOccupied, GroupIndex, GroupRotationInfo, Id <span class="kw">as </span>ParaId,
+	ParathreadClaim, ParathreadEntry, ScheduledCore, ValidatorIndex,
 };
-<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">One</span>, <span class="ident">Saturating</span>};
-<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>scale_info::TypeInfo;
+<span class="kw">use </span>sp_runtime::traits::{One, Saturating};
+<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">configuration</span>, <span class="ident">initializer::SessionChangeNotification</span>, <span class="ident">paras</span>};
+<span class="kw">use crate</span>::{configuration, initializer::SessionChangeNotification, paras};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// A queued parathread entry, pre-assigned to a core.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">QueuedParathread</span> {
-	<span class="ident">claim</span>: <span class="ident">ParathreadEntry</span>,
-	<span class="ident">core_offset</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// A queued parathread entry, pre-assigned to a core.
+</span><span class="attribute">#[derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+</span><span class="kw">pub struct </span>QueuedParathread {
+	claim: ParathreadEntry,
+	core_offset: u32,
 }
 
-<span class="doccomment">/// The queue of all parathread claims.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParathreadClaimQueue</span> {
-	<span class="ident">queue</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">QueuedParathread</span><span class="op">&gt;</span>,
-	<span class="comment">// this value is between 0 and config.parathread_cores</span>
-	<span class="ident">next_core_offset</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// The queue of all parathread claims.
+</span><span class="attribute">#[derive(Encode, Decode, TypeInfo)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
+</span><span class="kw">pub struct </span>ParathreadClaimQueue {
+	queue: Vec&lt;QueuedParathread&gt;,
+	<span class="comment">// this value is between 0 and config.parathread_cores
+	</span>next_core_offset: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">ParathreadClaimQueue</span> {
-	<span class="doccomment">/// Queue a parathread entry to be processed.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Provide the entry and the number of parathread cores, which must be greater than 0.</span>
-	<span class="kw">fn</span> <span class="ident">enqueue_entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">entry</span>: <span class="ident">ParathreadEntry</span>, <span class="ident">n_parathread_cores</span>: <span class="ident">u32</span>) {
-		<span class="kw">let</span> <span class="ident">core_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_core_offset</span>;
-		<span class="self">self</span>.<span class="ident">next_core_offset</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">next_core_offset</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">n_parathread_cores</span>;
+<span class="kw">impl </span>ParathreadClaimQueue {
+	<span class="doccomment">/// Queue a parathread entry to be processed.
+	///
+	/// Provide the entry and the number of parathread cores, which must be greater than 0.
+	</span><span class="kw">fn </span>enqueue_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: ParathreadEntry, n_parathread_cores: u32) {
+		<span class="kw">let </span>core_offset = <span class="self">self</span>.next_core_offset;
+		<span class="self">self</span>.next_core_offset = (<span class="self">self</span>.next_core_offset + <span class="number">1</span>) % n_parathread_cores;
 
-		<span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">QueuedParathread</span> { <span class="ident">claim</span>: <span class="ident">entry</span>, <span class="ident">core_offset</span> })
+		<span class="self">self</span>.queue.push(QueuedParathread { claim: entry, core_offset })
 	}
 
-	<span class="doccomment">/// Take next queued entry with given core offset, if any.</span>
-	<span class="kw">fn</span> <span class="ident">take_next_on_core</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">core_offset</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ParathreadEntry</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">queued</span><span class="op">|</span> <span class="ident">queued</span>.<span class="ident">core_offset</span> <span class="op">==</span> <span class="ident">core_offset</span>);
-		<span class="ident">pos</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">remove</span>(<span class="ident">i</span>).<span class="ident">claim</span>)
+	<span class="doccomment">/// Take next queued entry with given core offset, if any.
+	</span><span class="kw">fn </span>take_next_on_core(<span class="kw-2">&amp;mut </span><span class="self">self</span>, core_offset: u32) -&gt; <span class="prelude-ty">Option</span>&lt;ParathreadEntry&gt; {
+		<span class="kw">let </span>pos = <span class="self">self</span>.queue.iter().position(|queued| queued.core_offset == core_offset);
+		pos.map(|i| <span class="self">self</span>.queue.remove(i).claim)
 	}
 
-	<span class="doccomment">/// Get the next queued entry with given core offset, if any.</span>
-	<span class="kw">fn</span> <span class="ident">get_next_on_core</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">core_offset</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ParathreadEntry</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">queued</span><span class="op">|</span> <span class="ident">queued</span>.<span class="ident">core_offset</span> <span class="op">==</span> <span class="ident">core_offset</span>);
-		<span class="ident">pos</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">queue</span>[<span class="ident">i</span>].<span class="ident">claim</span>)
-	}
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ParathreadClaimQueue</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">queue</span>: <span class="macro">vec!</span>[], <span class="ident">next_core_offset</span>: <span class="number">0</span> }
+	<span class="doccomment">/// Get the next queued entry with given core offset, if any.
+	</span><span class="kw">fn </span>get_next_on_core(<span class="kw-2">&amp;</span><span class="self">self</span>, core_offset: u32) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ParathreadEntry&gt; {
+		<span class="kw">let </span>pos = <span class="self">self</span>.queue.iter().position(|queued| queued.core_offset == core_offset);
+		pos.map(|i| <span class="kw-2">&amp;</span><span class="self">self</span>.queue[i].claim)
 	}
 }
 
-<span class="doccomment">/// Reasons a core might be freed</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FreedReason</span> {
-	<span class="doccomment">/// The core&#39;s work concluded and the parablock assigned to it is considered available.</span>
-	<span class="ident">Concluded</span>,
-	<span class="doccomment">/// The core&#39;s work timed out.</span>
-	<span class="ident">TimedOut</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>ParathreadClaimQueue {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ queue: <span class="macro">vec!</span>[], next_core_offset: <span class="number">0 </span>}
+	}
 }
 
-<span class="doccomment">/// The assignment type.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>))]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignmentKind</span> {
-	<span class="doccomment">/// A parachain.</span>
-	<span class="ident">Parachain</span>,
-	<span class="doccomment">/// A parathread.</span>
-	<span class="ident">Parathread</span>(<span class="ident">CollatorId</span>, <span class="ident">u32</span>),
+<span class="doccomment">/// Reasons a core might be freed
+</span><span class="attribute">#[derive(Clone, Copy)]
+</span><span class="kw">pub enum </span>FreedReason {
+	<span class="doccomment">/// The core&#39;s work concluded and the parablock assigned to it is considered available.
+	</span>Concluded,
+	<span class="doccomment">/// The core&#39;s work timed out.
+	</span>TimedOut,
 }
 
-<span class="doccomment">/// How a free core is scheduled to be assigned.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>))]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CoreAssignment</span> {
-	<span class="doccomment">/// The core that is assigned.</span>
-	<span class="kw">pub</span> <span class="ident">core</span>: <span class="ident">CoreIndex</span>,
-	<span class="doccomment">/// The unique ID of the para that is assigned to the core.</span>
-	<span class="kw">pub</span> <span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="doccomment">/// The kind of the assignment.</span>
-	<span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">AssignmentKind</span>,
-	<span class="doccomment">/// The index of the validator group assigned to the core.</span>
-	<span class="kw">pub</span> <span class="ident">group_idx</span>: <span class="ident">GroupIndex</span>,
+<span class="doccomment">/// The assignment type.
+</span><span class="attribute">#[derive(Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(PartialEq, Debug))]
+</span><span class="kw">pub enum </span>AssignmentKind {
+	<span class="doccomment">/// A parachain.
+	</span>Parachain,
+	<span class="doccomment">/// A parathread.
+	</span>Parathread(CollatorId, u32),
 }
 
-<span class="kw">impl</span> <span class="ident">CoreAssignment</span> {
-	<span class="doccomment">/// Get the ID of a collator who is required to collate this block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_collator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CollatorId</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-			<span class="ident">AssignmentKind::Parachain</span> =&gt; <span class="prelude-val">None</span>,
-			<span class="ident">AssignmentKind::Parathread</span>(<span class="kw-2">ref</span> <span class="ident">id</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">id</span>),
+<span class="doccomment">/// How a free core is scheduled to be assigned.
+</span><span class="attribute">#[derive(Clone, Encode, Decode, TypeInfo)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(PartialEq, Debug))]
+</span><span class="kw">pub struct </span>CoreAssignment {
+	<span class="doccomment">/// The core that is assigned.
+	</span><span class="kw">pub </span>core: CoreIndex,
+	<span class="doccomment">/// The unique ID of the para that is assigned to the core.
+	</span><span class="kw">pub </span>para_id: ParaId,
+	<span class="doccomment">/// The kind of the assignment.
+	</span><span class="kw">pub </span>kind: AssignmentKind,
+	<span class="doccomment">/// The index of the validator group assigned to the core.
+	</span><span class="kw">pub </span>group_idx: GroupIndex,
+}
+
+<span class="kw">impl </span>CoreAssignment {
+	<span class="doccomment">/// Get the ID of a collator who is required to collate this block.
+	</span><span class="kw">pub fn </span>required_collator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CollatorId&gt; {
+		<span class="kw">match </span><span class="self">self</span>.kind {
+			AssignmentKind::Parachain =&gt; <span class="prelude-val">None</span>,
+			AssignmentKind::Parathread(<span class="kw-2">ref </span>id, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(id),
 		}
 	}
 
-	<span class="doccomment">/// Get the `CoreOccupied` from this.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_core_occupied</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CoreOccupied</span> {
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">kind</span> {
-			<span class="ident">AssignmentKind::Parachain</span> =&gt; <span class="ident">CoreOccupied::Parachain</span>,
-			<span class="ident">AssignmentKind::Parathread</span>(<span class="kw-2">ref</span> <span class="ident">collator</span>, <span class="ident">retries</span>) =&gt;
-				<span class="ident">CoreOccupied::Parathread</span>(<span class="ident">ParathreadEntry</span> {
-					<span class="ident">claim</span>: <span class="ident">ParathreadClaim</span>(<span class="self">self</span>.<span class="ident">para_id</span>, <span class="ident">collator</span>.<span class="ident">clone</span>()),
-					<span class="ident">retries</span>,
+	<span class="doccomment">/// Get the `CoreOccupied` from this.
+	</span><span class="kw">pub fn </span>to_core_occupied(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CoreOccupied {
+		<span class="kw">match </span><span class="self">self</span>.kind {
+			AssignmentKind::Parachain =&gt; CoreOccupied::Parachain,
+			AssignmentKind::Parathread(<span class="kw-2">ref </span>collator, retries) =&gt;
+				CoreOccupied::Parathread(ParathreadEntry {
+					claim: ParathreadClaim(<span class="self">self</span>.para_id, collator.clone()),
+					retries,
 				}),
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">frame_support::pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[frame_support::pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_store</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Store</span>)]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> <span class="op">+</span> <span class="ident">configuration::Config</span> <span class="op">+</span> <span class="ident">paras::Config</span> {}
+	<span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config + configuration::Config + paras::Config {}
 
-	<span class="doccomment">/// All the validator groups. One for each core. Indices are into `ActiveValidators` - not the</span>
-	<span class="doccomment">/// broader set of Polkadot validators, but instead just the subset used for parachains during</span>
-	<span class="doccomment">/// this session.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Bound: The number of cores is the sum of the numbers of parachains and parathread multiplexers.</span>
-	<span class="doccomment">/// Reasonably, 100-1000. The dominant factor is the number of validators: safe upper bound at 10k.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">validator_groups</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ValidatorGroups</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// All the validator groups. One for each core. Indices are into `ActiveValidators` - not the
+	/// broader set of Polkadot validators, but instead just the subset used for parachains during
+	/// this session.
+	///
+	/// Bound: The number of cores is the sum of the numbers of parachains and parathread multiplexers.
+	/// Reasonably, 100-1000. The dominant factor is the number of validators: safe upper bound at 10k.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>validator_groups)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ValidatorGroups&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// A queue of upcoming claims and which core they should be mapped onto.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The number of queued claims is bounded at the `scheduling_lookahead`</span>
-	<span class="doccomment">/// multiplied by the number of parathread multiplexer cores. Reasonably, 10 * 50 = 500.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ParathreadQueue</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">ParathreadClaimQueue</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// A queue of upcoming claims and which core they should be mapped onto.
+	///
+	/// The number of queued claims is bounded at the `scheduling_lookahead`
+	/// multiplied by the number of parathread multiplexer cores. Reasonably, 10 * 50 = 500.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ParathreadQueue&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, ParathreadClaimQueue, ValueQuery&gt;;
 
-	<span class="doccomment">/// One entry for each availability core. Entries are `None` if the core is not currently occupied. Can be</span>
-	<span class="doccomment">/// temporarily `Some` if scheduled but not occupied.</span>
-	<span class="doccomment">/// The i&#39;th parachain belongs to the i&#39;th core, with the remaining cores all being</span>
-	<span class="doccomment">/// parathread-multiplexers.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Bounded by the maximum of either of these two values:</span>
-	<span class="doccomment">///   * The number of parachains and parathread multiplexers</span>
-	<span class="doccomment">///   * The number of validators divided by `configuration.max_validators_per_core`.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">availability_cores</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">AvailabilityCores</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CoreOccupied</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// One entry for each availability core. Entries are `None` if the core is not currently occupied. Can be
+	/// temporarily `Some` if scheduled but not occupied.
+	/// The i&#39;th parachain belongs to the i&#39;th core, with the remaining cores all being
+	/// parathread-multiplexers.
+	///
+	/// Bounded by the maximum of either of these two values:
+	///   * The number of parachains and parathread multiplexers
+	///   * The number of validators divided by `configuration.max_validators_per_core`.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>availability_cores)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>AvailabilityCores&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;<span class="prelude-ty">Option</span>&lt;CoreOccupied&gt;&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// An index used to ensure that only one claim on a parathread exists in the queue or is</span>
-	<span class="doccomment">/// currently being handled by an occupied core.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Bounded by the number of parathread cores and scheduling lookahead. Reasonably, 10 * 50 = 500.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ParathreadClaimIndex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ParaId</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// An index used to ensure that only one claim on a parathread exists in the queue or is
+	/// currently being handled by an occupied core.
+	///
+	/// Bounded by the number of parathread cores and scheduling lookahead. Reasonably, 10 * 50 = 500.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ParathreadClaimIndex&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;ParaId&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// The block number where the session start occurred. Used to track how many group rotations have occurred.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Note that in the context of parachains modules the session change is signaled during</span>
-	<span class="doccomment">/// the block and enacted at the end of the block (at the finalization stage, to be exact).</span>
-	<span class="doccomment">/// Thus for all intents and purposes the effect of the session change is observed at the</span>
-	<span class="doccomment">/// block following the session change, block number of which we save in this storage value.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">session_start_block</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">SessionStartBlock</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">T::BlockNumber</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// The block number where the session start occurred. Used to track how many group rotations have occurred.
+	///
+	/// Note that in the context of parachains modules the session change is signaled during
+	/// the block and enacted at the end of the block (at the finalization stage, to be exact).
+	/// Thus for all intents and purposes the effect of the session change is observed at the
+	/// block following the session change, block number of which we save in this storage value.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>session_start_block)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SessionStartBlock&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, T::BlockNumber, ValueQuery&gt;;
 
-	<span class="doccomment">/// Currently scheduled cores - free but up to be occupied.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Bounded by the number of cores: one for each parachain and parathread multiplexer.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The value contained here will not be valid after the end of a block. Runtime APIs should be used to determine scheduled cores/</span>
-	<span class="doccomment">/// for the upcoming block.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">scheduled</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Scheduled</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CoreAssignment</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
-	<span class="comment">// sorted ascending by CoreIndex.</span>
-}
+	<span class="doccomment">/// Currently scheduled cores - free but up to be occupied.
+	///
+	/// Bounded by the number of cores: one for each parachain and parathread multiplexer.
+	///
+	/// The value contained here will not be valid after the end of a block. Runtime APIs should be used to determine scheduled cores/
+	/// for the upcoming block.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>scheduled)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Scheduled&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;CoreAssignment&gt;, ValueQuery&gt;;
+	<span class="comment">// sorted ascending by CoreIndex.
+</span>}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Called by the initializer to initialize the scheduler pallet.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_initialize</span>(<span class="ident">_now</span>: <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">Weight::zero</span>()
+<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+	<span class="doccomment">/// Called by the initializer to initialize the scheduler pallet.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+		Weight::zero()
 	}
 
-	<span class="doccomment">/// Called by the initializer to finalize the scheduler pallet.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_finalize</span>() {}
+	<span class="doccomment">/// Called by the initializer to finalize the scheduler pallet.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_finalize() {}
 
-	<span class="doccomment">/// Called by the initializer to note that a new session has started.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_on_new_session</span>(
-		<span class="ident">notification</span>: <span class="kw-2">&amp;</span><span class="ident">SessionChangeNotification</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Called by the initializer to note that a new session has started.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
+		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;T::BlockNumber&gt;,
 	) {
-		<span class="kw">let</span> <span class="kw-2">&amp;</span><span class="ident">SessionChangeNotification</span> { <span class="kw-2">ref</span> <span class="ident">validators</span>, <span class="kw-2">ref</span> <span class="ident">new_config</span>, .. } <span class="op">=</span> <span class="ident">notification</span>;
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">new_config</span>;
+		<span class="kw">let </span><span class="kw-2">&amp;</span>SessionChangeNotification { <span class="kw-2">ref </span>validators, <span class="kw-2">ref </span>new_config, .. } = notification;
+		<span class="kw">let </span>config = new_config;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">thread_queue</span> <span class="op">=</span> <span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">let</span> <span class="ident">n_parachains</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::parachains</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-		<span class="kw">let</span> <span class="ident">n_cores</span> <span class="op">=</span> <span class="ident">core::cmp::max</span>(
-			<span class="ident">n_parachains</span> <span class="op">+</span> <span class="ident">config</span>.<span class="ident">parathread_cores</span>,
-			<span class="kw">match</span> <span class="ident">config</span>.<span class="ident">max_validators_per_core</span> {
-				<span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">validators</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">/</span> <span class="ident">x</span>,
-				<span class="kw">_</span> =&gt; <span class="number">0</span>,
+		<span class="kw">let </span><span class="kw-2">mut </span>thread_queue = ParathreadQueue::&lt;T&gt;::get();
+		<span class="kw">let </span>n_parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains().len() <span class="kw">as </span>u32;
+		<span class="kw">let </span>n_cores = core::cmp::max(
+			n_parachains + config.parathread_cores,
+			<span class="kw">match </span>config.max_validators_per_core {
+				<span class="prelude-val">Some</span>(x) <span class="kw">if </span>x != <span class="number">0 </span>=&gt; validators.len() <span class="kw">as </span>u32 / x,
+				<span class="kw">_ </span>=&gt; <span class="number">0</span>,
 			},
 		);
 
-		<span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">cores</span><span class="op">|</span> {
-			<span class="comment">// clear all occupied cores.</span>
-			<span class="kw">for</span> <span class="ident">maybe_occupied</span> <span class="kw">in</span> <span class="ident">cores</span>.<span class="ident">iter_mut</span>() {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parathread</span>(<span class="ident">claim</span>)) <span class="op">=</span> <span class="ident">maybe_occupied</span>.<span class="ident">take</span>() {
-					<span class="kw">let</span> <span class="ident">queued</span> <span class="op">=</span> <span class="ident">QueuedParathread</span> {
-						<span class="ident">claim</span>,
-						<span class="ident">core_offset</span>: <span class="number">0</span>, <span class="comment">// this gets set later in the re-balancing.</span>
-					};
+		AvailabilityCores::&lt;T&gt;::mutate(|cores| {
+			<span class="comment">// clear all occupied cores.
+			</span><span class="kw">for </span>maybe_occupied <span class="kw">in </span>cores.iter_mut() {
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(CoreOccupied::Parathread(claim)) = maybe_occupied.take() {
+					<span class="kw">let </span>queued = QueuedParathread {
+						claim,
+						core_offset: <span class="number">0</span>, <span class="comment">// this gets set later in the re-balancing.
+					</span>};
 
-					<span class="ident">thread_queue</span>.<span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">queued</span>);
+					thread_queue.queue.push(queued);
 				}
 			}
 
-			<span class="ident">cores</span>.<span class="ident">resize</span>(<span class="ident">n_cores</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="prelude-val">None</span>);
+			cores.resize(n_cores <span class="kw">as _</span>, <span class="prelude-val">None</span>);
 		});
 
-		<span class="comment">// shuffle validators into groups.</span>
-		<span class="kw">if</span> <span class="ident">n_cores</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">validators</span>.<span class="ident">is_empty</span>() {
-			<span class="ident">ValidatorGroups</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">Vec::new</span>());
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="ident">group_base_size</span> <span class="op">=</span> <span class="ident">validators</span>.<span class="ident">len</span>() <span class="op">/</span> <span class="ident">n_cores</span> <span class="kw">as</span> <span class="ident">usize</span>;
-			<span class="kw">let</span> <span class="ident">n_larger_groups</span> <span class="op">=</span> <span class="ident">validators</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="ident">n_cores</span> <span class="kw">as</span> <span class="ident">usize</span>;
+		<span class="comment">// shuffle validators into groups.
+		</span><span class="kw">if </span>n_cores == <span class="number">0 </span>|| validators.is_empty() {
+			ValidatorGroups::&lt;T&gt;::set(Vec::new());
+		} <span class="kw">else </span>{
+			<span class="kw">let </span>group_base_size = validators.len() / n_cores <span class="kw">as </span>usize;
+			<span class="kw">let </span>n_larger_groups = validators.len() % n_cores <span class="kw">as </span>usize;
 
-			<span class="comment">// Groups contain indices into the validators from the session change notification,</span>
-			<span class="comment">// which are already shuffled.</span>
+			<span class="comment">// Groups contain indices into the validators from the session change notification,
+			// which are already shuffled.
 
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-			<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">n_larger_groups</span> {
-				<span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">group_base_size</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="ident">i</span>;
-				<span class="ident">groups</span>.<span class="ident">push</span>(
-					(<span class="number">0</span>..<span class="ident">group_base_size</span> <span class="op">+</span> <span class="number">1</span>)
-						.<span class="ident">map</span>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">j</span>)
-						.<span class="ident">map</span>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <span class="ident">ValidatorIndex</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="kw">_</span>))
-						.<span class="ident">collect</span>(),
+			</span><span class="kw">let </span><span class="kw-2">mut </span>groups: Vec&lt;Vec&lt;ValidatorIndex&gt;&gt; = Vec::new();
+			<span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..n_larger_groups {
+				<span class="kw">let </span>offset = (group_base_size + <span class="number">1</span>) * i;
+				groups.push(
+					(<span class="number">0</span>..group_base_size + <span class="number">1</span>)
+						.map(|j| offset + j)
+						.map(|j| ValidatorIndex(j <span class="kw">as _</span>))
+						.collect(),
 				);
 			}
 
-			<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">n_cores</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">n_larger_groups</span>) {
-				<span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">n_larger_groups</span> <span class="op">*</span> (<span class="ident">group_base_size</span> <span class="op">+</span> <span class="number">1</span>)) <span class="op">+</span> (<span class="ident">i</span> <span class="op">*</span> <span class="ident">group_base_size</span>);
-				<span class="ident">groups</span>.<span class="ident">push</span>(
-					(<span class="number">0</span>..<span class="ident">group_base_size</span>)
-						.<span class="ident">map</span>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">j</span>)
-						.<span class="ident">map</span>(<span class="op">|</span><span class="ident">j</span><span class="op">|</span> <span class="ident">ValidatorIndex</span>(<span class="ident">j</span> <span class="kw">as</span> <span class="kw">_</span>))
-						.<span class="ident">collect</span>(),
+			<span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..(n_cores <span class="kw">as </span>usize - n_larger_groups) {
+				<span class="kw">let </span>offset = (n_larger_groups * (group_base_size + <span class="number">1</span>)) + (i * group_base_size);
+				groups.push(
+					(<span class="number">0</span>..group_base_size)
+						.map(|j| offset + j)
+						.map(|j| ValidatorIndex(j <span class="kw">as _</span>))
+						.collect(),
 				);
 			}
 
-			<span class="ident">ValidatorGroups</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">groups</span>);
+			ValidatorGroups::&lt;T&gt;::set(groups);
 		}
 
-		<span class="comment">// prune out all parathread claims with too many retries.</span>
-		<span class="comment">// assign all non-pruned claims to new cores, if they&#39;ve changed.</span>
-		<span class="ident">ParathreadClaimIndex</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">claim_index</span><span class="op">|</span> {
-			<span class="comment">// wipe all parathread metadata if no parathread cores are configured.</span>
-			<span class="kw">if</span> <span class="ident">config</span>.<span class="ident">parathread_cores</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="ident">thread_queue</span> <span class="op">=</span> <span class="ident">ParathreadClaimQueue</span> { <span class="ident">queue</span>: <span class="ident">Vec::new</span>(), <span class="ident">next_core_offset</span>: <span class="number">0</span> };
-				<span class="ident">claim_index</span>.<span class="ident">clear</span>();
-				<span class="kw">return</span>
-			}
+		<span class="comment">// prune out all parathread claims with too many retries.
+		// assign all non-pruned claims to new cores, if they&#39;ve changed.
+		</span>ParathreadClaimIndex::&lt;T&gt;::mutate(|claim_index| {
+			<span class="comment">// wipe all parathread metadata if no parathread cores are configured.
+			</span><span class="kw">if </span>config.parathread_cores == <span class="number">0 </span>{
+				thread_queue = ParathreadClaimQueue { queue: Vec::new(), next_core_offset: <span class="number">0 </span>};
+				claim_index.clear();
+				<span class="kw">return
+			</span>}
 
-			<span class="comment">// prune out all entries beyond retry or that no longer correspond to live parathread.</span>
-			<span class="ident">thread_queue</span>.<span class="ident">queue</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">queued</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">will_keep</span> <span class="op">=</span> <span class="ident">queued</span>.<span class="ident">claim</span>.<span class="ident">retries</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">config</span>.<span class="ident">parathread_retries</span> <span class="op">&amp;&amp;</span>
-					<span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::is_parathread</span>(<span class="ident">queued</span>.<span class="ident">claim</span>.<span class="ident">claim</span>.<span class="number">0</span>);
+			<span class="comment">// prune out all entries beyond retry or that no longer correspond to live parathread.
+			</span>thread_queue.queue.retain(|queued| {
+				<span class="kw">let </span>will_keep = queued.claim.retries &lt;= config.parathread_retries &amp;&amp;
+					&lt;paras::Pallet&lt;T&gt;&gt;::is_parathread(queued.claim.claim.<span class="number">0</span>);
 
-				<span class="kw">if</span> <span class="op">!</span><span class="ident">will_keep</span> {
-					<span class="kw">let</span> <span class="ident">claim_para</span> <span class="op">=</span> <span class="ident">queued</span>.<span class="ident">claim</span>.<span class="ident">claim</span>.<span class="number">0</span>;
+				<span class="kw">if </span>!will_keep {
+					<span class="kw">let </span>claim_para = queued.claim.claim.<span class="number">0</span>;
 
-					<span class="comment">// clean up the pruned entry from the index.</span>
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">claim_index</span>.<span class="ident">binary_search</span>(<span class="kw-2">&amp;</span><span class="ident">claim_para</span>) {
-						<span class="ident">claim_index</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
+					<span class="comment">// clean up the pruned entry from the index.
+					</span><span class="kw">if let </span><span class="prelude-val">Ok</span>(i) = claim_index.binary_search(<span class="kw-2">&amp;</span>claim_para) {
+						claim_index.remove(i);
 					}
 				}
 
-				<span class="ident">will_keep</span>
+				will_keep
 			});
 
-			<span class="comment">// do re-balancing of claims.</span>
-			{
-				<span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">queued</span>) <span class="kw">in</span> <span class="ident">thread_queue</span>.<span class="ident">queue</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
-					<span class="ident">queued</span>.<span class="ident">core_offset</span> <span class="op">=</span> (<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">%</span> <span class="ident">config</span>.<span class="ident">parathread_cores</span>;
+			<span class="comment">// do re-balancing of claims.
+			</span>{
+				<span class="kw">for </span>(i, queued) <span class="kw">in </span>thread_queue.queue.iter_mut().enumerate() {
+					queued.core_offset = (i <span class="kw">as </span>u32) % config.parathread_cores;
 				}
 
-				<span class="ident">thread_queue</span>.<span class="ident">next_core_offset</span> <span class="op">=</span>
-					((<span class="ident">thread_queue</span>.<span class="ident">queue</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">%</span> <span class="ident">config</span>.<span class="ident">parathread_cores</span>;
+				thread_queue.next_core_offset =
+					((thread_queue.queue.len()) <span class="kw">as </span>u32) % config.parathread_cores;
 			}
 		});
-		<span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">thread_queue</span>);
+		ParathreadQueue::&lt;T&gt;::set(thread_queue);
 
-		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>() <span class="op">+</span> <span class="ident">One::one</span>();
-		<span class="op">&lt;</span><span class="ident">SessionStartBlock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">now</span>);
+		<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number() + One::one();
+		&lt;SessionStartBlock&lt;T&gt;&gt;::set(now);
 	}
 
-	<span class="doccomment">/// Add a parathread claim to the queue. If there is a competing claim in the queue or currently</span>
-	<span class="doccomment">/// assigned to a core, this call will fail. This call will also fail if the queue is full.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Fails if the claim does not correspond to any live parathread.</span>
-	<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_parathread_claim</span>(<span class="ident">claim</span>: <span class="ident">ParathreadClaim</span>) {
-		<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::is_parathread</span>(<span class="ident">claim</span>.<span class="number">0</span>) {
-			<span class="kw">return</span>
-		}
+	<span class="doccomment">/// Add a parathread claim to the queue. If there is a competing claim in the queue or currently
+	/// assigned to a core, this call will fail. This call will also fail if the queue is full.
+	///
+	/// Fails if the claim does not correspond to any live parathread.
+	</span><span class="attribute">#[allow(unused)]
+	</span><span class="kw">pub fn </span>add_parathread_claim(claim: ParathreadClaim) {
+		<span class="kw">if </span>!&lt;paras::Pallet&lt;T&gt;&gt;::is_parathread(claim.<span class="number">0</span>) {
+			<span class="kw">return
+		</span>}
 
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
-		<span class="kw">let</span> <span class="ident">queue_max_size</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">parathread_cores</span> <span class="op">*</span> <span class="ident">config</span>.<span class="ident">scheduling_lookahead</span>;
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
+		<span class="kw">let </span>queue_max_size = config.parathread_cores * config.scheduling_lookahead;
 
-		<span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">queue</span><span class="op">|</span> {
-			<span class="kw">if</span> <span class="ident">queue</span>.<span class="ident">queue</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">queue_max_size</span> <span class="kw">as</span> <span class="ident">usize</span> {
-				<span class="kw">return</span>
-			}
+		ParathreadQueue::&lt;T&gt;::mutate(|queue| {
+			<span class="kw">if </span>queue.queue.len() &gt;= queue_max_size <span class="kw">as </span>usize {
+				<span class="kw">return
+			</span>}
 
-			<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">claim</span>.<span class="number">0</span>;
+			<span class="kw">let </span>para_id = claim.<span class="number">0</span>;
 
-			<span class="kw">let</span> <span class="ident">competes_with_another</span> <span class="op">=</span>
-				<span class="ident">ParathreadClaimIndex</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">index</span>.<span class="ident">binary_search</span>(<span class="kw-2">&amp;</span><span class="ident">para_id</span>) {
+			<span class="kw">let </span>competes_with_another =
+				ParathreadClaimIndex::&lt;T&gt;::mutate(|index| <span class="kw">match </span>index.binary_search(<span class="kw-2">&amp;</span>para_id) {
 					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-					<span class="prelude-val">Err</span>(<span class="ident">i</span>) =&gt; {
-						<span class="ident">index</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">para_id</span>);
-						<span class="bool-val">false</span>
-					},
+					<span class="prelude-val">Err</span>(i) =&gt; {
+						index.insert(i, para_id);
+						<span class="bool-val">false
+					</span>},
 				});
 
-			<span class="kw">if</span> <span class="ident">competes_with_another</span> {
-				<span class="kw">return</span>
-			}
+			<span class="kw">if </span>competes_with_another {
+				<span class="kw">return
+			</span>}
 
-			<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">ParathreadEntry</span> { <span class="ident">claim</span>, <span class="ident">retries</span>: <span class="number">0</span> };
-			<span class="ident">queue</span>.<span class="ident">enqueue_entry</span>(<span class="ident">entry</span>, <span class="ident">config</span>.<span class="ident">parathread_cores</span>);
+			<span class="kw">let </span>entry = ParathreadEntry { claim, retries: <span class="number">0 </span>};
+			queue.enqueue_entry(entry, config.parathread_cores);
 		})
 	}
 
-	<span class="doccomment">/// Free unassigned cores. Provide a list of cores that should be considered newly-freed along with the reason</span>
-	<span class="doccomment">/// for them being freed. The list is assumed to be sorted in ascending order by core index.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">free_cores</span>(<span class="ident">just_freed_cores</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">CoreIndex</span>, <span class="ident">FreedReason</span>)<span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
+	<span class="doccomment">/// Free unassigned cores. Provide a list of cores that should be considered newly-freed along with the reason
+	/// for them being freed. The list is assumed to be sorted in ascending order by core index.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>free_cores(just_freed_cores: <span class="kw">impl </span>IntoIterator&lt;Item = (CoreIndex, FreedReason)&gt;) {
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
-		<span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">cores</span><span class="op">|</span> {
-			<span class="kw">for</span> (<span class="ident">freed_index</span>, <span class="ident">freed_reason</span>) <span class="kw">in</span> <span class="ident">just_freed_cores</span> {
-				<span class="kw">if</span> (<span class="ident">freed_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">cores</span>.<span class="ident">len</span>() {
-					<span class="kw">match</span> <span class="ident">cores</span>[<span class="ident">freed_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">take</span>() {
-						<span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
-						<span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parachain</span>) =&gt; {},
-						<span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parathread</span>(<span class="ident">entry</span>)) =&gt; {
-							<span class="kw">match</span> <span class="ident">freed_reason</span> {
-								<span class="ident">FreedReason::Concluded</span> =&gt; {
-									<span class="comment">// After a parathread candidate has successfully been included,</span>
-									<span class="comment">// open it up for further claims!</span>
-									<span class="ident">ParathreadClaimIndex</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> {
-										<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">index</span>.<span class="ident">binary_search</span>(<span class="kw-2">&amp;</span><span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">0</span>) {
-											<span class="ident">index</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
+		AvailabilityCores::&lt;T&gt;::mutate(|cores| {
+			<span class="kw">for </span>(freed_index, freed_reason) <span class="kw">in </span>just_freed_cores {
+				<span class="kw">if </span>(freed_index.<span class="number">0 </span><span class="kw">as </span>usize) &lt; cores.len() {
+					<span class="kw">match </span>cores[freed_index.<span class="number">0 </span><span class="kw">as </span>usize].take() {
+						<span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
+						<span class="prelude-val">Some</span>(CoreOccupied::Parachain) =&gt; {},
+						<span class="prelude-val">Some</span>(CoreOccupied::Parathread(entry)) =&gt; {
+							<span class="kw">match </span>freed_reason {
+								FreedReason::Concluded =&gt; {
+									<span class="comment">// After a parathread candidate has successfully been included,
+									// open it up for further claims!
+									</span>ParathreadClaimIndex::&lt;T&gt;::mutate(|index| {
+										<span class="kw">if let </span><span class="prelude-val">Ok</span>(i) = index.binary_search(<span class="kw-2">&amp;</span>entry.claim.<span class="number">0</span>) {
+											index.remove(i);
 										}
 									})
 								},
-								<span class="ident">FreedReason::TimedOut</span> =&gt; {
-									<span class="comment">// If a parathread candidate times out, it&#39;s not the collator&#39;s fault,</span>
-									<span class="comment">// so we don&#39;t increment retries.</span>
-									<span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">queue</span><span class="op">|</span> {
-										<span class="ident">queue</span>.<span class="ident">enqueue_entry</span>(<span class="ident">entry</span>, <span class="ident">config</span>.<span class="ident">parathread_cores</span>);
+								FreedReason::TimedOut =&gt; {
+									<span class="comment">// If a parathread candidate times out, it&#39;s not the collator&#39;s fault,
+									// so we don&#39;t increment retries.
+									</span>ParathreadQueue::&lt;T&gt;::mutate(|queue| {
+										queue.enqueue_entry(entry, config.parathread_cores);
 									})
 								},
 							}
@@ -1188,254 +1182,254 @@
 		})
 	}
 
-	<span class="doccomment">/// Schedule all unassigned cores, where possible. Provide a list of cores that should be considered</span>
-	<span class="doccomment">/// newly-freed along with the reason for them being freed. The list is assumed to be sorted in</span>
-	<span class="doccomment">/// ascending order by core index.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">schedule</span>(
-		<span class="ident">just_freed_cores</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">CoreIndex</span>, <span class="ident">FreedReason</span>)<span class="op">&gt;</span>,
-		<span class="ident">now</span>: <span class="ident">T::BlockNumber</span>,
+	<span class="doccomment">/// Schedule all unassigned cores, where possible. Provide a list of cores that should be considered
+	/// newly-freed along with the reason for them being freed. The list is assumed to be sorted in
+	/// ascending order by core index.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule(
+		just_freed_cores: <span class="kw">impl </span>IntoIterator&lt;Item = (CoreIndex, FreedReason)&gt;,
+		now: T::BlockNumber,
 	) {
-		<span class="ident"><span class="self">Self</span>::free_cores</span>(<span class="ident">just_freed_cores</span>);
+		<span class="self">Self</span>::free_cores(just_freed_cores);
 
-		<span class="kw">let</span> <span class="ident">cores</span> <span class="op">=</span> <span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">let</span> <span class="ident">parachains</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::parachains</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduled</span> <span class="op">=</span> <span class="ident">Scheduled</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parathread_queue</span> <span class="op">=</span> <span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
+		<span class="kw">let </span>cores = AvailabilityCores::&lt;T&gt;::get();
+		<span class="kw">let </span>parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains();
+		<span class="kw">let </span><span class="kw-2">mut </span>scheduled = Scheduled::&lt;T&gt;::get();
+		<span class="kw">let </span><span class="kw-2">mut </span>parathread_queue = ParathreadQueue::&lt;T&gt;::get();
 
-		<span class="kw">if</span> <span class="ident">ValidatorGroups</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">is_empty</span>() {
-			<span class="kw">return</span>
-		}
+		<span class="kw">if </span>ValidatorGroups::&lt;T&gt;::get().is_empty() {
+			<span class="kw">return
+		</span>}
 
 		{
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_scheduled_in_order</span> <span class="op">=</span> <span class="ident">scheduled</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">peekable</span>();
+			<span class="kw">let </span><span class="kw-2">mut </span>prev_scheduled_in_order = scheduled.iter().enumerate().peekable();
 
-			<span class="comment">// Updates to the previous list of scheduled updates and the position of where to insert</span>
-			<span class="comment">// them, without accounting for prior updates.</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduled_updates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">CoreAssignment</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+			<span class="comment">// Updates to the previous list of scheduled updates and the position of where to insert
+			// them, without accounting for prior updates.
+			</span><span class="kw">let </span><span class="kw-2">mut </span>scheduled_updates: Vec&lt;(usize, CoreAssignment)&gt; = Vec::new();
 
-			<span class="comment">// single-sweep O(n) in the number of cores.</span>
-			<span class="kw">for</span> (<span class="ident">core_index</span>, <span class="ident">_core</span>) <span class="kw">in</span> <span class="ident">cores</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">c</span>)<span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_none</span>()) {
-				<span class="kw">let</span> <span class="ident">schedule_and_insert_at</span> <span class="op">=</span> {
-					<span class="comment">// advance the iterator until just before the core index we are looking at now.</span>
-					<span class="kw">while</span> <span class="ident">prev_scheduled_in_order</span>
-						.<span class="ident">peek</span>()
-						.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span>(<span class="kw">_</span>, <span class="ident">assign</span>)<span class="op">|</span> (<span class="ident">assign</span>.<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">core_index</span>)
+			<span class="comment">// single-sweep O(n) in the number of cores.
+			</span><span class="kw">for </span>(core_index, _core) <span class="kw">in </span>cores.iter().enumerate().filter(|(<span class="kw">_</span>, <span class="kw-2">ref </span>c)| c.is_none()) {
+				<span class="kw">let </span>schedule_and_insert_at = {
+					<span class="comment">// advance the iterator until just before the core index we are looking at now.
+					</span><span class="kw">while </span>prev_scheduled_in_order
+						.peek()
+						.map_or(<span class="bool-val">false</span>, |(<span class="kw">_</span>, assign)| (assign.core.<span class="number">0 </span><span class="kw">as </span>usize) &lt; core_index)
 					{
-						<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">prev_scheduled_in_order</span>.<span class="ident">next</span>();
+						<span class="kw">let _ </span>= prev_scheduled_in_order.next();
 					}
 
-					<span class="comment">// check the first entry already scheduled with core index &gt;= than the one we</span>
-					<span class="comment">// are looking at. 3 cases:</span>
-					<span class="comment">//  1. No such entry, clearly this core is not scheduled, so we need to schedule and put at the end.</span>
-					<span class="comment">//  2. Entry exists and has same index as the core we are inspecting. do not schedule again.</span>
-					<span class="comment">//  3. Entry exists and has higher index than the core we are inspecting. schedule and note</span>
-					<span class="comment">//     insertion position.</span>
-					<span class="ident">prev_scheduled_in_order</span>.<span class="ident">peek</span>().<span class="ident">map_or</span>(
-						<span class="prelude-val">Some</span>(<span class="ident">scheduled</span>.<span class="ident">len</span>()),
-						<span class="op">|</span>(<span class="ident">idx_in_scheduled</span>, <span class="ident">assign</span>)<span class="op">|</span> {
-							<span class="kw">if</span> (<span class="ident">assign</span>.<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">==</span> <span class="ident">core_index</span> {
-								<span class="prelude-val">None</span>
-							} <span class="kw">else</span> {
-								<span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">idx_in_scheduled</span>)
+					<span class="comment">// check the first entry already scheduled with core index &gt;= than the one we
+					// are looking at. 3 cases:
+					//  1. No such entry, clearly this core is not scheduled, so we need to schedule and put at the end.
+					//  2. Entry exists and has same index as the core we are inspecting. do not schedule again.
+					//  3. Entry exists and has higher index than the core we are inspecting. schedule and note
+					//     insertion position.
+					</span>prev_scheduled_in_order.peek().map_or(
+						<span class="prelude-val">Some</span>(scheduled.len()),
+						|(idx_in_scheduled, assign)| {
+							<span class="kw">if </span>(assign.core.<span class="number">0 </span><span class="kw">as </span>usize) == core_index {
+								<span class="prelude-val">None
+							</span>} <span class="kw">else </span>{
+								<span class="prelude-val">Some</span>(<span class="kw-2">*</span>idx_in_scheduled)
 							}
 						},
 					)
 				};
 
-				<span class="kw">let</span> <span class="ident">schedule_and_insert_at</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">schedule_and_insert_at</span> {
-					<span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>,
-					<span class="prelude-val">Some</span>(<span class="ident">at</span>) =&gt; <span class="ident">at</span>,
+				<span class="kw">let </span>schedule_and_insert_at = <span class="kw">match </span>schedule_and_insert_at {
+					<span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
+					<span class="prelude-val">Some</span>(at) =&gt; at,
 				};
 
-				<span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <span class="ident">CoreIndex</span>(<span class="ident">core_index</span> <span class="kw">as</span> <span class="ident">u32</span>);
+				<span class="kw">let </span>core = CoreIndex(core_index <span class="kw">as </span>u32);
 
-				<span class="kw">let</span> <span class="ident">core_assignment</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">core_index</span> <span class="op">&lt;</span> <span class="ident">parachains</span>.<span class="ident">len</span>() {
-					<span class="comment">// parachain core.</span>
-					<span class="prelude-val">Some</span>(<span class="ident">CoreAssignment</span> {
-						<span class="ident">kind</span>: <span class="ident">AssignmentKind::Parachain</span>,
-						<span class="ident">para_id</span>: <span class="ident">parachains</span>[<span class="ident">core_index</span>],
-						<span class="ident">core</span>: <span class="ident">core</span>.<span class="ident">clone</span>(),
-						<span class="ident">group_idx</span>: <span class="ident"><span class="self">Self</span>::group_assigned_to_core</span>(<span class="ident">core</span>, <span class="ident">now</span>).<span class="ident">expect</span>(
+				<span class="kw">let </span>core_assignment = <span class="kw">if </span>core_index &lt; parachains.len() {
+					<span class="comment">// parachain core.
+					</span><span class="prelude-val">Some</span>(CoreAssignment {
+						kind: AssignmentKind::Parachain,
+						para_id: parachains[core_index],
+						core: core.clone(),
+						group_idx: <span class="self">Self</span>::group_assigned_to_core(core, now).expect(
 							<span class="string">&quot;core is not out of bounds and we are guaranteed \
 									to be after the most recent session start; qed&quot;</span>,
 						),
 					})
-				} <span class="kw">else</span> {
-					<span class="comment">// parathread core offset, rel. to beginning.</span>
-					<span class="kw">let</span> <span class="ident">core_offset</span> <span class="op">=</span> (<span class="ident">core_index</span> <span class="op">-</span> <span class="ident">parachains</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span>;
+				} <span class="kw">else </span>{
+					<span class="comment">// parathread core offset, rel. to beginning.
+					</span><span class="kw">let </span>core_offset = (core_index - parachains.len()) <span class="kw">as </span>u32;
 
-					<span class="ident">parathread_queue</span>.<span class="ident">take_next_on_core</span>(<span class="ident">core_offset</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">entry</span><span class="op">|</span> <span class="ident">CoreAssignment</span> {
-						<span class="ident">kind</span>: <span class="ident">AssignmentKind::Parathread</span>(<span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">1</span>, <span class="ident">entry</span>.<span class="ident">retries</span>),
-						<span class="ident">para_id</span>: <span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">0</span>,
-						<span class="ident">core</span>: <span class="ident">core</span>.<span class="ident">clone</span>(),
-						<span class="ident">group_idx</span>: <span class="ident"><span class="self">Self</span>::group_assigned_to_core</span>(<span class="ident">core</span>, <span class="ident">now</span>).<span class="ident">expect</span>(
+					parathread_queue.take_next_on_core(core_offset).map(|entry| CoreAssignment {
+						kind: AssignmentKind::Parathread(entry.claim.<span class="number">1</span>, entry.retries),
+						para_id: entry.claim.<span class="number">0</span>,
+						core: core.clone(),
+						group_idx: <span class="self">Self</span>::group_assigned_to_core(core, now).expect(
 							<span class="string">&quot;core is not out of bounds and we are guaranteed \
 									to be after the most recent session start; qed&quot;</span>,
 						),
 					})
 				};
 
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">assignment</span>) <span class="op">=</span> <span class="ident">core_assignment</span> {
-					<span class="ident">scheduled_updates</span>.<span class="ident">push</span>((<span class="ident">schedule_and_insert_at</span>, <span class="ident">assignment</span>))
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(assignment) = core_assignment {
+					scheduled_updates.push((schedule_and_insert_at, assignment))
 				}
 			}
 
-			<span class="comment">// at this point, because `Scheduled` is guaranteed to be sorted and we navigated unassigned</span>
-			<span class="comment">// core indices in ascending order, we can enact the updates prepared by the previous actions.</span>
-			<span class="comment">//</span>
-			<span class="comment">// while inserting, we have to account for the amount of insertions already done.</span>
-			<span class="comment">//</span>
-			<span class="comment">// This is O(n) as well, capped at n operations, where n is the number of cores.</span>
-			<span class="kw">for</span> (<span class="ident">num_insertions_before</span>, (<span class="ident">insert_at</span>, <span class="ident">to_insert</span>)) <span class="kw">in</span>
-				<span class="ident">scheduled_updates</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>()
+			<span class="comment">// at this point, because `Scheduled` is guaranteed to be sorted and we navigated unassigned
+			// core indices in ascending order, we can enact the updates prepared by the previous actions.
+			//
+			// while inserting, we have to account for the amount of insertions already done.
+			//
+			// This is O(n) as well, capped at n operations, where n is the number of cores.
+			</span><span class="kw">for </span>(num_insertions_before, (insert_at, to_insert)) <span class="kw">in
+				</span>scheduled_updates.into_iter().enumerate()
 			{
-				<span class="kw">let</span> <span class="ident">insert_at</span> <span class="op">=</span> <span class="ident">num_insertions_before</span> <span class="op">+</span> <span class="ident">insert_at</span>;
-				<span class="ident">scheduled</span>.<span class="ident">insert</span>(<span class="ident">insert_at</span>, <span class="ident">to_insert</span>);
+				<span class="kw">let </span>insert_at = num_insertions_before + insert_at;
+				scheduled.insert(insert_at, to_insert);
 			}
 
-			<span class="comment">// scheduled is guaranteed to be sorted after this point because it was sorted before, and we</span>
-			<span class="comment">// applied sorted updates at their correct positions, accounting for the offsets of previous</span>
-			<span class="comment">// insertions.</span>
-		}
+			<span class="comment">// scheduled is guaranteed to be sorted after this point because it was sorted before, and we
+			// applied sorted updates at their correct positions, accounting for the offsets of previous
+			// insertions.
+		</span>}
 
-		<span class="ident">Scheduled</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">scheduled</span>);
-		<span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">parathread_queue</span>);
+		Scheduled::&lt;T&gt;::set(scheduled);
+		ParathreadQueue::&lt;T&gt;::set(parathread_queue);
 	}
 
-	<span class="doccomment">/// Note that the given cores have become occupied. Behavior undefined if any of the given cores were not scheduled</span>
-	<span class="doccomment">/// or the slice is not sorted ascending by core index.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Complexity: O(n) in the number of scheduled cores, which is capped at the number of total cores.</span>
-	<span class="doccomment">/// This is efficient in the case that most scheduled cores are occupied.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">occupied</span>(<span class="ident">now_occupied</span>: <span class="kw-2">&amp;</span>[<span class="ident">CoreIndex</span>]) {
-		<span class="kw">if</span> <span class="ident">now_occupied</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">return</span>
-		}
+	<span class="doccomment">/// Note that the given cores have become occupied. Behavior undefined if any of the given cores were not scheduled
+	/// or the slice is not sorted ascending by core index.
+	///
+	/// Complexity: O(n) in the number of scheduled cores, which is capped at the number of total cores.
+	/// This is efficient in the case that most scheduled cores are occupied.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>occupied(now_occupied: <span class="kw-2">&amp;</span>[CoreIndex]) {
+		<span class="kw">if </span>now_occupied.is_empty() {
+			<span class="kw">return
+		</span>}
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">availability_cores</span> <span class="op">=</span> <span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="ident">Scheduled</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">scheduled</span><span class="op">|</span> {
-			<span class="comment">// The constraints on the function require that `now_occupied` is a sorted subset of the</span>
-			<span class="comment">// `scheduled` cores, which are also sorted.</span>
+		<span class="kw">let </span><span class="kw-2">mut </span>availability_cores = AvailabilityCores::&lt;T&gt;::get();
+		Scheduled::&lt;T&gt;::mutate(|scheduled| {
+			<span class="comment">// The constraints on the function require that `now_occupied` is a sorted subset of the
+			// `scheduled` cores, which are also sorted.
 
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">occupied_iter</span> <span class="op">=</span> <span class="ident">now_occupied</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">peekable</span>();
-			<span class="ident">scheduled</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">assignment</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">retain</span> <span class="op">=</span> <span class="ident">occupied_iter</span>
-					.<span class="ident">peek</span>()
-					.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">occupied_idx</span><span class="op">|</span> <span class="ident">occupied_idx</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">assignment</span>.<span class="ident">core</span>);
+			</span><span class="kw">let </span><span class="kw-2">mut </span>occupied_iter = now_occupied.iter().cloned().peekable();
+			scheduled.retain(|assignment| {
+				<span class="kw">let </span>retain = occupied_iter
+					.peek()
+					.map_or(<span class="bool-val">true</span>, |occupied_idx| occupied_idx != <span class="kw-2">&amp;</span>assignment.core);
 
-				<span class="kw">if</span> <span class="op">!</span><span class="ident">retain</span> {
-					<span class="comment">// remove this entry - it&#39;s now occupied. and begin inspecting the next extry</span>
-					<span class="comment">// of the occupied iterator.</span>
-					<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">occupied_iter</span>.<span class="ident">next</span>();
+				<span class="kw">if </span>!retain {
+					<span class="comment">// remove this entry - it&#39;s now occupied. and begin inspecting the next extry
+					// of the occupied iterator.
+					</span><span class="kw">let _ </span>= occupied_iter.next();
 
-					<span class="ident">availability_cores</span>[<span class="ident">assignment</span>.<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span>
-						<span class="prelude-val">Some</span>(<span class="ident">assignment</span>.<span class="ident">to_core_occupied</span>());
+					availability_cores[assignment.core.<span class="number">0 </span><span class="kw">as </span>usize] =
+						<span class="prelude-val">Some</span>(assignment.to_core_occupied());
 				}
 
-				<span class="ident">retain</span>
+				retain
 			})
 		});
 
-		<span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">availability_cores</span>);
+		AvailabilityCores::&lt;T&gt;::set(availability_cores);
 	}
 
-	<span class="doccomment">/// Get the para (chain or thread) ID assigned to a particular core or index, if any. Core indices</span>
-	<span class="doccomment">/// out of bounds will return `None`, as will indices of unassigned cores.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">core_para</span>(<span class="ident">core_index</span>: <span class="ident">CoreIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ParaId</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">cores</span> <span class="op">=</span> <span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">match</span> <span class="ident">cores</span>.<span class="ident">get</span>(<span class="ident">core_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_ref</span>()) {
-			<span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parachain</span>) =&gt; {
-				<span class="kw">let</span> <span class="ident">parachains</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::parachains</span>();
-				<span class="prelude-val">Some</span>(<span class="ident">parachains</span>[<span class="ident">core_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>])
+	<span class="doccomment">/// Get the para (chain or thread) ID assigned to a particular core or index, if any. Core indices
+	/// out of bounds will return `None`, as will indices of unassigned cores.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>core_para(core_index: CoreIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ParaId&gt; {
+		<span class="kw">let </span>cores = AvailabilityCores::&lt;T&gt;::get();
+		<span class="kw">match </span>cores.get(core_index.<span class="number">0 </span><span class="kw">as </span>usize).and_then(|c| c.as_ref()) {
+			<span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+			<span class="prelude-val">Some</span>(CoreOccupied::Parachain) =&gt; {
+				<span class="kw">let </span>parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains();
+				<span class="prelude-val">Some</span>(parachains[core_index.<span class="number">0 </span><span class="kw">as </span>usize])
 			},
-			<span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parathread</span>(<span class="kw-2">ref</span> <span class="ident">entry</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">0</span>),
+			<span class="prelude-val">Some</span>(CoreOccupied::Parathread(<span class="kw-2">ref </span>entry)) =&gt; <span class="prelude-val">Some</span>(entry.claim.<span class="number">0</span>),
 		}
 	}
 
-	<span class="doccomment">/// Get the validators in the given group, if the group index is valid for this session.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">group_validators</span>(<span class="ident">group_index</span>: <span class="ident">GroupIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">ValidatorGroups</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">get</span>(<span class="ident">group_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">clone</span>())
+	<span class="doccomment">/// Get the validators in the given group, if the group index is valid for this session.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_validators(group_index: GroupIndex) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;ValidatorIndex&gt;&gt; {
+		ValidatorGroups::&lt;T&gt;::get().get(group_index.<span class="number">0 </span><span class="kw">as </span>usize).map(|g| g.clone())
 	}
 
-	<span class="doccomment">/// Get the group assigned to a specific core by index at the current block number. Result undefined if the core index is unknown</span>
-	<span class="doccomment">/// or the block number is less than the session start index.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">group_assigned_to_core</span>(
-		<span class="ident">core</span>: <span class="ident">CoreIndex</span>,
-		<span class="ident">at</span>: <span class="ident">T::BlockNumber</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GroupIndex</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
-		<span class="kw">let</span> <span class="ident">session_start_block</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">SessionStartBlock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
+	<span class="doccomment">/// Get the group assigned to a specific core by index at the current block number. Result undefined if the core index is unknown
+	/// or the block number is less than the session start index.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_assigned_to_core(
+		core: CoreIndex,
+		at: T::BlockNumber,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;GroupIndex&gt; {
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
+		<span class="kw">let </span>session_start_block = &lt;SessionStartBlock&lt;T&gt;&gt;::get();
 
-		<span class="kw">if</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">session_start_block</span> {
-			<span class="kw">return</span> <span class="prelude-val">None</span>
-		}
+		<span class="kw">if </span>at &lt; session_start_block {
+			<span class="kw">return </span><span class="prelude-val">None
+		</span>}
 
-		<span class="kw">let</span> <span class="ident">validator_groups</span> <span class="op">=</span> <span class="ident">ValidatorGroups</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
+		<span class="kw">let </span>validator_groups = ValidatorGroups::&lt;T&gt;::get();
 
-		<span class="kw">if</span> <span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">validator_groups</span>.<span class="ident">len</span>() {
-			<span class="kw">return</span> <span class="prelude-val">None</span>
-		}
+		<span class="kw">if </span>core.<span class="number">0 </span><span class="kw">as </span>usize &gt;= validator_groups.len() {
+			<span class="kw">return </span><span class="prelude-val">None
+		</span>}
 
-		<span class="kw">let</span> <span class="ident">rotations_since_session_start</span>: <span class="ident">T::BlockNumber</span> <span class="op">=</span>
-			(<span class="ident">at</span> <span class="op">-</span> <span class="ident">session_start_block</span>) <span class="op">/</span> <span class="ident">config</span>.<span class="ident">group_rotation_frequency</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>rotations_since_session_start: T::BlockNumber =
+			(at - session_start_block) / config.group_rotation_frequency.into();
 
-		<span class="kw">let</span> <span class="ident">rotations_since_session_start</span> <span class="op">=</span>
-			<span class="kw">match</span> <span class="op">&lt;</span><span class="ident">T::BlockNumber</span> <span class="kw">as</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_into</span>(<span class="ident">rotations_since_session_start</span>) {
-				<span class="prelude-val">Ok</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="number">0</span>, <span class="comment">// can only happen if rotations occur only once every u32::max(),</span>
-				             <span class="comment">// so functionally no difference in behavior.</span>
-			};
+		<span class="kw">let </span>rotations_since_session_start =
+			<span class="kw">match </span>&lt;T::BlockNumber <span class="kw">as </span>TryInto&lt;u32&gt;&gt;::try_into(rotations_since_session_start) {
+				<span class="prelude-val">Ok</span>(i) =&gt; i,
+				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="number">0</span>, <span class="comment">// can only happen if rotations occur only once every u32::max(),
+				             // so functionally no difference in behavior.
+			</span>};
 
-		<span class="kw">let</span> <span class="ident">group_idx</span> <span class="op">=</span>
-			(<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">rotations_since_session_start</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">validator_groups</span>.<span class="ident">len</span>();
-		<span class="prelude-val">Some</span>(<span class="ident">GroupIndex</span>(<span class="ident">group_idx</span> <span class="kw">as</span> <span class="ident">u32</span>))
+		<span class="kw">let </span>group_idx =
+			(core.<span class="number">0 </span><span class="kw">as </span>usize + rotations_since_session_start <span class="kw">as </span>usize) % validator_groups.len();
+		<span class="prelude-val">Some</span>(GroupIndex(group_idx <span class="kw">as </span>u32))
 	}
 
-	<span class="doccomment">/// Returns an optional predicate that should be used for timing out occupied cores.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// If `None`, no timing-out should be done. The predicate accepts the index of the core, and the</span>
-	<span class="doccomment">/// block number since which it has been occupied, and the respective parachain and parathread</span>
-	<span class="doccomment">/// timeouts, i.e. only within `max(config.chain_availability_period, config.thread_availability_period)`</span>
-	<span class="doccomment">/// of the last rotation would this return `Some`, unless there are no rotations.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This really should not be a box, but is working around a compiler limitation filed here:</span>
-	<span class="doccomment">/// https://github.com/rust-lang/rust/issues/73226</span>
-	<span class="doccomment">/// which prevents us from testing the code if using `impl Trait`.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">availability_timeout_predicate</span>(
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">CoreIndex</span>, <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>();
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
+	<span class="doccomment">/// Returns an optional predicate that should be used for timing out occupied cores.
+	///
+	/// If `None`, no timing-out should be done. The predicate accepts the index of the core, and the
+	/// block number since which it has been occupied, and the respective parachain and parathread
+	/// timeouts, i.e. only within `max(config.chain_availability_period, config.thread_availability_period)`
+	/// of the last rotation would this return `Some`, unless there are no rotations.
+	///
+	/// This really should not be a box, but is working around a compiler limitation filed here:
+	/// https://github.com/rust-lang/rust/issues/73226
+	/// which prevents us from testing the code if using `impl Trait`.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>availability_timeout_predicate(
+	) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(CoreIndex, T::BlockNumber) -&gt; bool&gt;&gt; {
+		<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
-		<span class="kw">let</span> <span class="ident">session_start</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">SessionStartBlock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">let</span> <span class="ident">blocks_since_session_start</span> <span class="op">=</span> <span class="ident">now</span>.<span class="ident">saturating_sub</span>(<span class="ident">session_start</span>);
-		<span class="kw">let</span> <span class="ident">blocks_since_last_rotation</span> <span class="op">=</span>
-			<span class="ident">blocks_since_session_start</span> <span class="op">%</span> <span class="ident">config</span>.<span class="ident">group_rotation_frequency</span>;
+		<span class="kw">let </span>session_start = &lt;SessionStartBlock&lt;T&gt;&gt;::get();
+		<span class="kw">let </span>blocks_since_session_start = now.saturating_sub(session_start);
+		<span class="kw">let </span>blocks_since_last_rotation =
+			blocks_since_session_start % config.group_rotation_frequency;
 
-		<span class="kw">let</span> <span class="ident">absolute_cutoff</span> <span class="op">=</span>
-			<span class="ident">sp_std::cmp::max</span>(<span class="ident">config</span>.<span class="ident">chain_availability_period</span>, <span class="ident">config</span>.<span class="ident">thread_availability_period</span>);
+		<span class="kw">let </span>absolute_cutoff =
+			sp_std::cmp::max(config.chain_availability_period, config.thread_availability_period);
 
-		<span class="kw">let</span> <span class="ident">availability_cores</span> <span class="op">=</span> <span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
+		<span class="kw">let </span>availability_cores = AvailabilityCores::&lt;T&gt;::get();
 
-		<span class="kw">if</span> <span class="ident">blocks_since_last_rotation</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">absolute_cutoff</span> {
-			<span class="prelude-val">None</span>
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">core_index</span>: <span class="ident">CoreIndex</span>, <span class="ident">pending_since</span><span class="op">|</span> {
-				<span class="kw">match</span> <span class="ident">availability_cores</span>.<span class="ident">get</span>(<span class="ident">core_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-					<span class="prelude-val">None</span> =&gt; <span class="bool-val">true</span>,       <span class="comment">// out-of-bounds, doesn&#39;t really matter what is returned.</span>
-					<span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; <span class="bool-val">true</span>, <span class="comment">// core not occupied, still doesn&#39;t really matter.</span>
-					<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parachain</span>)) =&gt; {
-						<span class="kw">if</span> <span class="ident">blocks_since_last_rotation</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">config</span>.<span class="ident">chain_availability_period</span> {
-							<span class="bool-val">false</span> <span class="comment">// no pruning except recently after rotation.</span>
-						} <span class="kw">else</span> {
-							<span class="ident">now</span>.<span class="ident">saturating_sub</span>(<span class="ident">pending_since</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">config</span>.<span class="ident">chain_availability_period</span>
+		<span class="kw">if </span>blocks_since_last_rotation &gt;= absolute_cutoff {
+			<span class="prelude-val">None
+		</span>} <span class="kw">else </span>{
+			<span class="prelude-val">Some</span>(Box::new(<span class="kw">move </span>|core_index: CoreIndex, pending_since| {
+				<span class="kw">match </span>availability_cores.get(core_index.<span class="number">0 </span><span class="kw">as </span>usize) {
+					<span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,       <span class="comment">// out-of-bounds, doesn&#39;t really matter what is returned.
+					</span><span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; <span class="bool-val">true</span>, <span class="comment">// core not occupied, still doesn&#39;t really matter.
+					</span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(CoreOccupied::Parachain)) =&gt; {
+						<span class="kw">if </span>blocks_since_last_rotation &gt;= config.chain_availability_period {
+							<span class="bool-val">false </span><span class="comment">// no pruning except recently after rotation.
+						</span>} <span class="kw">else </span>{
+							now.saturating_sub(pending_since) &gt;= config.chain_availability_period
 						}
 					},
-					<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">CoreOccupied::Parathread</span>(<span class="kw">_</span>))) =&gt; {
-						<span class="kw">if</span> <span class="ident">blocks_since_last_rotation</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">config</span>.<span class="ident">thread_availability_period</span> {
-							<span class="bool-val">false</span> <span class="comment">// no pruning except recently after rotation.</span>
-						} <span class="kw">else</span> {
-							<span class="ident">now</span>.<span class="ident">saturating_sub</span>(<span class="ident">pending_since</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">config</span>.<span class="ident">thread_availability_period</span>
+					<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(CoreOccupied::Parathread(<span class="kw">_</span>))) =&gt; {
+						<span class="kw">if </span>blocks_since_last_rotation &gt;= config.thread_availability_period {
+							<span class="bool-val">false </span><span class="comment">// no pruning except recently after rotation.
+						</span>} <span class="kw">else </span>{
+							now.saturating_sub(pending_since) &gt;= config.thread_availability_period
 						}
 					},
 				}
@@ -1443,91 +1437,91 @@
 		}
 	}
 
-	<span class="doccomment">/// Returns a helper for determining group rotation.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">group_rotation_info</span>(<span class="ident">now</span>: <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">GroupRotationInfo</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">session_start_block</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::session_start_block</span>();
-		<span class="kw">let</span> <span class="ident">group_rotation_frequency</span> <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">group_rotation_frequency</span>;
+	<span class="doccomment">/// Returns a helper for determining group rotation.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_rotation_info(now: T::BlockNumber) -&gt; GroupRotationInfo&lt;T::BlockNumber&gt; {
+		<span class="kw">let </span>session_start_block = <span class="self">Self</span>::session_start_block();
+		<span class="kw">let </span>group_rotation_frequency =
+			&lt;configuration::Pallet&lt;T&gt;&gt;::config().group_rotation_frequency;
 
-		<span class="ident">GroupRotationInfo</span> { <span class="ident">session_start_block</span>, <span class="ident">now</span>, <span class="ident">group_rotation_frequency</span> }
+		GroupRotationInfo { session_start_block, now, group_rotation_frequency }
 	}
 
-	<span class="doccomment">/// Return the next thing that will be scheduled on this core assuming it is currently</span>
-	<span class="doccomment">/// occupied and the candidate occupying it became available.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// For parachains, this is always the ID of the parachain and no specified collator.</span>
-	<span class="doccomment">/// For parathreads, this is based on the next item in the `ParathreadQueue` assigned to that</span>
-	<span class="doccomment">/// core, and is None if there isn&#39;t one.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_up_on_available</span>(<span class="ident">core</span>: <span class="ident">CoreIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScheduledCore</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">parachains</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::parachains</span>();
-		<span class="kw">if</span> (<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">parachains</span>.<span class="ident">len</span>() {
-			<span class="prelude-val">Some</span>(<span class="ident">ScheduledCore</span> { <span class="ident">para_id</span>: <span class="ident">parachains</span>[<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">collator</span>: <span class="prelude-val">None</span> })
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-			<span class="kw">let</span> <span class="ident">core_offset</span> <span class="op">=</span> (<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">parachains</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span>;
-			<span class="ident">queue</span>.<span class="ident">get_next_on_core</span>(<span class="ident">core_offset</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">entry</span><span class="op">|</span> <span class="ident">ScheduledCore</span> {
-				<span class="ident">para_id</span>: <span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">0</span>,
-				<span class="ident">collator</span>: <span class="prelude-val">Some</span>(<span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">1</span>.<span class="ident">clone</span>()),
+	<span class="doccomment">/// Return the next thing that will be scheduled on this core assuming it is currently
+	/// occupied and the candidate occupying it became available.
+	///
+	/// For parachains, this is always the ID of the parachain and no specified collator.
+	/// For parathreads, this is based on the next item in the `ParathreadQueue` assigned to that
+	/// core, and is None if there isn&#39;t one.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_up_on_available(core: CoreIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ScheduledCore&gt; {
+		<span class="kw">let </span>parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains();
+		<span class="kw">if </span>(core.<span class="number">0 </span><span class="kw">as </span>usize) &lt; parachains.len() {
+			<span class="prelude-val">Some</span>(ScheduledCore { para_id: parachains[core.<span class="number">0 </span><span class="kw">as </span>usize], collator: <span class="prelude-val">None </span>})
+		} <span class="kw">else </span>{
+			<span class="kw">let </span>queue = ParathreadQueue::&lt;T&gt;::get();
+			<span class="kw">let </span>core_offset = (core.<span class="number">0 </span><span class="kw">as </span>usize - parachains.len()) <span class="kw">as </span>u32;
+			queue.get_next_on_core(core_offset).map(|entry| ScheduledCore {
+				para_id: entry.claim.<span class="number">0</span>,
+				collator: <span class="prelude-val">Some</span>(entry.claim.<span class="number">1</span>.clone()),
 			})
 		}
 	}
 
-	<span class="doccomment">/// Return the next thing that will be scheduled on this core assuming it is currently</span>
-	<span class="doccomment">/// occupied and the candidate occupying it became available.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// For parachains, this is always the ID of the parachain and no specified collator.</span>
-	<span class="doccomment">/// For parathreads, this is based on the next item in the `ParathreadQueue` assigned to that</span>
-	<span class="doccomment">/// core, or if there isn&#39;t one, the claim that is currently occupying the core, as long</span>
-	<span class="doccomment">/// as the claim&#39;s retries would not exceed the limit. Otherwise None.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">next_up_on_time_out</span>(<span class="ident">core</span>: <span class="ident">CoreIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScheduledCore</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">parachains</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::parachains</span>();
-		<span class="kw">if</span> (<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="ident">parachains</span>.<span class="ident">len</span>() {
-			<span class="prelude-val">Some</span>(<span class="ident">ScheduledCore</span> { <span class="ident">para_id</span>: <span class="ident">parachains</span>[<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="ident">collator</span>: <span class="prelude-val">None</span> })
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
+	<span class="doccomment">/// Return the next thing that will be scheduled on this core assuming it is currently
+	/// occupied and the candidate occupying it became available.
+	///
+	/// For parachains, this is always the ID of the parachain and no specified collator.
+	/// For parathreads, this is based on the next item in the `ParathreadQueue` assigned to that
+	/// core, or if there isn&#39;t one, the claim that is currently occupying the core, as long
+	/// as the claim&#39;s retries would not exceed the limit. Otherwise None.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_up_on_time_out(core: CoreIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ScheduledCore&gt; {
+		<span class="kw">let </span>parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains();
+		<span class="kw">if </span>(core.<span class="number">0 </span><span class="kw">as </span>usize) &lt; parachains.len() {
+			<span class="prelude-val">Some</span>(ScheduledCore { para_id: parachains[core.<span class="number">0 </span><span class="kw">as </span>usize], collator: <span class="prelude-val">None </span>})
+		} <span class="kw">else </span>{
+			<span class="kw">let </span>queue = ParathreadQueue::&lt;T&gt;::get();
 
-			<span class="comment">// This is the next scheduled para on this core.</span>
-			<span class="kw">let</span> <span class="ident">core_offset</span> <span class="op">=</span> (<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">parachains</span>.<span class="ident">len</span>()) <span class="kw">as</span> <span class="ident">u32</span>;
-			<span class="ident">queue</span>
-				.<span class="ident">get_next_on_core</span>(<span class="ident">core_offset</span>)
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">entry</span><span class="op">|</span> <span class="ident">ScheduledCore</span> {
-					<span class="ident">para_id</span>: <span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">0</span>,
-					<span class="ident">collator</span>: <span class="prelude-val">Some</span>(<span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">1</span>.<span class="ident">clone</span>()),
+			<span class="comment">// This is the next scheduled para on this core.
+			</span><span class="kw">let </span>core_offset = (core.<span class="number">0 </span><span class="kw">as </span>usize - parachains.len()) <span class="kw">as </span>u32;
+			queue
+				.get_next_on_core(core_offset)
+				.map(|entry| ScheduledCore {
+					para_id: entry.claim.<span class="number">0</span>,
+					collator: <span class="prelude-val">Some</span>(entry.claim.<span class="number">1</span>.clone()),
 				})
-				.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-					<span class="comment">// Or, if none, the claim currently occupying the core,</span>
-					<span class="comment">// as it would be put back on the queue after timing out.</span>
-					<span class="kw">let</span> <span class="ident">cores</span> <span class="op">=</span> <span class="ident">AvailabilityCores</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-					<span class="ident">cores</span>.<span class="ident">get</span>(<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_ref</span>()).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> {
-						<span class="kw">match</span> <span class="ident">o</span> {
-							<span class="ident">CoreOccupied::Parathread</span>(<span class="ident">entry</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">ScheduledCore</span> {
-								<span class="ident">para_id</span>: <span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">0</span>,
-								<span class="ident">collator</span>: <span class="prelude-val">Some</span>(<span class="ident">entry</span>.<span class="ident">claim</span>.<span class="number">1</span>.<span class="ident">clone</span>()),
+				.or_else(|| {
+					<span class="comment">// Or, if none, the claim currently occupying the core,
+					// as it would be put back on the queue after timing out.
+					</span><span class="kw">let </span>cores = AvailabilityCores::&lt;T&gt;::get();
+					cores.get(core.<span class="number">0 </span><span class="kw">as </span>usize).and_then(|c| c.as_ref()).and_then(|o| {
+						<span class="kw">match </span>o {
+							CoreOccupied::Parathread(entry) =&gt; <span class="prelude-val">Some</span>(ScheduledCore {
+								para_id: entry.claim.<span class="number">0</span>,
+								collator: <span class="prelude-val">Some</span>(entry.claim.<span class="number">1</span>.clone()),
 							}),
-							<span class="ident">CoreOccupied::Parachain</span> =&gt; <span class="prelude-val">None</span>, <span class="comment">// defensive; not possible.</span>
-						}
+							CoreOccupied::Parachain =&gt; <span class="prelude-val">None</span>, <span class="comment">// defensive; not possible.
+						</span>}
 					})
 				})
 		}
 	}
 
-	<span class="comment">// Free all scheduled cores and return parathread claims to queue, with retries incremented.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>() {
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
-		<span class="ident">ParathreadQueue</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::mutate</span>(<span class="op">|</span><span class="ident">queue</span><span class="op">|</span> {
-			<span class="kw">for</span> <span class="ident">core_assignment</span> <span class="kw">in</span> <span class="ident">Scheduled</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::take</span>() {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="ident">AssignmentKind::Parathread</span>(<span class="ident">collator</span>, <span class="ident">retries</span>) <span class="op">=</span> <span class="ident">core_assignment</span>.<span class="ident">kind</span> {
-					<span class="kw">if</span> <span class="op">!</span><span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::is_parathread</span>(<span class="ident">core_assignment</span>.<span class="ident">para_id</span>) {
-						<span class="kw">continue</span>
-					}
+	<span class="comment">// Free all scheduled cores and return parathread claims to queue, with retries incremented.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clear() {
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
+		ParathreadQueue::&lt;T&gt;::mutate(|queue| {
+			<span class="kw">for </span>core_assignment <span class="kw">in </span>Scheduled::&lt;T&gt;::take() {
+				<span class="kw">if let </span>AssignmentKind::Parathread(collator, retries) = core_assignment.kind {
+					<span class="kw">if </span>!&lt;paras::Pallet&lt;T&gt;&gt;::is_parathread(core_assignment.para_id) {
+						<span class="kw">continue
+					</span>}
 
-					<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">ParathreadEntry</span> {
-						<span class="ident">claim</span>: <span class="ident">ParathreadClaim</span>(<span class="ident">core_assignment</span>.<span class="ident">para_id</span>, <span class="ident">collator</span>),
-						<span class="ident">retries</span>: <span class="ident">retries</span> <span class="op">+</span> <span class="number">1</span>,
+					<span class="kw">let </span>entry = ParathreadEntry {
+						claim: ParathreadClaim(core_assignment.para_id, collator),
+						retries: retries + <span class="number">1</span>,
 					};
 
-					<span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">retries</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">config</span>.<span class="ident">parathread_retries</span> {
-						<span class="ident">queue</span>.<span class="ident">enqueue_entry</span>(<span class="ident">entry</span>, <span class="ident">config</span>.<span class="ident">parathread_cores</span>);
+					<span class="kw">if </span>entry.retries &lt;= config.parathread_retries {
+						queue.enqueue_entry(entry, config.parathread_cores);
 					}
 				}
 			}
@@ -1535,5 +1529,4 @@
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

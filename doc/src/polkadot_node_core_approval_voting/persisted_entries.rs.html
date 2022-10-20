@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/approval-voting/src/persisted_entries.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>persisted_entries.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_approval_voting/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_approval_voting/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_approval_voting/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/approval-voting/src/persisted_entries.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>persisted_entries.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_approval_voting/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_approval_voting/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -451,453 +445,452 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Entries pertaining to approval which need to be persisted.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The actual persisting of data is handled by the `approval_db` module.</span>
-<span class="doccomment">//! Within that context, things are plain-old-data. Within this module,</span>
-<span class="doccomment">//! data and logic are intertwined.</span>
+</span><span class="doccomment">//! Entries pertaining to approval which need to be persisted.
+//!
+//! The actual persisting of data is handled by the `approval_db` module.
+//! Within that context, things are plain-old-data. Within this module,
+//! data and logic are intertwined.
 
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives::approval</span>::{<span class="ident">AssignmentCert</span>, <span class="ident">DelayTranche</span>, <span class="ident">RelayVRFStory</span>};
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">BlockNumber</span>, <span class="ident">CandidateHash</span>, <span class="ident">CandidateReceipt</span>, <span class="ident">CoreIndex</span>, <span class="ident">GroupIndex</span>, <span class="ident">Hash</span>, <span class="ident">SessionIndex</span>,
-	<span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>,
+</span><span class="kw">use </span>polkadot_node_primitives::approval::{AssignmentCert, DelayTranche, RelayVRFStory};
+<span class="kw">use </span>polkadot_primitives::v2::{
+	BlockNumber, CandidateHash, CandidateReceipt, CoreIndex, GroupIndex, Hash, SessionIndex,
+	ValidatorIndex, ValidatorSignature,
 };
-<span class="kw">use</span> <span class="ident">sp_consensus_slots::Slot</span>;
+<span class="kw">use </span>sp_consensus_slots::Slot;
 
-<span class="kw">use</span> <span class="ident">bitvec</span>::{<span class="ident">order::Lsb0</span> <span class="kw">as</span> <span class="ident">BitOrderLsb0</span>, <span class="ident">slice::BitSlice</span>, <span class="ident">vec::BitVec</span>};
-<span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
+<span class="kw">use </span>bitvec::{order::Lsb0 <span class="kw">as </span>BitOrderLsb0, slice::BitSlice, vec::BitVec};
+<span class="kw">use </span>std::collections::BTreeMap;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">criteria::OurAssignment</span>, <span class="ident">time::Tick</span>};
+<span class="kw">use super</span>::{criteria::OurAssignment, time::Tick};
 
-<span class="doccomment">/// Metadata regarding a specific tranche of assignments for a specific candidate.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TrancheEntry</span> {
-	<span class="ident">tranche</span>: <span class="ident">DelayTranche</span>,
-	<span class="comment">// Assigned validators, and the instant we received their assignment, rounded</span>
-	<span class="comment">// to the nearest tick.</span>
-	<span class="ident">assignments</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ValidatorIndex</span>, <span class="ident">Tick</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Metadata regarding a specific tranche of assignments for a specific candidate.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>TrancheEntry {
+	tranche: DelayTranche,
+	<span class="comment">// Assigned validators, and the instant we received their assignment, rounded
+	// to the nearest tick.
+	</span>assignments: Vec&lt;(ValidatorIndex, Tick)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">TrancheEntry</span> {
-	<span class="doccomment">/// Get the tranche of this entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tranche</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">DelayTranche</span> {
-		<span class="self">self</span>.<span class="ident">tranche</span>
+<span class="kw">impl </span>TrancheEntry {
+	<span class="doccomment">/// Get the tranche of this entry.
+	</span><span class="kw">pub fn </span>tranche(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DelayTranche {
+		<span class="self">self</span>.tranche
 	}
 
-	<span class="doccomment">/// Get the assignments for this entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assignments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(<span class="ident">ValidatorIndex</span>, <span class="ident">Tick</span>)] {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">assignments</span>
+	<span class="doccomment">/// Get the assignments for this entry.
+	</span><span class="kw">pub fn </span>assignments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(ValidatorIndex, Tick)] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.assignments
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::approval_db::v1::TrancheEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TrancheEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident"><span class="kw">crate</span>::approval_db::v1::TrancheEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">TrancheEntry</span> {
-			<span class="ident">tranche</span>: <span class="ident">entry</span>.<span class="ident">tranche</span>,
-			<span class="ident">assignments</span>: <span class="ident">entry</span>.<span class="ident">assignments</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">v</span>, <span class="ident">t</span>)<span class="op">|</span> (<span class="ident">v</span>, <span class="ident">t</span>.<span class="ident">into</span>())).<span class="ident">collect</span>(),
+<span class="kw">impl </span>From&lt;<span class="kw">crate</span>::approval_db::v1::TrancheEntry&gt; <span class="kw">for </span>TrancheEntry {
+	<span class="kw">fn </span>from(entry: <span class="kw">crate</span>::approval_db::v1::TrancheEntry) -&gt; <span class="self">Self </span>{
+		TrancheEntry {
+			tranche: entry.tranche,
+			assignments: entry.assignments.into_iter().map(|(v, t)| (v, t.into())).collect(),
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TrancheEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::approval_db::v1::TrancheEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident">TrancheEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">tranche</span>: <span class="ident">entry</span>.<span class="ident">tranche</span>,
-			<span class="ident">assignments</span>: <span class="ident">entry</span>.<span class="ident">assignments</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">v</span>, <span class="ident">t</span>)<span class="op">|</span> (<span class="ident">v</span>, <span class="ident">t</span>.<span class="ident">into</span>())).<span class="ident">collect</span>(),
+<span class="kw">impl </span>From&lt;TrancheEntry&gt; <span class="kw">for </span><span class="kw">crate</span>::approval_db::v1::TrancheEntry {
+	<span class="kw">fn </span>from(entry: TrancheEntry) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			tranche: entry.tranche,
+			assignments: entry.assignments.into_iter().map(|(v, t)| (v, t.into())).collect(),
 		}
 	}
 }
 
-<span class="doccomment">/// Metadata regarding approval of a particular candidate within the context of some</span>
-<span class="doccomment">/// particular block.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ApprovalEntry</span> {
-	<span class="ident">tranches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrancheEntry</span><span class="op">&gt;</span>,
-	<span class="ident">backing_group</span>: <span class="ident">GroupIndex</span>,
-	<span class="ident">our_assignment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OurAssignment</span><span class="op">&gt;</span>,
-	<span class="ident">our_approval_sig</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidatorSignature</span><span class="op">&gt;</span>,
-	<span class="comment">// `n_validators` bits.</span>
-	<span class="ident">assignments</span>: <span class="ident">BitVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span><span class="op">&gt;</span>,
-	<span class="ident">approved</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Metadata regarding approval of a particular candidate within the context of some
+/// particular block.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>ApprovalEntry {
+	tranches: Vec&lt;TrancheEntry&gt;,
+	backing_group: GroupIndex,
+	our_assignment: <span class="prelude-ty">Option</span>&lt;OurAssignment&gt;,
+	our_approval_sig: <span class="prelude-ty">Option</span>&lt;ValidatorSignature&gt;,
+	<span class="comment">// `n_validators` bits.
+	</span>assignments: BitVec&lt;u8, BitOrderLsb0&gt;,
+	approved: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">ApprovalEntry</span> {
-	<span class="doccomment">/// Convenience constructor</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">tranches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrancheEntry</span><span class="op">&gt;</span>,
-		<span class="ident">backing_group</span>: <span class="ident">GroupIndex</span>,
-		<span class="ident">our_assignment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OurAssignment</span><span class="op">&gt;</span>,
-		<span class="ident">our_approval_sig</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidatorSignature</span><span class="op">&gt;</span>,
-		<span class="comment">// `n_validators` bits.</span>
-		<span class="ident">assignments</span>: <span class="ident">BitVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span><span class="op">&gt;</span>,
-		<span class="ident">approved</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">tranches</span>, <span class="ident">backing_group</span>, <span class="ident">our_assignment</span>, <span class="ident">our_approval_sig</span>, <span class="ident">assignments</span>, <span class="ident">approved</span> }
+<span class="kw">impl </span>ApprovalEntry {
+	<span class="doccomment">/// Convenience constructor
+	</span><span class="kw">pub fn </span>new(
+		tranches: Vec&lt;TrancheEntry&gt;,
+		backing_group: GroupIndex,
+		our_assignment: <span class="prelude-ty">Option</span>&lt;OurAssignment&gt;,
+		our_approval_sig: <span class="prelude-ty">Option</span>&lt;ValidatorSignature&gt;,
+		<span class="comment">// `n_validators` bits.
+		</span>assignments: BitVec&lt;u8, BitOrderLsb0&gt;,
+		approved: bool,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ tranches, backing_group, our_assignment, our_approval_sig, assignments, approved }
 	}
 
-	<span class="comment">// Access our assignment for this approval entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">our_assignment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OurAssignment</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">our_assignment</span>.<span class="ident">as_ref</span>()
+	<span class="comment">// Access our assignment for this approval entry.
+	</span><span class="kw">pub fn </span>our_assignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>OurAssignment&gt; {
+		<span class="self">self</span>.our_assignment.as_ref()
 	}
 
-	<span class="comment">// Note that our assignment is triggered. No-op if already triggered.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trigger_our_assignment</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">tick_now</span>: <span class="ident">Tick</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">AssignmentCert</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">DelayTranche</span>)<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">our</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">our_assignment</span>.<span class="ident">as_mut</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> {
-			<span class="kw">if</span> <span class="ident">a</span>.<span class="ident">triggered</span>() {
-				<span class="kw">return</span> <span class="prelude-val">None</span>
-			}
-			<span class="ident">a</span>.<span class="ident">mark_triggered</span>();
+	<span class="comment">// Note that our assignment is triggered. No-op if already triggered.
+	</span><span class="kw">pub fn </span>trigger_our_assignment(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		tick_now: Tick,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;(AssignmentCert, ValidatorIndex, DelayTranche)&gt; {
+		<span class="kw">let </span>our = <span class="self">self</span>.our_assignment.as_mut().and_then(|a| {
+			<span class="kw">if </span>a.triggered() {
+				<span class="kw">return </span><span class="prelude-val">None
+			</span>}
+			a.mark_triggered();
 
-			<span class="prelude-val">Some</span>(<span class="ident">a</span>.<span class="ident">clone</span>())
+			<span class="prelude-val">Some</span>(a.clone())
 		});
 
-		<span class="ident">our</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> {
-			<span class="self">self</span>.<span class="ident">import_assignment</span>(<span class="ident">a</span>.<span class="ident">tranche</span>(), <span class="ident">a</span>.<span class="ident">validator_index</span>(), <span class="ident">tick_now</span>);
+		our.map(|a| {
+			<span class="self">self</span>.import_assignment(a.tranche(), a.validator_index(), tick_now);
 
-			(<span class="ident">a</span>.<span class="ident">cert</span>().<span class="ident">clone</span>(), <span class="ident">a</span>.<span class="ident">validator_index</span>(), <span class="ident">a</span>.<span class="ident">tranche</span>())
+			(a.cert().clone(), a.validator_index(), a.tranche())
 		})
 	}
 
-	<span class="doccomment">/// Import our local approval vote signature for this candidate.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import_approval_sig</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">approval_sig</span>: <span class="ident">ValidatorSignature</span>) {
-		<span class="self">self</span>.<span class="ident">our_approval_sig</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">approval_sig</span>);
+	<span class="doccomment">/// Import our local approval vote signature for this candidate.
+	</span><span class="kw">pub fn </span>import_approval_sig(<span class="kw-2">&amp;mut </span><span class="self">self</span>, approval_sig: ValidatorSignature) {
+		<span class="self">self</span>.our_approval_sig = <span class="prelude-val">Some</span>(approval_sig);
 	}
 
-	<span class="doccomment">/// Whether a validator is already assigned.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_assigned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">validator_index</span>: <span class="ident">ValidatorIndex</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">assignments</span>.<span class="ident">get</span>(<span class="ident">validator_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">b</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+	<span class="doccomment">/// Whether a validator is already assigned.
+	</span><span class="kw">pub fn </span>is_assigned(<span class="kw-2">&amp;</span><span class="self">self</span>, validator_index: ValidatorIndex) -&gt; bool {
+		<span class="self">self</span>.assignments.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize).map(|b| <span class="kw-2">*</span>b).unwrap_or(<span class="bool-val">false</span>)
 	}
 
-	<span class="doccomment">/// Import an assignment. No-op if already assigned on the same tranche.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import_assignment</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">tranche</span>: <span class="ident">DelayTranche</span>,
-		<span class="ident">validator_index</span>: <span class="ident">ValidatorIndex</span>,
-		<span class="ident">tick_now</span>: <span class="ident">Tick</span>,
+	<span class="doccomment">/// Import an assignment. No-op if already assigned on the same tranche.
+	</span><span class="kw">pub fn </span>import_assignment(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		tranche: DelayTranche,
+		validator_index: ValidatorIndex,
+		tick_now: Tick,
 	) {
-		<span class="comment">// linear search probably faster than binary. not many tranches typically.</span>
-		<span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">tranches</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">tranche</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">tranche</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">pos</span>) =&gt; {
-				<span class="kw">if</span> <span class="self">self</span>.<span class="ident">tranches</span>[<span class="ident">pos</span>].<span class="ident">tranche</span> <span class="op">&gt;</span> <span class="ident">tranche</span> {
-					<span class="self">self</span>.<span class="ident">tranches</span>.<span class="ident">insert</span>(<span class="ident">pos</span>, <span class="ident">TrancheEntry</span> { <span class="ident">tranche</span>, <span class="ident">assignments</span>: <span class="ident">Vec::new</span>() });
+		<span class="comment">// linear search probably faster than binary. not many tranches typically.
+		</span><span class="kw">let </span>idx = <span class="kw">match </span><span class="self">self</span>.tranches.iter().position(|t| t.tranche &gt;= tranche) {
+			<span class="prelude-val">Some</span>(pos) =&gt; {
+				<span class="kw">if </span><span class="self">self</span>.tranches[pos].tranche &gt; tranche {
+					<span class="self">self</span>.tranches.insert(pos, TrancheEntry { tranche, assignments: Vec::new() });
 				}
 
-				<span class="ident">pos</span>
+				pos
 			},
-			<span class="prelude-val">None</span> =&gt; {
-				<span class="self">self</span>.<span class="ident">tranches</span>.<span class="ident">push</span>(<span class="ident">TrancheEntry</span> { <span class="ident">tranche</span>, <span class="ident">assignments</span>: <span class="ident">Vec::new</span>() });
+			<span class="prelude-val">None </span>=&gt; {
+				<span class="self">self</span>.tranches.push(TrancheEntry { tranche, assignments: Vec::new() });
 
-				<span class="self">self</span>.<span class="ident">tranches</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>
-			},
+				<span class="self">self</span>.tranches.len() - <span class="number">1
+			</span>},
 		};
 
-		<span class="self">self</span>.<span class="ident">tranches</span>[<span class="ident">idx</span>].<span class="ident">assignments</span>.<span class="ident">push</span>((<span class="ident">validator_index</span>, <span class="ident">tick_now</span>));
-		<span class="self">self</span>.<span class="ident">assignments</span>.<span class="ident">set</span>(<span class="ident">validator_index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="bool-val">true</span>);
+		<span class="self">self</span>.tranches[idx].assignments.push((validator_index, tick_now));
+		<span class="self">self</span>.assignments.set(validator_index.<span class="number">0 </span><span class="kw">as _</span>, <span class="bool-val">true</span>);
 	}
 
-	<span class="comment">// Produce a bitvec indicating the assignments of all validators up to and</span>
-	<span class="comment">// including `tranche`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assignments_up_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tranche</span>: <span class="ident">DelayTranche</span>) -&gt; <span class="ident">BitVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">tranches</span>.<span class="ident">iter</span>().<span class="ident">take_while</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">tranche</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">tranche</span>).<span class="ident">fold</span>(
-			<span class="macro">bitvec::bitvec!</span>[<span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span>; <span class="number">0</span>; <span class="self">self</span>.<span class="ident">assignments</span>.<span class="ident">len</span>()],
-			<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">a</span>, <span class="ident">e</span><span class="op">|</span> {
-				<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">v</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">assignments</span> {
-					<span class="ident">a</span>.<span class="ident">set</span>(<span class="ident">v</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="bool-val">true</span>);
+	<span class="comment">// Produce a bitvec indicating the assignments of all validators up to and
+	// including `tranche`.
+	</span><span class="kw">pub fn </span>assignments_up_to(<span class="kw-2">&amp;</span><span class="self">self</span>, tranche: DelayTranche) -&gt; BitVec&lt;u8, BitOrderLsb0&gt; {
+		<span class="self">self</span>.tranches.iter().take_while(|e| e.tranche &lt;= tranche).fold(
+			<span class="macro">bitvec::bitvec!</span>[u8, BitOrderLsb0; <span class="number">0</span>; <span class="self">self</span>.assignments.len()],
+			|<span class="kw-2">mut </span>a, e| {
+				<span class="kw">for </span><span class="kw-2">&amp;</span>(v, <span class="kw">_</span>) <span class="kw">in </span><span class="kw-2">&amp;</span>e.assignments {
+					a.set(v.<span class="number">0 </span><span class="kw">as _</span>, <span class="bool-val">true</span>);
 				}
 
-				<span class="ident">a</span>
+				a
 			},
 		)
 	}
 
-	<span class="doccomment">/// Whether the approval entry is approved</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_approved</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">approved</span>
+	<span class="doccomment">/// Whether the approval entry is approved
+	</span><span class="kw">pub fn </span>is_approved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.approved
 	}
 
-	<span class="doccomment">/// Mark the approval entry as approved.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mark_approved</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="self">self</span>.<span class="ident">approved</span> <span class="op">=</span> <span class="bool-val">true</span>;
+	<span class="doccomment">/// Mark the approval entry as approved.
+	</span><span class="kw">pub fn </span>mark_approved(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="self">self</span>.approved = <span class="bool-val">true</span>;
 	}
 
-	<span class="doccomment">/// Access the tranches.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tranches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">TrancheEntry</span>] {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tranches</span>
+	<span class="doccomment">/// Access the tranches.
+	</span><span class="kw">pub fn </span>tranches(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[TrancheEntry] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.tranches
 	}
 
-	<span class="doccomment">/// Get the number of validators in this approval entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n_validators</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">assignments</span>.<span class="ident">len</span>()
+	<span class="doccomment">/// Get the number of validators in this approval entry.
+	</span><span class="kw">pub fn </span>n_validators(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.assignments.len()
 	}
 
-	<span class="doccomment">/// Get the number of assignments by validators, including the local validator.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n_assignments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">assignments</span>.<span class="ident">count_ones</span>()
+	<span class="doccomment">/// Get the number of assignments by validators, including the local validator.
+	</span><span class="kw">pub fn </span>n_assignments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.assignments.count_ones()
 	}
 
-	<span class="doccomment">/// Get the backing group index of the approval entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">backing_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">GroupIndex</span> {
-		<span class="self">self</span>.<span class="ident">backing_group</span>
+	<span class="doccomment">/// Get the backing group index of the approval entry.
+	</span><span class="kw">pub fn </span>backing_group(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GroupIndex {
+		<span class="self">self</span>.backing_group
 	}
 
-	<span class="doccomment">/// Get the assignment cert &amp; approval signature.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The approval signature will only be `Some` if the assignment is too.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_statements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OurAssignment</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidatorSignature</span><span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">approval_sig</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">our_approval_sig</span>.<span class="ident">clone</span>();
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">our_assignment</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">our_assignment</span>.<span class="ident">as_ref</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">triggered</span>()) {
-			(<span class="prelude-val">Some</span>(<span class="ident">our_assignment</span>.<span class="ident">clone</span>()), <span class="ident">approval_sig</span>)
-		} <span class="kw">else</span> {
+	<span class="doccomment">/// Get the assignment cert &amp; approval signature.
+	///
+	/// The approval signature will only be `Some` if the assignment is too.
+	</span><span class="kw">pub fn </span>local_statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="prelude-ty">Option</span>&lt;OurAssignment&gt;, <span class="prelude-ty">Option</span>&lt;ValidatorSignature&gt;) {
+		<span class="kw">let </span>approval_sig = <span class="self">self</span>.our_approval_sig.clone();
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(our_assignment) = <span class="self">self</span>.our_assignment.as_ref().filter(|a| a.triggered()) {
+			(<span class="prelude-val">Some</span>(our_assignment.clone()), approval_sig)
+		} <span class="kw">else </span>{
 			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::approval_db::v1::ApprovalEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ApprovalEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident"><span class="kw">crate</span>::approval_db::v1::ApprovalEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">ApprovalEntry</span> {
-			<span class="ident">tranches</span>: <span class="ident">entry</span>.<span class="ident">tranches</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>).<span class="ident">collect</span>(),
-			<span class="ident">backing_group</span>: <span class="ident">entry</span>.<span class="ident">backing_group</span>,
-			<span class="ident">our_assignment</span>: <span class="ident">entry</span>.<span class="ident">our_assignment</span>.<span class="ident">map</span>(<span class="ident">Into::into</span>),
-			<span class="ident">our_approval_sig</span>: <span class="ident">entry</span>.<span class="ident">our_approval_sig</span>.<span class="ident">map</span>(<span class="ident">Into::into</span>),
-			<span class="ident">assignments</span>: <span class="ident">entry</span>.<span class="ident">assignments</span>,
-			<span class="ident">approved</span>: <span class="ident">entry</span>.<span class="ident">approved</span>,
+<span class="kw">impl </span>From&lt;<span class="kw">crate</span>::approval_db::v1::ApprovalEntry&gt; <span class="kw">for </span>ApprovalEntry {
+	<span class="kw">fn </span>from(entry: <span class="kw">crate</span>::approval_db::v1::ApprovalEntry) -&gt; <span class="self">Self </span>{
+		ApprovalEntry {
+			tranches: entry.tranches.into_iter().map(Into::into).collect(),
+			backing_group: entry.backing_group,
+			our_assignment: entry.our_assignment.map(Into::into),
+			our_approval_sig: entry.our_approval_sig.map(Into::into),
+			assignments: entry.assignments,
+			approved: entry.approved,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ApprovalEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::approval_db::v1::ApprovalEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident">ApprovalEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">tranches</span>: <span class="ident">entry</span>.<span class="ident">tranches</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>).<span class="ident">collect</span>(),
-			<span class="ident">backing_group</span>: <span class="ident">entry</span>.<span class="ident">backing_group</span>,
-			<span class="ident">our_assignment</span>: <span class="ident">entry</span>.<span class="ident">our_assignment</span>.<span class="ident">map</span>(<span class="ident">Into::into</span>),
-			<span class="ident">our_approval_sig</span>: <span class="ident">entry</span>.<span class="ident">our_approval_sig</span>.<span class="ident">map</span>(<span class="ident">Into::into</span>),
-			<span class="ident">assignments</span>: <span class="ident">entry</span>.<span class="ident">assignments</span>,
-			<span class="ident">approved</span>: <span class="ident">entry</span>.<span class="ident">approved</span>,
+<span class="kw">impl </span>From&lt;ApprovalEntry&gt; <span class="kw">for </span><span class="kw">crate</span>::approval_db::v1::ApprovalEntry {
+	<span class="kw">fn </span>from(entry: ApprovalEntry) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			tranches: entry.tranches.into_iter().map(Into::into).collect(),
+			backing_group: entry.backing_group,
+			our_assignment: entry.our_assignment.map(Into::into),
+			our_approval_sig: entry.our_approval_sig.map(Into::into),
+			assignments: entry.assignments,
+			approved: entry.approved,
 		}
 	}
 }
 
-<span class="doccomment">/// Metadata regarding approval of a particular candidate.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CandidateEntry</span> {
-	<span class="kw">pub</span> <span class="ident">candidate</span>: <span class="ident">CandidateReceipt</span>,
-	<span class="kw">pub</span> <span class="ident">session</span>: <span class="ident">SessionIndex</span>,
-	<span class="comment">// Assignments are based on blocks, so we need to track assignments separately</span>
-	<span class="comment">// based on the block we are looking at.</span>
-	<span class="kw">pub</span> <span class="ident">block_assignments</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Hash</span>, <span class="ident">ApprovalEntry</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">approvals</span>: <span class="ident">BitVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Metadata regarding approval of a particular candidate.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>CandidateEntry {
+	<span class="kw">pub </span>candidate: CandidateReceipt,
+	<span class="kw">pub </span>session: SessionIndex,
+	<span class="comment">// Assignments are based on blocks, so we need to track assignments separately
+	// based on the block we are looking at.
+	</span><span class="kw">pub </span>block_assignments: BTreeMap&lt;Hash, ApprovalEntry&gt;,
+	<span class="kw">pub </span>approvals: BitVec&lt;u8, BitOrderLsb0&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">CandidateEntry</span> {
-	<span class="doccomment">/// Access the bit-vec of approvals.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">approvals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BitSlice</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span><span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">approvals</span>
+<span class="kw">impl </span>CandidateEntry {
+	<span class="doccomment">/// Access the bit-vec of approvals.
+	</span><span class="kw">pub fn </span>approvals(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BitSlice&lt;u8, BitOrderLsb0&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.approvals
 	}
 
-	<span class="doccomment">/// Note that a given validator has approved. Return the previous approval state.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mark_approval</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">validator</span>: <span class="ident">ValidatorIndex</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_approved</span>(<span class="ident">validator</span>);
-		<span class="self">self</span>.<span class="ident">approvals</span>.<span class="ident">set</span>(<span class="ident">validator</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="bool-val">true</span>);
-		<span class="ident">prev</span>
+	<span class="doccomment">/// Note that a given validator has approved. Return the previous approval state.
+	</span><span class="kw">pub fn </span>mark_approval(<span class="kw-2">&amp;mut </span><span class="self">self</span>, validator: ValidatorIndex) -&gt; bool {
+		<span class="kw">let </span>prev = <span class="self">self</span>.has_approved(validator);
+		<span class="self">self</span>.approvals.set(validator.<span class="number">0 </span><span class="kw">as </span>usize, <span class="bool-val">true</span>);
+		prev
 	}
 
-	<span class="doccomment">/// Query whether a given validator has approved the candidate.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_approved</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">validator</span>: <span class="ident">ValidatorIndex</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">approvals</span>.<span class="ident">get</span>(<span class="ident">validator</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">b</span>).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+	<span class="doccomment">/// Query whether a given validator has approved the candidate.
+	</span><span class="kw">pub fn </span>has_approved(<span class="kw-2">&amp;</span><span class="self">self</span>, validator: ValidatorIndex) -&gt; bool {
+		<span class="self">self</span>.approvals.get(validator.<span class="number">0 </span><span class="kw">as </span>usize).map(|b| <span class="kw-2">*</span>b).unwrap_or(<span class="bool-val">false</span>)
 	}
 
-	<span class="doccomment">/// Get the candidate receipt.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_receipt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CandidateReceipt</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">candidate</span>
+	<span class="doccomment">/// Get the candidate receipt.
+	</span><span class="kw">pub fn </span>candidate_receipt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CandidateReceipt {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.candidate
 	}
 
-	<span class="doccomment">/// Get the approval entry, mutably, for this candidate under a specific block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">approval_entry_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block_hash</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">ApprovalEntry</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">block_assignments</span>.<span class="ident">get_mut</span>(<span class="ident">block_hash</span>)
+	<span class="doccomment">/// Get the approval entry, mutably, for this candidate under a specific block.
+	</span><span class="kw">pub fn </span>approval_entry_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_hash: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>ApprovalEntry&gt; {
+		<span class="self">self</span>.block_assignments.get_mut(block_hash)
 	}
 
-	<span class="doccomment">/// Get the approval entry for this candidate under a specific block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">approval_entry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">block_hash</span>: <span class="kw-2">&amp;</span><span class="ident">Hash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ApprovalEntry</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">block_assignments</span>.<span class="ident">get</span>(<span class="ident">block_hash</span>)
+	<span class="doccomment">/// Get the approval entry for this candidate under a specific block.
+	</span><span class="kw">pub fn </span>approval_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, block_hash: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ApprovalEntry&gt; {
+		<span class="self">self</span>.block_assignments.get(block_hash)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::approval_db::v1::CandidateEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CandidateEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident"><span class="kw">crate</span>::approval_db::v1::CandidateEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">CandidateEntry</span> {
-			<span class="ident">candidate</span>: <span class="ident">entry</span>.<span class="ident">candidate</span>,
-			<span class="ident">session</span>: <span class="ident">entry</span>.<span class="ident">session</span>,
-			<span class="ident">block_assignments</span>: <span class="ident">entry</span>
-				.<span class="ident">block_assignments</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">h</span>, <span class="ident">ae</span>)<span class="op">|</span> (<span class="ident">h</span>, <span class="ident">ae</span>.<span class="ident">into</span>()))
-				.<span class="ident">collect</span>(),
-			<span class="ident">approvals</span>: <span class="ident">entry</span>.<span class="ident">approvals</span>,
+<span class="kw">impl </span>From&lt;<span class="kw">crate</span>::approval_db::v1::CandidateEntry&gt; <span class="kw">for </span>CandidateEntry {
+	<span class="kw">fn </span>from(entry: <span class="kw">crate</span>::approval_db::v1::CandidateEntry) -&gt; <span class="self">Self </span>{
+		CandidateEntry {
+			candidate: entry.candidate,
+			session: entry.session,
+			block_assignments: entry
+				.block_assignments
+				.into_iter()
+				.map(|(h, ae)| (h, ae.into()))
+				.collect(),
+			approvals: entry.approvals,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CandidateEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::approval_db::v1::CandidateEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident">CandidateEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">candidate</span>: <span class="ident">entry</span>.<span class="ident">candidate</span>,
-			<span class="ident">session</span>: <span class="ident">entry</span>.<span class="ident">session</span>,
-			<span class="ident">block_assignments</span>: <span class="ident">entry</span>
-				.<span class="ident">block_assignments</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">h</span>, <span class="ident">ae</span>)<span class="op">|</span> (<span class="ident">h</span>, <span class="ident">ae</span>.<span class="ident">into</span>()))
-				.<span class="ident">collect</span>(),
-			<span class="ident">approvals</span>: <span class="ident">entry</span>.<span class="ident">approvals</span>,
+<span class="kw">impl </span>From&lt;CandidateEntry&gt; <span class="kw">for </span><span class="kw">crate</span>::approval_db::v1::CandidateEntry {
+	<span class="kw">fn </span>from(entry: CandidateEntry) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			candidate: entry.candidate,
+			session: entry.session,
+			block_assignments: entry
+				.block_assignments
+				.into_iter()
+				.map(|(h, ae)| (h, ae.into()))
+				.collect(),
+			approvals: entry.approvals,
 		}
 	}
 }
 
-<span class="doccomment">/// Metadata regarding approval of a particular block, by way of approval of the</span>
-<span class="doccomment">/// candidates contained within it.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockEntry</span> {
-	<span class="ident">block_hash</span>: <span class="ident">Hash</span>,
-	<span class="ident">parent_hash</span>: <span class="ident">Hash</span>,
-	<span class="ident">block_number</span>: <span class="ident">BlockNumber</span>,
-	<span class="ident">session</span>: <span class="ident">SessionIndex</span>,
-	<span class="ident">slot</span>: <span class="ident">Slot</span>,
-	<span class="ident">relay_vrf_story</span>: <span class="ident">RelayVRFStory</span>,
-	<span class="comment">// The candidates included as-of this block and the index of the core they are</span>
-	<span class="comment">// leaving. Sorted ascending by core index.</span>
-	<span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">CoreIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span>,
-	<span class="comment">// A bitfield where the i&#39;th bit corresponds to the i&#39;th candidate in `candidates`.</span>
-	<span class="comment">// The i&#39;th bit is `true` iff the candidate has been approved in the context of this</span>
-	<span class="comment">// block. The block can be considered approved if the bitfield has all bits set to `true`.</span>
-	<span class="kw">pub</span> <span class="ident">approved_bitfield</span>: <span class="ident">BitVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Metadata regarding approval of a particular block, by way of approval of the
+/// candidates contained within it.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>BlockEntry {
+	block_hash: Hash,
+	parent_hash: Hash,
+	block_number: BlockNumber,
+	session: SessionIndex,
+	slot: Slot,
+	relay_vrf_story: RelayVRFStory,
+	<span class="comment">// The candidates included as-of this block and the index of the core they are
+	// leaving. Sorted ascending by core index.
+	</span>candidates: Vec&lt;(CoreIndex, CandidateHash)&gt;,
+	<span class="comment">// A bitfield where the i&#39;th bit corresponds to the i&#39;th candidate in `candidates`.
+	// The i&#39;th bit is `true` iff the candidate has been approved in the context of this
+	// block. The block can be considered approved if the bitfield has all bits set to `true`.
+	</span><span class="kw">pub </span>approved_bitfield: BitVec&lt;u8, BitOrderLsb0&gt;,
+	<span class="kw">pub </span>children: Vec&lt;Hash&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">BlockEntry</span> {
-	<span class="doccomment">/// Mark a candidate as fully approved in the bitfield.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mark_approved_by_hash</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">candidate_hash</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">candidates</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">h</span>)<span class="op">|</span> <span class="ident">h</span> <span class="op">==</span> <span class="ident">candidate_hash</span>) {
-			<span class="self">self</span>.<span class="ident">approved_bitfield</span>.<span class="ident">set</span>(<span class="ident">p</span>, <span class="bool-val">true</span>);
+<span class="kw">impl </span>BlockEntry {
+	<span class="doccomment">/// Mark a candidate as fully approved in the bitfield.
+	</span><span class="kw">pub fn </span>mark_approved_by_hash(<span class="kw-2">&amp;mut </span><span class="self">self</span>, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.candidates.iter().position(|(<span class="kw">_</span>, h)| h == candidate_hash) {
+			<span class="self">self</span>.approved_bitfield.set(p, <span class="bool-val">true</span>);
 		}
 	}
 
-	<span class="doccomment">/// Whether a candidate is approved in the bitfield.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_candidate_approved</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">candidate_hash</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">candidates</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">position</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">h</span>)<span class="op">|</span> <span class="ident">h</span> <span class="op">==</span> <span class="ident">candidate_hash</span>)
-			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">approved_bitfield</span>.<span class="ident">get</span>(<span class="ident">p</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">b</span>))
-			.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+	<span class="doccomment">/// Whether a candidate is approved in the bitfield.
+	</span><span class="kw">pub fn </span>is_candidate_approved(<span class="kw-2">&amp;</span><span class="self">self</span>, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) -&gt; bool {
+		<span class="self">self</span>.candidates
+			.iter()
+			.position(|(<span class="kw">_</span>, h)| h == candidate_hash)
+			.and_then(|p| <span class="self">self</span>.approved_bitfield.get(p).map(|b| <span class="kw-2">*</span>b))
+			.unwrap_or(<span class="bool-val">false</span>)
 	}
 
-	<span class="doccomment">/// Whether the block entry is fully approved.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_fully_approved</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">approved_bitfield</span>.<span class="ident">all</span>()
+	<span class="doccomment">/// Whether the block entry is fully approved.
+	</span><span class="kw">pub fn </span>is_fully_approved(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.approved_bitfield.all()
 	}
 
-	<span class="doccomment">/// Iterate over all unapproved candidates.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unapproved_candidates</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">CandidateHash</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-		<span class="self">self</span>.<span class="ident">approved_bitfield</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">filter_map</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">i</span>, <span class="ident">a</span>)<span class="op">|</span> {
-			<span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">a</span> {
-				<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">candidates</span>[<span class="ident">i</span>].<span class="number">1</span>)
-			} <span class="kw">else</span> {
-				<span class="prelude-val">None</span>
-			}
+	<span class="doccomment">/// Iterate over all unapproved candidates.
+	</span><span class="kw">pub fn </span>unapproved_candidates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = CandidateHash&gt; + <span class="lifetime">&#39;_ </span>{
+		<span class="self">self</span>.approved_bitfield.iter().enumerate().filter_map(<span class="kw">move </span>|(i, a)| {
+			<span class="kw">if </span>!<span class="kw-2">*</span>a {
+				<span class="prelude-val">Some</span>(<span class="self">self</span>.candidates[i].<span class="number">1</span>)
+			} <span class="kw">else </span>{
+				<span class="prelude-val">None
+			</span>}
 		})
 	}
 
-	<span class="doccomment">/// Get the slot of the block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Slot</span> {
-		<span class="self">self</span>.<span class="ident">slot</span>
+	<span class="doccomment">/// Get the slot of the block.
+	</span><span class="kw">pub fn </span>slot(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Slot {
+		<span class="self">self</span>.slot
 	}
 
-	<span class="doccomment">/// Get the relay-vrf-story of the block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">relay_vrf_story</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RelayVRFStory</span> {
-		<span class="self">self</span>.<span class="ident">relay_vrf_story</span>.<span class="ident">clone</span>()
+	<span class="doccomment">/// Get the relay-vrf-story of the block.
+	</span><span class="kw">pub fn </span>relay_vrf_story(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RelayVRFStory {
+		<span class="self">self</span>.relay_vrf_story.clone()
 	}
 
-	<span class="doccomment">/// Get the session index of the block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">session</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SessionIndex</span> {
-		<span class="self">self</span>.<span class="ident">session</span>
+	<span class="doccomment">/// Get the session index of the block.
+	</span><span class="kw">pub fn </span>session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SessionIndex {
+		<span class="self">self</span>.session
 	}
 
-	<span class="doccomment">/// Get the i&#39;th candidate.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="ident">CoreIndex</span>, <span class="ident">CandidateHash</span>)<span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">candidates</span>.<span class="ident">get</span>(<span class="ident">i</span>)
+	<span class="doccomment">/// Get the i&#39;th candidate.
+	</span><span class="kw">pub fn </span>candidate(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(CoreIndex, CandidateHash)&gt; {
+		<span class="self">self</span>.candidates.get(i)
 	}
 
-	<span class="doccomment">/// Access the underlying candidates as a slice.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidates</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(<span class="ident">CoreIndex</span>, <span class="ident">CandidateHash</span>)] {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">candidates</span>
+	<span class="doccomment">/// Access the underlying candidates as a slice.
+	</span><span class="kw">pub fn </span>candidates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(CoreIndex, CandidateHash)] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.candidates
 	}
 
-	<span class="doccomment">/// Access the block number of the block entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BlockNumber</span> {
-		<span class="self">self</span>.<span class="ident">block_number</span>
+	<span class="doccomment">/// Access the block number of the block entry.
+	</span><span class="kw">pub fn </span>block_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BlockNumber {
+		<span class="self">self</span>.block_number
 	}
 
-	<span class="doccomment">/// Access the block hash of the block entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Hash</span> {
-		<span class="self">self</span>.<span class="ident">block_hash</span>
+	<span class="doccomment">/// Access the block hash of the block entry.
+	</span><span class="kw">pub fn </span>block_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Hash {
+		<span class="self">self</span>.block_hash
 	}
 
-	<span class="doccomment">/// Access the parent hash of the block entry.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parent_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Hash</span> {
-		<span class="self">self</span>.<span class="ident">parent_hash</span>
+	<span class="doccomment">/// Access the parent hash of the block entry.
+	</span><span class="kw">pub fn </span>parent_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Hash {
+		<span class="self">self</span>.parent_hash
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::approval_db::v1::BlockEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BlockEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident"><span class="kw">crate</span>::approval_db::v1::BlockEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">BlockEntry</span> {
-			<span class="ident">block_hash</span>: <span class="ident">entry</span>.<span class="ident">block_hash</span>,
-			<span class="ident">parent_hash</span>: <span class="ident">entry</span>.<span class="ident">parent_hash</span>,
-			<span class="ident">block_number</span>: <span class="ident">entry</span>.<span class="ident">block_number</span>,
-			<span class="ident">session</span>: <span class="ident">entry</span>.<span class="ident">session</span>,
-			<span class="ident">slot</span>: <span class="ident">entry</span>.<span class="ident">slot</span>,
-			<span class="ident">relay_vrf_story</span>: <span class="ident">RelayVRFStory</span>(<span class="ident">entry</span>.<span class="ident">relay_vrf_story</span>),
-			<span class="ident">candidates</span>: <span class="ident">entry</span>.<span class="ident">candidates</span>,
-			<span class="ident">approved_bitfield</span>: <span class="ident">entry</span>.<span class="ident">approved_bitfield</span>,
-			<span class="ident">children</span>: <span class="ident">entry</span>.<span class="ident">children</span>,
+<span class="kw">impl </span>From&lt;<span class="kw">crate</span>::approval_db::v1::BlockEntry&gt; <span class="kw">for </span>BlockEntry {
+	<span class="kw">fn </span>from(entry: <span class="kw">crate</span>::approval_db::v1::BlockEntry) -&gt; <span class="self">Self </span>{
+		BlockEntry {
+			block_hash: entry.block_hash,
+			parent_hash: entry.parent_hash,
+			block_number: entry.block_number,
+			session: entry.session,
+			slot: entry.slot,
+			relay_vrf_story: RelayVRFStory(entry.relay_vrf_story),
+			candidates: entry.candidates,
+			approved_bitfield: entry.approved_bitfield,
+			children: entry.children,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BlockEntry</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::approval_db::v1::BlockEntry</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">entry</span>: <span class="ident">BlockEntry</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">block_hash</span>: <span class="ident">entry</span>.<span class="ident">block_hash</span>,
-			<span class="ident">parent_hash</span>: <span class="ident">entry</span>.<span class="ident">parent_hash</span>,
-			<span class="ident">block_number</span>: <span class="ident">entry</span>.<span class="ident">block_number</span>,
-			<span class="ident">session</span>: <span class="ident">entry</span>.<span class="ident">session</span>,
-			<span class="ident">slot</span>: <span class="ident">entry</span>.<span class="ident">slot</span>,
-			<span class="ident">relay_vrf_story</span>: <span class="ident">entry</span>.<span class="ident">relay_vrf_story</span>.<span class="number">0</span>,
-			<span class="ident">candidates</span>: <span class="ident">entry</span>.<span class="ident">candidates</span>,
-			<span class="ident">approved_bitfield</span>: <span class="ident">entry</span>.<span class="ident">approved_bitfield</span>,
-			<span class="ident">children</span>: <span class="ident">entry</span>.<span class="ident">children</span>,
+<span class="kw">impl </span>From&lt;BlockEntry&gt; <span class="kw">for </span><span class="kw">crate</span>::approval_db::v1::BlockEntry {
+	<span class="kw">fn </span>from(entry: BlockEntry) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			block_hash: entry.block_hash,
+			parent_hash: entry.parent_hash,
+			block_number: entry.block_number,
+			session: entry.session,
+			slot: entry.slot,
+			relay_vrf_story: entry.relay_vrf_story.<span class="number">0</span>,
+			candidates: entry.candidates,
+			approved_bitfield: entry.approved_bitfield,
+			children: entry.children,
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_approval_voting" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_approval_voting" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

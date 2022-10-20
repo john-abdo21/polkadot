@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/overseer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>overseer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_service/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/overseer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>overseer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_service/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -379,381 +373,380 @@
 <span id="373">373</span>
 <span id="374">374</span>
 <span id="375">375</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">AuthorityDiscoveryApi</span>, <span class="ident">Block</span>, <span class="ident">Error</span>, <span class="ident">Hash</span>, <span class="ident">IsCollator</span>, <span class="ident">Registry</span>};
-<span class="kw">use</span> <span class="ident">sp_core::traits::SpawnNamed</span>;
+</span><span class="kw">use super</span>::{AuthorityDiscoveryApi, Block, Error, Hash, IsCollator, Registry};
+<span class="kw">use </span>sp_core::traits::SpawnNamed;
 
-<span class="kw">use</span> <span class="ident">lru::LruCache</span>;
-<span class="kw">use</span> <span class="ident">polkadot_availability_distribution::IncomingRequestReceivers</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_core_approval_voting::Config</span> <span class="kw">as</span> <span class="ident">ApprovalVotingConfig</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_core_av_store::Config</span> <span class="kw">as</span> <span class="ident">AvailabilityConfig</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_core_candidate_validation::Config</span> <span class="kw">as</span> <span class="ident">CandidateValidationConfig</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_core_chain_selection::Config</span> <span class="kw">as</span> <span class="ident">ChainSelectionConfig</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_core_dispute_coordinator::Config</span> <span class="kw">as</span> <span class="ident">DisputeCoordinatorConfig</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
-	<span class="ident">peer_set::PeerSetProtocolNames</span>,
-	<span class="ident">request_response</span>::{<span class="ident">v1</span> <span class="kw">as</span> <span class="ident">request_v1</span>, <span class="ident">IncomingRequestReceiver</span>, <span class="ident">ReqProtocolNames</span>},
+<span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>polkadot_availability_distribution::IncomingRequestReceivers;
+<span class="kw">use </span>polkadot_node_core_approval_voting::Config <span class="kw">as </span>ApprovalVotingConfig;
+<span class="kw">use </span>polkadot_node_core_av_store::Config <span class="kw">as </span>AvailabilityConfig;
+<span class="kw">use </span>polkadot_node_core_candidate_validation::Config <span class="kw">as </span>CandidateValidationConfig;
+<span class="kw">use </span>polkadot_node_core_chain_selection::Config <span class="kw">as </span>ChainSelectionConfig;
+<span class="kw">use </span>polkadot_node_core_dispute_coordinator::Config <span class="kw">as </span>DisputeCoordinatorConfig;
+<span class="kw">use </span>polkadot_node_network_protocol::{
+	peer_set::PeerSetProtocolNames,
+	request_response::{v1 <span class="kw">as </span>request_v1, IncomingRequestReceiver, ReqProtocolNames},
 };
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;malus&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_overseer</span>::{
-	<span class="ident">dummy</span>::{<span class="ident">dummy_overseer_builder</span>, <span class="ident">DummySubsystem</span>},
-	<span class="ident">HeadSupportsParachains</span>,
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;malus&quot;</span>, test))]
+</span><span class="kw">pub use </span>polkadot_overseer::{
+	dummy::{dummy_overseer_builder, DummySubsystem},
+	HeadSupportsParachains,
 };
-<span class="kw">use</span> <span class="ident">polkadot_overseer</span>::{
-	<span class="ident">metrics::Metrics</span> <span class="kw">as</span> <span class="ident">OverseerMetrics</span>, <span class="ident">BlockInfo</span>, <span class="ident">InitializedOverseerBuilder</span>, <span class="ident">MetricsTrait</span>,
-	<span class="ident">Overseer</span>, <span class="ident">OverseerConnector</span>, <span class="ident">OverseerHandle</span>, <span class="ident">SpawnGlue</span>,
+<span class="kw">use </span>polkadot_overseer::{
+	metrics::Metrics <span class="kw">as </span>OverseerMetrics, BlockInfo, InitializedOverseerBuilder, MetricsTrait,
+	Overseer, OverseerConnector, OverseerHandle, SpawnGlue,
 };
 
-<span class="kw">use</span> <span class="ident">polkadot_primitives::runtime_api::ParachainHost</span>;
-<span class="kw">use</span> <span class="ident">sc_authority_discovery::Service</span> <span class="kw">as</span> <span class="ident">AuthorityDiscoveryService</span>;
-<span class="kw">use</span> <span class="ident">sc_client_api::AuxStore</span>;
-<span class="kw">use</span> <span class="ident">sc_keystore::LocalKeystore</span>;
-<span class="kw">use</span> <span class="ident">sc_network_common::service::NetworkStateInfo</span>;
-<span class="kw">use</span> <span class="ident">sp_api::ProvideRuntimeApi</span>;
-<span class="kw">use</span> <span class="ident">sp_blockchain::HeaderBackend</span>;
-<span class="kw">use</span> <span class="ident">sp_consensus_babe::BabeApi</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+<span class="kw">use </span>polkadot_primitives::runtime_api::ParachainHost;
+<span class="kw">use </span>sc_authority_discovery::Service <span class="kw">as </span>AuthorityDiscoveryService;
+<span class="kw">use </span>sc_client_api::AuxStore;
+<span class="kw">use </span>sc_keystore::LocalKeystore;
+<span class="kw">use </span>sc_network_common::service::NetworkStateInfo;
+<span class="kw">use </span>sp_api::ProvideRuntimeApi;
+<span class="kw">use </span>sp_blockchain::HeaderBackend;
+<span class="kw">use </span>sp_consensus_babe::BabeApi;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_approval_distribution::ApprovalDistribution</span> <span class="kw">as</span> <span class="ident">ApprovalDistributionSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_availability_bitfield_distribution::BitfieldDistribution</span> <span class="kw">as</span> <span class="ident">BitfieldDistributionSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_availability_distribution::AvailabilityDistributionSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_availability_recovery::AvailabilityRecoverySubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_collator_protocol</span>::{<span class="ident">CollatorProtocolSubsystem</span>, <span class="ident">ProtocolSide</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_dispute_distribution::DisputeDistributionSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_gossip_support::GossipSupport</span> <span class="kw">as</span> <span class="ident">GossipSupportSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_network_bridge</span>::{
-	<span class="ident">Metrics</span> <span class="kw">as</span> <span class="ident">NetworkBridgeMetrics</span>, <span class="ident">NetworkBridgeRx</span> <span class="kw">as</span> <span class="ident">NetworkBridgeRxSubsystem</span>,
-	<span class="ident">NetworkBridgeTx</span> <span class="kw">as</span> <span class="ident">NetworkBridgeTxSubsystem</span>,
+<span class="kw">pub use </span>polkadot_approval_distribution::ApprovalDistribution <span class="kw">as </span>ApprovalDistributionSubsystem;
+<span class="kw">pub use </span>polkadot_availability_bitfield_distribution::BitfieldDistribution <span class="kw">as </span>BitfieldDistributionSubsystem;
+<span class="kw">pub use </span>polkadot_availability_distribution::AvailabilityDistributionSubsystem;
+<span class="kw">pub use </span>polkadot_availability_recovery::AvailabilityRecoverySubsystem;
+<span class="kw">pub use </span>polkadot_collator_protocol::{CollatorProtocolSubsystem, ProtocolSide};
+<span class="kw">pub use </span>polkadot_dispute_distribution::DisputeDistributionSubsystem;
+<span class="kw">pub use </span>polkadot_gossip_support::GossipSupport <span class="kw">as </span>GossipSupportSubsystem;
+<span class="kw">pub use </span>polkadot_network_bridge::{
+	Metrics <span class="kw">as </span>NetworkBridgeMetrics, NetworkBridgeRx <span class="kw">as </span>NetworkBridgeRxSubsystem,
+	NetworkBridgeTx <span class="kw">as </span>NetworkBridgeTxSubsystem,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_collation_generation::CollationGenerationSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_approval_voting::ApprovalVotingSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_av_store::AvailabilityStoreSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_backing::CandidateBackingSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_bitfield_signing::BitfieldSigningSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_candidate_validation::CandidateValidationSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_chain_api::ChainApiSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_chain_selection::ChainSelectionSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_dispute_coordinator::DisputeCoordinatorSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_provisioner::ProvisionerSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_pvf_checker::PvfCheckerSubsystem</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_core_runtime_api::RuntimeApiSubsystem</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::rand</span>::{<span class="self">self</span>, <span class="ident">SeedableRng</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_statement_distribution::StatementDistributionSubsystem</span>;
+<span class="kw">pub use </span>polkadot_node_collation_generation::CollationGenerationSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_approval_voting::ApprovalVotingSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_av_store::AvailabilityStoreSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_backing::CandidateBackingSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_bitfield_signing::BitfieldSigningSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_candidate_validation::CandidateValidationSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_chain_api::ChainApiSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_chain_selection::ChainSelectionSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_dispute_coordinator::DisputeCoordinatorSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_provisioner::ProvisionerSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_pvf_checker::PvfCheckerSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_runtime_api::RuntimeApiSubsystem;
+<span class="kw">use </span>polkadot_node_subsystem_util::rand::{<span class="self">self</span>, SeedableRng};
+<span class="kw">pub use </span>polkadot_statement_distribution::StatementDistributionSubsystem;
 
-<span class="doccomment">/// Arguments passed for overseer construction.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OverseerGenArgs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">RuntimeClient</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
-	<span class="ident">RuntimeClient::Api</span>: <span class="ident">ParachainHost</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">BabeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuthorityDiscoveryApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-	<span class="ident">Spawner</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">SpawnNamed</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Unpin</span>,
+<span class="doccomment">/// Arguments passed for overseer construction.
+</span><span class="kw">pub struct </span>OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;
+<span class="kw">where
+	</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
+	RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
+	Spawner: <span class="lifetime">&#39;static </span>+ SpawnNamed + Clone + Unpin,
 {
-	<span class="doccomment">/// Set of initial relay chain leaves to track.</span>
-	<span class="kw">pub</span> <span class="ident">leaves</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BlockInfo</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The keystore to use for i.e. validator keys.</span>
-	<span class="kw">pub</span> <span class="ident">keystore</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">LocalKeystore</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Runtime client generic, providing the `ProvieRuntimeApi` trait besides others.</span>
-	<span class="kw">pub</span> <span class="ident">runtime_client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The underlying key value store for the parachains.</span>
-	<span class="kw">pub</span> <span class="ident">parachains_db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">polkadot_node_subsystem_util::database::Database</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Underlying network service implementation.</span>
-	<span class="kw">pub</span> <span class="ident">network_service</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">sc_network::NetworkService</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Underlying authority discovery service.</span>
-	<span class="kw">pub</span> <span class="ident">authority_discovery_service</span>: <span class="ident">AuthorityDiscoveryService</span>,
-	<span class="doccomment">/// POV request receiver</span>
-	<span class="kw">pub</span> <span class="ident">pov_req_receiver</span>: <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">request_v1::PoVFetchingRequest</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">chunk_req_receiver</span>: <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">request_v1::ChunkFetchingRequest</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">collation_req_receiver</span>: <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">request_v1::CollationFetchingRequest</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">available_data_req_receiver</span>:
-		<span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">request_v1::AvailableDataFetchingRequest</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">statement_req_receiver</span>: <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">request_v1::StatementFetchingRequest</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">dispute_req_receiver</span>: <span class="ident">IncomingRequestReceiver</span><span class="op">&lt;</span><span class="ident">request_v1::DisputeRequest</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Prometheus registry, commonly used for production systems, less so for test.</span>
-	<span class="kw">pub</span> <span class="ident">registry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Registry</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Task spawner to be used throughout the overseer and the APIs it provides.</span>
-	<span class="kw">pub</span> <span class="ident">spawner</span>: <span class="ident">Spawner</span>,
-	<span class="doccomment">/// Determines the behavior of the collator.</span>
-	<span class="kw">pub</span> <span class="ident">is_collator</span>: <span class="ident">IsCollator</span>,
-	<span class="doccomment">/// Configuration for the approval voting subsystem.</span>
-	<span class="kw">pub</span> <span class="ident">approval_voting_config</span>: <span class="ident">ApprovalVotingConfig</span>,
-	<span class="doccomment">/// Configuration for the availability store subsystem.</span>
-	<span class="kw">pub</span> <span class="ident">availability_config</span>: <span class="ident">AvailabilityConfig</span>,
-	<span class="doccomment">/// Configuration for the candidate validation subsystem.</span>
-	<span class="kw">pub</span> <span class="ident">candidate_validation_config</span>: <span class="ident">CandidateValidationConfig</span>,
-	<span class="doccomment">/// Configuration for the chain selection subsystem.</span>
-	<span class="kw">pub</span> <span class="ident">chain_selection_config</span>: <span class="ident">ChainSelectionConfig</span>,
-	<span class="doccomment">/// Configuration for the dispute coordinator subsystem.</span>
-	<span class="kw">pub</span> <span class="ident">dispute_coordinator_config</span>: <span class="ident">DisputeCoordinatorConfig</span>,
-	<span class="doccomment">/// Enable PVF pre-checking</span>
-	<span class="kw">pub</span> <span class="ident">pvf_checker_enabled</span>: <span class="ident">bool</span>,
-	<span class="doccomment">/// Overseer channel capacity override.</span>
-	<span class="kw">pub</span> <span class="ident">overseer_message_channel_capacity_override</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Request-response protocol names source.</span>
-	<span class="kw">pub</span> <span class="ident">req_protocol_names</span>: <span class="ident">ReqProtocolNames</span>,
-	<span class="doccomment">/// [`PeerSet`] protocol names to protocols mapping.</span>
-	<span class="kw">pub</span> <span class="ident">peerset_protocol_names</span>: <span class="ident">PeerSetProtocolNames</span>,
+	<span class="doccomment">/// Set of initial relay chain leaves to track.
+	</span><span class="kw">pub </span>leaves: Vec&lt;BlockInfo&gt;,
+	<span class="doccomment">/// The keystore to use for i.e. validator keys.
+	</span><span class="kw">pub </span>keystore: Arc&lt;LocalKeystore&gt;,
+	<span class="doccomment">/// Runtime client generic, providing the `ProvieRuntimeApi` trait besides others.
+	</span><span class="kw">pub </span>runtime_client: Arc&lt;RuntimeClient&gt;,
+	<span class="doccomment">/// The underlying key value store for the parachains.
+	</span><span class="kw">pub </span>parachains_db: Arc&lt;<span class="kw">dyn </span>polkadot_node_subsystem_util::database::Database&gt;,
+	<span class="doccomment">/// Underlying network service implementation.
+	</span><span class="kw">pub </span>network_service: Arc&lt;sc_network::NetworkService&lt;Block, Hash&gt;&gt;,
+	<span class="doccomment">/// Underlying authority discovery service.
+	</span><span class="kw">pub </span>authority_discovery_service: AuthorityDiscoveryService,
+	<span class="doccomment">/// POV request receiver
+	</span><span class="kw">pub </span>pov_req_receiver: IncomingRequestReceiver&lt;request_v1::PoVFetchingRequest&gt;,
+	<span class="kw">pub </span>chunk_req_receiver: IncomingRequestReceiver&lt;request_v1::ChunkFetchingRequest&gt;,
+	<span class="kw">pub </span>collation_req_receiver: IncomingRequestReceiver&lt;request_v1::CollationFetchingRequest&gt;,
+	<span class="kw">pub </span>available_data_req_receiver:
+		IncomingRequestReceiver&lt;request_v1::AvailableDataFetchingRequest&gt;,
+	<span class="kw">pub </span>statement_req_receiver: IncomingRequestReceiver&lt;request_v1::StatementFetchingRequest&gt;,
+	<span class="kw">pub </span>dispute_req_receiver: IncomingRequestReceiver&lt;request_v1::DisputeRequest&gt;,
+	<span class="doccomment">/// Prometheus registry, commonly used for production systems, less so for test.
+	</span><span class="kw">pub </span>registry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Registry&gt;,
+	<span class="doccomment">/// Task spawner to be used throughout the overseer and the APIs it provides.
+	</span><span class="kw">pub </span>spawner: Spawner,
+	<span class="doccomment">/// Determines the behavior of the collator.
+	</span><span class="kw">pub </span>is_collator: IsCollator,
+	<span class="doccomment">/// Configuration for the approval voting subsystem.
+	</span><span class="kw">pub </span>approval_voting_config: ApprovalVotingConfig,
+	<span class="doccomment">/// Configuration for the availability store subsystem.
+	</span><span class="kw">pub </span>availability_config: AvailabilityConfig,
+	<span class="doccomment">/// Configuration for the candidate validation subsystem.
+	</span><span class="kw">pub </span>candidate_validation_config: CandidateValidationConfig,
+	<span class="doccomment">/// Configuration for the chain selection subsystem.
+	</span><span class="kw">pub </span>chain_selection_config: ChainSelectionConfig,
+	<span class="doccomment">/// Configuration for the dispute coordinator subsystem.
+	</span><span class="kw">pub </span>dispute_coordinator_config: DisputeCoordinatorConfig,
+	<span class="doccomment">/// Enable PVF pre-checking
+	</span><span class="kw">pub </span>pvf_checker_enabled: bool,
+	<span class="doccomment">/// Overseer channel capacity override.
+	</span><span class="kw">pub </span>overseer_message_channel_capacity_override: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+	<span class="doccomment">/// Request-response protocol names source.
+	</span><span class="kw">pub </span>req_protocol_names: ReqProtocolNames,
+	<span class="doccomment">/// [`PeerSet`] protocol names to protocols mapping.
+	</span><span class="kw">pub </span>peerset_protocol_names: PeerSetProtocolNames,
 }
 
-<span class="doccomment">/// Obtain a prepared `OverseerBuilder`, that is initialized</span>
-<span class="doccomment">/// with all default values.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepared_overseer_builder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>(
-	<span class="ident">OverseerGenArgs</span> {
-		<span class="ident">leaves</span>,
-		<span class="ident">keystore</span>,
-		<span class="ident">runtime_client</span>,
-		<span class="ident">parachains_db</span>,
-		<span class="ident">network_service</span>,
-		<span class="ident">authority_discovery_service</span>,
-		<span class="ident">pov_req_receiver</span>,
-		<span class="ident">chunk_req_receiver</span>,
-		<span class="ident">collation_req_receiver</span>,
-		<span class="ident">available_data_req_receiver</span>,
-		<span class="ident">statement_req_receiver</span>,
-		<span class="ident">dispute_req_receiver</span>,
-		<span class="ident">registry</span>,
-		<span class="ident">spawner</span>,
-		<span class="ident">is_collator</span>,
-		<span class="ident">approval_voting_config</span>,
-		<span class="ident">availability_config</span>,
-		<span class="ident">candidate_validation_config</span>,
-		<span class="ident">chain_selection_config</span>,
-		<span class="ident">dispute_coordinator_config</span>,
-		<span class="ident">pvf_checker_enabled</span>,
-		<span class="ident">overseer_message_channel_capacity_override</span>,
-		<span class="ident">req_protocol_names</span>,
-		<span class="ident">peerset_protocol_names</span>,
-	}: <span class="ident">OverseerGenArgs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
-	<span class="ident">InitializedOverseerBuilder</span><span class="op">&lt;</span>
-		<span class="ident">SpawnGlue</span><span class="op">&lt;</span><span class="ident">Spawner</span><span class="op">&gt;</span>,
-		<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-		<span class="ident">CandidateValidationSubsystem</span>,
-		<span class="ident">PvfCheckerSubsystem</span>,
-		<span class="ident">CandidateBackingSubsystem</span>,
-		<span class="ident">StatementDistributionSubsystem</span><span class="op">&lt;</span><span class="ident">rand::rngs::StdRng</span><span class="op">&gt;</span>,
-		<span class="ident">AvailabilityDistributionSubsystem</span>,
-		<span class="ident">AvailabilityRecoverySubsystem</span>,
-		<span class="ident">BitfieldSigningSubsystem</span>,
-		<span class="ident">BitfieldDistributionSubsystem</span>,
-		<span class="ident">ProvisionerSubsystem</span>,
-		<span class="ident">RuntimeApiSubsystem</span><span class="op">&lt;</span><span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-		<span class="ident">AvailabilityStoreSubsystem</span>,
-		<span class="ident">NetworkBridgeRxSubsystem</span><span class="op">&lt;</span>
-			<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">sc_network::NetworkService</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">AuthorityDiscoveryService</span>,
-		<span class="op">&gt;</span>,
-		<span class="ident">NetworkBridgeTxSubsystem</span><span class="op">&lt;</span>
-			<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">sc_network::NetworkService</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">AuthorityDiscoveryService</span>,
-		<span class="op">&gt;</span>,
-		<span class="ident">ChainApiSubsystem</span><span class="op">&lt;</span><span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-		<span class="ident">CollationGenerationSubsystem</span>,
-		<span class="ident">CollatorProtocolSubsystem</span>,
-		<span class="ident">ApprovalDistributionSubsystem</span>,
-		<span class="ident">ApprovalVotingSubsystem</span>,
-		<span class="ident">GossipSupportSubsystem</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryService</span><span class="op">&gt;</span>,
-		<span class="ident">DisputeCoordinatorSubsystem</span>,
-		<span class="ident">DisputeDistributionSubsystem</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryService</span><span class="op">&gt;</span>,
-		<span class="ident">ChainSelectionSubsystem</span>,
-	<span class="op">&gt;</span>,
-	<span class="ident">Error</span>,
-<span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">RuntimeClient</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
-	<span class="ident">RuntimeClient::Api</span>: <span class="ident">ParachainHost</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">BabeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuthorityDiscoveryApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-	<span class="ident">Spawner</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">SpawnNamed</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Unpin</span>,
+<span class="doccomment">/// Obtain a prepared `OverseerBuilder`, that is initialized
+/// with all default values.
+</span><span class="kw">pub fn </span>prepared_overseer_builder&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;(
+	OverseerGenArgs {
+		leaves,
+		keystore,
+		runtime_client,
+		parachains_db,
+		network_service,
+		authority_discovery_service,
+		pov_req_receiver,
+		chunk_req_receiver,
+		collation_req_receiver,
+		available_data_req_receiver,
+		statement_req_receiver,
+		dispute_req_receiver,
+		registry,
+		spawner,
+		is_collator,
+		approval_voting_config,
+		availability_config,
+		candidate_validation_config,
+		chain_selection_config,
+		dispute_coordinator_config,
+		pvf_checker_enabled,
+		overseer_message_channel_capacity_override,
+		req_protocol_names,
+		peerset_protocol_names,
+	}: OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;
+	InitializedOverseerBuilder&lt;
+		SpawnGlue&lt;Spawner&gt;,
+		Arc&lt;RuntimeClient&gt;,
+		CandidateValidationSubsystem,
+		PvfCheckerSubsystem,
+		CandidateBackingSubsystem,
+		StatementDistributionSubsystem&lt;rand::rngs::StdRng&gt;,
+		AvailabilityDistributionSubsystem,
+		AvailabilityRecoverySubsystem,
+		BitfieldSigningSubsystem,
+		BitfieldDistributionSubsystem,
+		ProvisionerSubsystem,
+		RuntimeApiSubsystem&lt;RuntimeClient&gt;,
+		AvailabilityStoreSubsystem,
+		NetworkBridgeRxSubsystem&lt;
+			Arc&lt;sc_network::NetworkService&lt;Block, Hash&gt;&gt;,
+			AuthorityDiscoveryService,
+		&gt;,
+		NetworkBridgeTxSubsystem&lt;
+			Arc&lt;sc_network::NetworkService&lt;Block, Hash&gt;&gt;,
+			AuthorityDiscoveryService,
+		&gt;,
+		ChainApiSubsystem&lt;RuntimeClient&gt;,
+		CollationGenerationSubsystem,
+		CollatorProtocolSubsystem,
+		ApprovalDistributionSubsystem,
+		ApprovalVotingSubsystem,
+		GossipSupportSubsystem&lt;AuthorityDiscoveryService&gt;,
+		DisputeCoordinatorSubsystem,
+		DisputeDistributionSubsystem&lt;AuthorityDiscoveryService&gt;,
+		ChainSelectionSubsystem,
+	&gt;,
+	Error,
+&gt;
+<span class="kw">where
+	</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
+	RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
+	Spawner: <span class="lifetime">&#39;static </span>+ SpawnNamed + Clone + Unpin,
 {
-	<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::metrics::Metrics</span>;
+	<span class="kw">use </span>polkadot_node_subsystem_util::metrics::Metrics;
 
-	<span class="kw">let</span> <span class="ident">metrics</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">OverseerMetrics</span> <span class="kw">as</span> <span class="ident">MetricsTrait</span><span class="op">&gt;</span><span class="ident">::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>;
+	<span class="kw">let </span>metrics = &lt;OverseerMetrics <span class="kw">as </span>MetricsTrait&gt;::register(registry)<span class="question-mark">?</span>;
 
-	<span class="kw">let</span> <span class="ident">spawner</span> <span class="op">=</span> <span class="ident">SpawnGlue</span>(<span class="ident">spawner</span>);
+	<span class="kw">let </span>spawner = SpawnGlue(spawner);
 
-	<span class="kw">let</span> <span class="ident">network_bridge_metrics</span>: <span class="ident">NetworkBridgeMetrics</span> <span class="op">=</span> <span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>;
+	<span class="kw">let </span>network_bridge_metrics: NetworkBridgeMetrics = Metrics::register(registry)<span class="question-mark">?</span>;
 
-	<span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">Overseer::builder</span>()
-		.<span class="ident">network_bridge_tx</span>(<span class="ident">NetworkBridgeTxSubsystem::new</span>(
-			<span class="ident">network_service</span>.<span class="ident">clone</span>(),
-			<span class="ident">authority_discovery_service</span>.<span class="ident">clone</span>(),
-			<span class="ident">network_bridge_metrics</span>.<span class="ident">clone</span>(),
-			<span class="ident">req_protocol_names</span>,
-			<span class="ident">peerset_protocol_names</span>.<span class="ident">clone</span>(),
+	<span class="kw">let </span>builder = Overseer::builder()
+		.network_bridge_tx(NetworkBridgeTxSubsystem::new(
+			network_service.clone(),
+			authority_discovery_service.clone(),
+			network_bridge_metrics.clone(),
+			req_protocol_names,
+			peerset_protocol_names.clone(),
 		))
-		.<span class="ident">network_bridge_rx</span>(<span class="ident">NetworkBridgeRxSubsystem::new</span>(
-			<span class="ident">network_service</span>.<span class="ident">clone</span>(),
-			<span class="ident">authority_discovery_service</span>.<span class="ident">clone</span>(),
-			<span class="ident">Box::new</span>(<span class="ident">network_service</span>.<span class="ident">clone</span>()),
-			<span class="ident">network_bridge_metrics</span>,
-			<span class="ident">peerset_protocol_names</span>,
+		.network_bridge_rx(NetworkBridgeRxSubsystem::new(
+			network_service.clone(),
+			authority_discovery_service.clone(),
+			Box::new(network_service.clone()),
+			network_bridge_metrics,
+			peerset_protocol_names,
 		))
-		.<span class="ident">availability_distribution</span>(<span class="ident">AvailabilityDistributionSubsystem::new</span>(
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">IncomingRequestReceivers</span> { <span class="ident">pov_req_receiver</span>, <span class="ident">chunk_req_receiver</span> },
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.availability_distribution(AvailabilityDistributionSubsystem::new(
+			keystore.clone(),
+			IncomingRequestReceivers { pov_req_receiver, chunk_req_receiver },
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">availability_recovery</span>(<span class="ident">AvailabilityRecoverySubsystem::with_chunks_only</span>(
-			<span class="ident">available_data_req_receiver</span>,
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.availability_recovery(AvailabilityRecoverySubsystem::with_chunks_only(
+			available_data_req_receiver,
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">availability_store</span>(<span class="ident">AvailabilityStoreSubsystem::new</span>(
-			<span class="ident">parachains_db</span>.<span class="ident">clone</span>(),
-			<span class="ident">availability_config</span>,
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.availability_store(AvailabilityStoreSubsystem::new(
+			parachains_db.clone(),
+			availability_config,
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">bitfield_distribution</span>(<span class="ident">BitfieldDistributionSubsystem::new</span>(<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>))
-		.<span class="ident">bitfield_signing</span>(<span class="ident">BitfieldSigningSubsystem::new</span>(
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.bitfield_distribution(BitfieldDistributionSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
+		.bitfield_signing(BitfieldSigningSubsystem::new(
+			keystore.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">candidate_backing</span>(<span class="ident">CandidateBackingSubsystem::new</span>(
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.candidate_backing(CandidateBackingSubsystem::new(
+			keystore.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">candidate_validation</span>(<span class="ident">CandidateValidationSubsystem::with_config</span>(
-			<span class="ident">candidate_validation_config</span>,
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>, <span class="comment">// candidate-validation metrics</span>
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>, <span class="comment">// validation host metrics</span>
+		.candidate_validation(CandidateValidationSubsystem::with_config(
+			candidate_validation_config,
+			Metrics::register(registry)<span class="question-mark">?</span>, <span class="comment">// candidate-validation metrics
+			</span>Metrics::register(registry)<span class="question-mark">?</span>, <span class="comment">// validation host metrics
+		</span>))
+		.pvf_checker(PvfCheckerSubsystem::new(
+			pvf_checker_enabled,
+			keystore.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">pvf_checker</span>(<span class="ident">PvfCheckerSubsystem::new</span>(
-			<span class="ident">pvf_checker_enabled</span>,
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
-		))
-		.<span class="ident">chain_api</span>(<span class="ident">ChainApiSubsystem::new</span>(<span class="ident">runtime_client</span>.<span class="ident">clone</span>(), <span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>))
-		.<span class="ident">collation_generation</span>(<span class="ident">CollationGenerationSubsystem::new</span>(<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>))
-		.<span class="ident">collator_protocol</span>({
-			<span class="kw">let</span> <span class="ident">side</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">is_collator</span> {
-				<span class="ident">IsCollator::Yes</span>(<span class="ident">collator_pair</span>) =&gt; <span class="ident">ProtocolSide::Collator</span>(
-					<span class="ident">network_service</span>.<span class="ident">local_peer_id</span>().<span class="ident">clone</span>(),
-					<span class="ident">collator_pair</span>,
-					<span class="ident">collation_req_receiver</span>,
-					<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.chain_api(ChainApiSubsystem::new(runtime_client.clone(), Metrics::register(registry)<span class="question-mark">?</span>))
+		.collation_generation(CollationGenerationSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
+		.collator_protocol({
+			<span class="kw">let </span>side = <span class="kw">match </span>is_collator {
+				IsCollator::Yes(collator_pair) =&gt; ProtocolSide::Collator(
+					network_service.local_peer_id().clone(),
+					collator_pair,
+					collation_req_receiver,
+					Metrics::register(registry)<span class="question-mark">?</span>,
 				),
-				<span class="ident">IsCollator::No</span> =&gt; <span class="ident">ProtocolSide::Validator</span> {
-					<span class="ident">keystore</span>: <span class="ident">keystore</span>.<span class="ident">clone</span>(),
-					<span class="ident">eviction_policy</span>: <span class="ident">Default::default</span>(),
-					<span class="ident">metrics</span>: <span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+				IsCollator::No =&gt; ProtocolSide::Validator {
+					keystore: keystore.clone(),
+					eviction_policy: Default::default(),
+					metrics: Metrics::register(registry)<span class="question-mark">?</span>,
 				},
 			};
-			<span class="ident">CollatorProtocolSubsystem::new</span>(<span class="ident">side</span>)
+			CollatorProtocolSubsystem::new(side)
 		})
-		.<span class="ident">provisioner</span>(<span class="ident">ProvisionerSubsystem::new</span>(<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>))
-		.<span class="ident">runtime_api</span>(<span class="ident">RuntimeApiSubsystem::new</span>(
-			<span class="ident">runtime_client</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
-			<span class="ident">spawner</span>.<span class="ident">clone</span>(),
+		.provisioner(ProvisionerSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
+		.runtime_api(RuntimeApiSubsystem::new(
+			runtime_client.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
+			spawner.clone(),
 		))
-		.<span class="ident">statement_distribution</span>(<span class="ident">StatementDistributionSubsystem::new</span>(
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">statement_req_receiver</span>,
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
-			<span class="ident">rand::rngs::StdRng::from_entropy</span>(),
+		.statement_distribution(StatementDistributionSubsystem::new(
+			keystore.clone(),
+			statement_req_receiver,
+			Metrics::register(registry)<span class="question-mark">?</span>,
+			rand::rngs::StdRng::from_entropy(),
 		))
-		.<span class="ident">approval_distribution</span>(<span class="ident">ApprovalDistributionSubsystem::new</span>(<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>))
-		.<span class="ident">approval_voting</span>(<span class="ident">ApprovalVotingSubsystem::with_config</span>(
-			<span class="ident">approval_voting_config</span>,
-			<span class="ident">parachains_db</span>.<span class="ident">clone</span>(),
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">Box::new</span>(<span class="ident">network_service</span>.<span class="ident">clone</span>()),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.approval_distribution(ApprovalDistributionSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
+		.approval_voting(ApprovalVotingSubsystem::with_config(
+			approval_voting_config,
+			parachains_db.clone(),
+			keystore.clone(),
+			Box::new(network_service.clone()),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">gossip_support</span>(<span class="ident">GossipSupportSubsystem::new</span>(
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">authority_discovery_service</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.gossip_support(GossipSupportSubsystem::new(
+			keystore.clone(),
+			authority_discovery_service.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">dispute_coordinator</span>(<span class="ident">DisputeCoordinatorSubsystem::new</span>(
-			<span class="ident">parachains_db</span>.<span class="ident">clone</span>(),
-			<span class="ident">dispute_coordinator_config</span>,
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.dispute_coordinator(DisputeCoordinatorSubsystem::new(
+			parachains_db.clone(),
+			dispute_coordinator_config,
+			keystore.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">dispute_distribution</span>(<span class="ident">DisputeDistributionSubsystem::new</span>(
-			<span class="ident">keystore</span>.<span class="ident">clone</span>(),
-			<span class="ident">dispute_req_receiver</span>,
-			<span class="ident">authority_discovery_service</span>.<span class="ident">clone</span>(),
-			<span class="ident">Metrics::register</span>(<span class="ident">registry</span>)<span class="question-mark">?</span>,
+		.dispute_distribution(DisputeDistributionSubsystem::new(
+			keystore.clone(),
+			dispute_req_receiver,
+			authority_discovery_service.clone(),
+			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
-		.<span class="ident">chain_selection</span>(<span class="ident">ChainSelectionSubsystem::new</span>(<span class="ident">chain_selection_config</span>, <span class="ident">parachains_db</span>))
-		.<span class="ident">leaves</span>(<span class="ident">Vec::from_iter</span>(
-			<span class="ident">leaves</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">BlockInfo</span> { <span class="ident">hash</span>, <span class="ident">parent_hash</span>: <span class="kw">_</span>, <span class="ident">number</span> }<span class="op">|</span> (<span class="ident">hash</span>, <span class="ident">number</span>)),
+		.chain_selection(ChainSelectionSubsystem::new(chain_selection_config, parachains_db))
+		.leaves(Vec::from_iter(
+			leaves
+				.into_iter()
+				.map(|BlockInfo { hash, parent_hash: <span class="kw">_</span>, number }| (hash, number)),
 		))
-		.<span class="ident">activation_external_listeners</span>(<span class="ident">Default::default</span>())
-		.<span class="ident">span_per_active_leaf</span>(<span class="ident">Default::default</span>())
-		.<span class="ident">active_leaves</span>(<span class="ident">Default::default</span>())
-		.<span class="ident">supports_parachains</span>(<span class="ident">runtime_client</span>)
-		.<span class="ident">known_leaves</span>(<span class="ident">LruCache::new</span>(<span class="ident">KNOWN_LEAVES_CACHE_SIZE</span>))
-		.<span class="ident">metrics</span>(<span class="ident">metrics</span>)
-		.<span class="ident">spawner</span>(<span class="ident">spawner</span>);
+		.activation_external_listeners(Default::default())
+		.span_per_active_leaf(Default::default())
+		.active_leaves(Default::default())
+		.supports_parachains(runtime_client)
+		.known_leaves(LruCache::new(KNOWN_LEAVES_CACHE_SIZE))
+		.metrics(metrics)
+		.spawner(spawner);
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">capacity</span>) <span class="op">=</span> <span class="ident">overseer_message_channel_capacity_override</span> {
-		<span class="prelude-val">Ok</span>(<span class="ident">builder</span>.<span class="ident">message_channel_capacity</span>(<span class="ident">capacity</span>))
-	} <span class="kw">else</span> {
-		<span class="prelude-val">Ok</span>(<span class="ident">builder</span>)
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(capacity) = overseer_message_channel_capacity_override {
+		<span class="prelude-val">Ok</span>(builder.message_channel_capacity(capacity))
+	} <span class="kw">else </span>{
+		<span class="prelude-val">Ok</span>(builder)
 	}
 }
 
-<span class="doccomment">/// Trait for the `fn` generating the overseer.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Default behavior is to create an unmodified overseer, as `RealOverseerGen`</span>
-<span class="doccomment">/// would do.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OverseerGen</span> {
-	<span class="doccomment">/// Overwrite the full generation of the overseer, including the subsystems.</span>
-	<span class="kw">fn</span> <span class="ident">generate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>(
+<span class="doccomment">/// Trait for the `fn` generating the overseer.
+///
+/// Default behavior is to create an unmodified overseer, as `RealOverseerGen`
+/// would do.
+</span><span class="kw">pub trait </span>OverseerGen {
+	<span class="doccomment">/// Overwrite the full generation of the overseer, including the subsystems.
+	</span><span class="kw">fn </span>generate&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">connector</span>: <span class="ident">OverseerConnector</span>,
-		<span class="ident">args</span>: <span class="ident">OverseerGenArgs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Overseer</span><span class="op">&lt;</span><span class="ident">SpawnGlue</span><span class="op">&lt;</span><span class="ident">Spawner</span><span class="op">&gt;</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RuntimeClient</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">OverseerHandle</span>), <span class="ident">Error</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">RuntimeClient</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
-		<span class="ident">RuntimeClient::Api</span>: <span class="ident">ParachainHost</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">BabeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuthorityDiscoveryApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-		<span class="ident">Spawner</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">SpawnNamed</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Unpin</span>,
+		connector: OverseerConnector,
+		args: OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;RuntimeClient&gt;&gt;, OverseerHandle), Error&gt;
+	<span class="kw">where
+		</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
+		RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
+		Spawner: <span class="lifetime">&#39;static </span>+ SpawnNamed + Clone + Unpin,
 	{
-		<span class="kw">let</span> <span class="ident">gen</span> <span class="op">=</span> <span class="ident">RealOverseerGen</span>;
-		<span class="ident">RealOverseerGen::generate</span>::<span class="op">&lt;</span><span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">gen</span>, <span class="ident">connector</span>, <span class="ident">args</span>)
+		<span class="kw">let </span>gen = RealOverseerGen;
+		RealOverseerGen::generate::&lt;Spawner, RuntimeClient&gt;(<span class="kw-2">&amp;</span>gen, connector, args)
 	}
-	<span class="comment">// It would be nice to make `create_subsystems` part of this trait,</span>
-	<span class="comment">// but the amount of generic arguments that would be required as</span>
-	<span class="comment">// as consequence make this rather annoying to implement and use.</span>
-}
+	<span class="comment">// It would be nice to make `create_subsystems` part of this trait,
+	// but the amount of generic arguments that would be required as
+	// as consequence make this rather annoying to implement and use.
+</span>}
 
-<span class="kw">use</span> <span class="ident">polkadot_overseer::KNOWN_LEAVES_CACHE_SIZE</span>;
+<span class="kw">use </span>polkadot_overseer::KNOWN_LEAVES_CACHE_SIZE;
 
-<span class="doccomment">/// The regular set of subsystems.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RealOverseerGen</span>;
+<span class="doccomment">/// The regular set of subsystems.
+</span><span class="kw">pub struct </span>RealOverseerGen;
 
-<span class="kw">impl</span> <span class="ident">OverseerGen</span> <span class="kw">for</span> <span class="ident">RealOverseerGen</span> {
-	<span class="kw">fn</span> <span class="ident">generate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>(
+<span class="kw">impl </span>OverseerGen <span class="kw">for </span>RealOverseerGen {
+	<span class="kw">fn </span>generate&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">connector</span>: <span class="ident">OverseerConnector</span>,
-		<span class="ident">args</span>: <span class="ident">OverseerGenArgs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Spawner</span>, <span class="ident">RuntimeClient</span><span class="op">&gt;</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Overseer</span><span class="op">&lt;</span><span class="ident">SpawnGlue</span><span class="op">&lt;</span><span class="ident">Spawner</span><span class="op">&gt;</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">RuntimeClient</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">OverseerHandle</span>), <span class="ident">Error</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">RuntimeClient</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuxStore</span>,
-		<span class="ident">RuntimeClient::Api</span>: <span class="ident">ParachainHost</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">BabeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AuthorityDiscoveryApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span>,
-		<span class="ident">Spawner</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">SpawnNamed</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Unpin</span>,
+		connector: OverseerConnector,
+		args: OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;RuntimeClient&gt;&gt;, OverseerHandle), Error&gt;
+	<span class="kw">where
+		</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
+		RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
+		Spawner: <span class="lifetime">&#39;static </span>+ SpawnNamed + Clone + Unpin,
 	{
-		<span class="ident">prepared_overseer_builder</span>(<span class="ident">args</span>)<span class="question-mark">?</span>
-			.<span class="ident">build_with_connector</span>(<span class="ident">connector</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>())
+		prepared_overseer_builder(args)<span class="question-mark">?
+			</span>.build_with_connector(connector)
+			.map_err(|e| e.into())
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_service" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_service" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

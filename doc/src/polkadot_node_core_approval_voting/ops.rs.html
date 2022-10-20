@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/approval-voting/src/ops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_approval_voting/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_approval_voting/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_approval_voting/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/approval-voting/src/ops.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ops.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_approval_voting/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_approval_voting/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -429,431 +423,430 @@
 <span id="423">423</span>
 <span id="424">424</span>
 <span id="425">425</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Middleware interface that leverages low-level database operations</span>
-<span class="doccomment">//! to provide a clean API for processing block and candidate imports.</span>
+</span><span class="doccomment">//! Middleware interface that leverages low-level database operations
+//! to provide a clean API for processing block and candidate imports.
 
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{<span class="ident">SubsystemError</span>, <span class="ident">SubsystemResult</span>};
+</span><span class="kw">use </span>polkadot_node_subsystem::{SubsystemError, SubsystemResult};
 
-<span class="kw">use</span> <span class="ident">bitvec::order::Lsb0</span> <span class="kw">as</span> <span class="ident">BitOrderLsb0</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">BlockNumber</span>, <span class="ident">CandidateHash</span>, <span class="ident">CandidateReceipt</span>, <span class="ident">GroupIndex</span>, <span class="ident">Hash</span>};
+<span class="kw">use </span>bitvec::order::Lsb0 <span class="kw">as </span>BitOrderLsb0;
+<span class="kw">use </span>polkadot_primitives::v2::{BlockNumber, CandidateHash, CandidateReceipt, GroupIndex, Hash};
 
-<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">hash_map::Entry</span>, <span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>};
+<span class="kw">use </span>std::collections::{hash_map::Entry, BTreeMap, HashMap};
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-	<span class="ident">approval_db::v1</span>::{<span class="ident">OurAssignment</span>, <span class="ident">StoredBlockRange</span>},
-	<span class="ident">backend</span>::{<span class="ident">Backend</span>, <span class="ident">OverlayedBackend</span>},
-	<span class="ident">persisted_entries</span>::{<span class="ident">ApprovalEntry</span>, <span class="ident">BlockEntry</span>, <span class="ident">CandidateEntry</span>},
-	<span class="ident">LOG_TARGET</span>,
+<span class="kw">use super</span>::{
+	approval_db::v1::{OurAssignment, StoredBlockRange},
+	backend::{Backend, OverlayedBackend},
+	persisted_entries::{ApprovalEntry, BlockEntry, CandidateEntry},
+	LOG_TARGET,
 };
 
-<span class="doccomment">/// Information about a new candidate necessary to instantiate the requisite</span>
-<span class="doccomment">/// candidate and approval entries.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NewCandidateInfo</span> {
-	<span class="ident">candidate</span>: <span class="ident">CandidateReceipt</span>,
-	<span class="ident">backing_group</span>: <span class="ident">GroupIndex</span>,
-	<span class="ident">our_assignment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OurAssignment</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Information about a new candidate necessary to instantiate the requisite
+/// candidate and approval entries.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>NewCandidateInfo {
+	candidate: CandidateReceipt,
+	backing_group: GroupIndex,
+	our_assignment: <span class="prelude-ty">Option</span>&lt;OurAssignment&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">NewCandidateInfo</span> {
-	<span class="doccomment">/// Convenience constructor</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">candidate</span>: <span class="ident">CandidateReceipt</span>,
-		<span class="ident">backing_group</span>: <span class="ident">GroupIndex</span>,
-		<span class="ident">our_assignment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OurAssignment</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">candidate</span>, <span class="ident">backing_group</span>, <span class="ident">our_assignment</span> }
+<span class="kw">impl </span>NewCandidateInfo {
+	<span class="doccomment">/// Convenience constructor
+	</span><span class="kw">pub fn </span>new(
+		candidate: CandidateReceipt,
+		backing_group: GroupIndex,
+		our_assignment: <span class="prelude-ty">Option</span>&lt;OurAssignment&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ candidate, backing_group, our_assignment }
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">visit_and_remove_block_entry</span>(
-	<span class="ident">block_hash</span>: <span class="ident">Hash</span>,
-	<span class="ident">overlayed_db</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-	<span class="ident">visited_candidates</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">CandidateHash</span>, <span class="ident">CandidateEntry</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">block_entry</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">overlayed_db</span>.<span class="ident">load_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">block_hash</span>)<span class="question-mark">?</span> {
-		<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>()),
-		<span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; <span class="ident">b</span>,
+<span class="kw">fn </span>visit_and_remove_block_entry(
+	block_hash: Hash,
+	overlayed_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	visited_candidates: <span class="kw-2">&amp;mut </span>HashMap&lt;CandidateHash, CandidateEntry&gt;,
+) -&gt; SubsystemResult&lt;Vec&lt;Hash&gt;&gt; {
+	<span class="kw">let </span>block_entry = <span class="kw">match </span>overlayed_db.load_block_entry(<span class="kw-2">&amp;</span>block_hash)<span class="question-mark">? </span>{
+		<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new()),
+		<span class="prelude-val">Some</span>(b) =&gt; b,
 	};
 
-	<span class="ident">overlayed_db</span>.<span class="ident">delete_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">block_hash</span>);
-	<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">candidate_hash</span>) <span class="kw">in</span> <span class="ident">block_entry</span>.<span class="ident">candidates</span>() {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">visited_candidates</span>.<span class="ident">entry</span>(<span class="kw-2">*</span><span class="ident">candidate_hash</span>) {
-			<span class="ident">Entry::Occupied</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">into_mut</span>(),
-			<span class="ident">Entry::Vacant</span>(<span class="ident">e</span>) =&gt; {
-				<span class="ident">e</span>.<span class="ident">insert</span>(<span class="kw">match</span> <span class="ident">overlayed_db</span>.<span class="ident">load_candidate_entry</span>(<span class="ident">candidate_hash</span>)<span class="question-mark">?</span> {
-					<span class="prelude-val">None</span> =&gt; <span class="kw">continue</span>, <span class="comment">// Should not happen except for corrupt DB</span>
-					<span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,
+	overlayed_db.delete_block_entry(<span class="kw-2">&amp;</span>block_hash);
+	<span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref </span>candidate_hash) <span class="kw">in </span>block_entry.candidates() {
+		<span class="kw">let </span>candidate = <span class="kw">match </span>visited_candidates.entry(<span class="kw-2">*</span>candidate_hash) {
+			Entry::Occupied(e) =&gt; e.into_mut(),
+			Entry::Vacant(e) =&gt; {
+				e.insert(<span class="kw">match </span>overlayed_db.load_candidate_entry(candidate_hash)<span class="question-mark">? </span>{
+					<span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>, <span class="comment">// Should not happen except for corrupt DB
+					</span><span class="prelude-val">Some</span>(c) =&gt; c,
 				})
 			},
 		};
 
-		<span class="ident">candidate</span>.<span class="ident">block_assignments</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">block_hash</span>);
+		candidate.block_assignments.remove(<span class="kw-2">&amp;</span>block_hash);
 	}
 
-	<span class="prelude-val">Ok</span>(<span class="ident">block_entry</span>.<span class="ident">children</span>)
+	<span class="prelude-val">Ok</span>(block_entry.children)
 }
 
-<span class="doccomment">/// Canonicalize some particular block, pruning everything before it and</span>
-<span class="doccomment">/// pruning any competing branches at the same height.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">canonicalize</span>(
-	<span class="ident">overlay_db</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-	<span class="ident">canon_number</span>: <span class="ident">BlockNumber</span>,
-	<span class="ident">canon_hash</span>: <span class="ident">Hash</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">overlay_db</span>.<span class="ident">load_stored_blocks</span>()<span class="question-mark">?</span> {
-		<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-		<span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="kw">if</span> <span class="ident">range</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">canon_number</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
-		<span class="prelude-val">Some</span>(<span class="ident">range</span>) =&gt; <span class="ident">range</span>,
+<span class="doccomment">/// Canonicalize some particular block, pruning everything before it and
+/// pruning any competing branches at the same height.
+</span><span class="kw">pub fn </span>canonicalize(
+	overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	canon_number: BlockNumber,
+	canon_hash: Hash,
+) -&gt; SubsystemResult&lt;()&gt; {
+	<span class="kw">let </span>range = <span class="kw">match </span>overlay_db.load_stored_blocks()<span class="question-mark">? </span>{
+		<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+		<span class="prelude-val">Some</span>(range) <span class="kw">if </span>range.<span class="number">0 </span>&gt;= canon_number =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+		<span class="prelude-val">Some</span>(range) =&gt; range,
 	};
 
-	<span class="comment">// Storing all candidates in memory is potentially heavy, but should be fine</span>
-	<span class="comment">// as long as finality doesn&#39;t stall for a long while. We could optimize this</span>
-	<span class="comment">// by keeping only the metadata about which blocks reference each candidate.</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visited_candidates</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+	<span class="comment">// Storing all candidates in memory is potentially heavy, but should be fine
+	// as long as finality doesn&#39;t stall for a long while. We could optimize this
+	// by keeping only the metadata about which blocks reference each candidate.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>visited_candidates = HashMap::new();
 
-	<span class="comment">// All the block heights we visited but didn&#39;t necessarily delete everything from.</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visited_heights</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+	<span class="comment">// All the block heights we visited but didn&#39;t necessarily delete everything from.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>visited_heights = HashMap::new();
 
-	<span class="comment">// First visit everything before the height.</span>
-	<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">range</span>.<span class="number">0</span>..<span class="ident">canon_number</span> {
-		<span class="kw">let</span> <span class="ident">at_height</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">load_blocks_at_height</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>)<span class="question-mark">?</span>;
-		<span class="ident">overlay_db</span>.<span class="ident">delete_blocks_at_height</span>(<span class="ident">i</span>);
+	<span class="comment">// First visit everything before the height.
+	</span><span class="kw">for </span>i <span class="kw">in </span>range.<span class="number">0</span>..canon_number {
+		<span class="kw">let </span>at_height = overlay_db.load_blocks_at_height(<span class="kw-2">&amp;</span>i)<span class="question-mark">?</span>;
+		overlay_db.delete_blocks_at_height(i);
 
-		<span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">at_height</span> {
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">visit_and_remove_block_entry</span>(<span class="ident">b</span>, <span class="ident">overlay_db</span>, <span class="kw-2">&amp;mut</span> <span class="ident">visited_candidates</span>)<span class="question-mark">?</span>;
+		<span class="kw">for </span>b <span class="kw">in </span>at_height {
+			<span class="kw">let _ </span>= visit_and_remove_block_entry(b, overlay_db, <span class="kw-2">&amp;mut </span>visited_candidates)<span class="question-mark">?</span>;
 		}
 	}
 
-	<span class="comment">// Then visit everything at the height.</span>
-	<span class="kw">let</span> <span class="ident">pruned_branches</span> <span class="op">=</span> {
-		<span class="kw">let</span> <span class="ident">at_height</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">load_blocks_at_height</span>(<span class="kw-2">&amp;</span><span class="ident">canon_number</span>)<span class="question-mark">?</span>;
-		<span class="ident">overlay_db</span>.<span class="ident">delete_blocks_at_height</span>(<span class="ident">canon_number</span>);
+	<span class="comment">// Then visit everything at the height.
+	</span><span class="kw">let </span>pruned_branches = {
+		<span class="kw">let </span>at_height = overlay_db.load_blocks_at_height(<span class="kw-2">&amp;</span>canon_number)<span class="question-mark">?</span>;
+		overlay_db.delete_blocks_at_height(canon_number);
 
-		<span class="comment">// Note that while there may be branches descending from blocks at earlier heights,</span>
-		<span class="comment">// we have already covered them by removing everything at earlier heights.</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pruned_branches</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+		<span class="comment">// Note that while there may be branches descending from blocks at earlier heights,
+		// we have already covered them by removing everything at earlier heights.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>pruned_branches = Vec::new();
 
-		<span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">at_height</span> {
-			<span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">visit_and_remove_block_entry</span>(<span class="ident">b</span>, <span class="ident">overlay_db</span>, <span class="kw-2">&amp;mut</span> <span class="ident">visited_candidates</span>)<span class="question-mark">?</span>;
+		<span class="kw">for </span>b <span class="kw">in </span>at_height {
+			<span class="kw">let </span>children = visit_and_remove_block_entry(b, overlay_db, <span class="kw-2">&amp;mut </span>visited_candidates)<span class="question-mark">?</span>;
 
-			<span class="kw">if</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="ident">canon_hash</span> {
-				<span class="ident">pruned_branches</span>.<span class="ident">extend</span>(<span class="ident">children</span>);
+			<span class="kw">if </span>b != canon_hash {
+				pruned_branches.extend(children);
 			}
 		}
 
-		<span class="ident">pruned_branches</span>
+		pruned_branches
 	};
 
-	<span class="comment">// Follow all children of non-canonicalized blocks.</span>
-	{
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">frontier</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">BlockNumber</span>, <span class="ident">Hash</span>)<span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">pruned_branches</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> (<span class="ident">canon_number</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">h</span>)).<span class="ident">collect</span>();
-		<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">height</span>, <span class="ident">next_child</span>)) <span class="op">=</span> <span class="ident">frontier</span>.<span class="ident">pop</span>() {
-			<span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span>
-				<span class="ident">visit_and_remove_block_entry</span>(<span class="ident">next_child</span>, <span class="ident">overlay_db</span>, <span class="kw-2">&amp;mut</span> <span class="ident">visited_candidates</span>)<span class="question-mark">?</span>;
+	<span class="comment">// Follow all children of non-canonicalized blocks.
+	</span>{
+		<span class="kw">let </span><span class="kw-2">mut </span>frontier: Vec&lt;(BlockNumber, Hash)&gt; =
+			pruned_branches.into_iter().map(|h| (canon_number + <span class="number">1</span>, h)).collect();
+		<span class="kw">while let </span><span class="prelude-val">Some</span>((height, next_child)) = frontier.pop() {
+			<span class="kw">let </span>children =
+				visit_and_remove_block_entry(next_child, overlay_db, <span class="kw-2">&amp;mut </span>visited_candidates)<span class="question-mark">?</span>;
 
-			<span class="comment">// extend the frontier of branches to include the given height.</span>
-			<span class="ident">frontier</span>.<span class="ident">extend</span>(<span class="ident">children</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> (<span class="ident">height</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">h</span>)));
+			<span class="comment">// extend the frontier of branches to include the given height.
+			</span>frontier.extend(children.into_iter().map(|h| (height + <span class="number">1</span>, h)));
 
-			<span class="comment">// visit the at-height key for this deleted block&#39;s height.</span>
-			<span class="kw">let</span> <span class="ident">at_height</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">visited_heights</span>.<span class="ident">entry</span>(<span class="ident">height</span>) {
-				<span class="ident">Entry::Occupied</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">into_mut</span>(),
-				<span class="ident">Entry::Vacant</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">insert</span>(<span class="ident">overlay_db</span>.<span class="ident">load_blocks_at_height</span>(<span class="kw-2">&amp;</span><span class="ident">height</span>)<span class="question-mark">?</span>),
+			<span class="comment">// visit the at-height key for this deleted block&#39;s height.
+			</span><span class="kw">let </span>at_height = <span class="kw">match </span>visited_heights.entry(height) {
+				Entry::Occupied(e) =&gt; e.into_mut(),
+				Entry::Vacant(e) =&gt; e.insert(overlay_db.load_blocks_at_height(<span class="kw-2">&amp;</span>height)<span class="question-mark">?</span>),
 			};
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">at_height</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">next_child</span>) {
-				<span class="ident">at_height</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(i) = at_height.iter().position(|x| x == <span class="kw-2">&amp;</span>next_child) {
+				at_height.remove(i);
 			}
 		}
 	}
 
-	<span class="comment">// Update all `CandidateEntry`s, deleting all those which now have empty `block_assignments`.</span>
-	<span class="kw">for</span> (<span class="ident">candidate_hash</span>, <span class="ident">candidate</span>) <span class="kw">in</span> <span class="ident">visited_candidates</span>.<span class="ident">into_iter</span>() {
-		<span class="kw">if</span> <span class="ident">candidate</span>.<span class="ident">block_assignments</span>.<span class="ident">is_empty</span>() {
-			<span class="ident">overlay_db</span>.<span class="ident">delete_candidate_entry</span>(<span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>);
-		} <span class="kw">else</span> {
-			<span class="ident">overlay_db</span>.<span class="ident">write_candidate_entry</span>(<span class="ident">candidate</span>);
+	<span class="comment">// Update all `CandidateEntry`s, deleting all those which now have empty `block_assignments`.
+	</span><span class="kw">for </span>(candidate_hash, candidate) <span class="kw">in </span>visited_candidates.into_iter() {
+		<span class="kw">if </span>candidate.block_assignments.is_empty() {
+			overlay_db.delete_candidate_entry(<span class="kw-2">&amp;</span>candidate_hash);
+		} <span class="kw">else </span>{
+			overlay_db.write_candidate_entry(candidate);
 		}
 	}
 
-	<span class="comment">// Update all blocks-at-height keys, deleting all those which now have empty `block_assignments`.</span>
-	<span class="kw">for</span> (<span class="ident">h</span>, <span class="ident">at</span>) <span class="kw">in</span> <span class="ident">visited_heights</span>.<span class="ident">into_iter</span>() {
-		<span class="kw">if</span> <span class="ident">at</span>.<span class="ident">is_empty</span>() {
-			<span class="ident">overlay_db</span>.<span class="ident">delete_blocks_at_height</span>(<span class="ident">h</span>);
-		} <span class="kw">else</span> {
-			<span class="ident">overlay_db</span>.<span class="ident">write_blocks_at_height</span>(<span class="ident">h</span>, <span class="ident">at</span>);
+	<span class="comment">// Update all blocks-at-height keys, deleting all those which now have empty `block_assignments`.
+	</span><span class="kw">for </span>(h, at) <span class="kw">in </span>visited_heights.into_iter() {
+		<span class="kw">if </span>at.is_empty() {
+			overlay_db.delete_blocks_at_height(h);
+		} <span class="kw">else </span>{
+			overlay_db.write_blocks_at_height(h, at);
 		}
 	}
 
-	<span class="comment">// due to the fork pruning, this range actually might go too far above where our actual highest block is,</span>
-	<span class="comment">// if a relatively short fork is canonicalized.</span>
-	<span class="comment">// TODO https://github.com/paritytech/polkadot/issues/3389</span>
-	<span class="kw">let</span> <span class="ident">new_range</span> <span class="op">=</span> <span class="ident">StoredBlockRange</span>(<span class="ident">canon_number</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">std::cmp::max</span>(<span class="ident">range</span>.<span class="number">1</span>, <span class="ident">canon_number</span> <span class="op">+</span> <span class="number">2</span>));
+	<span class="comment">// due to the fork pruning, this range actually might go too far above where our actual highest block is,
+	// if a relatively short fork is canonicalized.
+	// TODO https://github.com/paritytech/polkadot/issues/3389
+	</span><span class="kw">let </span>new_range = StoredBlockRange(canon_number + <span class="number">1</span>, std::cmp::max(range.<span class="number">1</span>, canon_number + <span class="number">2</span>));
 
-	<span class="ident">overlay_db</span>.<span class="ident">write_stored_block_range</span>(<span class="ident">new_range</span>);
+	overlay_db.write_stored_block_range(new_range);
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Record a new block entry.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This will update the blocks-at-height mapping, the stored block range, if necessary,</span>
-<span class="doccomment">/// and add block and candidate entries. It will also add approval entries to existing</span>
-<span class="doccomment">/// candidate entries and add this as a child of any block entry corresponding to the</span>
-<span class="doccomment">/// parent hash.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Has no effect if there is already an entry for the block or `candidate_info` returns</span>
-<span class="doccomment">/// `None` for any of the candidates referenced by the block entry. In these cases,</span>
-<span class="doccomment">/// no information about new candidates will be referred to by this function.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_block_entry</span>(
-	<span class="ident">store</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-	<span class="ident">entry</span>: <span class="ident">BlockEntry</span>,
-	<span class="ident">n_validators</span>: <span class="ident">usize</span>,
-	<span class="ident">candidate_info</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NewCandidateInfo</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">CandidateHash</span>, <span class="ident">CandidateEntry</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">session</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">session</span>();
-	<span class="kw">let</span> <span class="ident">parent_hash</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">parent_hash</span>();
-	<span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">block_number</span>();
+<span class="doccomment">/// Record a new block entry.
+///
+/// This will update the blocks-at-height mapping, the stored block range, if necessary,
+/// and add block and candidate entries. It will also add approval entries to existing
+/// candidate entries and add this as a child of any block entry corresponding to the
+/// parent hash.
+///
+/// Has no effect if there is already an entry for the block or `candidate_info` returns
+/// `None` for any of the candidates referenced by the block entry. In these cases,
+/// no information about new candidates will be referred to by this function.
+</span><span class="kw">pub fn </span>add_block_entry(
+	store: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	entry: BlockEntry,
+	n_validators: usize,
+	candidate_info: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>CandidateHash) -&gt; <span class="prelude-ty">Option</span>&lt;NewCandidateInfo&gt;,
+) -&gt; SubsystemResult&lt;Vec&lt;(CandidateHash, CandidateEntry)&gt;&gt; {
+	<span class="kw">let </span>session = entry.session();
+	<span class="kw">let </span>parent_hash = entry.parent_hash();
+	<span class="kw">let </span>number = entry.block_number();
 
-	<span class="comment">// Update the stored block range.</span>
-	{
-		<span class="kw">let</span> <span class="ident">new_range</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">store</span>.<span class="ident">load_stored_blocks</span>()<span class="question-mark">?</span> {
-			<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">StoredBlockRange</span>(<span class="ident">number</span>, <span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>)),
-			<span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="kw">if</span> <span class="ident">range</span>.<span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">number</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">StoredBlockRange</span>(<span class="ident">range</span>.<span class="number">0</span>, <span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>)),
+	<span class="comment">// Update the stored block range.
+	</span>{
+		<span class="kw">let </span>new_range = <span class="kw">match </span>store.load_stored_blocks()<span class="question-mark">? </span>{
+			<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(StoredBlockRange(number, number + <span class="number">1</span>)),
+			<span class="prelude-val">Some</span>(range) <span class="kw">if </span>range.<span class="number">1 </span>&lt;= number =&gt; <span class="prelude-val">Some</span>(StoredBlockRange(range.<span class="number">0</span>, number + <span class="number">1</span>)),
 			<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
 		};
 
-		<span class="ident">new_range</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">store</span>.<span class="ident">write_stored_block_range</span>(<span class="ident">n</span>));
+		new_range.map(|n| store.write_stored_block_range(n));
 	};
 
-	<span class="comment">// Update the blocks at height meta key.</span>
-	{
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks_at_height</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">load_blocks_at_height</span>(<span class="kw-2">&amp;</span><span class="ident">number</span>)<span class="question-mark">?</span>;
-		<span class="kw">if</span> <span class="ident">blocks_at_height</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">entry</span>.<span class="ident">block_hash</span>()) {
-			<span class="comment">// seems we already have a block entry for this block. nothing to do here.</span>
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>())
+	<span class="comment">// Update the blocks at height meta key.
+	</span>{
+		<span class="kw">let </span><span class="kw-2">mut </span>blocks_at_height = store.load_blocks_at_height(<span class="kw-2">&amp;</span>number)<span class="question-mark">?</span>;
+		<span class="kw">if </span>blocks_at_height.contains(<span class="kw-2">&amp;</span>entry.block_hash()) {
+			<span class="comment">// seems we already have a block entry for this block. nothing to do here.
+			</span><span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
 		}
 
-		<span class="ident">blocks_at_height</span>.<span class="ident">push</span>(<span class="ident">entry</span>.<span class="ident">block_hash</span>());
-		<span class="ident">store</span>.<span class="ident">write_blocks_at_height</span>(<span class="ident">number</span>, <span class="ident">blocks_at_height</span>)
+		blocks_at_height.push(entry.block_hash());
+		store.write_blocks_at_height(number, blocks_at_height)
 	};
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate_entries</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">entry</span>.<span class="ident">candidates</span>().<span class="ident">len</span>());
+	<span class="kw">let </span><span class="kw-2">mut </span>candidate_entries = Vec::with_capacity(entry.candidates().len());
 
-	<span class="comment">// read and write all updated entries.</span>
-	{
-		<span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">candidate_hash</span>) <span class="kw">in</span> <span class="ident">entry</span>.<span class="ident">candidates</span>() {
-			<span class="kw">let</span> <span class="ident">NewCandidateInfo</span> { <span class="ident">candidate</span>, <span class="ident">backing_group</span>, <span class="ident">our_assignment</span> } <span class="op">=</span>
-				<span class="kw">match</span> <span class="ident">candidate_info</span>(<span class="ident">candidate_hash</span>) {
-					<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>()),
-					<span class="prelude-val">Some</span>(<span class="ident">info</span>) =&gt; <span class="ident">info</span>,
+	<span class="comment">// read and write all updated entries.
+	</span>{
+		<span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref </span>candidate_hash) <span class="kw">in </span>entry.candidates() {
+			<span class="kw">let </span>NewCandidateInfo { candidate, backing_group, our_assignment } =
+				<span class="kw">match </span>candidate_info(candidate_hash) {
+					<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new()),
+					<span class="prelude-val">Some</span>(info) =&gt; info,
 				};
 
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate_entry</span> <span class="op">=</span>
-				<span class="ident">store</span>.<span class="ident">load_candidate_entry</span>(<span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)<span class="question-mark">?</span>.<span class="ident">unwrap_or_else</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-					<span class="ident">CandidateEntry</span> {
-						<span class="ident">candidate</span>,
-						<span class="ident">session</span>,
-						<span class="ident">block_assignments</span>: <span class="ident">BTreeMap::new</span>(),
-						<span class="ident">approvals</span>: <span class="macro">bitvec::bitvec!</span>[<span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span>; <span class="number">0</span>; <span class="ident">n_validators</span>],
+			<span class="kw">let </span><span class="kw-2">mut </span>candidate_entry =
+				store.load_candidate_entry(<span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">?</span>.unwrap_or_else(<span class="kw">move </span>|| {
+					CandidateEntry {
+						candidate,
+						session,
+						block_assignments: BTreeMap::new(),
+						approvals: <span class="macro">bitvec::bitvec!</span>[u8, BitOrderLsb0; <span class="number">0</span>; n_validators],
 					}
 				});
 
-			<span class="ident">candidate_entry</span>.<span class="ident">block_assignments</span>.<span class="ident">insert</span>(
-				<span class="ident">entry</span>.<span class="ident">block_hash</span>(),
-				<span class="ident">ApprovalEntry::new</span>(
-					<span class="ident">Vec::new</span>(),
-					<span class="ident">backing_group</span>,
-					<span class="ident">our_assignment</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">into</span>()),
+			candidate_entry.block_assignments.insert(
+				entry.block_hash(),
+				ApprovalEntry::new(
+					Vec::new(),
+					backing_group,
+					our_assignment.map(|v| v.into()),
 					<span class="prelude-val">None</span>,
-					<span class="macro">bitvec::bitvec!</span>[<span class="ident">u8</span>, <span class="ident">BitOrderLsb0</span>; <span class="number">0</span>; <span class="ident">n_validators</span>],
+					<span class="macro">bitvec::bitvec!</span>[u8, BitOrderLsb0; <span class="number">0</span>; n_validators],
 					<span class="bool-val">false</span>,
 				),
 			);
 
-			<span class="ident">store</span>.<span class="ident">write_candidate_entry</span>(<span class="ident">candidate_entry</span>.<span class="ident">clone</span>());
+			store.write_candidate_entry(candidate_entry.clone());
 
-			<span class="ident">candidate_entries</span>.<span class="ident">push</span>((<span class="kw-2">*</span><span class="ident">candidate_hash</span>, <span class="ident">candidate_entry</span>));
+			candidate_entries.push((<span class="kw-2">*</span>candidate_hash, candidate_entry));
 		}
 	};
 
-	<span class="comment">// Update the child index for the parent.</span>
-	<span class="ident">store</span>.<span class="ident">load_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">parent_hash</span>)<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">e</span><span class="op">|</span> {
-		<span class="ident">e</span>.<span class="ident">children</span>.<span class="ident">push</span>(<span class="ident">entry</span>.<span class="ident">block_hash</span>());
-		<span class="ident">store</span>.<span class="ident">write_block_entry</span>(<span class="ident">e</span>);
+	<span class="comment">// Update the child index for the parent.
+	</span>store.load_block_entry(<span class="kw-2">&amp;</span>parent_hash)<span class="question-mark">?</span>.map(|<span class="kw-2">mut </span>e| {
+		e.children.push(entry.block_hash());
+		store.write_block_entry(e);
 	});
 
-	<span class="comment">// Put the new block entry in.</span>
-	<span class="ident">store</span>.<span class="ident">write_block_entry</span>(<span class="ident">entry</span>);
+	<span class="comment">// Put the new block entry in.
+	</span>store.write_block_entry(entry);
 
-	<span class="prelude-val">Ok</span>(<span class="ident">candidate_entries</span>)
+	<span class="prelude-val">Ok</span>(candidate_entries)
 }
 
-<span class="doccomment">/// Forcibly approve all candidates included at up to the given relay-chain height in the indicated</span>
-<span class="doccomment">/// chain.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">force_approve</span>(
-	<span class="ident">store</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-	<span class="ident">chain_head</span>: <span class="ident">Hash</span>,
-	<span class="ident">up_to</span>: <span class="ident">BlockNumber</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-	<span class="kw">enum</span> <span class="ident">State</span> {
-		<span class="ident">WalkTo</span>,
-		<span class="ident">Approving</span>,
+<span class="doccomment">/// Forcibly approve all candidates included at up to the given relay-chain height in the indicated
+/// chain.
+</span><span class="kw">pub fn </span>force_approve(
+	store: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	chain_head: Hash,
+	up_to: BlockNumber,
+) -&gt; SubsystemResult&lt;Vec&lt;Hash&gt;&gt; {
+	<span class="attribute">#[derive(PartialEq, Eq)]
+	</span><span class="kw">enum </span>State {
+		WalkTo,
+		Approving,
 	}
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">approved_hashes</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+	<span class="kw">let </span><span class="kw-2">mut </span>approved_hashes = Vec::new();
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur_hash</span> <span class="op">=</span> <span class="ident">chain_head</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::WalkTo</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur_block_number</span>: <span class="ident">BlockNumber</span> <span class="op">=</span> <span class="number">0</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>cur_hash = chain_head;
+	<span class="kw">let </span><span class="kw-2">mut </span>state = State::WalkTo;
+	<span class="kw">let </span><span class="kw-2">mut </span>cur_block_number: BlockNumber = <span class="number">0</span>;
 
-	<span class="comment">// iterate back to the `up_to` block, and then iterate backwards until all blocks</span>
-	<span class="comment">// are updated.</span>
-	<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">entry</span>) <span class="op">=</span> <span class="ident">store</span>.<span class="ident">load_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">cur_hash</span>)<span class="question-mark">?</span> {
-		<span class="ident">cur_block_number</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">block_number</span>();
-		<span class="kw">if</span> <span class="ident">cur_block_number</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">up_to</span> {
-			<span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">State::WalkTo</span> {
+	<span class="comment">// iterate back to the `up_to` block, and then iterate backwards until all blocks
+	// are updated.
+	</span><span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>entry) = store.load_block_entry(<span class="kw-2">&amp;</span>cur_hash)<span class="question-mark">? </span>{
+		cur_block_number = entry.block_number();
+		<span class="kw">if </span>cur_block_number &lt;= up_to {
+			<span class="kw">if </span>state == State::WalkTo {
 				<span class="macro">gum::debug!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="ident">block_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">chain_head</span>,
-					<span class="question-mark">?</span><span class="ident">cur_hash</span>,
-					<span class="question-mark">?</span><span class="ident">cur_block_number</span>,
+					target: LOG_TARGET,
+					block_hash = <span class="question-mark">?</span>chain_head,
+					<span class="question-mark">?</span>cur_hash,
+					<span class="question-mark">?</span>cur_block_number,
 					<span class="string">&quot;Start forced approval from block&quot;</span>,
 				);
 			}
-			<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Approving</span>;
+			state = State::Approving;
 		}
 
-		<span class="ident">cur_hash</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">parent_hash</span>();
+		cur_hash = entry.parent_hash();
 
-		<span class="kw">match</span> <span class="ident">state</span> {
-			<span class="ident">State::WalkTo</span> =&gt; {},
-			<span class="ident">State::Approving</span> =&gt; {
-				<span class="ident">entry</span>.<span class="ident">approved_bitfield</span>.<span class="ident">iter_mut</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">b</span> <span class="op">=</span> <span class="bool-val">true</span>);
-				<span class="ident">approved_hashes</span>.<span class="ident">push</span>(<span class="ident">entry</span>.<span class="ident">block_hash</span>());
-				<span class="ident">store</span>.<span class="ident">write_block_entry</span>(<span class="ident">entry</span>);
+		<span class="kw">match </span>state {
+			State::WalkTo =&gt; {},
+			State::Approving =&gt; {
+				entry.approved_bitfield.iter_mut().for_each(|<span class="kw-2">mut </span>b| <span class="kw-2">*</span>b = <span class="bool-val">true</span>);
+				approved_hashes.push(entry.block_hash());
+				store.write_block_entry(entry);
 			},
 		}
 	}
 
-	<span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">State::WalkTo</span> {
+	<span class="kw">if </span>state == State::WalkTo {
 		<span class="macro">gum::warn!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">chain_head</span>,
-			<span class="question-mark">?</span><span class="ident">cur_hash</span>,
-			<span class="question-mark">?</span><span class="ident">cur_block_number</span>,
-			<span class="question-mark">?</span><span class="ident">up_to</span>,
-			<span class="string">&quot;Missing block in the chain, cannot start force approval&quot;</span>
-		);
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>chain_head,
+			<span class="question-mark">?</span>cur_hash,
+			<span class="question-mark">?</span>cur_block_number,
+			<span class="question-mark">?</span>up_to,
+			<span class="string">&quot;Missing block in the chain, cannot start force approval&quot;
+		</span>);
 	}
 
-	<span class="prelude-val">Ok</span>(<span class="ident">approved_hashes</span>)
+	<span class="prelude-val">Ok</span>(approved_hashes)
 }
 
-<span class="doccomment">/// Revert to the block corresponding to the specified `hash`.</span>
-<span class="doccomment">/// The operation is not allowed for blocks older than the last finalized one.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revert_to</span>(
-	<span class="ident">overlay</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-	<span class="ident">hash</span>: <span class="ident">Hash</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stored_range</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">load_stored_blocks</span>()<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-		<span class="ident">SubsystemError::Context</span>(<span class="string">&quot;no available blocks to infer revert point height&quot;</span>.<span class="ident">to_string</span>())
+<span class="doccomment">/// Revert to the block corresponding to the specified `hash`.
+/// The operation is not allowed for blocks older than the last finalized one.
+</span><span class="kw">pub fn </span>revert_to(
+	overlay: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	hash: Hash,
+) -&gt; SubsystemResult&lt;()&gt; {
+	<span class="kw">let </span><span class="kw-2">mut </span>stored_range = overlay.load_stored_blocks()<span class="question-mark">?</span>.ok_or_else(|| {
+		SubsystemError::Context(<span class="string">&quot;no available blocks to infer revert point height&quot;</span>.to_string())
 	})<span class="question-mark">?</span>;
 
-	<span class="kw">let</span> (<span class="ident">children</span>, <span class="ident">children_height</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">overlay</span>.<span class="ident">load_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>)<span class="question-mark">?</span> {
-		<span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">entry</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">children_height</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">block_number</span>() <span class="op">+</span> <span class="number">1</span>;
-			<span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">entry</span>.<span class="ident">children</span>);
-			<span class="comment">// Write revert point block entry without the children.</span>
-			<span class="ident">overlay</span>.<span class="ident">write_block_entry</span>(<span class="ident">entry</span>);
-			(<span class="ident">children</span>, <span class="ident">children_height</span>)
+	<span class="kw">let </span>(children, children_height) = <span class="kw">match </span>overlay.load_block_entry(<span class="kw-2">&amp;</span>hash)<span class="question-mark">? </span>{
+		<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>entry) =&gt; {
+			<span class="kw">let </span>children_height = entry.block_number() + <span class="number">1</span>;
+			<span class="kw">let </span>children = std::mem::take(<span class="kw-2">&amp;mut </span>entry.children);
+			<span class="comment">// Write revert point block entry without the children.
+			</span>overlay.write_block_entry(entry);
+			(children, children_height)
 		},
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="kw">let</span> <span class="ident">children_height</span> <span class="op">=</span> <span class="ident">stored_range</span>.<span class="number">0</span>;
-			<span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">load_blocks_at_height</span>(<span class="kw-2">&amp;</span><span class="ident">children_height</span>)<span class="question-mark">?</span>;
+		<span class="prelude-val">None </span>=&gt; {
+			<span class="kw">let </span>children_height = stored_range.<span class="number">0</span>;
+			<span class="kw">let </span>children = overlay.load_blocks_at_height(<span class="kw-2">&amp;</span>children_height)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">child_entry</span> <span class="op">=</span> <span class="ident">children</span>
-				.<span class="ident">first</span>()
-				.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">hash</span><span class="op">|</span> <span class="ident">overlay</span>.<span class="ident">load_block_entry</span>(<span class="ident">hash</span>).<span class="ident">ok</span>())
-				.<span class="ident">flatten</span>()
-				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-					<span class="ident">SubsystemError::Context</span>(<span class="string">&quot;lookup failure for first block&quot;</span>.<span class="ident">to_string</span>())
+			<span class="kw">let </span>child_entry = children
+				.first()
+				.and_then(|hash| overlay.load_block_entry(hash).ok())
+				.flatten()
+				.ok_or_else(|| {
+					SubsystemError::Context(<span class="string">&quot;lookup failure for first block&quot;</span>.to_string())
 				})<span class="question-mark">?</span>;
 
-			<span class="comment">// The parent is expected to be the revert point</span>
-			<span class="kw">if</span> <span class="ident">child_entry</span>.<span class="ident">parent_hash</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">hash</span> {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SubsystemError::Context</span>(
-					<span class="string">&quot;revert below last finalized block or corrupted storage&quot;</span>.<span class="ident">to_string</span>(),
+			<span class="comment">// The parent is expected to be the revert point
+			</span><span class="kw">if </span>child_entry.parent_hash() != hash {
+				<span class="kw">return </span><span class="prelude-val">Err</span>(SubsystemError::Context(
+					<span class="string">&quot;revert below last finalized block or corrupted storage&quot;</span>.to_string(),
 				))
 			}
 
-			(<span class="ident">children</span>, <span class="ident">children_height</span>)
+			(children, children_height)
 		},
 	};
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> (<span class="ident">h</span>, <span class="ident">children_height</span>)).<span class="ident">collect</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">range_end</span> <span class="op">=</span> <span class="ident">stored_range</span>.<span class="number">1</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>stack: Vec&lt;<span class="kw">_</span>&gt; = children.into_iter().map(|h| (h, children_height)).collect();
+	<span class="kw">let </span><span class="kw-2">mut </span>range_end = stored_range.<span class="number">1</span>;
 
-	<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">hash</span>, <span class="ident">number</span>)) <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks_at_height</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">load_blocks_at_height</span>(<span class="kw-2">&amp;</span><span class="ident">number</span>)<span class="question-mark">?</span>;
-		<span class="ident">blocks_at_height</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> <span class="ident">h</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">hash</span>);
+	<span class="kw">while let </span><span class="prelude-val">Some</span>((hash, number)) = stack.pop() {
+		<span class="kw">let </span><span class="kw-2">mut </span>blocks_at_height = overlay.load_blocks_at_height(<span class="kw-2">&amp;</span>number)<span class="question-mark">?</span>;
+		blocks_at_height.retain(|h| h != <span class="kw-2">&amp;</span>hash);
 
-		<span class="comment">// Check if we need to update the range top</span>
-		<span class="kw">if</span> <span class="ident">blocks_at_height</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">number</span> <span class="op">&lt;</span> <span class="ident">range_end</span> {
-			<span class="ident">range_end</span> <span class="op">=</span> <span class="ident">number</span>;
+		<span class="comment">// Check if we need to update the range top
+		</span><span class="kw">if </span>blocks_at_height.is_empty() &amp;&amp; number &lt; range_end {
+			range_end = number;
 		}
 
-		<span class="ident">overlay</span>.<span class="ident">write_blocks_at_height</span>(<span class="ident">number</span>, <span class="ident">blocks_at_height</span>);
+		overlay.write_blocks_at_height(number, blocks_at_height);
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entry</span>) <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">load_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>)<span class="question-mark">?</span> {
-			<span class="ident">overlay</span>.<span class="ident">delete_block_entry</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>);
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = overlay.load_block_entry(<span class="kw-2">&amp;</span>hash)<span class="question-mark">? </span>{
+			overlay.delete_block_entry(<span class="kw-2">&amp;</span>hash);
 
-			<span class="comment">// Cleanup the candidate entries by removing any reference to the</span>
-			<span class="comment">// removed block. If for a candidate entry the block block_assignments</span>
-			<span class="comment">// drops to zero then we remove the entry.</span>
-			<span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">candidate_hash</span>) <span class="kw">in</span> <span class="ident">entry</span>.<span class="ident">candidates</span>() {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">candidate_entry</span>) <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">load_candidate_entry</span>(<span class="ident">candidate_hash</span>)<span class="question-mark">?</span> {
-					<span class="ident">candidate_entry</span>.<span class="ident">block_assignments</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>);
-					<span class="kw">if</span> <span class="ident">candidate_entry</span>.<span class="ident">block_assignments</span>.<span class="ident">is_empty</span>() {
-						<span class="ident">overlay</span>.<span class="ident">delete_candidate_entry</span>(<span class="ident">candidate_hash</span>);
-					} <span class="kw">else</span> {
-						<span class="ident">overlay</span>.<span class="ident">write_candidate_entry</span>(<span class="ident">candidate_entry</span>);
+			<span class="comment">// Cleanup the candidate entries by removing any reference to the
+			// removed block. If for a candidate entry the block block_assignments
+			// drops to zero then we remove the entry.
+			</span><span class="kw">for </span>(<span class="kw">_</span>, candidate_hash) <span class="kw">in </span>entry.candidates() {
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>candidate_entry) = overlay.load_candidate_entry(candidate_hash)<span class="question-mark">? </span>{
+					candidate_entry.block_assignments.remove(<span class="kw-2">&amp;</span>hash);
+					<span class="kw">if </span>candidate_entry.block_assignments.is_empty() {
+						overlay.delete_candidate_entry(candidate_hash);
+					} <span class="kw">else </span>{
+						overlay.write_candidate_entry(candidate_entry);
 					}
 				}
 			}
 
-			<span class="ident">stack</span>.<span class="ident">extend</span>(<span class="ident">entry</span>.<span class="ident">children</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">h</span><span class="op">|</span> (<span class="ident">h</span>, <span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>)));
+			stack.extend(entry.children.into_iter().map(|h| (h, number + <span class="number">1</span>)));
 		}
 	}
 
-	<span class="comment">// Check if our modifications to the dag has reduced the range top</span>
-	<span class="kw">if</span> <span class="ident">range_end</span> <span class="op">!</span><span class="op">=</span> <span class="ident">stored_range</span>.<span class="number">1</span> {
-		<span class="kw">if</span> <span class="ident">stored_range</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="ident">range_end</span> {
-			<span class="ident">stored_range</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">range_end</span>;
-			<span class="ident">overlay</span>.<span class="ident">write_stored_block_range</span>(<span class="ident">stored_range</span>);
-		} <span class="kw">else</span> {
-			<span class="ident">overlay</span>.<span class="ident">delete_stored_block_range</span>();
+	<span class="comment">// Check if our modifications to the dag has reduced the range top
+	</span><span class="kw">if </span>range_end != stored_range.<span class="number">1 </span>{
+		<span class="kw">if </span>stored_range.<span class="number">0 </span>&lt; range_end {
+			stored_range.<span class="number">1 </span>= range_end;
+			overlay.write_stored_block_range(stored_range);
+		} <span class="kw">else </span>{
+			overlay.delete_stored_block_range();
 		}
 	}
 
 	<span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_approval_voting" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_approval_voting" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

@@ -1,5 +1,5 @@
-(function() {var implementors = {};
-implementors["polkadot_node_network_protocol"] = [{"text":"impl Split for <a class=\"enum\" href=\"polkadot_node_network_protocol/request_response/incoming/enum.Error.html\" title=\"enum polkadot_node_network_protocol::request_response::incoming::Error\">Error</a>","synthetic":false,"types":["polkadot_node_network_protocol::request_response::incoming::error::Error"]}];
-implementors["polkadot_node_subsystem_util"] = [{"text":"impl Split for <a class=\"enum\" href=\"polkadot_node_subsystem_util/runtime/enum.Error.html\" title=\"enum polkadot_node_subsystem_util::runtime::Error\">Error</a>","synthetic":false,"types":["polkadot_node_subsystem_util::runtime::error::Error"]}];
-implementors["polkadot_statement_distribution"] = [{"text":"impl Split for <a class=\"enum\" href=\"polkadot_statement_distribution/enum.Error.html\" title=\"enum polkadot_statement_distribution::Error\">Error</a>","synthetic":false,"types":["polkadot_statement_distribution::error::Error"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"polkadot_node_network_protocol":[["impl Split for <a class=\"enum\" href=\"polkadot_node_network_protocol/request_response/incoming/enum.Error.html\" title=\"enum polkadot_node_network_protocol::request_response::incoming::Error\">Error</a>"]],
+"polkadot_node_subsystem_util":[["impl Split for <a class=\"enum\" href=\"polkadot_node_subsystem_util/runtime/enum.Error.html\" title=\"enum polkadot_node_subsystem_util::runtime::Error\">Error</a>"]],
+"polkadot_statement_distribution":[["impl Split for <a class=\"enum\" href=\"polkadot_statement_distribution/enum.Error.html\" title=\"enum polkadot_statement_distribution::Error\">Error</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

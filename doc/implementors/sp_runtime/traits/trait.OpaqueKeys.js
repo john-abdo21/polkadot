@@ -1,8 +1,8 @@
-(function() {var implementors = {};
-implementors["kusama_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"kusama_runtime/struct.SessionKeys.html\" title=\"struct kusama_runtime::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["kusama_runtime::SessionKeys"]}];
-implementors["polkadot_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"polkadot_runtime/struct.SessionKeys.html\" title=\"struct polkadot_runtime::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["polkadot_runtime::SessionKeys"]}];
-implementors["polkadot_service"] = [];
-implementors["polkadot_test_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"polkadot_test_runtime/struct.SessionKeys.html\" title=\"struct polkadot_test_runtime::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["polkadot_test_runtime::SessionKeys"]}];
-implementors["rococo_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"rococo_runtime/struct.SessionKeys.html\" title=\"struct rococo_runtime::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["rococo_runtime::SessionKeys"]}];
-implementors["westend_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"westend_runtime/struct.SessionKeys.html\" title=\"struct westend_runtime::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["westend_runtime::SessionKeys"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"kusama_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"kusama_runtime/struct.SessionKeys.html\" title=\"struct kusama_runtime::SessionKeys\">SessionKeys</a>"]],
+"polkadot_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"polkadot_runtime/struct.SessionKeys.html\" title=\"struct polkadot_runtime::SessionKeys\">SessionKeys</a>"]],
+"polkadot_service":[],
+"polkadot_test_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"polkadot_test_runtime/struct.SessionKeys.html\" title=\"struct polkadot_test_runtime::SessionKeys\">SessionKeys</a>"]],
+"rococo_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"rococo_runtime/struct.SessionKeys.html\" title=\"struct rococo_runtime::SessionKeys\">SessionKeys</a>"]],
+"westend_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"westend_runtime/struct.SessionKeys.html\" title=\"struct westend_runtime::SessionKeys\">SessionKeys</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

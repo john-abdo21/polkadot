@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/grid_topology.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grid_topology.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/grid_topology.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grid_topology.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -576,558 +570,558 @@
 <span id="570">570</span>
 <span id="571">571</span>
 <span id="572">572</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Grid topology support implementation</span>
-<span class="doccomment">//! The basic operation of the 2D grid topology is that:</span>
-<span class="doccomment">//!   * A validator producing a message sends it to its row-neighbors and its column-neighbors</span>
-<span class="doccomment">//!   * A validator receiving a message originating from one of its row-neighbors sends it to its column-neighbors</span>
-<span class="doccomment">//!   * A validator receiving a message originating from one of its column-neighbors sends it to its row-neighbors</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This grid approach defines 2 unique paths for every validator to reach every other validator in at most 2 hops.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! However, we also supplement this with some degree of random propagation:</span>
-<span class="doccomment">//! every validator, upon seeing a message for the first time, propagates it to 8 random peers.</span>
-<span class="doccomment">//! This inserts some redundancy in case the grid topology isn&#39;t working or is being attacked -</span>
-<span class="doccomment">//! an adversary doesn&#39;t know which peers a validator will send to.</span>
-<span class="doccomment">//! This is combined with the property that the adversary doesn&#39;t know which validators will elect to check a block.</span>
-<span class="doccomment">//!</span>
+</span><span class="doccomment">//! Grid topology support implementation
+//! The basic operation of the 2D grid topology is that:
+//!   * A validator producing a message sends it to its row-neighbors and its column-neighbors
+//!   * A validator receiving a message originating from one of its row-neighbors sends it to its column-neighbors
+//!   * A validator receiving a message originating from one of its column-neighbors sends it to its row-neighbors
+//!
+//! This grid approach defines 2 unique paths for every validator to reach every other validator in at most 2 hops.
+//!
+//! However, we also supplement this with some degree of random propagation:
+//! every validator, upon seeing a message for the first time, propagates it to 8 random peers.
+//! This inserts some redundancy in case the grid topology isn&#39;t working or is being attacked -
+//! an adversary doesn&#39;t know which peers a validator will send to.
+//! This is combined with the property that the adversary doesn&#39;t know which validators will elect to check a block.
+//!
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::PeerId</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">SessionIndex</span>, <span class="ident">ValidatorIndex</span>};
-<span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">CryptoRng</span>, <span class="ident">Rng</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections</span>::{<span class="ident">hash_map</span>, <span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
-	<span class="ident">fmt::Debug</span>,
+</span><span class="kw">use </span><span class="kw">crate</span>::PeerId;
+<span class="kw">use </span>polkadot_primitives::v2::{AuthorityDiscoveryId, SessionIndex, ValidatorIndex};
+<span class="kw">use </span>rand::{CryptoRng, Rng};
+<span class="kw">use </span>std::{
+	collections::{hash_map, HashMap, HashSet},
+	fmt::Debug,
 };
 
-<span class="kw">const</span> <span class="ident">LOG_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;parachain::grid-topology&quot;</span>;
+<span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;parachain::grid-topology&quot;</span>;
 
-<span class="doccomment">/// The sample rate for randomly propagating messages. This</span>
-<span class="doccomment">/// reduces the left tail of the binomial distribution but also</span>
-<span class="doccomment">/// introduces a bias towards peers who we sample before others</span>
-<span class="doccomment">/// (i.e. those who get a block before others).</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_RANDOM_SAMPLE_RATE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::MIN_GOSSIP_PEERS</span>;
+<span class="doccomment">/// The sample rate for randomly propagating messages. This
+/// reduces the left tail of the binomial distribution but also
+/// introduces a bias towards peers who we sample before others
+/// (i.e. those who get a block before others).
+</span><span class="kw">pub const </span>DEFAULT_RANDOM_SAMPLE_RATE: usize = <span class="kw">crate</span>::MIN_GOSSIP_PEERS;
 
-<span class="doccomment">/// The number of peers to randomly propagate messages to.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_RANDOM_CIRCULATION</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="doccomment">/// The number of peers to randomly propagate messages to.
+</span><span class="kw">pub const </span>DEFAULT_RANDOM_CIRCULATION: usize = <span class="number">4</span>;
 
-<span class="doccomment">/// Information about a peer in the gossip topology for a session.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TopologyPeerInfo</span> {
-	<span class="doccomment">/// The validator&#39;s known peer IDs.</span>
-	<span class="kw">pub</span> <span class="ident">peer_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The index of the validator in the discovery keys of the corresponding</span>
-	<span class="doccomment">/// `SessionInfo`. This can extend _beyond_ the set of active parachain validators.</span>
-	<span class="kw">pub</span> <span class="ident">validator_index</span>: <span class="ident">ValidatorIndex</span>,
-	<span class="doccomment">/// The authority discovery public key of the validator in the corresponding</span>
-	<span class="doccomment">/// `SessionInfo`.</span>
-	<span class="kw">pub</span> <span class="ident">discovery_id</span>: <span class="ident">AuthorityDiscoveryId</span>,
+<span class="doccomment">/// Information about a peer in the gossip topology for a session.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>TopologyPeerInfo {
+	<span class="doccomment">/// The validator&#39;s known peer IDs.
+	</span><span class="kw">pub </span>peer_ids: Vec&lt;PeerId&gt;,
+	<span class="doccomment">/// The index of the validator in the discovery keys of the corresponding
+	/// `SessionInfo`. This can extend _beyond_ the set of active parachain validators.
+	</span><span class="kw">pub </span>validator_index: ValidatorIndex,
+	<span class="doccomment">/// The authority discovery public key of the validator in the corresponding
+	/// `SessionInfo`.
+	</span><span class="kw">pub </span>discovery_id: AuthorityDiscoveryId,
 }
 
-<span class="doccomment">/// Topology representation for a session.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SessionGridTopology</span> {
-	<span class="doccomment">/// An array mapping validator indices to their indices in the</span>
-	<span class="doccomment">/// shuffling itself. This has the same size as the number of validators</span>
-	<span class="doccomment">/// in the session.</span>
-	<span class="ident">shuffled_indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The canonical shuffling of validators for the session.</span>
-	<span class="ident">canonical_shuffling</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TopologyPeerInfo</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Topology representation for a session.
+</span><span class="attribute">#[derive(Default, Clone, Debug, PartialEq)]
+</span><span class="kw">pub struct </span>SessionGridTopology {
+	<span class="doccomment">/// An array mapping validator indices to their indices in the
+	/// shuffling itself. This has the same size as the number of validators
+	/// in the session.
+	</span>shuffled_indices: Vec&lt;usize&gt;,
+	<span class="doccomment">/// The canonical shuffling of validators for the session.
+	</span>canonical_shuffling: Vec&lt;TopologyPeerInfo&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">SessionGridTopology</span> {
-	<span class="doccomment">/// Create a new session grid topology.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">shuffled_indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">canonical_shuffling</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TopologyPeerInfo</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">SessionGridTopology</span> { <span class="ident">shuffled_indices</span>, <span class="ident">canonical_shuffling</span> }
+<span class="kw">impl </span>SessionGridTopology {
+	<span class="doccomment">/// Create a new session grid topology.
+	</span><span class="kw">pub fn </span>new(shuffled_indices: Vec&lt;usize&gt;, canonical_shuffling: Vec&lt;TopologyPeerInfo&gt;) -&gt; <span class="self">Self </span>{
+		SessionGridTopology { shuffled_indices, canonical_shuffling }
 	}
 
-	<span class="doccomment">/// Produces the outgoing routing logic for a particular peer.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns `None` if the validator index is out of bounds.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_grid_neighbors_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">v</span>: <span class="ident">ValidatorIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GridNeighbors</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">shuffled_indices</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">canonical_shuffling</span>.<span class="ident">len</span>() {
-			<span class="kw">return</span> <span class="prelude-val">None</span>
-		}
-		<span class="kw">let</span> <span class="ident">shuffled_val_index</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">shuffled_indices</span>.<span class="ident">get</span>(<span class="ident">v</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Produces the outgoing routing logic for a particular peer.
+	///
+	/// Returns `None` if the validator index is out of bounds.
+	</span><span class="kw">pub fn </span>compute_grid_neighbors_for(<span class="kw-2">&amp;</span><span class="self">self</span>, v: ValidatorIndex) -&gt; <span class="prelude-ty">Option</span>&lt;GridNeighbors&gt; {
+		<span class="kw">if </span><span class="self">self</span>.shuffled_indices.len() != <span class="self">self</span>.canonical_shuffling.len() {
+			<span class="kw">return </span><span class="prelude-val">None
+		</span>}
+		<span class="kw">let </span>shuffled_val_index = <span class="kw-2">*</span><span class="self">self</span>.shuffled_indices.get(v.<span class="number">0 </span><span class="kw">as </span>usize)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">neighbors</span> <span class="op">=</span> <span class="ident">matrix_neighbors</span>(<span class="ident">shuffled_val_index</span>, <span class="self">self</span>.<span class="ident">shuffled_indices</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
+		<span class="kw">let </span>neighbors = matrix_neighbors(shuffled_val_index, <span class="self">self</span>.shuffled_indices.len())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">grid_subset</span> <span class="op">=</span> <span class="ident">GridNeighbors::empty</span>();
-		<span class="kw">for</span> <span class="ident">r_n</span> <span class="kw">in</span> <span class="ident">neighbors</span>.<span class="ident">row_neighbors</span> {
-			<span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">canonical_shuffling</span>[<span class="ident">r_n</span>];
-			<span class="ident">grid_subset</span>.<span class="ident">validator_indices_x</span>.<span class="ident">insert</span>(<span class="ident">n</span>.<span class="ident">validator_index</span>);
-			<span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">peer_ids</span> {
-				<span class="ident">grid_subset</span>.<span class="ident">peers_x</span>.<span class="ident">insert</span>(<span class="ident">p</span>.<span class="ident">clone</span>());
+		<span class="kw">let </span><span class="kw-2">mut </span>grid_subset = GridNeighbors::empty();
+		<span class="kw">for </span>r_n <span class="kw">in </span>neighbors.row_neighbors {
+			<span class="kw">let </span>n = <span class="kw-2">&amp;</span><span class="self">self</span>.canonical_shuffling[r_n];
+			grid_subset.validator_indices_x.insert(n.validator_index);
+			<span class="kw">for </span>p <span class="kw">in </span><span class="kw-2">&amp;</span>n.peer_ids {
+				grid_subset.peers_x.insert(p.clone());
 			}
 		}
 
-		<span class="kw">for</span> <span class="ident">c_n</span> <span class="kw">in</span> <span class="ident">neighbors</span>.<span class="ident">column_neighbors</span> {
-			<span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">canonical_shuffling</span>[<span class="ident">c_n</span>];
-			<span class="ident">grid_subset</span>.<span class="ident">validator_indices_y</span>.<span class="ident">insert</span>(<span class="ident">n</span>.<span class="ident">validator_index</span>);
-			<span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">peer_ids</span> {
-				<span class="ident">grid_subset</span>.<span class="ident">peers_y</span>.<span class="ident">insert</span>(<span class="ident">p</span>.<span class="ident">clone</span>());
+		<span class="kw">for </span>c_n <span class="kw">in </span>neighbors.column_neighbors {
+			<span class="kw">let </span>n = <span class="kw-2">&amp;</span><span class="self">self</span>.canonical_shuffling[c_n];
+			grid_subset.validator_indices_y.insert(n.validator_index);
+			<span class="kw">for </span>p <span class="kw">in </span><span class="kw-2">&amp;</span>n.peer_ids {
+				grid_subset.peers_y.insert(p.clone());
 			}
 		}
 
-		<span class="prelude-val">Some</span>(<span class="ident">grid_subset</span>)
+		<span class="prelude-val">Some</span>(grid_subset)
 	}
 }
 
-<span class="kw">struct</span> <span class="ident">MatrixNeighbors</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-	<span class="ident">row_neighbors</span>: <span class="ident">R</span>,
-	<span class="ident">column_neighbors</span>: <span class="ident">C</span>,
+<span class="kw">struct </span>MatrixNeighbors&lt;R, C&gt; {
+	row_neighbors: R,
+	column_neighbors: C,
 }
 
-<span class="doccomment">/// Compute the row and column neighbors of `val_index` in a matrix</span>
-<span class="kw">fn</span> <span class="ident">matrix_neighbors</span>(
-	<span class="ident">val_index</span>: <span class="ident">usize</span>,
-	<span class="ident">len</span>: <span class="ident">usize</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MatrixNeighbors</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span>, <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">if</span> <span class="ident">val_index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span> {
-		<span class="kw">return</span> <span class="prelude-val">None</span>
-	}
+<span class="doccomment">/// Compute the row and column neighbors of `val_index` in a matrix
+</span><span class="kw">fn </span>matrix_neighbors(
+	val_index: usize,
+	len: usize,
+) -&gt; <span class="prelude-ty">Option</span>&lt;MatrixNeighbors&lt;<span class="kw">impl </span>Iterator&lt;Item = usize&gt;, <span class="kw">impl </span>Iterator&lt;Item = usize&gt;&gt;&gt; {
+	<span class="kw">if </span>val_index &gt;= len {
+		<span class="kw">return </span><span class="prelude-val">None
+	</span>}
 
-	<span class="comment">// e.g. for size 11 the matrix would be</span>
-	<span class="comment">//</span>
-	<span class="comment">// 0  1  2</span>
-	<span class="comment">// 3  4  5</span>
-	<span class="comment">// 6  7  8</span>
-	<span class="comment">// 9 10</span>
-	<span class="comment">//</span>
-	<span class="comment">// and for index 10, the neighbors would be 1, 4, 7, 9</span>
+	<span class="comment">// e.g. for size 11 the matrix would be
+	//
+	// 0  1  2
+	// 3  4  5
+	// 6  7  8
+	// 9 10
+	//
+	// and for index 10, the neighbors would be 1, 4, 7, 9
 
-	<span class="kw">let</span> <span class="ident">sqrt</span> <span class="op">=</span> (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">sqrt</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-	<span class="kw">let</span> <span class="ident">our_row</span> <span class="op">=</span> <span class="ident">val_index</span> <span class="op">/</span> <span class="ident">sqrt</span>;
-	<span class="kw">let</span> <span class="ident">our_column</span> <span class="op">=</span> <span class="ident">val_index</span> <span class="op">%</span> <span class="ident">sqrt</span>;
-	<span class="kw">let</span> <span class="ident">row_neighbors</span> <span class="op">=</span> <span class="ident">our_row</span> <span class="op">*</span> <span class="ident">sqrt</span>..<span class="ident">std::cmp::min</span>(<span class="ident">our_row</span> <span class="op">*</span> <span class="ident">sqrt</span> <span class="op">+</span> <span class="ident">sqrt</span>, <span class="ident">len</span>);
-	<span class="kw">let</span> <span class="ident">column_neighbors</span> <span class="op">=</span> (<span class="ident">our_column</span>..<span class="ident">len</span>).<span class="ident">step_by</span>(<span class="ident">sqrt</span>);
+	</span><span class="kw">let </span>sqrt = (len <span class="kw">as </span>f64).sqrt() <span class="kw">as </span>usize;
+	<span class="kw">let </span>our_row = val_index / sqrt;
+	<span class="kw">let </span>our_column = val_index % sqrt;
+	<span class="kw">let </span>row_neighbors = our_row * sqrt..std::cmp::min(our_row * sqrt + sqrt, len);
+	<span class="kw">let </span>column_neighbors = (our_column..len).step_by(sqrt);
 
-	<span class="prelude-val">Some</span>(<span class="ident">MatrixNeighbors</span> {
-		<span class="ident">row_neighbors</span>: <span class="ident">row_neighbors</span>.<span class="ident">filter</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">val_index</span>),
-		<span class="ident">column_neighbors</span>: <span class="ident">column_neighbors</span>.<span class="ident">filter</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">val_index</span>),
+	<span class="prelude-val">Some</span>(MatrixNeighbors {
+		row_neighbors: row_neighbors.filter(<span class="kw">move </span>|i| <span class="kw-2">*</span>i != val_index),
+		column_neighbors: column_neighbors.filter(<span class="kw">move </span>|i| <span class="kw-2">*</span>i != val_index),
 	})
 }
 
-<span class="doccomment">/// Information about the grid neighbors for a particular node in the topology.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GridNeighbors</span> {
-	<span class="doccomment">/// Represent peers in the X axis</span>
-	<span class="kw">pub</span> <span class="ident">peers_x</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Represent validators in the X axis</span>
-	<span class="kw">pub</span> <span class="ident">validator_indices_x</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Represent peers in the Y axis</span>
-	<span class="kw">pub</span> <span class="ident">peers_y</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Represent validators in the Y axis</span>
-	<span class="kw">pub</span> <span class="ident">validator_indices_y</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Information about the grid neighbors for a particular node in the topology.
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>GridNeighbors {
+	<span class="doccomment">/// Represent peers in the X axis
+	</span><span class="kw">pub </span>peers_x: HashSet&lt;PeerId&gt;,
+	<span class="doccomment">/// Represent validators in the X axis
+	</span><span class="kw">pub </span>validator_indices_x: HashSet&lt;ValidatorIndex&gt;,
+	<span class="doccomment">/// Represent peers in the Y axis
+	</span><span class="kw">pub </span>peers_y: HashSet&lt;PeerId&gt;,
+	<span class="doccomment">/// Represent validators in the Y axis
+	</span><span class="kw">pub </span>validator_indices_y: HashSet&lt;ValidatorIndex&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">GridNeighbors</span> {
-	<span class="doccomment">/// Utility function for creating an empty set of grid neighbors.</span>
-	<span class="doccomment">/// Useful for testing.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
-		<span class="ident">GridNeighbors</span> {
-			<span class="ident">peers_x</span>: <span class="ident">HashSet::new</span>(),
-			<span class="ident">validator_indices_x</span>: <span class="ident">HashSet::new</span>(),
-			<span class="ident">peers_y</span>: <span class="ident">HashSet::new</span>(),
-			<span class="ident">validator_indices_y</span>: <span class="ident">HashSet::new</span>(),
+<span class="kw">impl </span>GridNeighbors {
+	<span class="doccomment">/// Utility function for creating an empty set of grid neighbors.
+	/// Useful for testing.
+	</span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
+		GridNeighbors {
+			peers_x: HashSet::new(),
+			validator_indices_x: HashSet::new(),
+			peers_y: HashSet::new(),
+			validator_indices_y: HashSet::new(),
 		}
 	}
 
-	<span class="doccomment">/// Given the originator of a message as a validator index, indicates the part of the topology</span>
-	<span class="doccomment">/// we&#39;re meant to send the message to.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_routing_by_index</span>(
+	<span class="doccomment">/// Given the originator of a message as a validator index, indicates the part of the topology
+	/// we&#39;re meant to send the message to.
+	</span><span class="kw">pub fn </span>required_routing_by_index(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">originator</span>: <span class="ident">ValidatorIndex</span>,
-		<span class="ident">local</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">RequiredRouting</span> {
-		<span class="kw">if</span> <span class="ident">local</span> {
-			<span class="kw">return</span> <span class="ident">RequiredRouting::GridXY</span>
+		originator: ValidatorIndex,
+		local: bool,
+	) -&gt; RequiredRouting {
+		<span class="kw">if </span>local {
+			<span class="kw">return </span>RequiredRouting::GridXY
 		}
 
-		<span class="kw">let</span> <span class="ident">grid_x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">validator_indices_x</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">originator</span>);
-		<span class="kw">let</span> <span class="ident">grid_y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">validator_indices_y</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">originator</span>);
+		<span class="kw">let </span>grid_x = <span class="self">self</span>.validator_indices_x.contains(<span class="kw-2">&amp;</span>originator);
+		<span class="kw">let </span>grid_y = <span class="self">self</span>.validator_indices_y.contains(<span class="kw-2">&amp;</span>originator);
 
-		<span class="kw">match</span> (<span class="ident">grid_x</span>, <span class="ident">grid_y</span>) {
-			(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">RequiredRouting::None</span>,
-			(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">RequiredRouting::GridY</span>, <span class="comment">// messages from X go to Y</span>
-			(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">RequiredRouting::GridX</span>, <span class="comment">// messages from Y go to X</span>
-			(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">RequiredRouting::GridXY</span>, <span class="comment">// if the grid works as expected, this shouldn&#39;t happen.</span>
-		}
+		<span class="kw">match </span>(grid_x, grid_y) {
+			(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; RequiredRouting::None,
+			(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; RequiredRouting::GridY, <span class="comment">// messages from X go to Y
+			</span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; RequiredRouting::GridX, <span class="comment">// messages from Y go to X
+			</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; RequiredRouting::GridXY, <span class="comment">// if the grid works as expected, this shouldn&#39;t happen.
+		</span>}
 	}
 
-	<span class="doccomment">/// Given the originator of a message as a peer index, indicates the part of the topology</span>
-	<span class="doccomment">/// we&#39;re meant to send the message to.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">required_routing_by_peer_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">originator</span>: <span class="ident">PeerId</span>, <span class="ident">local</span>: <span class="ident">bool</span>) -&gt; <span class="ident">RequiredRouting</span> {
-		<span class="kw">if</span> <span class="ident">local</span> {
-			<span class="kw">return</span> <span class="ident">RequiredRouting::GridXY</span>
+	<span class="doccomment">/// Given the originator of a message as a peer index, indicates the part of the topology
+	/// we&#39;re meant to send the message to.
+	</span><span class="kw">pub fn </span>required_routing_by_peer_id(<span class="kw-2">&amp;</span><span class="self">self</span>, originator: PeerId, local: bool) -&gt; RequiredRouting {
+		<span class="kw">if </span>local {
+			<span class="kw">return </span>RequiredRouting::GridXY
 		}
 
-		<span class="kw">let</span> <span class="ident">grid_x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peers_x</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">originator</span>);
-		<span class="kw">let</span> <span class="ident">grid_y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peers_y</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">originator</span>);
+		<span class="kw">let </span>grid_x = <span class="self">self</span>.peers_x.contains(<span class="kw-2">&amp;</span>originator);
+		<span class="kw">let </span>grid_y = <span class="self">self</span>.peers_y.contains(<span class="kw-2">&amp;</span>originator);
 
-		<span class="kw">match</span> (<span class="ident">grid_x</span>, <span class="ident">grid_y</span>) {
-			(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">RequiredRouting::None</span>,
-			(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">RequiredRouting::GridY</span>, <span class="comment">// messages from X go to Y</span>
-			(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">RequiredRouting::GridX</span>, <span class="comment">// messages from Y go to X</span>
-			(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {
+		<span class="kw">match </span>(grid_x, grid_y) {
+			(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; RequiredRouting::None,
+			(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; RequiredRouting::GridY, <span class="comment">// messages from X go to Y
+			</span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; RequiredRouting::GridX, <span class="comment">// messages from Y go to X
+			</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; {
 				<span class="macro">gum::debug!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="question-mark">?</span><span class="ident">originator</span>,
-					<span class="string">&quot;Grid topology is unexpected, play it safe and send to X AND Y&quot;</span>
-				);
-				<span class="ident">RequiredRouting::GridXY</span>
-			}, <span class="comment">// if the grid works as expected, this shouldn&#39;t happen.</span>
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>originator,
+					<span class="string">&quot;Grid topology is unexpected, play it safe and send to X AND Y&quot;
+				</span>);
+				RequiredRouting::GridXY
+			}, <span class="comment">// if the grid works as expected, this shouldn&#39;t happen.
+		</span>}
+	}
+
+	<span class="doccomment">/// Get a filter function based on this topology and the required routing
+	/// which returns `true` for peers that are within the required routing set
+	/// and false otherwise.
+	</span><span class="kw">pub fn </span>route_to_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, required_routing: RequiredRouting, peer: <span class="kw-2">&amp;</span>PeerId) -&gt; bool {
+		<span class="kw">match </span>required_routing {
+			RequiredRouting::All =&gt; <span class="bool-val">true</span>,
+			RequiredRouting::GridX =&gt; <span class="self">self</span>.peers_x.contains(peer),
+			RequiredRouting::GridY =&gt; <span class="self">self</span>.peers_y.contains(peer),
+			RequiredRouting::GridXY =&gt; <span class="self">self</span>.peers_x.contains(peer) || <span class="self">self</span>.peers_y.contains(peer),
+			RequiredRouting::None | RequiredRouting::PendingTopology =&gt; <span class="bool-val">false</span>,
 		}
 	}
 
-	<span class="doccomment">/// Get a filter function based on this topology and the required routing</span>
-	<span class="doccomment">/// which returns `true` for peers that are within the required routing set</span>
-	<span class="doccomment">/// and false otherwise.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">route_to_peer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">required_routing</span>: <span class="ident">RequiredRouting</span>, <span class="ident">peer</span>: <span class="kw-2">&amp;</span><span class="ident">PeerId</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">match</span> <span class="ident">required_routing</span> {
-			<span class="ident">RequiredRouting::All</span> =&gt; <span class="bool-val">true</span>,
-			<span class="ident">RequiredRouting::GridX</span> =&gt; <span class="self">self</span>.<span class="ident">peers_x</span>.<span class="ident">contains</span>(<span class="ident">peer</span>),
-			<span class="ident">RequiredRouting::GridY</span> =&gt; <span class="self">self</span>.<span class="ident">peers_y</span>.<span class="ident">contains</span>(<span class="ident">peer</span>),
-			<span class="ident">RequiredRouting::GridXY</span> =&gt; <span class="self">self</span>.<span class="ident">peers_x</span>.<span class="ident">contains</span>(<span class="ident">peer</span>) <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">peers_y</span>.<span class="ident">contains</span>(<span class="ident">peer</span>),
-			<span class="ident">RequiredRouting::None</span> <span class="op">|</span> <span class="ident">RequiredRouting::PendingTopology</span> =&gt; <span class="bool-val">false</span>,
-		}
+	<span class="doccomment">/// Returns the difference between this and the `other` topology as a vector of peers
+	</span><span class="kw">pub fn </span>peers_diff(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Vec&lt;PeerId&gt; {
+		<span class="self">self</span>.peers_x
+			.iter()
+			.chain(<span class="self">self</span>.peers_y.iter())
+			.filter(|peer_id| !(other.peers_x.contains(peer_id) || other.peers_y.contains(peer_id)))
+			.cloned()
+			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 	}
 
-	<span class="doccomment">/// Returns the difference between this and the `other` topology as a vector of peers</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peers_diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">peers_x</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">chain</span>(<span class="self">self</span>.<span class="ident">peers_y</span>.<span class="ident">iter</span>())
-			.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">peer_id</span><span class="op">|</span> <span class="op">!</span>(<span class="ident">other</span>.<span class="ident">peers_x</span>.<span class="ident">contains</span>(<span class="ident">peer_id</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">peers_y</span>.<span class="ident">contains</span>(<span class="ident">peer_id</span>)))
-			.<span class="ident">cloned</span>()
-			.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-	}
-
-	<span class="doccomment">/// A convenience method that returns total number of peers in the topology</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-		<span class="self">self</span>.<span class="ident">peers_x</span>.<span class="ident">len</span>().<span class="ident">saturating_add</span>(<span class="self">self</span>.<span class="ident">peers_y</span>.<span class="ident">len</span>())
+	<span class="doccomment">/// A convenience method that returns total number of peers in the topology
+	</span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.peers_x.len().saturating_add(<span class="self">self</span>.peers_y.len())
 	}
 }
 
-<span class="doccomment">/// An entry tracking a session grid topology and some cached local neighbors.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SessionGridTopologyEntry</span> {
-	<span class="ident">topology</span>: <span class="ident">SessionGridTopology</span>,
-	<span class="ident">local_neighbors</span>: <span class="ident">GridNeighbors</span>,
+<span class="doccomment">/// An entry tracking a session grid topology and some cached local neighbors.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>SessionGridTopologyEntry {
+	topology: SessionGridTopology,
+	local_neighbors: GridNeighbors,
 }
 
-<span class="kw">impl</span> <span class="ident">SessionGridTopologyEntry</span> {
-	<span class="doccomment">/// Access the local grid neighbors.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_grid_neighbors</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">GridNeighbors</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">local_neighbors</span>
+<span class="kw">impl </span>SessionGridTopologyEntry {
+	<span class="doccomment">/// Access the local grid neighbors.
+	</span><span class="kw">pub fn </span>local_grid_neighbors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GridNeighbors {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.local_neighbors
 	}
 
-	<span class="doccomment">/// Access the local grid neighbors mutably.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_grid_neighbors_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">GridNeighbors</span> {
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">local_neighbors</span>
+	<span class="doccomment">/// Access the local grid neighbors mutably.
+	</span><span class="kw">pub fn </span>local_grid_neighbors_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>GridNeighbors {
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>.local_neighbors
 	}
 
-	<span class="doccomment">/// Access the underlying topology.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">SessionGridTopology</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">topology</span>
+	<span class="doccomment">/// Access the underlying topology.
+	</span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SessionGridTopology {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.topology
 	}
 }
 
-<span class="doccomment">/// A set of topologies indexed by session</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SessionGridTopologies</span> {
-	<span class="ident">inner</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">SessionIndex</span>, (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SessionGridTopologyEntry</span><span class="op">&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// A set of topologies indexed by session
+</span><span class="attribute">#[derive(Default)]
+</span><span class="kw">pub struct </span>SessionGridTopologies {
+	inner: HashMap&lt;SessionIndex, (<span class="prelude-ty">Option</span>&lt;SessionGridTopologyEntry&gt;, usize)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">SessionGridTopologies</span> {
-	<span class="doccomment">/// Returns a topology for the specific session index</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_topology</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">session</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SessionGridTopologyEntry</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">session</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="number">0</span>.<span class="ident">as_ref</span>())
+<span class="kw">impl </span>SessionGridTopologies {
+	<span class="doccomment">/// Returns a topology for the specific session index
+	</span><span class="kw">pub fn </span>get_topology(<span class="kw-2">&amp;</span><span class="self">self</span>, session: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionGridTopologyEntry&gt; {
+		<span class="self">self</span>.inner.get(<span class="kw-2">&amp;</span>session).and_then(|val| val.<span class="number">0</span>.as_ref())
 	}
 
-	<span class="doccomment">/// Increase references counter for a specific topology</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc_session_refs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">session</span>: <span class="ident">SessionIndex</span>) {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">entry</span>(<span class="ident">session</span>).<span class="ident">or_insert</span>((<span class="prelude-val">None</span>, <span class="number">0</span>)).<span class="number">1</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+	<span class="doccomment">/// Increase references counter for a specific topology
+	</span><span class="kw">pub fn </span>inc_session_refs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, session: SessionIndex) {
+		<span class="self">self</span>.inner.entry(session).or_insert((<span class="prelude-val">None</span>, <span class="number">0</span>)).<span class="number">1 </span>+= <span class="number">1</span>;
 	}
 
-	<span class="doccomment">/// Decrease references counter for a specific topology</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dec_session_refs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">session</span>: <span class="ident">SessionIndex</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="ident">hash_map::Entry::Occupied</span>(<span class="kw-2">mut</span> <span class="ident">occupied</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">entry</span>(<span class="ident">session</span>) {
-			<span class="ident">occupied</span>.<span class="ident">get_mut</span>().<span class="number">1</span> <span class="op">=</span> <span class="ident">occupied</span>.<span class="ident">get</span>().<span class="number">1</span>.<span class="ident">saturating_sub</span>(<span class="number">1</span>);
-			<span class="kw">if</span> <span class="ident">occupied</span>.<span class="ident">get</span>().<span class="number">1</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">occupied</span>.<span class="ident">remove</span>();
+	<span class="doccomment">/// Decrease references counter for a specific topology
+	</span><span class="kw">pub fn </span>dec_session_refs(<span class="kw-2">&amp;mut </span><span class="self">self</span>, session: SessionIndex) {
+		<span class="kw">if let </span>hash_map::Entry::Occupied(<span class="kw-2">mut </span>occupied) = <span class="self">self</span>.inner.entry(session) {
+			occupied.get_mut().<span class="number">1 </span>= occupied.get().<span class="number">1</span>.saturating_sub(<span class="number">1</span>);
+			<span class="kw">if </span>occupied.get().<span class="number">1 </span>== <span class="number">0 </span>{
+				<span class="kw">let _ </span>= occupied.remove();
 			}
 		}
 	}
 
-	<span class="doccomment">/// Insert a new topology, no-op if already present.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_topology</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">session</span>: <span class="ident">SessionIndex</span>,
-		<span class="ident">topology</span>: <span class="ident">SessionGridTopology</span>,
-		<span class="ident">local_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Insert a new topology, no-op if already present.
+	</span><span class="kw">pub fn </span>insert_topology(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		session: SessionIndex,
+		topology: SessionGridTopology,
+		local_index: <span class="prelude-ty">Option</span>&lt;ValidatorIndex&gt;,
 	) {
-		<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">entry</span>(<span class="ident">session</span>).<span class="ident">or_insert</span>((<span class="prelude-val">None</span>, <span class="number">0</span>));
-		<span class="kw">if</span> <span class="ident">entry</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
-			<span class="kw">let</span> <span class="ident">local_neighbors</span> <span class="op">=</span> <span class="ident">local_index</span>
-				.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">topology</span>.<span class="ident">compute_grid_neighbors_for</span>(<span class="ident">l</span>))
-				.<span class="ident">unwrap_or_else</span>(<span class="ident">GridNeighbors::empty</span>);
+		<span class="kw">let </span>entry = <span class="self">self</span>.inner.entry(session).or_insert((<span class="prelude-val">None</span>, <span class="number">0</span>));
+		<span class="kw">if </span>entry.<span class="number">0</span>.is_none() {
+			<span class="kw">let </span>local_neighbors = local_index
+				.and_then(|l| topology.compute_grid_neighbors_for(l))
+				.unwrap_or_else(GridNeighbors::empty);
 
-			<span class="ident">entry</span>.<span class="number">0</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">SessionGridTopologyEntry</span> { <span class="ident">topology</span>, <span class="ident">local_neighbors</span> });
+			entry.<span class="number">0 </span>= <span class="prelude-val">Some</span>(SessionGridTopologyEntry { topology, local_neighbors });
 		}
 	}
 }
 
-<span class="doccomment">/// A simple storage for a topology and the corresponding session index</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">GridTopologySessionBound</span> {
-	<span class="ident">entry</span>: <span class="ident">SessionGridTopologyEntry</span>,
-	<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
+<span class="doccomment">/// A simple storage for a topology and the corresponding session index
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>GridTopologySessionBound {
+	entry: SessionGridTopologyEntry,
+	session_index: SessionIndex,
 }
 
-<span class="doccomment">/// A storage for the current and maybe previous topology</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SessionBoundGridTopologyStorage</span> {
-	<span class="ident">current_topology</span>: <span class="ident">GridTopologySessionBound</span>,
-	<span class="ident">prev_topology</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GridTopologySessionBound</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A storage for the current and maybe previous topology
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>SessionBoundGridTopologyStorage {
+	current_topology: GridTopologySessionBound,
+	prev_topology: <span class="prelude-ty">Option</span>&lt;GridTopologySessionBound&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">SessionBoundGridTopologyStorage</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="comment">// having this struct be `Default` is objectively stupid</span>
-		<span class="comment">// but used in a few places</span>
-		<span class="ident">SessionBoundGridTopologyStorage</span> {
-			<span class="ident">current_topology</span>: <span class="ident">GridTopologySessionBound</span> {
-				<span class="comment">// session 0 is valid so we should use the upper bound</span>
-				<span class="comment">// as the default instead of the lower bound.</span>
-				<span class="ident">session_index</span>: <span class="ident">SessionIndex::max_value</span>(),
-				<span class="ident">entry</span>: <span class="ident">SessionGridTopologyEntry</span> {
-					<span class="ident">topology</span>: <span class="ident">SessionGridTopology</span> {
-						<span class="ident">shuffled_indices</span>: <span class="ident">Vec::new</span>(),
-						<span class="ident">canonical_shuffling</span>: <span class="ident">Vec::new</span>(),
+<span class="kw">impl </span>Default <span class="kw">for </span>SessionBoundGridTopologyStorage {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="comment">// having this struct be `Default` is objectively stupid
+		// but used in a few places
+		</span>SessionBoundGridTopologyStorage {
+			current_topology: GridTopologySessionBound {
+				<span class="comment">// session 0 is valid so we should use the upper bound
+				// as the default instead of the lower bound.
+				</span>session_index: SessionIndex::max_value(),
+				entry: SessionGridTopologyEntry {
+					topology: SessionGridTopology {
+						shuffled_indices: Vec::new(),
+						canonical_shuffling: Vec::new(),
 					},
-					<span class="ident">local_neighbors</span>: <span class="ident">GridNeighbors::empty</span>(),
+					local_neighbors: GridNeighbors::empty(),
 				},
 			},
-			<span class="ident">prev_topology</span>: <span class="prelude-val">None</span>,
+			prev_topology: <span class="prelude-val">None</span>,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">SessionBoundGridTopologyStorage</span> {
-	<span class="doccomment">/// Return a grid topology based on the session index:</span>
-	<span class="doccomment">/// If we need a previous session and it is registered in the storage, then return that session.</span>
-	<span class="doccomment">/// Otherwise, return a current session to have some grid topology in any case</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_topology_or_fallback</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">SessionGridTopologyEntry</span> {
-		<span class="self">self</span>.<span class="ident">get_topology</span>(<span class="ident">idx</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">current_topology</span>.<span class="ident">entry</span>)
+<span class="kw">impl </span>SessionBoundGridTopologyStorage {
+	<span class="doccomment">/// Return a grid topology based on the session index:
+	/// If we need a previous session and it is registered in the storage, then return that session.
+	/// Otherwise, return a current session to have some grid topology in any case
+	</span><span class="kw">pub fn </span>get_topology_or_fallback(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: SessionIndex) -&gt; <span class="kw-2">&amp;</span>SessionGridTopologyEntry {
+		<span class="self">self</span>.get_topology(idx).unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.current_topology.entry)
 	}
 
-	<span class="doccomment">/// Return the grid topology for the specific session index, if no such a session is stored</span>
-	<span class="doccomment">/// returns `None`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_topology</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SessionGridTopologyEntry</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prev_topology</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prev_topology</span> {
-			<span class="kw">if</span> <span class="ident">idx</span> <span class="op">==</span> <span class="ident">prev_topology</span>.<span class="ident">session_index</span> {
-				<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">prev_topology</span>.<span class="ident">entry</span>)
+	<span class="doccomment">/// Return the grid topology for the specific session index, if no such a session is stored
+	/// returns `None`.
+	</span><span class="kw">pub fn </span>get_topology(<span class="kw-2">&amp;</span><span class="self">self</span>, idx: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionGridTopologyEntry&gt; {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(prev_topology) = <span class="kw-2">&amp;</span><span class="self">self</span>.prev_topology {
+			<span class="kw">if </span>idx == prev_topology.session_index {
+				<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>prev_topology.entry)
 			}
 		}
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_topology</span>.<span class="ident">session_index</span> <span class="op">==</span> <span class="ident">idx</span> {
-			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">current_topology</span>.<span class="ident">entry</span>)
+		<span class="kw">if </span><span class="self">self</span>.current_topology.session_index == idx {
+			<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.current_topology.entry)
 		}
 
-		<span class="prelude-val">None</span>
-	}
+		<span class="prelude-val">None
+	</span>}
 
-	<span class="doccomment">/// Update the current topology preserving the previous one</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_topology</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
-		<span class="ident">topology</span>: <span class="ident">SessionGridTopology</span>,
-		<span class="ident">local_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Update the current topology preserving the previous one
+	</span><span class="kw">pub fn </span>update_topology(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		session_index: SessionIndex,
+		topology: SessionGridTopology,
+		local_index: <span class="prelude-ty">Option</span>&lt;ValidatorIndex&gt;,
 	) {
-		<span class="kw">let</span> <span class="ident">local_neighbors</span> <span class="op">=</span> <span class="ident">local_index</span>
-			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">topology</span>.<span class="ident">compute_grid_neighbors_for</span>(<span class="ident">l</span>))
-			.<span class="ident">unwrap_or_else</span>(<span class="ident">GridNeighbors::empty</span>);
+		<span class="kw">let </span>local_neighbors = local_index
+			.and_then(|l| topology.compute_grid_neighbors_for(l))
+			.unwrap_or_else(GridNeighbors::empty);
 
-		<span class="kw">let</span> <span class="ident">old_current</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(
-			<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">current_topology</span>,
-			<span class="ident">GridTopologySessionBound</span> {
-				<span class="ident">entry</span>: <span class="ident">SessionGridTopologyEntry</span> { <span class="ident">topology</span>, <span class="ident">local_neighbors</span> },
-				<span class="ident">session_index</span>,
+		<span class="kw">let </span>old_current = std::mem::replace(
+			<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_topology,
+			GridTopologySessionBound {
+				entry: SessionGridTopologyEntry { topology, local_neighbors },
+				session_index,
 			},
 		);
-		<span class="self">self</span>.<span class="ident">prev_topology</span>.<span class="ident">replace</span>(<span class="ident">old_current</span>);
+		<span class="self">self</span>.prev_topology.replace(old_current);
 	}
 
-	<span class="doccomment">/// Returns a current grid topology</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_current_topology</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">SessionGridTopologyEntry</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">current_topology</span>.<span class="ident">entry</span>
+	<span class="doccomment">/// Returns a current grid topology
+	</span><span class="kw">pub fn </span>get_current_topology(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>SessionGridTopologyEntry {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.current_topology.entry
 	}
 
-	<span class="doccomment">/// Access the current grid topology mutably. Dangerous and intended</span>
-	<span class="doccomment">/// to be used in tests.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_current_topology_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">SessionGridTopologyEntry</span> {
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">current_topology</span>.<span class="ident">entry</span>
+	<span class="doccomment">/// Access the current grid topology mutably. Dangerous and intended
+	/// to be used in tests.
+	</span><span class="kw">pub fn </span>get_current_topology_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>SessionGridTopologyEntry {
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>.current_topology.entry
 	}
 }
 
-<span class="doccomment">/// A representation of routing based on sample</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RandomRouting</span> {
-	<span class="doccomment">/// The number of peers to target.</span>
-	<span class="ident">target</span>: <span class="ident">usize</span>,
-	<span class="doccomment">/// The number of peers this has been sent to.</span>
-	<span class="ident">sent</span>: <span class="ident">usize</span>,
-	<span class="doccomment">/// Sampling rate</span>
-	<span class="ident">sample_rate</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// A representation of routing based on sample
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>RandomRouting {
+	<span class="doccomment">/// The number of peers to target.
+	</span>target: usize,
+	<span class="doccomment">/// The number of peers this has been sent to.
+	</span>sent: usize,
+	<span class="doccomment">/// Sampling rate
+	</span>sample_rate: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RandomRouting</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="ident">RandomRouting</span> {
-			<span class="ident">target</span>: <span class="ident">DEFAULT_RANDOM_CIRCULATION</span>,
-			<span class="ident">sent</span>: <span class="number">0_usize</span>,
-			<span class="ident">sample_rate</span>: <span class="ident">DEFAULT_RANDOM_SAMPLE_RATE</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>RandomRouting {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		RandomRouting {
+			target: DEFAULT_RANDOM_CIRCULATION,
+			sent: <span class="number">0_usize</span>,
+			sample_rate: DEFAULT_RANDOM_SAMPLE_RATE,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">RandomRouting</span> {
-	<span class="doccomment">/// Perform random sampling for a specific peer</span>
-	<span class="doccomment">/// Returns `true` for a lucky peer</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n_peers_total</span>: <span class="ident">usize</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> (<span class="kw">impl</span> <span class="ident">CryptoRng</span> <span class="op">+</span> <span class="ident">Rng</span>)) -&gt; <span class="ident">bool</span> {
-		<span class="kw">if</span> <span class="ident">n_peers_total</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">sent</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span> {
-			<span class="bool-val">false</span>
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sample_rate</span> <span class="op">&gt;</span> <span class="ident">n_peers_total</span> {
-			<span class="bool-val">true</span>
-		} <span class="kw">else</span> {
-			<span class="ident">rng</span>.<span class="ident">gen_ratio</span>(<span class="self">self</span>.<span class="ident">sample_rate</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">n_peers_total</span> <span class="kw">as</span> <span class="kw">_</span>)
+<span class="kw">impl </span>RandomRouting {
+	<span class="doccomment">/// Perform random sampling for a specific peer
+	/// Returns `true` for a lucky peer
+	</span><span class="kw">pub fn </span>sample(<span class="kw-2">&amp;</span><span class="self">self</span>, n_peers_total: usize, rng: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span>CryptoRng + Rng)) -&gt; bool {
+		<span class="kw">if </span>n_peers_total == <span class="number">0 </span>|| <span class="self">self</span>.sent &gt;= <span class="self">self</span>.target {
+			<span class="bool-val">false
+		</span>} <span class="kw">else if </span><span class="self">self</span>.sample_rate &gt; n_peers_total {
+			<span class="bool-val">true
+		</span>} <span class="kw">else </span>{
+			rng.gen_ratio(<span class="self">self</span>.sample_rate <span class="kw">as _</span>, n_peers_total <span class="kw">as _</span>)
 		}
 	}
 
-	<span class="doccomment">/// Increase number of messages being sent</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inc_sent</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="self">self</span>.<span class="ident">sent</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
-	}
+	<span class="doccomment">/// Increase number of messages being sent
+	</span><span class="kw">pub fn </span>inc_sent(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="self">self</span>.sent += <span class="number">1
+	</span>}
 }
 
-<span class="doccomment">/// Routing mode</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RequiredRouting</span> {
-	<span class="doccomment">/// We don&#39;t know yet, because we&#39;re waiting for topology info</span>
-	<span class="doccomment">/// (race condition between learning about the first blocks in a new session</span>
-	<span class="doccomment">/// and getting the topology for that session)</span>
-	<span class="ident">PendingTopology</span>,
-	<span class="doccomment">/// Propagate to all peers of any kind.</span>
-	<span class="ident">All</span>,
-	<span class="doccomment">/// Propagate to all peers sharing either the X or Y dimension of the grid.</span>
-	<span class="ident">GridXY</span>,
-	<span class="doccomment">/// Propagate to all peers sharing the X dimension of the grid.</span>
-	<span class="ident">GridX</span>,
-	<span class="doccomment">/// Propagate to all peers sharing the Y dimension of the grid.</span>
-	<span class="ident">GridY</span>,
-	<span class="doccomment">/// No required propagation.</span>
-	<span class="prelude-val">None</span>,
+<span class="doccomment">/// Routing mode
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub enum </span>RequiredRouting {
+	<span class="doccomment">/// We don&#39;t know yet, because we&#39;re waiting for topology info
+	/// (race condition between learning about the first blocks in a new session
+	/// and getting the topology for that session)
+	</span>PendingTopology,
+	<span class="doccomment">/// Propagate to all peers of any kind.
+	</span>All,
+	<span class="doccomment">/// Propagate to all peers sharing either the X or Y dimension of the grid.
+	</span>GridXY,
+	<span class="doccomment">/// Propagate to all peers sharing the X dimension of the grid.
+	</span>GridX,
+	<span class="doccomment">/// Propagate to all peers sharing the Y dimension of the grid.
+	</span>GridY,
+	<span class="doccomment">/// No required propagation.
+	</span><span class="prelude-val">None</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">RequiredRouting</span> {
-	<span class="doccomment">/// Whether the required routing set is definitely empty.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">RequiredRouting::PendingTopology</span> <span class="op">|</span> <span class="ident">RequiredRouting::None</span> =&gt; <span class="bool-val">true</span>,
-			<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span>RequiredRouting {
+	<span class="doccomment">/// Whether the required routing set is definitely empty.
+	</span><span class="kw">pub fn </span>is_empty(<span class="self">self</span>) -&gt; bool {
+		<span class="kw">match </span><span class="self">self </span>{
+			RequiredRouting::PendingTopology | RequiredRouting::None =&gt; <span class="bool-val">true</span>,
+			<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">rand::SeedableRng</span>;
-	<span class="kw">use</span> <span class="ident">rand_chacha::ChaCha12Rng</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>rand::SeedableRng;
+	<span class="kw">use </span>rand_chacha::ChaCha12Rng;
 
-	<span class="kw">fn</span> <span class="ident">dummy_rng</span>() -&gt; <span class="ident">ChaCha12Rng</span> {
-		<span class="ident">rand_chacha::ChaCha12Rng::seed_from_u64</span>(<span class="number">12345</span>)
+	<span class="kw">fn </span>dummy_rng() -&gt; ChaCha12Rng {
+		rand_chacha::ChaCha12Rng::seed_from_u64(<span class="number">12345</span>)
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_random_routing_sample</span>() {
-		<span class="comment">// This test is fragile as it relies on a specific ChaCha12Rng</span>
-		<span class="comment">// sequence that might be implementation defined even for a static seed</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">dummy_rng</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">random_routing</span> <span class="op">=</span> <span class="ident">RandomRouting</span> { <span class="ident">target</span>: <span class="number">4</span>, <span class="ident">sent</span>: <span class="number">0</span>, <span class="ident">sample_rate</span>: <span class="number">8</span> };
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_random_routing_sample() {
+		<span class="comment">// This test is fragile as it relies on a specific ChaCha12Rng
+		// sequence that might be implementation defined even for a static seed
+		</span><span class="kw">let </span><span class="kw-2">mut </span>rng = dummy_rng();
+		<span class="kw">let </span><span class="kw-2">mut </span>random_routing = RandomRouting { target: <span class="number">4</span>, sent: <span class="number">0</span>, sample_rate: <span class="number">8 </span>};
 
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">true</span>);
-		<span class="ident">random_routing</span>.<span class="ident">inc_sent</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">false</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">false</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">true</span>);
-		<span class="ident">random_routing</span>.<span class="ident">inc_sent</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">true</span>);
-		<span class="ident">random_routing</span>.<span class="ident">inc_sent</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">false</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">false</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">false</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">true</span>);
-		<span class="ident">random_routing</span>.<span class="ident">inc_sent</span>();
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">true</span>);
+		random_routing.inc_sent();
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">false</span>);
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">false</span>);
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">true</span>);
+		random_routing.inc_sent();
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">true</span>);
+		random_routing.inc_sent();
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">false</span>);
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">false</span>);
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">false</span>);
+		<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">true</span>);
+		random_routing.inc_sent();
 
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
-			<span class="macro">assert_eq!</span>(<span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="number">16</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>), <span class="bool-val">false</span>);
+		<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">16 </span>{
+			<span class="macro">assert_eq!</span>(random_routing.sample(<span class="number">16</span>, <span class="kw-2">&amp;mut </span>rng), <span class="bool-val">false</span>);
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">run_random_routing</span>(
-		<span class="ident">random_routing</span>: <span class="kw-2">&amp;mut</span> <span class="ident">RandomRouting</span>,
-		<span class="ident">rng</span>: <span class="kw-2">&amp;mut</span> (<span class="kw">impl</span> <span class="ident">CryptoRng</span> <span class="op">+</span> <span class="ident">Rng</span>),
-		<span class="ident">npeers</span>: <span class="ident">usize</span>,
-		<span class="ident">iters</span>: <span class="ident">usize</span>,
-	) -&gt; <span class="ident">usize</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="number">0_usize</span>;
+	<span class="kw">fn </span>run_random_routing(
+		random_routing: <span class="kw-2">&amp;mut </span>RandomRouting,
+		rng: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span>CryptoRng + Rng),
+		npeers: usize,
+		iters: usize,
+	) -&gt; usize {
+		<span class="kw">let </span><span class="kw-2">mut </span>ret = <span class="number">0_usize</span>;
 
-		<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">iters</span> {
-			<span class="kw">if</span> <span class="ident">random_routing</span>.<span class="ident">sample</span>(<span class="ident">npeers</span>, <span class="ident">rng</span>) {
-				<span class="ident">random_routing</span>.<span class="ident">inc_sent</span>();
-				<span class="ident">ret</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+		<span class="kw">for _ in </span><span class="number">0</span>..iters {
+			<span class="kw">if </span>random_routing.sample(npeers, rng) {
+				random_routing.inc_sent();
+				ret += <span class="number">1</span>;
 			}
 		}
 
-		<span class="ident">ret</span>
+		ret
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_random_routing_distribution</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">dummy_rng</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_random_routing_distribution() {
+		<span class="kw">let </span><span class="kw-2">mut </span>rng = dummy_rng();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">random_routing</span> <span class="op">=</span> <span class="ident">RandomRouting</span> { <span class="ident">target</span>: <span class="number">4</span>, <span class="ident">sent</span>: <span class="number">0</span>, <span class="ident">sample_rate</span>: <span class="number">8</span> };
-		<span class="macro">assert_eq!</span>(<span class="ident">run_random_routing</span>(<span class="kw-2">&amp;mut</span> <span class="ident">random_routing</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>, <span class="number">100</span>, <span class="number">10000</span>), <span class="number">4</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>random_routing = RandomRouting { target: <span class="number">4</span>, sent: <span class="number">0</span>, sample_rate: <span class="number">8 </span>};
+		<span class="macro">assert_eq!</span>(run_random_routing(<span class="kw-2">&amp;mut </span>random_routing, <span class="kw-2">&amp;mut </span>rng, <span class="number">100</span>, <span class="number">10000</span>), <span class="number">4</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">random_routing</span> <span class="op">=</span> <span class="ident">RandomRouting</span> { <span class="ident">target</span>: <span class="number">8</span>, <span class="ident">sent</span>: <span class="number">0</span>, <span class="ident">sample_rate</span>: <span class="number">100</span> };
-		<span class="macro">assert_eq!</span>(<span class="ident">run_random_routing</span>(<span class="kw-2">&amp;mut</span> <span class="ident">random_routing</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>, <span class="number">100</span>, <span class="number">10000</span>), <span class="number">8</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>random_routing = RandomRouting { target: <span class="number">8</span>, sent: <span class="number">0</span>, sample_rate: <span class="number">100 </span>};
+		<span class="macro">assert_eq!</span>(run_random_routing(<span class="kw-2">&amp;mut </span>random_routing, <span class="kw-2">&amp;mut </span>rng, <span class="number">100</span>, <span class="number">10000</span>), <span class="number">8</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">random_routing</span> <span class="op">=</span> <span class="ident">RandomRouting</span> { <span class="ident">target</span>: <span class="number">0</span>, <span class="ident">sent</span>: <span class="number">0</span>, <span class="ident">sample_rate</span>: <span class="number">100</span> };
-		<span class="macro">assert_eq!</span>(<span class="ident">run_random_routing</span>(<span class="kw-2">&amp;mut</span> <span class="ident">random_routing</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>, <span class="number">100</span>, <span class="number">10000</span>), <span class="number">0</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>random_routing = RandomRouting { target: <span class="number">0</span>, sent: <span class="number">0</span>, sample_rate: <span class="number">100 </span>};
+		<span class="macro">assert_eq!</span>(run_random_routing(<span class="kw-2">&amp;mut </span>random_routing, <span class="kw-2">&amp;mut </span>rng, <span class="number">100</span>, <span class="number">10000</span>), <span class="number">0</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">random_routing</span> <span class="op">=</span> <span class="ident">RandomRouting</span> { <span class="ident">target</span>: <span class="number">10</span>, <span class="ident">sent</span>: <span class="number">0</span>, <span class="ident">sample_rate</span>: <span class="number">10</span> };
-		<span class="macro">assert_eq!</span>(<span class="ident">run_random_routing</span>(<span class="kw-2">&amp;mut</span> <span class="ident">random_routing</span>, <span class="kw-2">&amp;mut</span> <span class="ident">rng</span>, <span class="number">10</span>, <span class="number">100</span>), <span class="number">10</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>random_routing = RandomRouting { target: <span class="number">10</span>, sent: <span class="number">0</span>, sample_rate: <span class="number">10 </span>};
+		<span class="macro">assert_eq!</span>(run_random_routing(<span class="kw-2">&amp;mut </span>random_routing, <span class="kw-2">&amp;mut </span>rng, <span class="number">10</span>, <span class="number">100</span>), <span class="number">10</span>);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_matrix_neighbors</span>() {
-		<span class="kw">for</span> (<span class="ident">our_index</span>, <span class="ident">len</span>, <span class="ident">expected_row</span>, <span class="ident">expected_column</span>) <span class="kw">in</span> <span class="macro">vec!</span>[
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_matrix_neighbors() {
+		<span class="kw">for </span>(our_index, len, expected_row, expected_column) <span class="kw">in </span><span class="macro">vec!</span>[
 			(<span class="number">0usize</span>, <span class="number">1usize</span>, <span class="macro">vec!</span>[], <span class="macro">vec!</span>[]),
 			(<span class="number">1</span>, <span class="number">2</span>, <span class="macro">vec!</span>[], <span class="macro">vec!</span>[<span class="number">0usize</span>]),
 			(<span class="number">0</span>, <span class="number">9</span>, <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>], <span class="macro">vec!</span>[<span class="number">3</span>, <span class="number">6</span>]),
@@ -1135,19 +1129,18 @@
 			(<span class="number">10</span>, <span class="number">11</span>, <span class="macro">vec!</span>[<span class="number">9</span>], <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">4</span>, <span class="number">7</span>]),
 			(<span class="number">7</span>, <span class="number">11</span>, <span class="macro">vec!</span>[<span class="number">6</span>, <span class="number">8</span>], <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">4</span>, <span class="number">10</span>]),
 		]
-		.<span class="ident">into_iter</span>()
+		.into_iter()
 		{
-			<span class="kw">let</span> <span class="ident">matrix</span> <span class="op">=</span> <span class="ident">matrix_neighbors</span>(<span class="ident">our_index</span>, <span class="ident">len</span>).<span class="ident">unwrap</span>();
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">row_result</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">matrix</span>.<span class="ident">row_neighbors</span>.<span class="ident">collect</span>();
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">column_result</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">matrix</span>.<span class="ident">column_neighbors</span>.<span class="ident">collect</span>();
-			<span class="ident">row_result</span>.<span class="ident">sort</span>();
-			<span class="ident">column_result</span>.<span class="ident">sort</span>();
+			<span class="kw">let </span>matrix = matrix_neighbors(our_index, len).unwrap();
+			<span class="kw">let </span><span class="kw-2">mut </span>row_result: Vec&lt;<span class="kw">_</span>&gt; = matrix.row_neighbors.collect();
+			<span class="kw">let </span><span class="kw-2">mut </span>column_result: Vec&lt;<span class="kw">_</span>&gt; = matrix.column_neighbors.collect();
+			row_result.sort();
+			column_result.sort();
 
-			<span class="macro">assert_eq!</span>(<span class="ident">row_result</span>, <span class="ident">expected_row</span>);
-			<span class="macro">assert_eq!</span>(<span class="ident">column_result</span>, <span class="ident">expected_column</span>);
+			<span class="macro">assert_eq!</span>(row_result, expected_row);
+			<span class="macro">assert_eq!</span>(column_result, expected_column);
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

@@ -1,4 +1,4 @@
-(function() {var implementors = {};
-implementors["polkadot_service"] = [];
-implementors["polkadot_test_client"] = [];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"polkadot_service":[],
+"polkadot_test_client":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

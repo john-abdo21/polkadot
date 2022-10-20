@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/bridge/src/validator_discovery.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator_discovery.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_network_bridge/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_network_bridge/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_network_bridge/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/bridge/src/validator_discovery.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator_discovery.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_network_bridge/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_network_bridge/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -375,377 +369,376 @@
 <span id="369">369</span>
 <span id="370">370</span>
 <span id="371">371</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! A validator discovery service for the Network Bridge.</span>
+</span><span class="doccomment">//! A validator discovery service for the Network Bridge.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Network</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::Network;
 
-<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>std::collections::HashSet;
 
-<span class="kw">use</span> <span class="ident">futures::channel::oneshot</span>;
+<span class="kw">use </span>futures::channel::oneshot;
 
-<span class="kw">use</span> <span class="ident">sc_network::multiaddr</span>::{<span class="self">self</span>, <span class="ident">Multiaddr</span>};
+<span class="kw">use </span>sc_network::multiaddr::{<span class="self">self</span>, Multiaddr};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">polkadot_node_network_protocol::authority_discovery::AuthorityDiscovery</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
-	<span class="ident">peer_set</span>::{<span class="ident">PeerSet</span>, <span class="ident">PeerSetProtocolNames</span>, <span class="ident">PerPeerSet</span>},
-	<span class="ident">PeerId</span>,
+<span class="kw">pub use </span>polkadot_node_network_protocol::authority_discovery::AuthorityDiscovery;
+<span class="kw">use </span>polkadot_node_network_protocol::{
+	peer_set::{PeerSet, PeerSetProtocolNames, PerPeerSet},
+	PeerId,
 };
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2::AuthorityDiscoveryId</span>;
+<span class="kw">use </span>polkadot_primitives::v2::AuthorityDiscoveryId;
 
-<span class="kw">const</span> <span class="ident">LOG_TARGET</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;parachain::validator-discovery&quot;</span>;
+<span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;parachain::validator-discovery&quot;</span>;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">AD</span><span class="op">&gt;</span> {
-	<span class="ident">state</span>: <span class="ident">PerPeerSet</span><span class="op">&lt;</span><span class="ident">StatePerPeerSet</span><span class="op">&gt;</span>,
-	<span class="ident">peerset_protocol_names</span>: <span class="ident">PeerSetProtocolNames</span>,
-	<span class="comment">// PhantomData used to make the struct generic instead of having generic methods</span>
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">N</span>, <span class="ident">AD</span>)<span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Service&lt;N, AD&gt; {
+	state: PerPeerSet&lt;StatePerPeerSet&gt;,
+	peerset_protocol_names: PeerSetProtocolNames,
+	<span class="comment">// PhantomData used to make the struct generic instead of having generic methods
+	</span>_phantom: PhantomData&lt;(N, AD)&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">StatePerPeerSet</span> {
-	<span class="ident">previously_requested</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Default)]
+</span><span class="kw">struct </span>StatePerPeerSet {
+	previously_requested: HashSet&lt;PeerId&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">N</span>: <span class="ident">Network</span>, <span class="ident">AD</span>: <span class="ident">AuthorityDiscovery</span><span class="op">&gt;</span> <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">AD</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">peerset_protocol_names</span>: <span class="ident">PeerSetProtocolNames</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">state</span>: <span class="ident">Default::default</span>(), <span class="ident">peerset_protocol_names</span>, <span class="ident">_phantom</span>: <span class="ident">PhantomData</span> }
+<span class="kw">impl</span>&lt;N: Network, AD: AuthorityDiscovery&gt; Service&lt;N, AD&gt; {
+	<span class="kw">pub fn </span>new(peerset_protocol_names: PeerSetProtocolNames) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ state: Default::default(), peerset_protocol_names, _phantom: PhantomData }
 	}
 
-	<span class="doccomment">/// Connect to already resolved addresses.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">on_resolved_request</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">newly_requested</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Multiaddr</span><span class="op">&gt;</span>,
-		<span class="ident">peer_set</span>: <span class="ident">PeerSet</span>,
-		<span class="kw-2">mut</span> <span class="ident">network_service</span>: <span class="ident">N</span>,
-	) -&gt; <span class="ident">N</span> {
-		<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>[<span class="ident">peer_set</span>];
-		<span class="kw">let</span> <span class="ident">new_peer_ids</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">extract_peer_ids</span>(<span class="ident">newly_requested</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
-		<span class="kw">let</span> <span class="ident">num_peers</span> <span class="op">=</span> <span class="ident">new_peer_ids</span>.<span class="ident">len</span>();
+	<span class="doccomment">/// Connect to already resolved addresses.
+	</span><span class="kw">pub async fn </span>on_resolved_request(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		newly_requested: HashSet&lt;Multiaddr&gt;,
+		peer_set: PeerSet,
+		<span class="kw-2">mut </span>network_service: N,
+	) -&gt; N {
+		<span class="kw">let </span>state = <span class="kw-2">&amp;mut </span><span class="self">self</span>.state[peer_set];
+		<span class="kw">let </span>new_peer_ids: HashSet&lt;PeerId&gt; = extract_peer_ids(newly_requested.iter().cloned());
+		<span class="kw">let </span>num_peers = new_peer_ids.len();
 
-		<span class="kw">let</span> <span class="ident">peers_to_remove</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">state</span>.<span class="ident">previously_requested</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">new_peer_ids</span>).<span class="ident">cloned</span>().<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="ident">peers_to_remove</span>.<span class="ident">len</span>();
-		<span class="ident">state</span>.<span class="ident">previously_requested</span> <span class="op">=</span> <span class="ident">new_peer_ids</span>;
+		<span class="kw">let </span>peers_to_remove: Vec&lt;PeerId&gt; =
+			state.previously_requested.difference(<span class="kw-2">&amp;</span>new_peer_ids).cloned().collect();
+		<span class="kw">let </span>removed = peers_to_remove.len();
+		state.previously_requested = new_peer_ids;
 
 		<span class="macro">gum::debug!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">peer_set</span>,
-			<span class="question-mark">?</span><span class="ident">num_peers</span>,
-			<span class="question-mark">?</span><span class="ident">removed</span>,
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>peer_set,
+			<span class="question-mark">?</span>num_peers,
+			<span class="question-mark">?</span>removed,
 			<span class="string">&quot;New ConnectToValidators resolved request&quot;</span>,
 		);
-		<span class="comment">// ask the network to connect to these nodes and not disconnect</span>
-		<span class="comment">// from them until removed from the set</span>
-		<span class="comment">//</span>
-		<span class="comment">// for peer-set management, the main protocol name should be used regardless of</span>
-		<span class="comment">// the negotiated version.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">network_service</span>
-			.<span class="ident">set_reserved_peers</span>(
-				<span class="self">self</span>.<span class="ident">peerset_protocol_names</span>.<span class="ident">get_main_name</span>(<span class="ident">peer_set</span>),
-				<span class="ident">newly_requested</span>,
+		<span class="comment">// ask the network to connect to these nodes and not disconnect
+		// from them until removed from the set
+		//
+		// for peer-set management, the main protocol name should be used regardless of
+		// the negotiated version.
+		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = network_service
+			.set_reserved_peers(
+				<span class="self">self</span>.peerset_protocol_names.get_main_name(peer_set),
+				newly_requested,
 			)
-			.<span class="kw">await</span>
-		{
-			<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="ident">err</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>, <span class="string">&quot;AuthorityDiscoveryService returned an invalid multiaddress&quot;</span>);
+			.<span class="kw">await
+		</span>{
+			<span class="macro">gum::warn!</span>(target: LOG_TARGET, err = <span class="question-mark">?</span>e, <span class="string">&quot;AuthorityDiscoveryService returned an invalid multiaddress&quot;</span>);
 		}
-		<span class="comment">// the addresses are known to be valid</span>
-		<span class="comment">//</span>
-		<span class="comment">// for peer-set management, the main protocol name should be used regardless of</span>
-		<span class="comment">// the negotiated version.</span>
-		<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">network_service</span>
-			.<span class="ident">remove_from_peers_set</span>(
-				<span class="self">self</span>.<span class="ident">peerset_protocol_names</span>.<span class="ident">get_main_name</span>(<span class="ident">peer_set</span>),
-				<span class="ident">peers_to_remove</span>,
+		<span class="comment">// the addresses are known to be valid
+		//
+		// for peer-set management, the main protocol name should be used regardless of
+		// the negotiated version.
+		</span><span class="kw">let _ </span>= network_service
+			.remove_from_peers_set(
+				<span class="self">self</span>.peerset_protocol_names.get_main_name(peer_set),
+				peers_to_remove,
 			)
 			.<span class="kw">await</span>;
 
-		<span class="ident">network_service</span>
+		network_service
 	}
 
-	<span class="doccomment">/// On a new connection request, a peer set update will be issued.</span>
-	<span class="doccomment">/// It will ask the network to connect to the validators and not disconnect</span>
-	<span class="doccomment">/// from them at least until the next request is issued for the same peer set.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This method will also disconnect from previously connected validators not in the `validator_ids` set.</span>
-	<span class="doccomment">/// it takes `network_service` and `authority_discovery_service` by value</span>
-	<span class="doccomment">/// and returns them as a workaround for the Future: Send requirement imposed by async function implementation.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">on_request</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">validator_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>,
-		<span class="ident">peer_set</span>: <span class="ident">PeerSet</span>,
-		<span class="ident">failed</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-		<span class="ident">network_service</span>: <span class="ident">N</span>,
-		<span class="kw-2">mut</span> <span class="ident">authority_discovery_service</span>: <span class="ident">AD</span>,
-	) -&gt; (<span class="ident">N</span>, <span class="ident">AD</span>) {
-		<span class="comment">// collect multiaddress of validators</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">failed_to_resolve</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">newly_requested</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
-		<span class="kw">let</span> <span class="ident">requested</span> <span class="op">=</span> <span class="ident">validator_ids</span>.<span class="ident">len</span>();
-		<span class="kw">for</span> <span class="ident">authority</span> <span class="kw">in</span> <span class="ident">validator_ids</span>.<span class="ident">into_iter</span>() {
-			<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">authority_discovery_service</span>
-				.<span class="ident">get_addresses_by_authority_id</span>(<span class="ident">authority</span>.<span class="ident">clone</span>())
+	<span class="doccomment">/// On a new connection request, a peer set update will be issued.
+	/// It will ask the network to connect to the validators and not disconnect
+	/// from them at least until the next request is issued for the same peer set.
+	///
+	/// This method will also disconnect from previously connected validators not in the `validator_ids` set.
+	/// it takes `network_service` and `authority_discovery_service` by value
+	/// and returns them as a workaround for the Future: Send requirement imposed by async function implementation.
+	</span><span class="kw">pub async fn </span>on_request(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		validator_ids: Vec&lt;AuthorityDiscoveryId&gt;,
+		peer_set: PeerSet,
+		failed: oneshot::Sender&lt;usize&gt;,
+		network_service: N,
+		<span class="kw-2">mut </span>authority_discovery_service: AD,
+	) -&gt; (N, AD) {
+		<span class="comment">// collect multiaddress of validators
+		</span><span class="kw">let </span><span class="kw-2">mut </span>failed_to_resolve: usize = <span class="number">0</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>newly_requested = HashSet::new();
+		<span class="kw">let </span>requested = validator_ids.len();
+		<span class="kw">for </span>authority <span class="kw">in </span>validator_ids.into_iter() {
+			<span class="kw">let </span>result = authority_discovery_service
+				.get_addresses_by_authority_id(authority.clone())
 				.<span class="kw">await</span>;
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addresses</span>) <span class="op">=</span> <span class="ident">result</span> {
-				<span class="ident">newly_requested</span>.<span class="ident">extend</span>(<span class="ident">addresses</span>);
-			} <span class="kw">else</span> {
-				<span class="ident">failed_to_resolve</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(addresses) = result {
+				newly_requested.extend(addresses);
+			} <span class="kw">else </span>{
+				failed_to_resolve += <span class="number">1</span>;
 				<span class="macro">gum::debug!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+					target: LOG_TARGET,
 					<span class="string">&quot;Authority Discovery couldn&#39;t resolve {:?}&quot;</span>,
-					<span class="ident">authority</span>
+					authority
 				);
 			}
 		}
 
 		<span class="macro">gum::debug!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">peer_set</span>,
-			<span class="question-mark">?</span><span class="ident">requested</span>,
-			<span class="question-mark">?</span><span class="ident">failed_to_resolve</span>,
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>peer_set,
+			<span class="question-mark">?</span>requested,
+			<span class="question-mark">?</span>failed_to_resolve,
 			<span class="string">&quot;New ConnectToValidators request&quot;</span>,
 		);
 
-		<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">on_resolved_request</span>(<span class="ident">newly_requested</span>, <span class="ident">peer_set</span>, <span class="ident">network_service</span>).<span class="kw">await</span>;
+		<span class="kw">let </span>r = <span class="self">self</span>.on_resolved_request(newly_requested, peer_set, network_service).<span class="kw">await</span>;
 
-		<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">failed</span>.<span class="ident">send</span>(<span class="ident">failed_to_resolve</span>);
+		<span class="kw">let _ </span>= failed.send(failed_to_resolve);
 
-		(<span class="ident">r</span>, <span class="ident">authority_discovery_service</span>)
+		(r, authority_discovery_service)
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">extract_peer_ids</span>(<span class="ident">multiaddr</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Multiaddr</span><span class="op">&gt;</span>) -&gt; <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span> {
-	<span class="ident">multiaddr</span>
-		.<span class="ident">filter_map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">addr</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">addr</span>.<span class="ident">pop</span>() {
-			<span class="prelude-val">Some</span>(<span class="ident">multiaddr::Protocol::P2p</span>(<span class="ident">key</span>)) =&gt; <span class="ident">PeerId::from_multihash</span>(<span class="ident">key</span>).<span class="ident">ok</span>(),
-			<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">fn </span>extract_peer_ids(multiaddr: <span class="kw">impl </span>Iterator&lt;Item = Multiaddr&gt;) -&gt; HashSet&lt;PeerId&gt; {
+	multiaddr
+		.filter_map(|<span class="kw-2">mut </span>addr| <span class="kw">match </span>addr.pop() {
+			<span class="prelude-val">Some</span>(multiaddr::Protocol::P2p(key)) =&gt; PeerId::from_multihash(key).ok(),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		})
-		.<span class="ident">collect</span>()
+		.collect()
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::network::Network</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::network::Network;
 
-	<span class="kw">use</span> <span class="ident">async_trait::async_trait</span>;
-	<span class="kw">use</span> <span class="ident">futures::stream::BoxStream</span>;
-	<span class="kw">use</span> <span class="ident">polkadot_node_network_protocol</span>::{
-		<span class="ident">request_response</span>::{<span class="ident">outgoing::Requests</span>, <span class="ident">ReqProtocolNames</span>},
-		<span class="ident">PeerId</span>,
+	<span class="kw">use </span>async_trait::async_trait;
+	<span class="kw">use </span>futures::stream::BoxStream;
+	<span class="kw">use </span>polkadot_node_network_protocol::{
+		request_response::{outgoing::Requests, ReqProtocolNames},
+		PeerId,
 	};
-	<span class="kw">use</span> <span class="ident">polkadot_primitives::v2::Hash</span>;
-	<span class="kw">use</span> <span class="ident">sc_network</span>::{<span class="ident">Event</span> <span class="kw">as</span> <span class="ident">NetworkEvent</span>, <span class="ident">IfDisconnected</span>, <span class="ident">ProtocolName</span>};
-	<span class="kw">use</span> <span class="ident">sp_keyring::Sr25519Keyring</span>;
-	<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>};
+	<span class="kw">use </span>polkadot_primitives::v2::Hash;
+	<span class="kw">use </span>sc_network::{Event <span class="kw">as </span>NetworkEvent, IfDisconnected, ProtocolName};
+	<span class="kw">use </span>sp_keyring::Sr25519Keyring;
+	<span class="kw">use </span>std::collections::{HashMap, HashSet};
 
-	<span class="kw">fn</span> <span class="ident">new_service</span>() -&gt; <span class="ident">Service</span><span class="op">&lt;</span><span class="ident">TestNetwork</span>, <span class="ident">TestAuthorityDiscovery</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">genesis_hash</span> <span class="op">=</span> <span class="ident">Hash::repeat_byte</span>(<span class="number">0xff</span>);
-		<span class="kw">let</span> <span class="ident">fork_id</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-		<span class="kw">let</span> <span class="ident">protocol_names</span> <span class="op">=</span> <span class="ident">PeerSetProtocolNames::new</span>(<span class="ident">genesis_hash</span>, <span class="ident">fork_id</span>);
+	<span class="kw">fn </span>new_service() -&gt; Service&lt;TestNetwork, TestAuthorityDiscovery&gt; {
+		<span class="kw">let </span>genesis_hash = Hash::repeat_byte(<span class="number">0xff</span>);
+		<span class="kw">let </span>fork_id = <span class="prelude-val">None</span>;
+		<span class="kw">let </span>protocol_names = PeerSetProtocolNames::new(genesis_hash, fork_id);
 
-		<span class="ident">Service::new</span>(<span class="ident">protocol_names</span>)
+		Service::new(protocol_names)
 	}
 
-	<span class="kw">fn</span> <span class="ident">new_network</span>() -&gt; (<span class="ident">TestNetwork</span>, <span class="ident">TestAuthorityDiscovery</span>) {
-		(<span class="ident">TestNetwork::default</span>(), <span class="ident">TestAuthorityDiscovery::new</span>())
+	<span class="kw">fn </span>new_network() -&gt; (TestNetwork, TestAuthorityDiscovery) {
+		(TestNetwork::default(), TestAuthorityDiscovery::new())
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
-	<span class="kw">struct</span> <span class="ident">TestNetwork</span> {
-		<span class="ident">peers_set</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>,
+	<span class="attribute">#[derive(Default, Clone)]
+	</span><span class="kw">struct </span>TestNetwork {
+		peers_set: HashSet&lt;PeerId&gt;,
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-	<span class="kw">struct</span> <span class="ident">TestAuthorityDiscovery</span> {
-		<span class="ident">by_authority_id</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span>, <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Multiaddr</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">by_peer_id</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PeerId</span>, <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="attribute">#[derive(Default, Clone, Debug)]
+	</span><span class="kw">struct </span>TestAuthorityDiscovery {
+		by_authority_id: HashMap&lt;AuthorityDiscoveryId, HashSet&lt;Multiaddr&gt;&gt;,
+		by_peer_id: HashMap&lt;PeerId, HashSet&lt;AuthorityDiscoveryId&gt;&gt;,
 	}
 
-	<span class="kw">impl</span> <span class="ident">TestAuthorityDiscovery</span> {
-		<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-			<span class="kw">let</span> <span class="ident">peer_ids</span> <span class="op">=</span> <span class="ident">known_peer_ids</span>();
-			<span class="kw">let</span> <span class="ident">authorities</span> <span class="op">=</span> <span class="ident">known_authorities</span>();
-			<span class="kw">let</span> <span class="ident">multiaddr</span> <span class="op">=</span> <span class="ident">known_multiaddr</span>().<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">peer_ids</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>()).<span class="ident">map</span>(
-				<span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">addr</span>, <span class="ident">peer_id</span>)<span class="op">|</span> {
-					<span class="ident">addr</span>.<span class="ident">push</span>(<span class="ident">multiaddr::Protocol::P2p</span>(<span class="ident">peer_id</span>.<span class="ident">into</span>()));
-					<span class="ident">HashSet::from</span>([<span class="ident">addr</span>])
+	<span class="kw">impl </span>TestAuthorityDiscovery {
+		<span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+			<span class="kw">let </span>peer_ids = known_peer_ids();
+			<span class="kw">let </span>authorities = known_authorities();
+			<span class="kw">let </span>multiaddr = known_multiaddr().into_iter().zip(peer_ids.iter().cloned()).map(
+				|(<span class="kw-2">mut </span>addr, peer_id)| {
+					addr.push(multiaddr::Protocol::P2p(peer_id.into()));
+					HashSet::from([addr])
 				},
 			);
-			<span class="self">Self</span> {
-				<span class="ident">by_authority_id</span>: <span class="ident">authorities</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">zip</span>(<span class="ident">multiaddr</span>).<span class="ident">collect</span>(),
-				<span class="ident">by_peer_id</span>: <span class="ident">peer_ids</span>
-					.<span class="ident">into_iter</span>()
-					.<span class="ident">zip</span>(<span class="ident">authorities</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">HashSet::from</span>([<span class="ident">a</span>])))
-					.<span class="ident">collect</span>(),
+			<span class="self">Self </span>{
+				by_authority_id: authorities.iter().cloned().zip(multiaddr).collect(),
+				by_peer_id: peer_ids
+					.into_iter()
+					.zip(authorities.into_iter().map(|a| HashSet::from([a])))
+					.collect(),
 			}
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-	<span class="kw">impl</span> <span class="ident">Network</span> <span class="kw">for</span> <span class="ident">TestNetwork</span> {
-		<span class="kw">fn</span> <span class="ident">event_stream</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">NetworkEvent</span><span class="op">&gt;</span> {
+	<span class="attribute">#[async_trait]
+	</span><span class="kw">impl </span>Network <span class="kw">for </span>TestNetwork {
+		<span class="kw">fn </span>event_stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BoxStream&lt;<span class="lifetime">&#39;static</span>, NetworkEvent&gt; {
 			<span class="macro">panic!</span>()
 		}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">set_reserved_peers</span>(
-			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-			<span class="ident">_protocol</span>: <span class="ident">ProtocolName</span>,
-			<span class="ident">multiaddresses</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Multiaddr</span><span class="op">&gt;</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
-			<span class="self">self</span>.<span class="ident">peers_set</span> <span class="op">=</span> <span class="ident">extract_peer_ids</span>(<span class="ident">multiaddresses</span>.<span class="ident">into_iter</span>());
+		<span class="kw">async fn </span>set_reserved_peers(
+			<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+			_protocol: ProtocolName,
+			multiaddresses: HashSet&lt;Multiaddr&gt;,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+			<span class="self">self</span>.peers_set = extract_peer_ids(multiaddresses.into_iter());
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">remove_from_peers_set</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_protocol</span>: <span class="ident">ProtocolName</span>, <span class="ident">peers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span>) {
-			<span class="self">self</span>.<span class="ident">peers_set</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">elem</span><span class="op">|</span> <span class="op">!</span><span class="ident">peers</span>.<span class="ident">contains</span>(<span class="ident">elem</span>));
+		<span class="kw">async fn </span>remove_from_peers_set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _protocol: ProtocolName, peers: Vec&lt;PeerId&gt;) {
+			<span class="self">self</span>.peers_set.retain(|elem| !peers.contains(elem));
 		}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_request</span><span class="op">&lt;</span><span class="ident">AD</span>: <span class="ident">AuthorityDiscovery</span><span class="op">&gt;</span>(
+		<span class="kw">async fn </span>start_request&lt;AD: AuthorityDiscovery&gt;(
 			<span class="kw-2">&amp;</span><span class="self">self</span>,
-			<span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">AD</span>,
-			<span class="kw">_</span>: <span class="ident">Requests</span>,
-			<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">ReqProtocolNames</span>,
-			<span class="kw">_</span>: <span class="ident">IfDisconnected</span>,
+			<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>AD,
+			<span class="kw">_</span>: Requests,
+			<span class="kw">_</span>: <span class="kw-2">&amp;</span>ReqProtocolNames,
+			<span class="kw">_</span>: IfDisconnected,
 		) {
 		}
 
-		<span class="kw">fn</span> <span class="ident">report_peer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="ident">PeerId</span>, <span class="kw">_</span>: <span class="ident"><span class="kw">crate</span>::Rep</span>) {
+		<span class="kw">fn </span>report_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: PeerId, <span class="kw">_</span>: <span class="kw">crate</span>::Rep) {
 			<span class="macro">panic!</span>()
 		}
 
-		<span class="kw">fn</span> <span class="ident">disconnect_peer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="ident">PeerId</span>, <span class="kw">_</span>: <span class="ident">ProtocolName</span>) {
+		<span class="kw">fn </span>disconnect_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: PeerId, <span class="kw">_</span>: ProtocolName) {
 			<span class="macro">panic!</span>()
 		}
 
-		<span class="kw">fn</span> <span class="ident">write_notification</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="ident">PeerId</span>, <span class="kw">_</span>: <span class="ident">ProtocolName</span>, <span class="kw">_</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
+		<span class="kw">fn </span>write_notification(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: PeerId, <span class="kw">_</span>: ProtocolName, <span class="kw">_</span>: Vec&lt;u8&gt;) {
 			<span class="macro">panic!</span>()
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">async_trait</span>]</span>
-	<span class="kw">impl</span> <span class="ident">AuthorityDiscovery</span> <span class="kw">for</span> <span class="ident">TestAuthorityDiscovery</span> {
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_addresses_by_authority_id</span>(
-			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-			<span class="ident">authority</span>: <span class="ident">AuthorityDiscoveryId</span>,
-		) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Multiaddr</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-			<span class="self">self</span>.<span class="ident">by_authority_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">authority</span>).<span class="ident">cloned</span>()
+	<span class="attribute">#[async_trait]
+	</span><span class="kw">impl </span>AuthorityDiscovery <span class="kw">for </span>TestAuthorityDiscovery {
+		<span class="kw">async fn </span>get_addresses_by_authority_id(
+			<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+			authority: AuthorityDiscoveryId,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;HashSet&lt;Multiaddr&gt;&gt; {
+			<span class="self">self</span>.by_authority_id.get(<span class="kw-2">&amp;</span>authority).cloned()
 		}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_authority_ids_by_peer_id</span>(
-			<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-			<span class="ident">peer_id</span>: <span class="ident">PeerId</span>,
-		) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-			<span class="self">self</span>.<span class="ident">by_peer_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">peer_id</span>).<span class="ident">cloned</span>()
+		<span class="kw">async fn </span>get_authority_ids_by_peer_id(
+			<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+			peer_id: PeerId,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;HashSet&lt;AuthorityDiscoveryId&gt;&gt; {
+			<span class="self">self</span>.by_peer_id.get(<span class="kw-2">&amp;</span>peer_id).cloned()
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">known_authorities</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span> {
-		[<span class="ident">Sr25519Keyring::Alice</span>, <span class="ident">Sr25519Keyring::Bob</span>, <span class="ident">Sr25519Keyring::Charlie</span>]
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> <span class="ident">k</span>.<span class="ident">public</span>().<span class="ident">into</span>())
-			.<span class="ident">collect</span>()
+	<span class="kw">fn </span>known_authorities() -&gt; Vec&lt;AuthorityDiscoveryId&gt; {
+		[Sr25519Keyring::Alice, Sr25519Keyring::Bob, Sr25519Keyring::Charlie]
+			.iter()
+			.map(|k| k.public().into())
+			.collect()
 	}
 
-	<span class="kw">fn</span> <span class="ident">known_peer_ids</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PeerId</span><span class="op">&gt;</span> {
-		(<span class="number">0</span>..<span class="number">3</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">PeerId::random</span>()).<span class="ident">collect</span>()
+	<span class="kw">fn </span>known_peer_ids() -&gt; Vec&lt;PeerId&gt; {
+		(<span class="number">0</span>..<span class="number">3</span>).map(|<span class="kw">_</span>| PeerId::random()).collect()
 	}
 
-	<span class="kw">fn</span> <span class="ident">known_multiaddr</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Multiaddr</span><span class="op">&gt;</span> {
+	<span class="kw">fn </span>known_multiaddr() -&gt; Vec&lt;Multiaddr&gt; {
 		<span class="macro">vec!</span>[
-			<span class="string">&quot;/ip4/127.0.0.1/tcp/1234&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-			<span class="string">&quot;/ip4/127.0.0.1/tcp/1235&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-			<span class="string">&quot;/ip4/127.0.0.1/tcp/1236&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
+			<span class="string">&quot;/ip4/127.0.0.1/tcp/1234&quot;</span>.parse().unwrap(),
+			<span class="string">&quot;/ip4/127.0.0.1/tcp/1235&quot;</span>.parse().unwrap(),
+			<span class="string">&quot;/ip4/127.0.0.1/tcp/1236&quot;</span>.parse().unwrap(),
 		]
 	}
-	<span class="comment">// Test cleanup works.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">old_multiaddrs_are_removed_on_new_request</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">service</span> <span class="op">=</span> <span class="ident">new_service</span>();
+	<span class="comment">// Test cleanup works.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>old_multiaddrs_are_removed_on_new_request() {
+		<span class="kw">let </span><span class="kw-2">mut </span>service = new_service();
 
-		<span class="kw">let</span> (<span class="ident">ns</span>, <span class="ident">ads</span>) <span class="op">=</span> <span class="ident">new_network</span>();
+		<span class="kw">let </span>(ns, ads) = new_network();
 
-		<span class="kw">let</span> <span class="ident">authority_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">ads</span>.<span class="ident">by_peer_id</span>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">iter</span>()).<span class="ident">flatten</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
+		<span class="kw">let </span>authority_ids: Vec&lt;<span class="kw">_</span>&gt; =
+			ads.by_peer_id.values().map(|v| v.iter()).flatten().cloned().collect();
 
-		<span class="ident">futures::executor::block_on</span>(<span class="kw">async</span> <span class="kw">move</span> {
-			<span class="kw">let</span> (<span class="ident">failed</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="kw">let</span> (<span class="ident">ns</span>, <span class="ident">ads</span>) <span class="op">=</span> <span class="ident">service</span>
-				.<span class="ident">on_request</span>(<span class="macro">vec!</span>[<span class="ident">authority_ids</span>[<span class="number">0</span>].<span class="ident">clone</span>()], <span class="ident">PeerSet::Validation</span>, <span class="ident">failed</span>, <span class="ident">ns</span>, <span class="ident">ads</span>)
+		futures::executor::block_on(<span class="kw">async move </span>{
+			<span class="kw">let </span>(failed, <span class="kw">_</span>) = oneshot::channel();
+			<span class="kw">let </span>(ns, ads) = service
+				.on_request(<span class="macro">vec!</span>[authority_ids[<span class="number">0</span>].clone()], PeerSet::Validation, failed, ns, ads)
 				.<span class="kw">await</span>;
 
-			<span class="kw">let</span> (<span class="ident">failed</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ads</span>) <span class="op">=</span> <span class="ident">service</span>
-				.<span class="ident">on_request</span>(<span class="macro">vec!</span>[<span class="ident">authority_ids</span>[<span class="number">1</span>].<span class="ident">clone</span>()], <span class="ident">PeerSet::Validation</span>, <span class="ident">failed</span>, <span class="ident">ns</span>, <span class="ident">ads</span>)
+			<span class="kw">let </span>(failed, <span class="kw">_</span>) = oneshot::channel();
+			<span class="kw">let </span>(<span class="kw">_</span>, ads) = service
+				.on_request(<span class="macro">vec!</span>[authority_ids[<span class="number">1</span>].clone()], PeerSet::Validation, failed, ns, ads)
 				.<span class="kw">await</span>;
 
-			<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">service</span>.<span class="ident">state</span>[<span class="ident">PeerSet::Validation</span>];
-			<span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">previously_requested</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-			<span class="kw">let</span> <span class="ident">peer_1</span> <span class="op">=</span> <span class="ident">extract_peer_ids</span>(
-				<span class="ident">ads</span>.<span class="ident">by_authority_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">authority_ids</span>[<span class="number">1</span>]).<span class="ident">unwrap</span>().<span class="ident">clone</span>().<span class="ident">into_iter</span>(),
+			<span class="kw">let </span>state = <span class="kw-2">&amp;</span>service.state[PeerSet::Validation];
+			<span class="macro">assert_eq!</span>(state.previously_requested.len(), <span class="number">1</span>);
+			<span class="kw">let </span>peer_1 = extract_peer_ids(
+				ads.by_authority_id.get(<span class="kw-2">&amp;</span>authority_ids[<span class="number">1</span>]).unwrap().clone().into_iter(),
 			)
-			.<span class="ident">iter</span>()
-			.<span class="ident">cloned</span>()
-			.<span class="ident">next</span>()
-			.<span class="ident">unwrap</span>();
-			<span class="macro">assert!</span>(<span class="ident">state</span>.<span class="ident">previously_requested</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">peer_1</span>));
+			.iter()
+			.cloned()
+			.next()
+			.unwrap();
+			<span class="macro">assert!</span>(state.previously_requested.contains(<span class="kw-2">&amp;</span>peer_1));
 		});
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">failed_resolution_is_reported_properly</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">service</span> <span class="op">=</span> <span class="ident">new_service</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>failed_resolution_is_reported_properly() {
+		<span class="kw">let </span><span class="kw-2">mut </span>service = new_service();
 
-		<span class="kw">let</span> (<span class="ident">ns</span>, <span class="ident">ads</span>) <span class="op">=</span> <span class="ident">new_network</span>();
+		<span class="kw">let </span>(ns, ads) = new_network();
 
-		<span class="kw">let</span> <span class="ident">authority_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">ads</span>.<span class="ident">by_peer_id</span>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">iter</span>()).<span class="ident">flatten</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
+		<span class="kw">let </span>authority_ids: Vec&lt;<span class="kw">_</span>&gt; =
+			ads.by_peer_id.values().map(|v| v.iter()).flatten().cloned().collect();
 
-		<span class="ident">futures::executor::block_on</span>(<span class="kw">async</span> <span class="kw">move</span> {
-			<span class="kw">let</span> (<span class="ident">failed</span>, <span class="ident">failed_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-			<span class="kw">let</span> <span class="ident">unknown</span> <span class="op">=</span> <span class="ident">Sr25519Keyring::Ferdie</span>.<span class="ident">public</span>().<span class="ident">into</span>();
-			<span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ads</span>) <span class="op">=</span> <span class="ident">service</span>
-				.<span class="ident">on_request</span>(
-					<span class="macro">vec!</span>[<span class="ident">authority_ids</span>[<span class="number">0</span>].<span class="ident">clone</span>(), <span class="ident">unknown</span>],
-					<span class="ident">PeerSet::Validation</span>,
-					<span class="ident">failed</span>,
-					<span class="ident">ns</span>,
-					<span class="ident">ads</span>,
+		futures::executor::block_on(<span class="kw">async move </span>{
+			<span class="kw">let </span>(failed, failed_rx) = oneshot::channel();
+			<span class="kw">let </span>unknown = Sr25519Keyring::Ferdie.public().into();
+			<span class="kw">let </span>(<span class="kw">_</span>, ads) = service
+				.on_request(
+					<span class="macro">vec!</span>[authority_ids[<span class="number">0</span>].clone(), unknown],
+					PeerSet::Validation,
+					failed,
+					ns,
+					ads,
 				)
 				.<span class="kw">await</span>;
 
-			<span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">service</span>.<span class="ident">state</span>[<span class="ident">PeerSet::Validation</span>];
-			<span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">previously_requested</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-			<span class="kw">let</span> <span class="ident">peer_0</span> <span class="op">=</span> <span class="ident">extract_peer_ids</span>(
-				<span class="ident">ads</span>.<span class="ident">by_authority_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">authority_ids</span>[<span class="number">0</span>]).<span class="ident">unwrap</span>().<span class="ident">clone</span>().<span class="ident">into_iter</span>(),
+			<span class="kw">let </span>state = <span class="kw-2">&amp;</span>service.state[PeerSet::Validation];
+			<span class="macro">assert_eq!</span>(state.previously_requested.len(), <span class="number">1</span>);
+			<span class="kw">let </span>peer_0 = extract_peer_ids(
+				ads.by_authority_id.get(<span class="kw-2">&amp;</span>authority_ids[<span class="number">0</span>]).unwrap().clone().into_iter(),
 			)
-			.<span class="ident">iter</span>()
-			.<span class="ident">cloned</span>()
-			.<span class="ident">next</span>()
-			.<span class="ident">unwrap</span>();
-			<span class="macro">assert!</span>(<span class="ident">state</span>.<span class="ident">previously_requested</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">peer_0</span>));
+			.iter()
+			.cloned()
+			.next()
+			.unwrap();
+			<span class="macro">assert!</span>(state.previously_requested.contains(<span class="kw-2">&amp;</span>peer_0));
 
-			<span class="kw">let</span> <span class="ident">failed</span> <span class="op">=</span> <span class="ident">failed_rx</span>.<span class="kw">await</span>.<span class="ident">unwrap</span>();
-			<span class="macro">assert_eq!</span>(<span class="ident">failed</span>, <span class="number">1</span>);
+			<span class="kw">let </span>failed = failed_rx.<span class="kw">await</span>.unwrap();
+			<span class="macro">assert_eq!</span>(failed, <span class="number">1</span>);
 		});
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_network_bridge" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_network_bridge" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

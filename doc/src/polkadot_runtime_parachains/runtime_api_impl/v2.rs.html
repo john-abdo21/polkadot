@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/runtime_api_impl/v2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>v2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/runtime_api_impl/v2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>v2.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -405,407 +399,406 @@
 <span id="399">399</span>
 <span id="400">400</span>
 <span id="401">401</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="doccomment">//! A module exporting runtime API implementation functions for all runtime APIs using v2</span>
-<span class="doccomment">//! primitives.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Runtimes implementing the v2 runtime API are recommended to forward directly to these</span>
-<span class="doccomment">//! functions.</span>
+</span><span class="doccomment">//! A module exporting runtime API implementation functions for all runtime APIs using v2
+//! primitives.
+//!
+//! Runtimes implementing the v2 runtime API are recommended to forward directly to these
+//! functions.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">configuration</span>, <span class="ident">dmp</span>, <span class="ident">hrmp</span>, <span class="ident">inclusion</span>, <span class="ident">initializer</span>, <span class="ident">paras</span>, <span class="ident">paras_inherent</span>, <span class="ident">scheduler</span>,
-	<span class="ident">session_info</span>, <span class="ident">shared</span>,
+</span><span class="kw">use crate</span>::{
+	configuration, dmp, hrmp, inclusion, initializer, paras, paras_inherent, scheduler,
+	session_info, shared,
 };
-<span class="kw">use</span> <span class="ident">primitives::v2</span>::{
-	<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">CandidateEvent</span>, <span class="ident">CommittedCandidateReceipt</span>, <span class="ident">CoreIndex</span>, <span class="ident">CoreOccupied</span>,
-	<span class="ident">CoreState</span>, <span class="ident">GroupIndex</span>, <span class="ident">GroupRotationInfo</span>, <span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>, <span class="ident">InboundDownwardMessage</span>,
-	<span class="ident">InboundHrmpMessage</span>, <span class="ident">OccupiedCore</span>, <span class="ident">OccupiedCoreAssumption</span>, <span class="ident">PersistedValidationData</span>,
-	<span class="ident">PvfCheckStatement</span>, <span class="ident">ScheduledCore</span>, <span class="ident">ScrapedOnChainVotes</span>, <span class="ident">SessionIndex</span>, <span class="ident">SessionInfo</span>,
-	<span class="ident">ValidationCode</span>, <span class="ident">ValidationCodeHash</span>, <span class="ident">ValidatorId</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>,
+<span class="kw">use </span>primitives::v2::{
+	AuthorityDiscoveryId, CandidateEvent, CommittedCandidateReceipt, CoreIndex, CoreOccupied,
+	CoreState, GroupIndex, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage,
+	InboundHrmpMessage, OccupiedCore, OccupiedCoreAssumption, PersistedValidationData,
+	PvfCheckStatement, ScheduledCore, ScrapedOnChainVotes, SessionIndex, SessionInfo,
+	ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime::traits::One</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">collections::btree_map::BTreeMap</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
+<span class="kw">use </span>sp_runtime::traits::One;
+<span class="kw">use </span>sp_std::{collections::btree_map::BTreeMap, prelude::<span class="kw-2">*</span>};
 
-<span class="doccomment">/// Implementation for the `validators` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validators</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorId</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">shared::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::active_validator_keys</span>()
+<span class="doccomment">/// Implementation for the `validators` function of the runtime API.
+</span><span class="kw">pub fn </span>validators&lt;T: initializer::Config&gt;() -&gt; Vec&lt;ValidatorId&gt; {
+	&lt;shared::Pallet&lt;T&gt;&gt;::active_validator_keys()
 }
 
-<span class="doccomment">/// Implementation for the `validator_groups` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator_groups</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>(
-) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidatorIndex</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">GroupRotationInfo</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span>) {
-	<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>() <span class="op">+</span> <span class="ident">One::one</span>();
+<span class="doccomment">/// Implementation for the `validator_groups` function of the runtime API.
+</span><span class="kw">pub fn </span>validator_groups&lt;T: initializer::Config&gt;(
+) -&gt; (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo&lt;T::BlockNumber&gt;) {
+	<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number() + One::one();
 
-	<span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::validator_groups</span>();
-	<span class="kw">let</span> <span class="ident">rotation_info</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::group_rotation_info</span>(<span class="ident">now</span>);
+	<span class="kw">let </span>groups = &lt;scheduler::Pallet&lt;T&gt;&gt;::validator_groups();
+	<span class="kw">let </span>rotation_info = &lt;scheduler::Pallet&lt;T&gt;&gt;::group_rotation_info(now);
 
-	(<span class="ident">groups</span>, <span class="ident">rotation_info</span>)
+	(groups, rotation_info)
 }
 
-<span class="doccomment">/// Implementation for the `availability_cores` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">availability_cores</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CoreState</span><span class="op">&lt;</span><span class="ident">T::Hash</span>, <span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">cores</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::availability_cores</span>();
-	<span class="kw">let</span> <span class="ident">parachains</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::parachains</span>();
-	<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
+<span class="doccomment">/// Implementation for the `availability_cores` function of the runtime API.
+</span><span class="kw">pub fn </span>availability_cores&lt;T: initializer::Config&gt;() -&gt; Vec&lt;CoreState&lt;T::Hash, T::BlockNumber&gt;&gt; {
+	<span class="kw">let </span>cores = &lt;scheduler::Pallet&lt;T&gt;&gt;::availability_cores();
+	<span class="kw">let </span>parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains();
+	<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
-	<span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>() <span class="op">+</span> <span class="ident">One::one</span>();
-	<span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::clear</span>();
-	<span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::schedule</span>(<span class="ident">Vec::new</span>(), <span class="ident">now</span>);
+	<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number() + One::one();
+	&lt;scheduler::Pallet&lt;T&gt;&gt;::clear();
+	&lt;scheduler::Pallet&lt;T&gt;&gt;::schedule(Vec::new(), now);
 
-	<span class="kw">let</span> <span class="ident">rotation_info</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::group_rotation_info</span>(<span class="ident">now</span>);
+	<span class="kw">let </span>rotation_info = &lt;scheduler::Pallet&lt;T&gt;&gt;::group_rotation_info(now);
 
-	<span class="kw">let</span> <span class="ident">time_out_at</span> <span class="op">=</span> <span class="op">|</span><span class="ident">backed_in_number</span>, <span class="ident">availability_period</span><span class="op">|</span> {
-		<span class="kw">let</span> <span class="ident">time_out_at</span> <span class="op">=</span> <span class="ident">backed_in_number</span> <span class="op">+</span> <span class="ident">availability_period</span>;
+	<span class="kw">let </span>time_out_at = |backed_in_number, availability_period| {
+		<span class="kw">let </span>time_out_at = backed_in_number + availability_period;
 
-		<span class="kw">let</span> <span class="ident">current_window</span> <span class="op">=</span> <span class="ident">rotation_info</span>.<span class="ident">last_rotation_at</span>() <span class="op">+</span> <span class="ident">availability_period</span>;
-		<span class="kw">let</span> <span class="ident">next_rotation</span> <span class="op">=</span> <span class="ident">rotation_info</span>.<span class="ident">next_rotation_at</span>();
+		<span class="kw">let </span>current_window = rotation_info.last_rotation_at() + availability_period;
+		<span class="kw">let </span>next_rotation = rotation_info.next_rotation_at();
 
-		<span class="comment">// If we are within `period` blocks of rotation, timeouts are being checked</span>
-		<span class="comment">// actively. We could even time out this block.</span>
-		<span class="kw">if</span> <span class="ident">time_out_at</span> <span class="op">&lt;</span> <span class="ident">current_window</span> {
-			<span class="ident">time_out_at</span>
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">time_out_at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">next_rotation</span> {
-			<span class="comment">// Otherwise, it will time out at the sooner of the next rotation</span>
-			<span class="ident">next_rotation</span>
-		} <span class="kw">else</span> {
-			<span class="comment">// or the scheduled time-out. This is by definition within `period` blocks</span>
-			<span class="comment">// of `next_rotation` and is thus a valid timeout block.</span>
-			<span class="ident">time_out_at</span>
+		<span class="comment">// If we are within `period` blocks of rotation, timeouts are being checked
+		// actively. We could even time out this block.
+		</span><span class="kw">if </span>time_out_at &lt; current_window {
+			time_out_at
+		} <span class="kw">else if </span>time_out_at &lt;= next_rotation {
+			<span class="comment">// Otherwise, it will time out at the sooner of the next rotation
+			</span>next_rotation
+		} <span class="kw">else </span>{
+			<span class="comment">// or the scheduled time-out. This is by definition within `period` blocks
+			// of `next_rotation` and is thus a valid timeout block.
+			</span>time_out_at
 		}
 	};
 
-	<span class="kw">let</span> <span class="ident">group_responsible_for</span> <span class="op">=</span>
-		<span class="op">|</span><span class="ident">backed_in_number</span>, <span class="ident">core_index</span><span class="op">|</span> <span class="kw">match</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::group_assigned_to_core</span>(
-			<span class="ident">core_index</span>,
-			<span class="ident">backed_in_number</span>,
+	<span class="kw">let </span>group_responsible_for =
+		|backed_in_number, core_index| <span class="kw">match </span>&lt;scheduler::Pallet&lt;T&gt;&gt;::group_assigned_to_core(
+			core_index,
+			backed_in_number,
 		) {
-			<span class="prelude-val">Some</span>(<span class="ident">g</span>) =&gt; <span class="ident">g</span>,
-			<span class="prelude-val">None</span> =&gt; {
+			<span class="prelude-val">Some</span>(g) =&gt; g,
+			<span class="prelude-val">None </span>=&gt; {
 				<span class="macro">log::warn!</span>(
-					<span class="ident">target</span>: <span class="string">&quot;runtime::polkadot-api::v2&quot;</span>,
+					target: <span class="string">&quot;runtime::polkadot-api::v2&quot;</span>,
 					<span class="string">&quot;Could not determine the group responsible for core extracted \
 					from list of cores for some prior block in same session&quot;</span>,
 				);
 
-				<span class="ident">GroupIndex</span>(<span class="number">0</span>)
+				GroupIndex(<span class="number">0</span>)
 			},
 		};
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">core_states</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">cores</span>
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">enumerate</span>()
-		.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">core</span>)<span class="op">|</span> <span class="kw">match</span> <span class="ident">core</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">occupied</span>) =&gt; <span class="ident">CoreState::Occupied</span>(<span class="kw">match</span> <span class="ident">occupied</span> {
-				<span class="ident">CoreOccupied::Parachain</span> =&gt; {
-					<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">parachains</span>[<span class="ident">i</span>];
-					<span class="kw">let</span> <span class="ident">pending_availability</span> <span class="op">=</span>
-						<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::pending_availability</span>(<span class="ident">para_id</span>)
-							.<span class="ident">expect</span>(<span class="string">&quot;Occupied core always has pending availability; qed&quot;</span>);
+	<span class="kw">let </span><span class="kw-2">mut </span>core_states: Vec&lt;<span class="kw">_</span>&gt; = cores
+		.into_iter()
+		.enumerate()
+		.map(|(i, core)| <span class="kw">match </span>core {
+			<span class="prelude-val">Some</span>(occupied) =&gt; CoreState::Occupied(<span class="kw">match </span>occupied {
+				CoreOccupied::Parachain =&gt; {
+					<span class="kw">let </span>para_id = parachains[i];
+					<span class="kw">let </span>pending_availability =
+						&lt;inclusion::Pallet&lt;T&gt;&gt;::pending_availability(para_id)
+							.expect(<span class="string">&quot;Occupied core always has pending availability; qed&quot;</span>);
 
-					<span class="kw">let</span> <span class="ident">backed_in_number</span> <span class="op">=</span> <span class="ident">pending_availability</span>.<span class="ident">backed_in_number</span>().<span class="ident">clone</span>();
-					<span class="ident">OccupiedCore</span> {
-						<span class="ident">next_up_on_available</span>: <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::next_up_on_available</span>(
-							<span class="ident">CoreIndex</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>),
+					<span class="kw">let </span>backed_in_number = pending_availability.backed_in_number().clone();
+					OccupiedCore {
+						next_up_on_available: &lt;scheduler::Pallet&lt;T&gt;&gt;::next_up_on_available(
+							CoreIndex(i <span class="kw">as </span>u32),
 						),
-						<span class="ident">occupied_since</span>: <span class="ident">backed_in_number</span>,
-						<span class="ident">time_out_at</span>: <span class="ident">time_out_at</span>(
-							<span class="ident">backed_in_number</span>,
-							<span class="ident">config</span>.<span class="ident">chain_availability_period</span>,
+						occupied_since: backed_in_number,
+						time_out_at: time_out_at(
+							backed_in_number,
+							config.chain_availability_period,
 						),
-						<span class="ident">next_up_on_time_out</span>: <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::next_up_on_time_out</span>(
-							<span class="ident">CoreIndex</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>),
+						next_up_on_time_out: &lt;scheduler::Pallet&lt;T&gt;&gt;::next_up_on_time_out(
+							CoreIndex(i <span class="kw">as </span>u32),
 						),
-						<span class="ident">availability</span>: <span class="ident">pending_availability</span>.<span class="ident">availability_votes</span>().<span class="ident">clone</span>(),
-						<span class="ident">group_responsible</span>: <span class="ident">group_responsible_for</span>(
-							<span class="ident">backed_in_number</span>,
-							<span class="ident">pending_availability</span>.<span class="ident">core_occupied</span>(),
+						availability: pending_availability.availability_votes().clone(),
+						group_responsible: group_responsible_for(
+							backed_in_number,
+							pending_availability.core_occupied(),
 						),
-						<span class="ident">candidate_hash</span>: <span class="ident">pending_availability</span>.<span class="ident">candidate_hash</span>(),
-						<span class="ident">candidate_descriptor</span>: <span class="ident">pending_availability</span>.<span class="ident">candidate_descriptor</span>().<span class="ident">clone</span>(),
+						candidate_hash: pending_availability.candidate_hash(),
+						candidate_descriptor: pending_availability.candidate_descriptor().clone(),
 					}
 				},
-				<span class="ident">CoreOccupied::Parathread</span>(<span class="ident">p</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">para_id</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">claim</span>.<span class="number">0</span>;
-					<span class="kw">let</span> <span class="ident">pending_availability</span> <span class="op">=</span>
-						<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::pending_availability</span>(<span class="ident">para_id</span>)
-							.<span class="ident">expect</span>(<span class="string">&quot;Occupied core always has pending availability; qed&quot;</span>);
+				CoreOccupied::Parathread(p) =&gt; {
+					<span class="kw">let </span>para_id = p.claim.<span class="number">0</span>;
+					<span class="kw">let </span>pending_availability =
+						&lt;inclusion::Pallet&lt;T&gt;&gt;::pending_availability(para_id)
+							.expect(<span class="string">&quot;Occupied core always has pending availability; qed&quot;</span>);
 
-					<span class="kw">let</span> <span class="ident">backed_in_number</span> <span class="op">=</span> <span class="ident">pending_availability</span>.<span class="ident">backed_in_number</span>().<span class="ident">clone</span>();
-					<span class="ident">OccupiedCore</span> {
-						<span class="ident">next_up_on_available</span>: <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::next_up_on_available</span>(
-							<span class="ident">CoreIndex</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>),
+					<span class="kw">let </span>backed_in_number = pending_availability.backed_in_number().clone();
+					OccupiedCore {
+						next_up_on_available: &lt;scheduler::Pallet&lt;T&gt;&gt;::next_up_on_available(
+							CoreIndex(i <span class="kw">as </span>u32),
 						),
-						<span class="ident">occupied_since</span>: <span class="ident">backed_in_number</span>,
-						<span class="ident">time_out_at</span>: <span class="ident">time_out_at</span>(
-							<span class="ident">backed_in_number</span>,
-							<span class="ident">config</span>.<span class="ident">thread_availability_period</span>,
+						occupied_since: backed_in_number,
+						time_out_at: time_out_at(
+							backed_in_number,
+							config.thread_availability_period,
 						),
-						<span class="ident">next_up_on_time_out</span>: <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::next_up_on_time_out</span>(
-							<span class="ident">CoreIndex</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>),
+						next_up_on_time_out: &lt;scheduler::Pallet&lt;T&gt;&gt;::next_up_on_time_out(
+							CoreIndex(i <span class="kw">as </span>u32),
 						),
-						<span class="ident">availability</span>: <span class="ident">pending_availability</span>.<span class="ident">availability_votes</span>().<span class="ident">clone</span>(),
-						<span class="ident">group_responsible</span>: <span class="ident">group_responsible_for</span>(
-							<span class="ident">backed_in_number</span>,
-							<span class="ident">pending_availability</span>.<span class="ident">core_occupied</span>(),
+						availability: pending_availability.availability_votes().clone(),
+						group_responsible: group_responsible_for(
+							backed_in_number,
+							pending_availability.core_occupied(),
 						),
-						<span class="ident">candidate_hash</span>: <span class="ident">pending_availability</span>.<span class="ident">candidate_hash</span>(),
-						<span class="ident">candidate_descriptor</span>: <span class="ident">pending_availability</span>.<span class="ident">candidate_descriptor</span>().<span class="ident">clone</span>(),
+						candidate_hash: pending_availability.candidate_hash(),
+						candidate_descriptor: pending_availability.candidate_descriptor().clone(),
 					}
 				},
 			}),
-			<span class="prelude-val">None</span> =&gt; <span class="ident">CoreState::Free</span>,
+			<span class="prelude-val">None </span>=&gt; CoreState::Free,
 		})
-		.<span class="ident">collect</span>();
+		.collect();
 
-	<span class="comment">// This will overwrite only `Free` cores if the scheduler module is working as intended.</span>
-	<span class="kw">for</span> <span class="ident">scheduled</span> <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::scheduled</span>() {
-		<span class="ident">core_states</span>[<span class="ident">scheduled</span>.<span class="ident">core</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="ident">CoreState::Scheduled</span>(<span class="ident">ScheduledCore</span> {
-			<span class="ident">para_id</span>: <span class="ident">scheduled</span>.<span class="ident">para_id</span>,
-			<span class="ident">collator</span>: <span class="ident">scheduled</span>.<span class="ident">required_collator</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">clone</span>()),
+	<span class="comment">// This will overwrite only `Free` cores if the scheduler module is working as intended.
+	</span><span class="kw">for </span>scheduled <span class="kw">in </span>&lt;scheduler::Pallet&lt;T&gt;&gt;::scheduled() {
+		core_states[scheduled.core.<span class="number">0 </span><span class="kw">as </span>usize] = CoreState::Scheduled(ScheduledCore {
+			para_id: scheduled.para_id,
+			collator: scheduled.required_collator().map(|c| c.clone()),
 		});
 	}
 
-	<span class="ident">core_states</span>
+	core_states
 }
 
-<span class="doccomment">/// Returns current block number being processed and the corresponding root hash.</span>
-<span class="kw">fn</span> <span class="ident">current_relay_parent</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">frame_system::Config</span><span class="op">&gt;</span>(
-) -&gt; (<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BlockNumber</span>, <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hash</span>) {
-	<span class="kw">use</span> <span class="ident">parity_scale_codec::Decode</span> <span class="kw">as</span> <span class="kw">_</span>;
-	<span class="kw">let</span> <span class="ident">state_version</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::runtime_version</span>().<span class="ident">state_version</span>();
-	<span class="kw">let</span> <span class="ident">relay_parent_number</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>();
-	<span class="kw">let</span> <span class="ident">relay_parent_storage_root</span> <span class="op">=</span> <span class="ident">T::Hash::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">sp_io::storage::root</span>(<span class="ident">state_version</span>)[..])
-		.<span class="ident">expect</span>(<span class="string">&quot;storage root must decode to the Hash type; qed&quot;</span>);
-	(<span class="ident">relay_parent_number</span>, <span class="ident">relay_parent_storage_root</span>)
+<span class="doccomment">/// Returns current block number being processed and the corresponding root hash.
+</span><span class="kw">fn </span>current_relay_parent&lt;T: frame_system::Config&gt;(
+) -&gt; (&lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber, &lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash) {
+	<span class="kw">use </span>parity_scale_codec::Decode <span class="kw">as _</span>;
+	<span class="kw">let </span>state_version = &lt;frame_system::Pallet&lt;T&gt;&gt;::runtime_version().state_version();
+	<span class="kw">let </span>relay_parent_number = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
+	<span class="kw">let </span>relay_parent_storage_root = T::Hash::decode(<span class="kw-2">&amp;mut &amp;</span>sp_io::storage::root(state_version)[..])
+		.expect(<span class="string">&quot;storage root must decode to the Hash type; qed&quot;</span>);
+	(relay_parent_number, relay_parent_storage_root)
 }
 
-<span class="kw">fn</span> <span class="ident">with_assumption</span><span class="op">&lt;</span><span class="ident">Config</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">assumption</span>: <span class="ident">OccupiedCoreAssumption</span>,
-	<span class="ident">build</span>: <span class="ident">F</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Config</span>: <span class="ident">inclusion::Config</span>,
-	<span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>with_assumption&lt;Config, T, F&gt;(
+	para_id: ParaId,
+	assumption: OccupiedCoreAssumption,
+	build: F,
+) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+<span class="kw">where
+	</span>Config: inclusion::Config,
+	F: FnOnce() -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;,
 {
-	<span class="kw">match</span> <span class="ident">assumption</span> {
-		<span class="ident">OccupiedCoreAssumption::Included</span> =&gt; {
-			<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::force_enact</span>(<span class="ident">para_id</span>);
-			<span class="ident">build</span>()
+	<span class="kw">match </span>assumption {
+		OccupiedCoreAssumption::Included =&gt; {
+			&lt;inclusion::Pallet&lt;Config&gt;&gt;::force_enact(para_id);
+			build()
 		},
-		<span class="ident">OccupiedCoreAssumption::TimedOut</span> =&gt; <span class="ident">build</span>(),
-		<span class="ident">OccupiedCoreAssumption::Free</span> =&gt; {
-			<span class="kw">if</span> <span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">Config</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::pending_availability</span>(<span class="ident">para_id</span>).<span class="ident">is_some</span>() {
-				<span class="prelude-val">None</span>
-			} <span class="kw">else</span> {
-				<span class="ident">build</span>()
+		OccupiedCoreAssumption::TimedOut =&gt; build(),
+		OccupiedCoreAssumption::Free =&gt; {
+			<span class="kw">if </span>&lt;inclusion::Pallet&lt;Config&gt;&gt;::pending_availability(para_id).is_some() {
+				<span class="prelude-val">None
+			</span>} <span class="kw">else </span>{
+				build()
 			}
 		},
 	}
 }
 
-<span class="doccomment">/// Implementation for the `persisted_validation_data` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">persisted_validation_data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">assumption</span>: <span class="ident">OccupiedCoreAssumption</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PersistedValidationData</span><span class="op">&lt;</span><span class="ident">T::Hash</span>, <span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> (<span class="ident">relay_parent_number</span>, <span class="ident">relay_parent_storage_root</span>) <span class="op">=</span> <span class="ident">current_relay_parent</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-	<span class="ident">with_assumption</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">para_id</span>, <span class="ident">assumption</span>, <span class="op">|</span><span class="op">|</span> {
-		<span class="ident"><span class="kw">crate</span>::util::make_persisted_validation_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-			<span class="ident">para_id</span>,
-			<span class="ident">relay_parent_number</span>,
-			<span class="ident">relay_parent_storage_root</span>,
+<span class="doccomment">/// Implementation for the `persisted_validation_data` function of the runtime API.
+</span><span class="kw">pub fn </span>persisted_validation_data&lt;T: initializer::Config&gt;(
+	para_id: ParaId,
+	assumption: OccupiedCoreAssumption,
+) -&gt; <span class="prelude-ty">Option</span>&lt;PersistedValidationData&lt;T::Hash, T::BlockNumber&gt;&gt; {
+	<span class="kw">let </span>(relay_parent_number, relay_parent_storage_root) = current_relay_parent::&lt;T&gt;();
+	with_assumption::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(para_id, assumption, || {
+		<span class="kw">crate</span>::util::make_persisted_validation_data::&lt;T&gt;(
+			para_id,
+			relay_parent_number,
+			relay_parent_storage_root,
 		)
 	})
 }
 
-<span class="doccomment">/// Implementation for the `assumed_validation_data` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assumed_validation_data</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">expected_persisted_validation_data_hash</span>: <span class="ident">Hash</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">PersistedValidationData</span><span class="op">&lt;</span><span class="ident">T::Hash</span>, <span class="ident">T::BlockNumber</span><span class="op">&gt;</span>, <span class="ident">ValidationCodeHash</span>)<span class="op">&gt;</span> {
-	<span class="kw">let</span> (<span class="ident">relay_parent_number</span>, <span class="ident">relay_parent_storage_root</span>) <span class="op">=</span> <span class="ident">current_relay_parent</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-	<span class="comment">// This closure obtains the `persisted_validation_data` for the given `para_id` and matches</span>
-	<span class="comment">// its hash against an expected one.</span>
-	<span class="kw">let</span> <span class="ident">make_validation_data</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
-		<span class="ident"><span class="kw">crate</span>::util::make_persisted_validation_data</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-			<span class="ident">para_id</span>,
-			<span class="ident">relay_parent_number</span>,
-			<span class="ident">relay_parent_storage_root</span>,
+<span class="doccomment">/// Implementation for the `assumed_validation_data` function of the runtime API.
+</span><span class="kw">pub fn </span>assumed_validation_data&lt;T: initializer::Config&gt;(
+	para_id: ParaId,
+	expected_persisted_validation_data_hash: Hash,
+) -&gt; <span class="prelude-ty">Option</span>&lt;(PersistedValidationData&lt;T::Hash, T::BlockNumber&gt;, ValidationCodeHash)&gt; {
+	<span class="kw">let </span>(relay_parent_number, relay_parent_storage_root) = current_relay_parent::&lt;T&gt;();
+	<span class="comment">// This closure obtains the `persisted_validation_data` for the given `para_id` and matches
+	// its hash against an expected one.
+	</span><span class="kw">let </span>make_validation_data = || {
+		<span class="kw">crate</span>::util::make_persisted_validation_data::&lt;T&gt;(
+			para_id,
+			relay_parent_number,
+			relay_parent_storage_root,
 		)
-		.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">validation_data</span><span class="op">|</span> <span class="ident">validation_data</span>.<span class="ident">hash</span>() <span class="op">==</span> <span class="ident">expected_persisted_validation_data_hash</span>)
+		.filter(|validation_data| validation_data.hash() == expected_persisted_validation_data_hash)
 	};
 
-	<span class="kw">let</span> <span class="ident">persisted_validation_data</span> <span class="op">=</span> <span class="ident">make_validation_data</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-		<span class="comment">// Try again with force enacting the core. This check only makes sense if</span>
-		<span class="comment">// the core is occupied.</span>
-		<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::pending_availability</span>(<span class="ident">para_id</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-			<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::force_enact</span>(<span class="ident">para_id</span>);
-			<span class="ident">make_validation_data</span>()
+	<span class="kw">let </span>persisted_validation_data = make_validation_data().or_else(|| {
+		<span class="comment">// Try again with force enacting the core. This check only makes sense if
+		// the core is occupied.
+		</span>&lt;inclusion::Pallet&lt;T&gt;&gt;::pending_availability(para_id).and_then(|<span class="kw">_</span>| {
+			&lt;inclusion::Pallet&lt;T&gt;&gt;::force_enact(para_id);
+			make_validation_data()
 		})
 	});
-	<span class="comment">// If we were successful, also query current validation code hash.</span>
-	<span class="ident">persisted_validation_data</span>.<span class="ident">zip</span>(<span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::current_code_hash</span>(<span class="kw-2">&amp;</span><span class="ident">para_id</span>))
+	<span class="comment">// If we were successful, also query current validation code hash.
+	</span>persisted_validation_data.zip(&lt;paras::Pallet&lt;T&gt;&gt;::current_code_hash(<span class="kw-2">&amp;</span>para_id))
 }
 
-<span class="doccomment">/// Implementation for the `check_validation_outputs` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_validation_outputs</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">outputs</span>: <span class="ident">primitives::v2::CandidateCommitments</span>,
-) -&gt; <span class="ident">bool</span> {
-	<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::check_validation_outputs_for_runtime_api</span>(<span class="ident">para_id</span>, <span class="ident">outputs</span>)
+<span class="doccomment">/// Implementation for the `check_validation_outputs` function of the runtime API.
+</span><span class="kw">pub fn </span>check_validation_outputs&lt;T: initializer::Config&gt;(
+	para_id: ParaId,
+	outputs: primitives::v2::CandidateCommitments,
+) -&gt; bool {
+	&lt;inclusion::Pallet&lt;T&gt;&gt;::check_validation_outputs_for_runtime_api(para_id, outputs)
 }
 
-<span class="doccomment">/// Implementation for the `session_index_for_child` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">session_index_for_child</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">SessionIndex</span> {
-	<span class="comment">// Just returns the session index from `inclusion`. Runtime APIs follow</span>
-	<span class="comment">// initialization so the initializer will have applied any pending session change</span>
-	<span class="comment">// which is expected at the child of the block whose context the runtime API was invoked</span>
-	<span class="comment">// in.</span>
-	<span class="comment">//</span>
-	<span class="comment">// Incidentally, this is also the rationale for why it is OK to query validators or</span>
-	<span class="comment">// occupied cores or etc. and expect the correct response &quot;for child&quot;.</span>
-	<span class="op">&lt;</span><span class="ident">shared::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::session_index</span>()
+<span class="doccomment">/// Implementation for the `session_index_for_child` function of the runtime API.
+</span><span class="kw">pub fn </span>session_index_for_child&lt;T: initializer::Config&gt;() -&gt; SessionIndex {
+	<span class="comment">// Just returns the session index from `inclusion`. Runtime APIs follow
+	// initialization so the initializer will have applied any pending session change
+	// which is expected at the child of the block whose context the runtime API was invoked
+	// in.
+	//
+	// Incidentally, this is also the rationale for why it is OK to query validators or
+	// occupied cores or etc. and expect the correct response &quot;for child&quot;.
+	</span>&lt;shared::Pallet&lt;T&gt;&gt;::session_index()
 }
 
-<span class="doccomment">/// Implementation for the `AuthorityDiscoveryApi::authorities()` function of the runtime API.</span>
-<span class="doccomment">/// It is a heavy call, but currently only used for authority discovery, so it is fine.</span>
-<span class="doccomment">/// Gets next, current and some historical authority ids using `session_info` module.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">relevant_authority_ids</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span> <span class="op">+</span> <span class="ident">pallet_authority_discovery::Config</span><span class="op">&gt;</span>(
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">current_session_index</span> <span class="op">=</span> <span class="ident">session_index_for_child</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-	<span class="kw">let</span> <span class="ident">earliest_stored_session</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">session_info::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::earliest_stored_session</span>();
+<span class="doccomment">/// Implementation for the `AuthorityDiscoveryApi::authorities()` function of the runtime API.
+/// It is a heavy call, but currently only used for authority discovery, so it is fine.
+/// Gets next, current and some historical authority ids using `session_info` module.
+</span><span class="kw">pub fn </span>relevant_authority_ids&lt;T: initializer::Config + pallet_authority_discovery::Config&gt;(
+) -&gt; Vec&lt;AuthorityDiscoveryId&gt; {
+	<span class="kw">let </span>current_session_index = session_index_for_child::&lt;T&gt;();
+	<span class="kw">let </span>earliest_stored_session = &lt;session_info::Pallet&lt;T&gt;&gt;::earliest_stored_session();
 
-	<span class="comment">// Due to `max_validators`, the `SessionInfo` stores only the validators who are actively</span>
-	<span class="comment">// selected to participate in parachain consensus. We&#39;d like all authorities for the current</span>
-	<span class="comment">// and next sessions to be used in authority-discovery. The two sets likely have large overlap.</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">authority_ids</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">pallet_authority_discovery::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::current_authorities</span>().<span class="ident">to_vec</span>();
-	<span class="ident">authority_ids</span>.<span class="ident">extend</span>(<span class="op">&lt;</span><span class="ident">pallet_authority_discovery::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::next_authorities</span>().<span class="ident">to_vec</span>());
+	<span class="comment">// Due to `max_validators`, the `SessionInfo` stores only the validators who are actively
+	// selected to participate in parachain consensus. We&#39;d like all authorities for the current
+	// and next sessions to be used in authority-discovery. The two sets likely have large overlap.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>authority_ids = &lt;pallet_authority_discovery::Pallet&lt;T&gt;&gt;::current_authorities().to_vec();
+	authority_ids.extend(&lt;pallet_authority_discovery::Pallet&lt;T&gt;&gt;::next_authorities().to_vec());
 
-	<span class="comment">// Due to disputes, we&#39;d like to remain connected to authorities of the previous few sessions.</span>
-	<span class="comment">// For this, we don&#39;t need anyone other than the validators actively participating in consensus.</span>
-	<span class="kw">for</span> <span class="ident">session_index</span> <span class="kw">in</span> <span class="ident">earliest_stored_session</span>..<span class="ident">current_session_index</span> {
-		<span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">session_info::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::session_info</span>(<span class="ident">session_index</span>);
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">info</span>) <span class="op">=</span> <span class="ident">info</span> {
-			<span class="ident">authority_ids</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">info</span>.<span class="ident">discovery_keys</span>);
+	<span class="comment">// Due to disputes, we&#39;d like to remain connected to authorities of the previous few sessions.
+	// For this, we don&#39;t need anyone other than the validators actively participating in consensus.
+	</span><span class="kw">for </span>session_index <span class="kw">in </span>earliest_stored_session..current_session_index {
+		<span class="kw">let </span>info = &lt;session_info::Pallet&lt;T&gt;&gt;::session_info(session_index);
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>info) = info {
+			authority_ids.append(<span class="kw-2">&amp;mut </span>info.discovery_keys);
 		}
 	}
 
-	<span class="ident">authority_ids</span>.<span class="ident">sort</span>();
-	<span class="ident">authority_ids</span>.<span class="ident">dedup</span>();
+	authority_ids.sort();
+	authority_ids.dedup();
 
-	<span class="ident">authority_ids</span>
+	authority_ids
 }
 
-<span class="doccomment">/// Implementation for the `validation_code` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validation_code</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">assumption</span>: <span class="ident">OccupiedCoreAssumption</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span> {
-	<span class="ident">with_assumption</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">para_id</span>, <span class="ident">assumption</span>, <span class="op">|</span><span class="op">|</span> <span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::current_code</span>(<span class="kw-2">&amp;</span><span class="ident">para_id</span>))
+<span class="doccomment">/// Implementation for the `validation_code` function of the runtime API.
+</span><span class="kw">pub fn </span>validation_code&lt;T: initializer::Config&gt;(
+	para_id: ParaId,
+	assumption: OccupiedCoreAssumption,
+) -&gt; <span class="prelude-ty">Option</span>&lt;ValidationCode&gt; {
+	with_assumption::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(para_id, assumption, || &lt;paras::Pallet&lt;T&gt;&gt;::current_code(<span class="kw-2">&amp;</span>para_id))
 }
 
-<span class="doccomment">/// Implementation for the `candidate_pending_availability` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_pending_availability</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">initializer::Config</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CommittedCandidateReceipt</span><span class="op">&lt;</span><span class="ident">T::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">inclusion::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::candidate_pending_availability</span>(<span class="ident">para_id</span>)
+<span class="doccomment">/// Implementation for the `candidate_pending_availability` function of the runtime API.
+</span><span class="kw">pub fn </span>candidate_pending_availability&lt;T: initializer::Config&gt;(
+	para_id: ParaId,
+) -&gt; <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&lt;T::Hash&gt;&gt; {
+	&lt;inclusion::Pallet&lt;T&gt;&gt;::candidate_pending_availability(para_id)
 }
 
-<span class="doccomment">/// Implementation for the `candidate_events` function of the runtime API.</span>
-<span class="comment">// NOTE: this runs without block initialization, as it accesses events.</span>
-<span class="comment">// this means it can run in a different session than other runtime APIs at the same block.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">candidate_events</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">extract_event</span>: <span class="ident">F</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CandidateEvent</span><span class="op">&lt;</span><span class="ident">T::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">initializer::Config</span>,
-	<span class="ident">F</span>: <span class="ident">Fn</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::RuntimeEvent</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">inclusion::Event</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Implementation for the `candidate_events` function of the runtime API.
+</span><span class="comment">// NOTE: this runs without block initialization, as it accesses events.
+// this means it can run in a different session than other runtime APIs at the same block.
+</span><span class="kw">pub fn </span>candidate_events&lt;T, F&gt;(extract_event: F) -&gt; Vec&lt;CandidateEvent&lt;T::Hash&gt;&gt;
+<span class="kw">where
+	</span>T: initializer::Config,
+	F: Fn(&lt;T <span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent) -&gt; <span class="prelude-ty">Option</span>&lt;inclusion::Event&lt;T&gt;&gt;,
 {
-	<span class="kw">use</span> <span class="ident">inclusion::Event</span> <span class="kw">as</span> <span class="ident">RawEvent</span>;
+	<span class="kw">use </span>inclusion::Event <span class="kw">as </span>RawEvent;
 
-	<span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::read_events_no_consensus</span>()
-		.<span class="ident">into_iter</span>()
-		.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">record</span><span class="op">|</span> <span class="ident">extract_event</span>(<span class="ident">record</span>.<span class="ident">event</span>))
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">event</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">RawEvent</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateBacked</span>(<span class="ident">c</span>, <span class="ident">h</span>, <span class="ident">core</span>, <span class="ident">group</span>) =&gt;
-				<span class="ident">CandidateEvent::CandidateBacked</span>(<span class="ident">c</span>, <span class="ident">h</span>, <span class="ident">core</span>, <span class="ident">group</span>),
-			<span class="ident">RawEvent</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateIncluded</span>(<span class="ident">c</span>, <span class="ident">h</span>, <span class="ident">core</span>, <span class="ident">group</span>) =&gt;
-				<span class="ident">CandidateEvent::CandidateIncluded</span>(<span class="ident">c</span>, <span class="ident">h</span>, <span class="ident">core</span>, <span class="ident">group</span>),
-			<span class="ident">RawEvent</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CandidateTimedOut</span>(<span class="ident">c</span>, <span class="ident">h</span>, <span class="ident">core</span>) =&gt;
-				<span class="ident">CandidateEvent::CandidateTimedOut</span>(<span class="ident">c</span>, <span class="ident">h</span>, <span class="ident">core</span>),
-			<span class="ident">RawEvent</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::__Ignore</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;__Ignore cannot be used&quot;</span>),
+	&lt;frame_system::Pallet&lt;T&gt;&gt;::read_events_no_consensus()
+		.into_iter()
+		.filter_map(|record| extract_event(record.event))
+		.map(|event| <span class="kw">match </span>event {
+			RawEvent::&lt;T&gt;::CandidateBacked(c, h, core, group) =&gt;
+				CandidateEvent::CandidateBacked(c, h, core, group),
+			RawEvent::&lt;T&gt;::CandidateIncluded(c, h, core, group) =&gt;
+				CandidateEvent::CandidateIncluded(c, h, core, group),
+			RawEvent::&lt;T&gt;::CandidateTimedOut(c, h, core) =&gt;
+				CandidateEvent::CandidateTimedOut(c, h, core),
+			RawEvent::&lt;T&gt;::__Ignore(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;__Ignore cannot be used&quot;</span>),
 		})
-		.<span class="ident">collect</span>()
+		.collect()
 }
 
-<span class="doccomment">/// Get the session info for the given session, if stored.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">session_info</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">session_info::Config</span><span class="op">&gt;</span>(<span class="ident">index</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SessionInfo</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">session_info::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::session_info</span>(<span class="ident">index</span>)
+<span class="doccomment">/// Get the session info for the given session, if stored.
+</span><span class="kw">pub fn </span>session_info&lt;T: session_info::Config&gt;(index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;SessionInfo&gt; {
+	&lt;session_info::Pallet&lt;T&gt;&gt;::session_info(index)
 }
 
-<span class="doccomment">/// Implementation for the `dmq_contents` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dmq_contents</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">dmp::Config</span><span class="op">&gt;</span>(
-	<span class="ident">recipient</span>: <span class="ident">ParaId</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">dmp::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::dmq_contents</span>(<span class="ident">recipient</span>)
+<span class="doccomment">/// Implementation for the `dmq_contents` function of the runtime API.
+</span><span class="kw">pub fn </span>dmq_contents&lt;T: dmp::Config&gt;(
+	recipient: ParaId,
+) -&gt; Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt; {
+	&lt;dmp::Pallet&lt;T&gt;&gt;::dmq_contents(recipient)
 }
 
-<span class="doccomment">/// Implementation for the `inbound_hrmp_channels_contents` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inbound_hrmp_channels_contents</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">hrmp::Config</span><span class="op">&gt;</span>(
-	<span class="ident">recipient</span>: <span class="ident">ParaId</span>,
-) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundHrmpMessage</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">hrmp::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::inbound_hrmp_channels_contents</span>(<span class="ident">recipient</span>)
+<span class="doccomment">/// Implementation for the `inbound_hrmp_channels_contents` function of the runtime API.
+</span><span class="kw">pub fn </span>inbound_hrmp_channels_contents&lt;T: hrmp::Config&gt;(
+	recipient: ParaId,
+) -&gt; BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;T::BlockNumber&gt;&gt;&gt; {
+	&lt;hrmp::Pallet&lt;T&gt;&gt;::inbound_hrmp_channels_contents(recipient)
 }
 
-<span class="doccomment">/// Implementation for the `validation_code_by_hash` function of the runtime API.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validation_code_by_hash</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">paras::Config</span><span class="op">&gt;</span>(
-	<span class="ident">hash</span>: <span class="ident">ValidationCodeHash</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCode</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::code_by_hash</span>(<span class="ident">hash</span>)
+<span class="doccomment">/// Implementation for the `validation_code_by_hash` function of the runtime API.
+</span><span class="kw">pub fn </span>validation_code_by_hash&lt;T: paras::Config&gt;(
+	hash: ValidationCodeHash,
+) -&gt; <span class="prelude-ty">Option</span>&lt;ValidationCode&gt; {
+	&lt;paras::Pallet&lt;T&gt;&gt;::code_by_hash(hash)
 }
 
-<span class="doccomment">/// Disputes imported via means of on-chain imports.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_chain_votes</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">paras_inherent::Config</span><span class="op">&gt;</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ScrapedOnChainVotes</span><span class="op">&lt;</span><span class="ident">T::Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">paras_inherent::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::on_chain_votes</span>()
+<span class="doccomment">/// Disputes imported via means of on-chain imports.
+</span><span class="kw">pub fn </span>on_chain_votes&lt;T: paras_inherent::Config&gt;() -&gt; <span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&lt;T::Hash&gt;&gt; {
+	&lt;paras_inherent::Pallet&lt;T&gt;&gt;::on_chain_votes()
 }
 
-<span class="doccomment">/// Submits an PVF pre-checking vote. See [`paras::Pallet::submit_pvf_check_statement`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submit_pvf_check_statement</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">paras::Config</span><span class="op">&gt;</span>(
-	<span class="ident">stmt</span>: <span class="ident">PvfCheckStatement</span>,
-	<span class="ident">signature</span>: <span class="ident">ValidatorSignature</span>,
+<span class="doccomment">/// Submits an PVF pre-checking vote. See [`paras::Pallet::submit_pvf_check_statement`].
+</span><span class="kw">pub fn </span>submit_pvf_check_statement&lt;T: paras::Config&gt;(
+	stmt: PvfCheckStatement,
+	signature: ValidatorSignature,
 ) {
-	<span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::submit_pvf_check_statement</span>(<span class="ident">stmt</span>, <span class="ident">signature</span>)
+	&lt;paras::Pallet&lt;T&gt;&gt;::submit_pvf_check_statement(stmt, signature)
 }
 
-<span class="doccomment">/// Returns the list of all PVF code hashes that require pre-checking. See</span>
-<span class="doccomment">/// [`paras::Pallet::pvfs_require_precheck`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pvfs_require_precheck</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">paras::Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span> {
-	<span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::pvfs_require_precheck</span>()
+<span class="doccomment">/// Returns the list of all PVF code hashes that require pre-checking. See
+/// [`paras::Pallet::pvfs_require_precheck`].
+</span><span class="kw">pub fn </span>pvfs_require_precheck&lt;T: paras::Config&gt;() -&gt; Vec&lt;ValidationCodeHash&gt; {
+	&lt;paras::Pallet&lt;T&gt;&gt;::pvfs_require_precheck()
 }
 
-<span class="doccomment">/// Returns the validation code hash for the given parachain making the given `OccupiedCoreAssumption`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validation_code_hash</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">assumption</span>: <span class="ident">OccupiedCoreAssumption</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ValidationCodeHash</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">inclusion::Config</span>,
+<span class="doccomment">/// Returns the validation code hash for the given parachain making the given `OccupiedCoreAssumption`.
+</span><span class="kw">pub fn </span>validation_code_hash&lt;T&gt;(
+	para_id: ParaId,
+	assumption: OccupiedCoreAssumption,
+) -&gt; <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;
+<span class="kw">where
+	</span>T: inclusion::Config,
 {
-	<span class="ident">with_assumption</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">para_id</span>, <span class="ident">assumption</span>, <span class="op">|</span><span class="op">|</span> {
-		<span class="op">&lt;</span><span class="ident">paras::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::current_code_hash</span>(<span class="kw-2">&amp;</span><span class="ident">para_id</span>)
+	with_assumption::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(para_id, assumption, || {
+		&lt;paras::Pallet&lt;T&gt;&gt;::current_code_hash(<span class="kw-2">&amp;</span>para_id)
 	})
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

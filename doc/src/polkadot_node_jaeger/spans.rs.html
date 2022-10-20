@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/jaeger/src/spans.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spans.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_jaeger/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_jaeger/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_jaeger/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/jaeger/src/spans.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>spans.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_jaeger/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_jaeger/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -505,507 +499,506 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Polkadot Jaeger span definitions.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # use polkadot_primitives::v2::{CandidateHash, Hash};</span>
-<span class="doccomment">//! # fn main() {</span>
-<span class="doccomment">//! use polkadot_node_jaeger as jaeger;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let relay_parent = Hash::default();</span>
-<span class="doccomment">//! let candidate = CandidateHash::default();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! #[derive(Debug, Default)]</span>
-<span class="doccomment">//! struct Foo {</span>
-<span class="doccomment">//! 	a: u8,</span>
-<span class="doccomment">//! 	b: u16,</span>
-<span class="doccomment">//! 	c: u32,</span>
-<span class="doccomment">//! };</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let foo = Foo::default();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let span =</span>
-<span class="doccomment">//! 	jaeger::Span::new(relay_parent, &quot;root_of_aaall_spans&quot;)</span>
-<span class="doccomment">//! 		// explicit well defined items</span>
-<span class="doccomment">//! 		.with_candidate(candidate)</span>
-<span class="doccomment">//! 		// anything that implements `trait std::fmt::Debug`</span>
-<span class="doccomment">//! 		.with_string_fmt_debug_tag(&quot;foo&quot;, foo)</span>
-<span class="doccomment">//! 		// anything that implements `trait std::str::ToString`</span>
-<span class="doccomment">//! 		.with_string_tag(&quot;again&quot;, 1337_u32)</span>
-<span class="doccomment">//! 		// add a `Stage` for [`dot-jaeger`](https://github.com/paritytech/dot-jaeger)</span>
-<span class="doccomment">//! 		.with_stage(jaeger::Stage::CandidateBacking);</span>
-<span class="doccomment">//! 		// complete by design, no completion required</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In a few cases additional annotations might want to be added</span>
-<span class="doccomment">//! over the course of a function, for this purpose use the non-consuming</span>
-<span class="doccomment">//! `fn` variants, i.e.</span>
-<span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # use polkadot_primitives::v2::{CandidateHash, Hash};</span>
-<span class="doccomment">//! # fn main() {</span>
-<span class="doccomment">//! # use polkadot_node_jaeger as jaeger;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # let relay_parent = Hash::default();</span>
-<span class="doccomment">//! # let candidate = CandidateHash::default();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # #[derive(Debug, Default)]</span>
-<span class="doccomment">//! # struct Foo {</span>
-<span class="doccomment">//! # 	a: u8,</span>
-<span class="doccomment">//! # 	b: u16,</span>
-<span class="doccomment">//! # 	c: u32,</span>
-<span class="doccomment">//! # };</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! # let foo = Foo::default();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let root_span =</span>
-<span class="doccomment">//! 	jaeger::Span::new(relay_parent, &quot;root_of_aaall_spans&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // the prefered way of adding additional delayed information:</span>
-<span class="doccomment">//! let span = root_span.child(&quot;inner&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // ... more operations ...</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // but this is also possible:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let mut root_span = root_span;</span>
-<span class="doccomment">//! root_span.add_string_fmt_debug_tag(&quot;foo_constructed&quot;, &amp;foo);</span>
-<span class="doccomment">//! root_span.add_string_tag(&quot;bar&quot;, true);</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! ```</span>
+</span><span class="doccomment">//! Polkadot Jaeger span definitions.
+//!
+//! ```rust
+//! # use polkadot_primitives::v2::{CandidateHash, Hash};
+//! # fn main() {
+//! use polkadot_node_jaeger as jaeger;
+//!
+//! let relay_parent = Hash::default();
+//! let candidate = CandidateHash::default();
+//!
+//! #[derive(Debug, Default)]
+//! struct Foo {
+//! 	a: u8,
+//! 	b: u16,
+//! 	c: u32,
+//! };
+//!
+//! let foo = Foo::default();
+//!
+//! let span =
+//! 	jaeger::Span::new(relay_parent, &quot;root_of_aaall_spans&quot;)
+//! 		// explicit well defined items
+//! 		.with_candidate(candidate)
+//! 		// anything that implements `trait std::fmt::Debug`
+//! 		.with_string_fmt_debug_tag(&quot;foo&quot;, foo)
+//! 		// anything that implements `trait std::str::ToString`
+//! 		.with_string_tag(&quot;again&quot;, 1337_u32)
+//! 		// add a `Stage` for [`dot-jaeger`](https://github.com/paritytech/dot-jaeger)
+//! 		.with_stage(jaeger::Stage::CandidateBacking);
+//! 		// complete by design, no completion required
+//! # }
+//! ```
+//!
+//! In a few cases additional annotations might want to be added
+//! over the course of a function, for this purpose use the non-consuming
+//! `fn` variants, i.e.
+//! ```rust
+//! # use polkadot_primitives::v2::{CandidateHash, Hash};
+//! # fn main() {
+//! # use polkadot_node_jaeger as jaeger;
+//!
+//! # let relay_parent = Hash::default();
+//! # let candidate = CandidateHash::default();
+//!
+//! # #[derive(Debug, Default)]
+//! # struct Foo {
+//! # 	a: u8,
+//! # 	b: u16,
+//! # 	c: u32,
+//! # };
+//! #
+//! # let foo = Foo::default();
+//!
+//! let root_span =
+//! 	jaeger::Span::new(relay_parent, &quot;root_of_aaall_spans&quot;);
+//!
+//! // the prefered way of adding additional delayed information:
+//! let span = root_span.child(&quot;inner&quot;);
+//!
+//! // ... more operations ...
+//!
+//! // but this is also possible:
+//!
+//! let mut root_span = root_span;
+//! root_span.add_string_fmt_debug_tag(&quot;foo_constructed&quot;, &amp;foo);
+//! root_span.add_string_tag(&quot;bar&quot;, true);
+//! # }
+//! ```
 
-<span class="kw">use</span> <span class="ident">parity_scale_codec::Encode</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives::PoV</span>;
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">BlakeTwo256</span>, <span class="ident">CandidateHash</span>, <span class="ident">Hash</span>, <span class="ident">HashT</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>, <span class="ident">ValidatorIndex</span>,
+</span><span class="kw">use </span>parity_scale_codec::Encode;
+<span class="kw">use </span>polkadot_node_primitives::PoV;
+<span class="kw">use </span>polkadot_primitives::v2::{
+	BlakeTwo256, CandidateHash, Hash, HashT, Id <span class="kw">as </span>ParaId, ValidatorIndex,
 };
-<span class="kw">use</span> <span class="ident">sc_network::PeerId</span>;
+<span class="kw">use </span>sc_network::PeerId;
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">sync::Arc</span>};
+<span class="kw">use </span>std::{fmt, sync::Arc};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::INSTANCE</span>;
+<span class="kw">use </span><span class="kw">super</span>::INSTANCE;
 
-<span class="doccomment">/// A special &quot;per leaf span&quot;.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Essentially this span wraps two spans:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 1. The span that is created per leaf in the overseer.</span>
-<span class="doccomment">/// 2. Some child span of the per-leaf span.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This just works as auxiliary structure to easily store both.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PerLeafSpan</span> {
-	<span class="ident">leaf_span</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
-	<span class="ident">span</span>: <span class="ident">Span</span>,
+<span class="doccomment">/// A special &quot;per leaf span&quot;.
+///
+/// Essentially this span wraps two spans:
+///
+/// 1. The span that is created per leaf in the overseer.
+/// 2. Some child span of the per-leaf span.
+///
+/// This just works as auxiliary structure to easily store both.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PerLeafSpan {
+	leaf_span: Arc&lt;Span&gt;,
+	span: Span,
 }
 
-<span class="kw">impl</span> <span class="ident">PerLeafSpan</span> {
-	<span class="doccomment">/// Creates a new instance.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Takes the `leaf_span` that is created by the overseer per leaf and a name for a child span.</span>
-	<span class="doccomment">/// Both will be stored in this object, while the child span is implicitly accessible by using the</span>
-	<span class="doccomment">/// [`Deref`](std::ops::Deref) implementation.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">leaf_span</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">leaf_span</span>.<span class="ident">child</span>(<span class="ident">name</span>);
+<span class="kw">impl </span>PerLeafSpan {
+	<span class="doccomment">/// Creates a new instance.
+	///
+	/// Takes the `leaf_span` that is created by the overseer per leaf and a name for a child span.
+	/// Both will be stored in this object, while the child span is implicitly accessible by using the
+	/// [`Deref`](std::ops::Deref) implementation.
+	</span><span class="kw">pub fn </span>new(leaf_span: Arc&lt;Span&gt;, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>span = leaf_span.child(name);
 
-		<span class="self">Self</span> { <span class="ident">span</span>, <span class="ident">leaf_span</span> }
+		<span class="self">Self </span>{ span, leaf_span }
 	}
 
-	<span class="doccomment">/// Returns the leaf span.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">leaf_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">leaf_span</span>
-	}
-}
-
-<span class="doccomment">/// Returns a reference to the child span.</span>
-<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">PerLeafSpan</span> {
-	<span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Span</span>;
-
-	<span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Span</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">span</span>
+	<span class="doccomment">/// Returns the leaf span.
+	</span><span class="kw">pub fn </span>leaf_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Span&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.leaf_span
 	}
 }
 
-<span class="doccomment">/// A helper to annotate the stage with a numerical value</span>
-<span class="doccomment">/// to ease the life of the tooling team creating viable</span>
-<span class="doccomment">/// statistical metrics for which stage of the inclusion</span>
-<span class="doccomment">/// pipeline drops a significant amount of candidates,</span>
-<span class="doccomment">/// statistically speaking.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Stage</span> {
-	<span class="ident">CandidateBacking</span> <span class="op">=</span> <span class="number">2</span>,
-	<span class="ident">StatementDistribution</span> <span class="op">=</span> <span class="number">3</span>,
-	<span class="ident">PoVDistribution</span> <span class="op">=</span> <span class="number">4</span>,
-	<span class="ident">AvailabilityDistribution</span> <span class="op">=</span> <span class="number">5</span>,
-	<span class="ident">AvailabilityRecovery</span> <span class="op">=</span> <span class="number">6</span>,
-	<span class="ident">BitfieldDistribution</span> <span class="op">=</span> <span class="number">7</span>,
-	<span class="ident">ApprovalChecking</span> <span class="op">=</span> <span class="number">8</span>,
-	<span class="comment">// Expand as needed, numbers should be ascending according to the stage</span>
-	<span class="comment">// through the inclusion pipeline, or according to the descriptions</span>
-	<span class="comment">// in [the path of a para chain block]</span>
-	<span class="comment">// (https://polkadot.network/the-path-of-a-parachain-block/)</span>
-	<span class="comment">// see [issue](https://github.com/paritytech/polkadot/issues/2389)</span>
-}
+<span class="doccomment">/// Returns a reference to the child span.
+</span><span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>PerLeafSpan {
+	<span class="kw">type </span>Target = Span;
 
-<span class="doccomment">/// A wrapper type for a span.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Handles running with and without jaeger.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Span</span> {
-	<span class="doccomment">/// Running with jaeger being enabled.</span>
-	<span class="ident">Enabled</span>(<span class="ident">mick_jaeger::Span</span>),
-	<span class="doccomment">/// Running with jaeger disabled.</span>
-	<span class="ident">Disabled</span>,
-}
-
-<span class="doccomment">/// Alias for the 16 byte unique identifier used with jaeger.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">TraceIdentifier</span> <span class="op">=</span> <span class="ident">u128</span>;
-
-<span class="doccomment">/// A helper to convert the hash to the fixed size representation</span>
-<span class="doccomment">/// needed for jaeger.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash_to_trace_identifier</span>(<span class="ident">hash</span>: <span class="ident">Hash</span>) -&gt; <span class="ident">TraceIdentifier</span> {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-	<span class="ident">buf</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>.<span class="ident">as_ref</span>()[<span class="number">0</span>..<span class="number">16</span>]);
-	<span class="comment">// The slice bytes are copied in reading order, so if interpreted</span>
-	<span class="comment">// in string form by a human, that means lower indices have higher</span>
-	<span class="comment">// values and hence corresponds to BIG endian ordering of the individual</span>
-	<span class="comment">// bytes.</span>
-	<span class="ident">u128::from_be_bytes</span>(<span class="ident">buf</span>) <span class="kw">as</span> <span class="ident">TraceIdentifier</span>
-}
-
-<span class="doccomment">/// Helper to unify lazy proxy evaluation.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">LazyIdent</span> {
-	<span class="doccomment">/// Evaluate the type to a unique trace identifier.</span>
-	<span class="doccomment">/// Called lazily on demand.</span>
-	<span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TraceIdentifier</span>;
-
-	<span class="doccomment">/// Annotate a new root item with these additional spans</span>
-	<span class="doccomment">/// at construction.</span>
-	<span class="kw">fn</span> <span class="ident">extra_tags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_span</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Span</span>) {}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">LazyIdent</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>] {
-	<span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TraceIdentifier</span> {
-		<span class="ident">hash_to_trace_identifier</span>(<span class="ident">BlakeTwo256::hash_of</span>(<span class="self">self</span>))
+	<span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Span {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.span
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">LazyIdent</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">PoV</span> {
-	<span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TraceIdentifier</span> {
-		<span class="ident">hash_to_trace_identifier</span>(<span class="self">self</span>.<span class="ident">hash</span>())
-	}
+<span class="doccomment">/// A helper to annotate the stage with a numerical value
+/// to ease the life of the tooling team creating viable
+/// statistical metrics for which stage of the inclusion
+/// pipeline drops a significant amount of candidates,
+/// statistically speaking.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+#[non_exhaustive]
+</span><span class="kw">pub enum </span>Stage {
+	CandidateBacking = <span class="number">2</span>,
+	StatementDistribution = <span class="number">3</span>,
+	PoVDistribution = <span class="number">4</span>,
+	AvailabilityDistribution = <span class="number">5</span>,
+	AvailabilityRecovery = <span class="number">6</span>,
+	BitfieldDistribution = <span class="number">7</span>,
+	ApprovalChecking = <span class="number">8</span>,
+	<span class="comment">// Expand as needed, numbers should be ascending according to the stage
+	// through the inclusion pipeline, or according to the descriptions
+	// in [the path of a para chain block]
+	// (https://polkadot.network/the-path-of-a-parachain-block/)
+	// see [issue](https://github.com/paritytech/polkadot/issues/2389)
+</span>}
 
-	<span class="kw">fn</span> <span class="ident">extra_tags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Span</span>) {
-		<span class="ident">span</span>.<span class="ident">add_pov</span>(<span class="self">self</span>)
+<span class="doccomment">/// A wrapper type for a span.
+///
+/// Handles running with and without jaeger.
+</span><span class="kw">pub enum </span>Span {
+	<span class="doccomment">/// Running with jaeger being enabled.
+	</span>Enabled(mick_jaeger::Span),
+	<span class="doccomment">/// Running with jaeger disabled.
+	</span>Disabled,
+}
+
+<span class="doccomment">/// Alias for the 16 byte unique identifier used with jaeger.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TraceIdentifier = u128;
+
+<span class="doccomment">/// A helper to convert the hash to the fixed size representation
+/// needed for jaeger.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub fn </span>hash_to_trace_identifier(hash: Hash) -&gt; TraceIdentifier {
+	<span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">16</span>];
+	buf.copy_from_slice(<span class="kw-2">&amp;</span>hash.as_ref()[<span class="number">0</span>..<span class="number">16</span>]);
+	<span class="comment">// The slice bytes are copied in reading order, so if interpreted
+	// in string form by a human, that means lower indices have higher
+	// values and hence corresponds to BIG endian ordering of the individual
+	// bytes.
+	</span>u128::from_be_bytes(buf) <span class="kw">as </span>TraceIdentifier
+}
+
+<span class="doccomment">/// Helper to unify lazy proxy evaluation.
+</span><span class="kw">pub trait </span>LazyIdent {
+	<span class="doccomment">/// Evaluate the type to a unique trace identifier.
+	/// Called lazily on demand.
+	</span><span class="kw">fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceIdentifier;
+
+	<span class="doccomment">/// Annotate a new root item with these additional spans
+	/// at construction.
+	</span><span class="kw">fn </span>extra_tags(<span class="kw-2">&amp;</span><span class="self">self</span>, _span: <span class="kw-2">&amp;mut </span>Span) {}
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; LazyIdent <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+	<span class="kw">fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceIdentifier {
+		hash_to_trace_identifier(BlakeTwo256::hash_of(<span class="self">self</span>))
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">LazyIdent</span> <span class="kw">for</span> <span class="ident">Hash</span> {
-	<span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TraceIdentifier</span> {
-		<span class="ident">hash_to_trace_identifier</span>(<span class="kw-2">*</span><span class="self">self</span>)
+<span class="kw">impl </span>LazyIdent <span class="kw">for </span><span class="kw-2">&amp;</span>PoV {
+	<span class="kw">fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceIdentifier {
+		hash_to_trace_identifier(<span class="self">self</span>.hash())
 	}
 
-	<span class="kw">fn</span> <span class="ident">extra_tags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Span</span>) {
-		<span class="ident">span</span>.<span class="ident">add_string_fmt_debug_tag</span>(<span class="string">&quot;relay-parent&quot;</span>, <span class="self">self</span>);
-	}
-}
-
-<span class="kw">impl</span> <span class="ident">LazyIdent</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Hash</span> {
-	<span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TraceIdentifier</span> {
-		<span class="ident">hash_to_trace_identifier</span>(<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>)
-	}
-
-	<span class="kw">fn</span> <span class="ident">extra_tags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Span</span>) {
-		<span class="ident">span</span>.<span class="ident">add_string_fmt_debug_tag</span>(<span class="string">&quot;relay-parent&quot;</span>, <span class="self">self</span>);
+	<span class="kw">fn </span>extra_tags(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;mut </span>Span) {
+		span.add_pov(<span class="self">self</span>)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">LazyIdent</span> <span class="kw">for</span> <span class="ident">CandidateHash</span> {
-	<span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TraceIdentifier</span> {
-		<span class="ident">hash_to_trace_identifier</span>(<span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>LazyIdent <span class="kw">for </span>Hash {
+	<span class="kw">fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceIdentifier {
+		hash_to_trace_identifier(<span class="kw-2">*</span><span class="self">self</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">extra_tags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Span</span>) {
-		<span class="ident">span</span>.<span class="ident">add_string_fmt_debug_tag</span>(<span class="string">&quot;candidate-hash&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>);
-		<span class="comment">// A convenience for usage with the grafana tempo UI,</span>
-		<span class="comment">// not a technical requirement. It merely provides an easy anchor</span>
-		<span class="comment">// where the true trace identifier of the span is not based on</span>
-		<span class="comment">// a candidate hash (which it should be!), but is required to</span>
-		<span class="comment">// continue investigating.</span>
-		<span class="ident">span</span>.<span class="ident">add_string_tag</span>(<span class="string">&quot;traceID&quot;</span>, <span class="self">self</span>.<span class="ident">eval</span>().<span class="ident">to_string</span>());
+	<span class="kw">fn </span>extra_tags(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;mut </span>Span) {
+		span.add_string_fmt_debug_tag(<span class="string">&quot;relay-parent&quot;</span>, <span class="self">self</span>);
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">Span</span> {
-	<span class="doccomment">/// Creates a new span builder based on anything that can be lazily evaluated</span>
-	<span class="doccomment">/// to and identifier.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Attention: The primary identifier will be used for identification</span>
-	<span class="doccomment">/// and as such should be</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">LazyIdent</span><span class="op">&gt;</span>(<span class="ident">identifier</span>: <span class="ident">I</span>, <span class="ident">span_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="ident">Span</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">INSTANCE</span>
-			.<span class="ident">read_recursive</span>()
-			.<span class="ident">span</span>(<span class="op">|</span><span class="op">|</span> <span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">LazyIdent</span><span class="op">&gt;</span><span class="ident">::eval</span>(<span class="kw-2">&amp;</span><span class="ident">identifier</span>), <span class="ident">span_name</span>)
-			.<span class="ident">into</span>();
-		<span class="op">&lt;</span><span class="ident">I</span> <span class="kw">as</span> <span class="ident">LazyIdent</span><span class="op">&gt;</span><span class="ident">::extra_tags</span>(<span class="kw-2">&amp;</span><span class="ident">identifier</span>, <span class="kw-2">&amp;mut</span> <span class="ident">span</span>);
-		<span class="ident">span</span>
+<span class="kw">impl </span>LazyIdent <span class="kw">for </span><span class="kw-2">&amp;</span>Hash {
+	<span class="kw">fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceIdentifier {
+		hash_to_trace_identifier(<span class="kw-2">**</span><span class="self">self</span>)
 	}
 
-	<span class="doccomment">/// Creates a new span builder based on an encodable type.</span>
-	<span class="doccomment">/// The encoded bytes are then used to derive the true trace identifier.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_encodable</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">Encode</span><span class="op">&gt;</span>(<span class="ident">identifier</span>: <span class="ident">I</span>, <span class="ident">span_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="ident">Span</span> {
-		<span class="ident">INSTANCE</span>
-			.<span class="ident">read_recursive</span>()
-			.<span class="ident">span</span>(
-				<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-					<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">identifier</span>.<span class="ident">encode</span>();
-					<span class="ident">LazyIdent::eval</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>.<span class="ident">as_slice</span>())
+	<span class="kw">fn </span>extra_tags(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;mut </span>Span) {
+		span.add_string_fmt_debug_tag(<span class="string">&quot;relay-parent&quot;</span>, <span class="self">self</span>);
+	}
+}
+
+<span class="kw">impl </span>LazyIdent <span class="kw">for </span>CandidateHash {
+	<span class="kw">fn </span>eval(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceIdentifier {
+		hash_to_trace_identifier(<span class="self">self</span>.<span class="number">0</span>)
+	}
+
+	<span class="kw">fn </span>extra_tags(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;mut </span>Span) {
+		span.add_string_fmt_debug_tag(<span class="string">&quot;candidate-hash&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>);
+		<span class="comment">// A convenience for usage with the grafana tempo UI,
+		// not a technical requirement. It merely provides an easy anchor
+		// where the true trace identifier of the span is not based on
+		// a candidate hash (which it should be!), but is required to
+		// continue investigating.
+		</span>span.add_string_tag(<span class="string">&quot;traceID&quot;</span>, <span class="self">self</span>.eval().to_string());
+	}
+}
+
+<span class="kw">impl </span>Span {
+	<span class="doccomment">/// Creates a new span builder based on anything that can be lazily evaluated
+	/// to and identifier.
+	///
+	/// Attention: The primary identifier will be used for identification
+	/// and as such should be
+	</span><span class="kw">pub fn </span>new&lt;I: LazyIdent&gt;(identifier: I, span_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Span {
+		<span class="kw">let </span><span class="kw-2">mut </span>span = INSTANCE
+			.read_recursive()
+			.span(|| &lt;I <span class="kw">as </span>LazyIdent&gt;::eval(<span class="kw-2">&amp;</span>identifier), span_name)
+			.into();
+		&lt;I <span class="kw">as </span>LazyIdent&gt;::extra_tags(<span class="kw-2">&amp;</span>identifier, <span class="kw-2">&amp;mut </span>span);
+		span
+	}
+
+	<span class="doccomment">/// Creates a new span builder based on an encodable type.
+	/// The encoded bytes are then used to derive the true trace identifier.
+	</span><span class="kw">pub fn </span>from_encodable&lt;I: Encode&gt;(identifier: I, span_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; Span {
+		INSTANCE
+			.read_recursive()
+			.span(
+				<span class="kw">move </span>|| {
+					<span class="kw">let </span>bytes = identifier.encode();
+					LazyIdent::eval(<span class="kw-2">&amp;</span>bytes.as_slice())
 				},
-				<span class="ident">span_name</span>,
+				span_name,
 			)
-			.<span class="ident">into</span>()
+			.into()
 	}
 
-	<span class="doccomment">/// Derive a child span from `self`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="ident">inner</span>) =&gt; <span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="ident">inner</span>.<span class="ident">child</span>(<span class="ident">name</span>)),
-			<span class="ident"><span class="self">Self</span>::Disabled</span> =&gt; <span class="ident"><span class="self">Self</span>::Disabled</span>,
+	<span class="doccomment">/// Derive a child span from `self`.
+	</span><span class="kw">pub fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Enabled(inner) =&gt; <span class="self">Self</span>::Enabled(inner.child(name)),
+			<span class="self">Self</span>::Disabled =&gt; <span class="self">Self</span>::Disabled,
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_string_tag</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">ToString</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">add_string_tag</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="ident">tag</span>, <span class="ident">val</span>);
-		<span class="self">self</span>
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_string_tag&lt;V: ToString&gt;(<span class="kw-2">mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, val: V) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.add_string_tag::&lt;V&gt;(tag, val);
+		<span class="self">self
+	</span>}
+
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_peer_id(<span class="self">self</span>, peer: <span class="kw-2">&amp;</span>PeerId) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_tag(<span class="string">&quot;peer-id&quot;</span>, <span class="kw-2">&amp;</span>peer.to_base58())
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_peer_id</span>(<span class="self">self</span>, <span class="ident">peer</span>: <span class="kw-2">&amp;</span><span class="ident">PeerId</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_tag</span>(<span class="string">&quot;peer-id&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">peer</span>.<span class="ident">to_base58</span>())
+	<span class="doccomment">/// Attach a candidate hash to the span.
+	</span><span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_candidate(<span class="self">self</span>, candidate_hash: CandidateHash) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_fmt_debug_tag(<span class="string">&quot;candidate-hash&quot;</span>, <span class="kw-2">&amp;</span>candidate_hash.<span class="number">0</span>)
 	}
 
-	<span class="doccomment">/// Attach a candidate hash to the span.</span>
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_candidate</span>(<span class="self">self</span>, <span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_fmt_debug_tag</span>(<span class="string">&quot;candidate-hash&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>.<span class="number">0</span>)
+	<span class="doccomment">/// Attach a para-id to the span.
+	</span><span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_para_id(<span class="self">self</span>, para_id: ParaId) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_int_tag(<span class="string">&quot;para-id&quot;</span>, u32::from(para_id) <span class="kw">as </span>i64)
 	}
 
-	<span class="doccomment">/// Attach a para-id to the span.</span>
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_para_id</span>(<span class="self">self</span>, <span class="ident">para_id</span>: <span class="ident">ParaId</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_int_tag</span>(<span class="string">&quot;para-id&quot;</span>, <span class="ident">u32::from</span>(<span class="ident">para_id</span>) <span class="kw">as</span> <span class="ident">i64</span>)
+	<span class="doccomment">/// Attach a candidate stage.
+	/// Should always come with a `CandidateHash`.
+	</span><span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_stage(<span class="self">self</span>, stage: Stage) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_tag(<span class="string">&quot;candidate-stage&quot;</span>, stage <span class="kw">as </span>u8)
 	}
 
-	<span class="doccomment">/// Attach a candidate stage.</span>
-	<span class="doccomment">/// Should always come with a `CandidateHash`.</span>
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_stage</span>(<span class="self">self</span>, <span class="ident">stage</span>: <span class="ident">Stage</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_tag</span>(<span class="string">&quot;candidate-stage&quot;</span>, <span class="ident">stage</span> <span class="kw">as</span> <span class="ident">u8</span>)
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_validator_index(<span class="self">self</span>, validator: ValidatorIndex) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_tag(<span class="string">&quot;validator-index&quot;</span>, <span class="kw-2">&amp;</span>validator.<span class="number">0</span>)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_validator_index</span>(<span class="self">self</span>, <span class="ident">validator</span>: <span class="ident">ValidatorIndex</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_tag</span>(<span class="string">&quot;validator-index&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">validator</span>.<span class="number">0</span>)
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_chunk_index(<span class="self">self</span>, chunk_index: u32) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_tag(<span class="string">&quot;chunk-index&quot;</span>, chunk_index)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_chunk_index</span>(<span class="self">self</span>, <span class="ident">chunk_index</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_tag</span>(<span class="string">&quot;chunk-index&quot;</span>, <span class="ident">chunk_index</span>)
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_relay_parent(<span class="self">self</span>, relay_parent: Hash) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_fmt_debug_tag(<span class="string">&quot;relay-parent&quot;</span>, relay_parent)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_relay_parent</span>(<span class="self">self</span>, <span class="ident">relay_parent</span>: <span class="ident">Hash</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_fmt_debug_tag</span>(<span class="string">&quot;relay-parent&quot;</span>, <span class="ident">relay_parent</span>)
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_claimed_validator_index(<span class="self">self</span>, claimed_validator_index: ValidatorIndex) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.with_string_tag(<span class="string">&quot;claimed-validator&quot;</span>, <span class="kw-2">&amp;</span>claimed_validator_index.<span class="number">0</span>)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_claimed_validator_index</span>(<span class="self">self</span>, <span class="ident">claimed_validator_index</span>: <span class="ident">ValidatorIndex</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">with_string_tag</span>(<span class="string">&quot;claimed-validator&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">claimed_validator_index</span>.<span class="number">0</span>)
-	}
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_pov(<span class="kw-2">mut </span><span class="self">self</span>, pov: <span class="kw-2">&amp;</span>PoV) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.add_pov(pov);
+		<span class="self">self
+	</span>}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_pov</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pov</span>: <span class="kw-2">&amp;</span><span class="ident">PoV</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">add_pov</span>(<span class="ident">pov</span>);
-		<span class="self">self</span>
-	}
+	<span class="doccomment">/// Add an additional int tag to the span without consuming.
+	///
+	/// Should be used sparingly, introduction of new types is preferred.
+	</span><span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_int_tag(<span class="kw-2">mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, i: i64) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.add_int_tag(tag, i);
+		<span class="self">self
+	</span>}
 
-	<span class="doccomment">/// Add an additional int tag to the span without consuming.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Should be used sparingly, introduction of new types is preferred.</span>
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_int_tag</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">i</span>: <span class="ident">i64</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">add_int_tag</span>(<span class="ident">tag</span>, <span class="ident">i</span>);
-		<span class="self">self</span>
-	}
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_uint_tag(<span class="kw-2">mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, u: u64) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.add_uint_tag(tag, u);
+		<span class="self">self
+	</span>}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_uint_tag</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">u</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">add_uint_tag</span>(<span class="ident">tag</span>, <span class="ident">u</span>);
-		<span class="self">self</span>
-	}
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>with_string_fmt_debug_tag&lt;V: fmt::Debug&gt;(<span class="kw-2">mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, val: V) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.add_string_tag(tag, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, val));
+		<span class="self">self
+	</span>}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_string_fmt_debug_tag</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="ident">V</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">add_string_tag</span>(<span class="ident">tag</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">val</span>));
-		<span class="self">self</span>
-	}
-
-	<span class="doccomment">/// Adds the `FollowsFrom` relationship to this span with respect to the given one.</span>
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_follows_from</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-		<span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-			(<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>), <span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="kw-2">ref</span> <span class="ident">other_inner</span>)) =&gt;
-				<span class="ident">inner</span>.<span class="ident">add_follows_from</span>(<span class="kw-2">&amp;</span><span class="ident">other_inner</span>),
-			<span class="kw">_</span> =&gt; {},
+	<span class="doccomment">/// Adds the `FollowsFrom` relationship to this span with respect to the given one.
+	</span><span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>add_follows_from(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+		<span class="kw">match </span>(<span class="self">self</span>, other) {
+			(<span class="self">Self</span>::Enabled(<span class="kw-2">ref mut </span>inner), <span class="self">Self</span>::Enabled(<span class="kw-2">ref </span>other_inner)) =&gt;
+				inner.add_follows_from(<span class="kw-2">&amp;</span>other_inner),
+			<span class="kw">_ </span>=&gt; {},
 		}
 	}
 
-	<span class="doccomment">/// Add a PoV hash meta tag with lazy hash evaluation, without consuming the span.</span>
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_pov</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pov</span>: <span class="kw-2">&amp;</span><span class="ident">PoV</span>) {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_enabled</span>() {
-			<span class="comment">// avoid computing the PoV hash if jaeger is not enabled</span>
-			<span class="self">self</span>.<span class="ident">add_string_fmt_debug_tag</span>(<span class="string">&quot;pov&quot;</span>, <span class="ident">pov</span>.<span class="ident">hash</span>());
+	<span class="doccomment">/// Add a PoV hash meta tag with lazy hash evaluation, without consuming the span.
+	</span><span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>add_pov(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pov: <span class="kw-2">&amp;</span>PoV) {
+		<span class="kw">if </span><span class="self">self</span>.is_enabled() {
+			<span class="comment">// avoid computing the PoV hash if jaeger is not enabled
+			</span><span class="self">self</span>.add_string_fmt_debug_tag(<span class="string">&quot;pov&quot;</span>, pov.hash());
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_para_id</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">para_id</span>: <span class="ident">ParaId</span>) {
-		<span class="self">self</span>.<span class="ident">add_int_tag</span>(<span class="string">&quot;para-id&quot;</span>, <span class="ident">u32::from</span>(<span class="ident">para_id</span>) <span class="kw">as</span> <span class="ident">i64</span>);
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">pub fn </span>add_para_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, para_id: ParaId) {
+		<span class="self">self</span>.add_int_tag(<span class="string">&quot;para-id&quot;</span>, u32::from(para_id) <span class="kw">as </span>i64);
 	}
 
-	<span class="doccomment">/// Add a string tag, without consuming the span.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_string_tag</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">ToString</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="ident">V</span>) {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) =&gt; <span class="ident">inner</span>.<span class="ident">add_string_tag</span>(<span class="ident">tag</span>, <span class="ident">val</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>()),
-			<span class="ident"><span class="self">Self</span>::Disabled</span> =&gt; {},
+	<span class="doccomment">/// Add a string tag, without consuming the span.
+	</span><span class="kw">pub fn </span>add_string_tag&lt;V: ToString&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, val: V) {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Enabled(<span class="kw-2">ref mut </span>inner) =&gt; inner.add_string_tag(tag, val.to_string().as_str()),
+			<span class="self">Self</span>::Disabled =&gt; {},
 		}
 	}
 
-	<span class="doccomment">/// Add a string tag, without consuming the span.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_string_fmt_debug_tag</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">val</span>: <span class="ident">V</span>) {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) =&gt;
-				<span class="ident">inner</span>.<span class="ident">add_string_tag</span>(<span class="ident">tag</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">val</span>).<span class="ident">as_str</span>()),
-			<span class="ident"><span class="self">Self</span>::Disabled</span> =&gt; {},
+	<span class="doccomment">/// Add a string tag, without consuming the span.
+	</span><span class="kw">pub fn </span>add_string_fmt_debug_tag&lt;V: fmt::Debug&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, val: V) {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Enabled(<span class="kw-2">ref mut </span>inner) =&gt;
+				inner.add_string_tag(tag, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, val).as_str()),
+			<span class="self">Self</span>::Disabled =&gt; {},
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_int_tag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">i64</span>) {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) =&gt; <span class="ident">inner</span>.<span class="ident">add_int_tag</span>(<span class="ident">tag</span>, <span class="ident">value</span>),
-			<span class="ident"><span class="self">Self</span>::Disabled</span> =&gt; {},
+	<span class="kw">pub fn </span>add_int_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: i64) {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Enabled(<span class="kw-2">ref mut </span>inner) =&gt; inner.add_int_tag(tag, value),
+			<span class="self">Self</span>::Disabled =&gt; {},
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_uint_tag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">inner</span>) =&gt; <span class="ident">inner</span>.<span class="ident">add_int_tag</span>(<span class="ident">tag</span>, <span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span>),
-			<span class="ident"><span class="self">Self</span>::Disabled</span> =&gt; {},
+	<span class="kw">pub fn </span>add_uint_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: u64) {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Enabled(<span class="kw-2">ref mut </span>inner) =&gt; inner.add_int_tag(tag, value <span class="kw">as </span>i64),
+			<span class="self">Self</span>::Disabled =&gt; {},
 		}
 	}
 
-	<span class="doccomment">/// Check whether jaeger is enabled</span>
-	<span class="doccomment">/// in order to avoid computational overhead.</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">Span::Enabled</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-			<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+	<span class="doccomment">/// Check whether jaeger is enabled
+	/// in order to avoid computational overhead.
+	</span><span class="kw">pub const fn </span>is_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="kw">match </span><span class="self">self </span>{
+			Span::Enabled(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+			<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 		}
 	}
 
-	<span class="doccomment">/// Obtain the trace identifier for this set of spans.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trace_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceIdentifier</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">Span::Enabled</span>(<span class="ident">inner</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">inner</span>.<span class="ident">trace_id</span>().<span class="ident">get</span>()),
-			<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-		}
-	}
-}
-
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Span</span> {
-	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-		<span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;jaeger span&gt;&quot;</span>)
-	}
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mick_jaeger::Span</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Span</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mick_jaeger::Span</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">src</span> {
-			<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="ident">span</span>)
-		} <span class="kw">else</span> {
-			<span class="ident"><span class="self">Self</span>::Disabled</span>
+	<span class="doccomment">/// Obtain the trace identifier for this set of spans.
+	</span><span class="kw">pub fn </span>trace_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;TraceIdentifier&gt; {
+		<span class="kw">match </span><span class="self">self </span>{
+			Span::Enabled(inner) =&gt; <span class="prelude-val">Some</span>(inner.trace_id().get()),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">mick_jaeger::Span</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Span</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">src</span>: <span class="ident">mick_jaeger::Span</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident"><span class="self">Self</span>::Enabled</span>(<span class="ident">src</span>)
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Span {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+		<span class="macro">write!</span>(f, <span class="string">&quot;&lt;jaeger span&gt;&quot;</span>)
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Jaeger</span>;
+<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;mick_jaeger::Span&gt;&gt; <span class="kw">for </span>Span {
+	<span class="kw">fn </span>from(src: <span class="prelude-ty">Option</span>&lt;mick_jaeger::Span&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(span) = src {
+			<span class="self">Self</span>::Enabled(span)
+		} <span class="kw">else </span>{
+			<span class="self">Self</span>::Disabled
+		}
+	}
+}
 
-	<span class="comment">// make sure to not use `::repeat_*()` based samples, since this does not verify endianness</span>
-	<span class="kw">const</span> <span class="ident">RAW</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> [
+<span class="kw">impl </span>From&lt;mick_jaeger::Span&gt; <span class="kw">for </span>Span {
+	<span class="kw">fn </span>from(src: mick_jaeger::Span) -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>::Enabled(src)
+	}
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::Jaeger;
+
+	<span class="comment">// make sure to not use `::repeat_*()` based samples, since this does not verify endianness
+	</span><span class="kw">const </span>RAW: [u8; <span class="number">32</span>] = [
 		<span class="number">0xFF</span>, <span class="number">0xAA</span>, <span class="number">0x11</span>, <span class="number">0x22</span>, <span class="number">0x33</span>, <span class="number">0x44</span>, <span class="number">0x55</span>, <span class="number">0x66</span>, <span class="number">0x78</span>, <span class="number">0x89</span>, <span class="number">0x9A</span>, <span class="number">0xAB</span>, <span class="number">0xBC</span>, <span class="number">0xCD</span>, <span class="number">0xDE</span>,
 		<span class="number">0xEF</span>, <span class="number">0x00</span>, <span class="number">0x01</span>, <span class="number">0x02</span>, <span class="number">0x03</span>, <span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x05</span>, <span class="number">0x06</span>, <span class="number">0x07</span>, <span class="number">0x08</span>, <span class="number">0x09</span>, <span class="number">0x0A</span>, <span class="number">0x0B</span>, <span class="number">0x0C</span>,
 		<span class="number">0x0E</span>, <span class="number">0x0F</span>,
 	];
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">hash_derived_identifier_is_leading_16bytes</span>() {
-		<span class="kw">let</span> <span class="ident">candidate_hash</span> <span class="op">=</span> <span class="macro">dbg!</span>(<span class="ident">Hash::from</span>(<span class="kw-2">&amp;</span><span class="ident">RAW</span>));
-		<span class="kw">let</span> <span class="ident">trace_id</span> <span class="op">=</span> <span class="macro">dbg!</span>(<span class="ident">hash_to_trace_identifier</span>(<span class="ident">candidate_hash</span>));
-		<span class="kw">for</span> (<span class="ident">idx</span>, (<span class="ident">a</span>, <span class="ident">b</span>)) <span class="kw">in</span> <span class="ident">candidate_hash</span>
-			.<span class="ident">as_bytes</span>()
-			.<span class="ident">iter</span>()
-			.<span class="ident">take</span>(<span class="number">16</span>)
-			.<span class="ident">zip</span>(<span class="ident">trace_id</span>.<span class="ident">to_be_bytes</span>().<span class="ident">iter</span>())
-			.<span class="ident">enumerate</span>()
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>hash_derived_identifier_is_leading_16bytes() {
+		<span class="kw">let </span>candidate_hash = <span class="macro">dbg!</span>(Hash::from(<span class="kw-2">&amp;</span>RAW));
+		<span class="kw">let </span>trace_id = <span class="macro">dbg!</span>(hash_to_trace_identifier(candidate_hash));
+		<span class="kw">for </span>(idx, (a, b)) <span class="kw">in </span>candidate_hash
+			.as_bytes()
+			.iter()
+			.take(<span class="number">16</span>)
+			.zip(trace_id.to_be_bytes().iter())
+			.enumerate()
 		{
-			<span class="macro">assert_eq!</span>(<span class="kw-2">*</span><span class="ident">a</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="string">&quot;Index [{}] does not match: {} != {}&quot;</span>, <span class="ident">idx</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+			<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>a, <span class="kw-2">*</span>b, <span class="string">&quot;Index [{}] does not match: {} != {}&quot;</span>, idx, a, b);
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">extra_tags_do_not_change_trace_id</span>() {
-		<span class="ident">Jaeger::test_setup</span>();
-		<span class="kw">let</span> <span class="ident">candidate_hash</span> <span class="op">=</span> <span class="macro">dbg!</span>(<span class="ident">Hash::from</span>(<span class="kw-2">&amp;</span><span class="ident">RAW</span>));
-		<span class="kw">let</span> <span class="ident">trace_id</span> <span class="op">=</span> <span class="ident">hash_to_trace_identifier</span>(<span class="ident">candidate_hash</span>);
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>extra_tags_do_not_change_trace_id() {
+		Jaeger::test_setup();
+		<span class="kw">let </span>candidate_hash = <span class="macro">dbg!</span>(Hash::from(<span class="kw-2">&amp;</span>RAW));
+		<span class="kw">let </span>trace_id = hash_to_trace_identifier(candidate_hash);
 
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::new</span>(<span class="ident">candidate_hash</span>, <span class="string">&quot;foo&quot;</span>);
+		<span class="kw">let </span>span = Span::new(candidate_hash, <span class="string">&quot;foo&quot;</span>);
 
-		<span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">trace_id</span>(), <span class="prelude-val">Some</span>(<span class="ident">trace_id</span>));
+		<span class="macro">assert_eq!</span>(span.trace_id(), <span class="prelude-val">Some</span>(trace_id));
 
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">with_int_tag</span>(<span class="string">&quot;tag&quot;</span>, <span class="number">7i64</span>);
+		<span class="kw">let </span>span = span.with_int_tag(<span class="string">&quot;tag&quot;</span>, <span class="number">7i64</span>);
 
-		<span class="macro">assert_eq!</span>(<span class="ident">span</span>.<span class="ident">trace_id</span>(), <span class="prelude-val">Some</span>(<span class="ident">trace_id</span>));
+		<span class="macro">assert_eq!</span>(span.trace_id(), <span class="prelude-val">Some</span>(trace_id));
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_jaeger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_jaeger" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

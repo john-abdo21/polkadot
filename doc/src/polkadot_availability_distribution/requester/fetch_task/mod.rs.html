@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/availability-distribution/src/requester/fetch_task/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../polkadot_availability_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_availability_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_availability_distribution/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/availability-distribution/src/requester/fetch_task/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../polkadot_availability_distribution/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../polkadot_availability_distribution/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -466,468 +460,467 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+</span><span class="kw">use </span>std::collections::HashSet;
 
-<span class="kw">use</span> <span class="ident">futures</span>::{
-	<span class="ident">channel</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>},
-	<span class="ident">future::select</span>,
-	<span class="ident">FutureExt</span>, <span class="ident">SinkExt</span>,
+<span class="kw">use </span>futures::{
+	channel::{mpsc, oneshot},
+	future::select,
+	FutureExt, SinkExt,
 };
 
-<span class="kw">use</span> <span class="ident">polkadot_erasure_coding::branch_hash</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_network_protocol::request_response</span>::{
-	<span class="ident">outgoing</span>::{<span class="ident">OutgoingRequest</span>, <span class="ident">Recipient</span>, <span class="ident">RequestError</span>, <span class="ident">Requests</span>},
-	<span class="ident">v1</span>::{<span class="ident">ChunkFetchingRequest</span>, <span class="ident">ChunkFetchingResponse</span>},
+<span class="kw">use </span>polkadot_erasure_coding::branch_hash;
+<span class="kw">use </span>polkadot_node_network_protocol::request_response::{
+	outgoing::{OutgoingRequest, Recipient, RequestError, Requests},
+	v1::{ChunkFetchingRequest, ChunkFetchingResponse},
 };
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives::ErasureChunk</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{
-	<span class="ident">jaeger</span>,
-	<span class="ident">messages</span>::{<span class="ident">AvailabilityStoreMessage</span>, <span class="ident">IfDisconnected</span>, <span class="ident">NetworkBridgeTxMessage</span>},
-	<span class="ident">overseer</span>,
+<span class="kw">use </span>polkadot_node_primitives::ErasureChunk;
+<span class="kw">use </span>polkadot_node_subsystem::{
+	jaeger,
+	messages::{AvailabilityStoreMessage, IfDisconnected, NetworkBridgeTxMessage},
+	overseer,
 };
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">AuthorityDiscoveryId</span>, <span class="ident">BlakeTwo256</span>, <span class="ident">CandidateHash</span>, <span class="ident">GroupIndex</span>, <span class="ident">Hash</span>, <span class="ident">HashT</span>, <span class="ident">OccupiedCore</span>,
-	<span class="ident">SessionIndex</span>,
-};
-
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">error</span>::{<span class="ident">FatalError</span>, <span class="prelude-ty">Result</span>},
-	<span class="ident">metrics</span>::{<span class="ident">Metrics</span>, <span class="ident">FAILED</span>, <span class="ident">SUCCEEDED</span>},
-	<span class="ident">requester::session_cache</span>::{<span class="ident">BadValidators</span>, <span class="ident">SessionInfo</span>},
-	<span class="ident">LOG_TARGET</span>,
+<span class="kw">use </span>polkadot_primitives::v2::{
+	AuthorityDiscoveryId, BlakeTwo256, CandidateHash, GroupIndex, Hash, HashT, OccupiedCore,
+	SessionIndex,
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">use crate</span>::{
+	error::{FatalError, <span class="prelude-ty">Result</span>},
+	metrics::{Metrics, FAILED, SUCCEEDED},
+	requester::session_cache::{BadValidators, SessionInfo},
+	LOG_TARGET,
+};
 
-<span class="doccomment">/// Configuration for a `FetchTask`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This exists to separate preparation of a `FetchTask` from actual starting it, which is</span>
-<span class="doccomment">/// beneficial as this allows as for taking session info by reference.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FetchTaskConfig</span> {
-	<span class="ident">prepared_running</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RunningTask</span><span class="op">&gt;</span>,
-	<span class="ident">live_in</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>,
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
+
+<span class="doccomment">/// Configuration for a `FetchTask`
+///
+/// This exists to separate preparation of a `FetchTask` from actual starting it, which is
+/// beneficial as this allows as for taking session info by reference.
+</span><span class="kw">pub struct </span>FetchTaskConfig {
+	prepared_running: <span class="prelude-ty">Option</span>&lt;RunningTask&gt;,
+	live_in: HashSet&lt;Hash&gt;,
 }
 
-<span class="doccomment">/// Information about a task fetching an erasure chunk.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FetchTask</span> {
-	<span class="doccomment">/// For what relay parents this task is relevant.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// In other words, for which relay chain parents this candidate is considered live.</span>
-	<span class="doccomment">/// This is updated on every `ActiveLeavesUpdate` and enables us to know when we can safely</span>
-	<span class="doccomment">/// stop keeping track of that candidate/chunk.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">live_in</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Information about a task fetching an erasure chunk.
+</span><span class="kw">pub struct </span>FetchTask {
+	<span class="doccomment">/// For what relay parents this task is relevant.
+	///
+	/// In other words, for which relay chain parents this candidate is considered live.
+	/// This is updated on every `ActiveLeavesUpdate` and enables us to know when we can safely
+	/// stop keeping track of that candidate/chunk.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) live_in: HashSet&lt;Hash&gt;,
 
-	<span class="doccomment">/// We keep the task around in until `live_in` becomes empty, to make</span>
-	<span class="doccomment">/// sure we won&#39;t re-fetch an already fetched candidate.</span>
-	<span class="ident">state</span>: <span class="ident">FetchedState</span>,
+	<span class="doccomment">/// We keep the task around in until `live_in` becomes empty, to make
+	/// sure we won&#39;t re-fetch an already fetched candidate.
+	</span>state: FetchedState,
 }
 
-<span class="doccomment">/// State of a particular candidate chunk fetching process.</span>
-<span class="kw">enum</span> <span class="ident">FetchedState</span> {
-	<span class="doccomment">/// Chunk fetch has started.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Once the contained `Sender` is dropped, any still running task will be canceled.</span>
-	<span class="ident">Started</span>(<span class="ident">oneshot::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span>),
-	<span class="doccomment">/// All relevant `live_in` have been removed, before we were able to get our chunk.</span>
-	<span class="ident">Canceled</span>,
+<span class="doccomment">/// State of a particular candidate chunk fetching process.
+</span><span class="kw">enum </span>FetchedState {
+	<span class="doccomment">/// Chunk fetch has started.
+	///
+	/// Once the contained `Sender` is dropped, any still running task will be canceled.
+	</span>Started(oneshot::Sender&lt;()&gt;),
+	<span class="doccomment">/// All relevant `live_in` have been removed, before we were able to get our chunk.
+	</span>Canceled,
 }
 
-<span class="doccomment">/// Messages sent from `FetchTask`s to be handled/forwarded.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FromFetchTask</span> {
-	<span class="doccomment">/// Message to other subsystem.</span>
-	<span class="ident">Message</span>(<span class="ident">overseer::AvailabilityDistributionOutgoingMessages</span>),
+<span class="doccomment">/// Messages sent from `FetchTask`s to be handled/forwarded.
+</span><span class="kw">pub enum </span>FromFetchTask {
+	<span class="doccomment">/// Message to other subsystem.
+	</span>Message(overseer::AvailabilityDistributionOutgoingMessages),
 
-	<span class="doccomment">/// Concluded with result.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// In case of `None` everything was fine, in case of `Some`, some validators in the group</span>
-	<span class="doccomment">/// did not serve us our chunk as expected.</span>
-	<span class="ident">Concluded</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BadValidators</span><span class="op">&gt;</span>),
+	<span class="doccomment">/// Concluded with result.
+	///
+	/// In case of `None` everything was fine, in case of `Some`, some validators in the group
+	/// did not serve us our chunk as expected.
+	</span>Concluded(<span class="prelude-ty">Option</span>&lt;BadValidators&gt;),
 
-	<span class="doccomment">/// We were not able to fetch the desired chunk for the given `CandidateHash`.</span>
-	<span class="ident">Failed</span>(<span class="ident">CandidateHash</span>),
+	<span class="doccomment">/// We were not able to fetch the desired chunk for the given `CandidateHash`.
+	</span>Failed(CandidateHash),
 }
 
-<span class="doccomment">/// Information a running task needs.</span>
-<span class="kw">struct</span> <span class="ident">RunningTask</span> {
-	<span class="doccomment">/// For what session we have been spawned.</span>
-	<span class="ident">session_index</span>: <span class="ident">SessionIndex</span>,
+<span class="doccomment">/// Information a running task needs.
+</span><span class="kw">struct </span>RunningTask {
+	<span class="doccomment">/// For what session we have been spawned.
+	</span>session_index: SessionIndex,
 
-	<span class="doccomment">/// Index of validator group to fetch the chunk from.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Needed for reporting bad validators.</span>
-	<span class="ident">group_index</span>: <span class="ident">GroupIndex</span>,
+	<span class="doccomment">/// Index of validator group to fetch the chunk from.
+	///
+	/// Needed for reporting bad validators.
+	</span>group_index: GroupIndex,
 
-	<span class="doccomment">/// Validators to request the chunk from.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This vector gets drained during execution of the task (it will be empty afterwards).</span>
-	<span class="ident">group</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Validators to request the chunk from.
+	///
+	/// This vector gets drained during execution of the task (it will be empty afterwards).
+	</span>group: Vec&lt;AuthorityDiscoveryId&gt;,
 
-	<span class="doccomment">/// The request to send.</span>
-	<span class="ident">request</span>: <span class="ident">ChunkFetchingRequest</span>,
+	<span class="doccomment">/// The request to send.
+	</span>request: ChunkFetchingRequest,
 
-	<span class="doccomment">/// Root hash, for verifying the chunks validity.</span>
-	<span class="ident">erasure_root</span>: <span class="ident">Hash</span>,
+	<span class="doccomment">/// Root hash, for verifying the chunks validity.
+	</span>erasure_root: Hash,
 
-	<span class="doccomment">/// Relay parent of the candidate to fetch.</span>
-	<span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
+	<span class="doccomment">/// Relay parent of the candidate to fetch.
+	</span>relay_parent: Hash,
 
-	<span class="doccomment">/// Sender for communicating with other subsystems and reporting results.</span>
-	<span class="ident">sender</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">FromFetchTask</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Sender for communicating with other subsystems and reporting results.
+	</span>sender: mpsc::Sender&lt;FromFetchTask&gt;,
 
-	<span class="doccomment">/// Prometheus metrics for reporting results.</span>
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
+	<span class="doccomment">/// Prometheus metrics for reporting results.
+	</span>metrics: Metrics,
 
-	<span class="doccomment">/// Span tracking the fetching of this chunk.</span>
-	<span class="ident">span</span>: <span class="ident">jaeger::Span</span>,
+	<span class="doccomment">/// Span tracking the fetching of this chunk.
+	</span>span: jaeger::Span,
 }
 
-<span class="kw">impl</span> <span class="ident">FetchTaskConfig</span> {
-	<span class="doccomment">/// Create a new configuration for a [`FetchTask`].</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The result of this function can be passed into [`FetchTask::start`].</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">leaf</span>: <span class="ident">Hash</span>,
-		<span class="ident">core</span>: <span class="kw-2">&amp;</span><span class="ident">OccupiedCore</span>,
-		<span class="ident">sender</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">FromFetchTask</span><span class="op">&gt;</span>,
-		<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
-		<span class="ident">session_info</span>: <span class="kw-2">&amp;</span><span class="ident">SessionInfo</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">live_in</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">leaf</span>].<span class="ident">into_iter</span>().<span class="ident">collect</span>();
+<span class="kw">impl </span>FetchTaskConfig {
+	<span class="doccomment">/// Create a new configuration for a [`FetchTask`].
+	///
+	/// The result of this function can be passed into [`FetchTask::start`].
+	</span><span class="kw">pub fn </span>new(
+		leaf: Hash,
+		core: <span class="kw-2">&amp;</span>OccupiedCore,
+		sender: mpsc::Sender&lt;FromFetchTask&gt;,
+		metrics: Metrics,
+		session_info: <span class="kw-2">&amp;</span>SessionInfo,
+	) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>live_in = <span class="macro">vec!</span>[leaf].into_iter().collect();
 
-		<span class="comment">// Don&#39;t run tasks for our backing group:</span>
-		<span class="kw">if</span> <span class="ident">session_info</span>.<span class="ident">our_group</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">core</span>.<span class="ident">group_responsible</span>) {
-			<span class="kw">return</span> <span class="ident">FetchTaskConfig</span> { <span class="ident">live_in</span>, <span class="ident">prepared_running</span>: <span class="prelude-val">None</span> }
+		<span class="comment">// Don&#39;t run tasks for our backing group:
+		</span><span class="kw">if </span>session_info.our_group == <span class="prelude-val">Some</span>(core.group_responsible) {
+			<span class="kw">return </span>FetchTaskConfig { live_in, prepared_running: <span class="prelude-val">None </span>}
 		}
 
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">jaeger::Span::new</span>(<span class="ident">core</span>.<span class="ident">candidate_hash</span>, <span class="string">&quot;availability-distribution&quot;</span>)
-			.<span class="ident">with_stage</span>(<span class="ident">jaeger::Stage::AvailabilityDistribution</span>);
+		<span class="kw">let </span>span = jaeger::Span::new(core.candidate_hash, <span class="string">&quot;availability-distribution&quot;</span>)
+			.with_stage(jaeger::Stage::AvailabilityDistribution);
 
-		<span class="kw">let</span> <span class="ident">prepared_running</span> <span class="op">=</span> <span class="ident">RunningTask</span> {
-			<span class="ident">session_index</span>: <span class="ident">session_info</span>.<span class="ident">session_index</span>,
-			<span class="ident">group_index</span>: <span class="ident">core</span>.<span class="ident">group_responsible</span>,
-			<span class="ident">group</span>: <span class="ident">session_info</span>.<span class="ident">validator_groups</span>.<span class="ident">get</span>(<span class="ident">core</span>.<span class="ident">group_responsible</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>)
-				.<span class="ident">expect</span>(<span class="string">&quot;The responsible group of a candidate should be available in the corresponding session. qed.&quot;</span>)
-				.<span class="ident">clone</span>(),
-			<span class="ident">request</span>: <span class="ident">ChunkFetchingRequest</span> {
-				<span class="ident">candidate_hash</span>: <span class="ident">core</span>.<span class="ident">candidate_hash</span>,
-				<span class="ident">index</span>: <span class="ident">session_info</span>.<span class="ident">our_index</span>,
+		<span class="kw">let </span>prepared_running = RunningTask {
+			session_index: session_info.session_index,
+			group_index: core.group_responsible,
+			group: session_info.validator_groups.get(core.group_responsible.<span class="number">0 </span><span class="kw">as </span>usize)
+				.expect(<span class="string">&quot;The responsible group of a candidate should be available in the corresponding session. qed.&quot;</span>)
+				.clone(),
+			request: ChunkFetchingRequest {
+				candidate_hash: core.candidate_hash,
+				index: session_info.our_index,
 			},
-			<span class="ident">erasure_root</span>: <span class="ident">core</span>.<span class="ident">candidate_descriptor</span>.<span class="ident">erasure_root</span>,
-			<span class="ident">relay_parent</span>: <span class="ident">core</span>.<span class="ident">candidate_descriptor</span>.<span class="ident">relay_parent</span>,
-			<span class="ident">metrics</span>,
-			<span class="ident">sender</span>,
-			<span class="ident">span</span>,
+			erasure_root: core.candidate_descriptor.erasure_root,
+			relay_parent: core.candidate_descriptor.relay_parent,
+			metrics,
+			sender,
+			span,
 		};
-		<span class="ident">FetchTaskConfig</span> { <span class="ident">live_in</span>, <span class="ident">prepared_running</span>: <span class="prelude-val">Some</span>(<span class="ident">prepared_running</span>) }
+		FetchTaskConfig { live_in, prepared_running: <span class="prelude-val">Some</span>(prepared_running) }
 	}
 }
 
-<span class="attribute">#[<span class="ident">overseer::contextbounds</span>(<span class="ident">AvailabilityDistribution</span>, <span class="ident">prefix</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::overseer</span>)]</span>
-<span class="kw">impl</span> <span class="ident">FetchTask</span> {
-	<span class="doccomment">/// Start fetching a chunk.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// A task handling the fetching of the configured chunk will be spawned.</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>(<span class="ident">config</span>: <span class="ident">FetchTaskConfig</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">FetchTaskConfig</span> { <span class="ident">prepared_running</span>, <span class="ident">live_in</span> } <span class="op">=</span> <span class="ident">config</span>;
+<span class="attribute">#[overseer::contextbounds(AvailabilityDistribution, prefix = <span class="self">self</span>::overseer)]
+</span><span class="kw">impl </span>FetchTask {
+	<span class="doccomment">/// Start fetching a chunk.
+	///
+	/// A task handling the fetching of the configured chunk will be spawned.
+	</span><span class="kw">pub async fn </span>start&lt;Context&gt;(config: FetchTaskConfig, ctx: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">let </span>FetchTaskConfig { prepared_running, live_in } = config;
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">running</span>) <span class="op">=</span> <span class="ident">prepared_running</span> {
-			<span class="kw">let</span> (<span class="ident">handle</span>, <span class="ident">kill</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(running) = prepared_running {
+			<span class="kw">let </span>(handle, kill) = oneshot::channel();
 
-			<span class="ident">ctx</span>.<span class="ident">spawn</span>(<span class="string">&quot;chunk-fetcher&quot;</span>, <span class="ident">running</span>.<span class="ident">run</span>(<span class="ident">kill</span>).<span class="ident">boxed</span>())
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FatalError::SpawnTask</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+			ctx.spawn(<span class="string">&quot;chunk-fetcher&quot;</span>, running.run(kill).boxed())
+				.map_err(|e| FatalError::SpawnTask(e))<span class="question-mark">?</span>;
 
-			<span class="prelude-val">Ok</span>(<span class="ident">FetchTask</span> { <span class="ident">live_in</span>, <span class="ident">state</span>: <span class="ident">FetchedState::Started</span>(<span class="ident">handle</span>) })
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Ok</span>(<span class="ident">FetchTask</span> { <span class="ident">live_in</span>, <span class="ident">state</span>: <span class="ident">FetchedState::Canceled</span> })
+			<span class="prelude-val">Ok</span>(FetchTask { live_in, state: FetchedState::Started(handle) })
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Ok</span>(FetchTask { live_in, state: FetchedState::Canceled })
 		}
 	}
 
-	<span class="doccomment">/// Add the given leaf to the relay parents which are making this task relevant.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This is for book keeping, so we know we are already fetching a given chunk.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_leaf</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">leaf</span>: <span class="ident">Hash</span>) {
-		<span class="self">self</span>.<span class="ident">live_in</span>.<span class="ident">insert</span>(<span class="ident">leaf</span>);
+	<span class="doccomment">/// Add the given leaf to the relay parents which are making this task relevant.
+	///
+	/// This is for book keeping, so we know we are already fetching a given chunk.
+	</span><span class="kw">pub fn </span>add_leaf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, leaf: Hash) {
+		<span class="self">self</span>.live_in.insert(leaf);
 	}
 
-	<span class="doccomment">/// Remove leaves and cancel the task, if it was the last one and the task has still been</span>
-	<span class="doccomment">/// fetching.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_leaves</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">leaves</span>: <span class="kw-2">&amp;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span>) {
-		<span class="kw">for</span> <span class="ident">leaf</span> <span class="kw">in</span> <span class="ident">leaves</span> {
-			<span class="self">self</span>.<span class="ident">live_in</span>.<span class="ident">remove</span>(<span class="ident">leaf</span>);
+	<span class="doccomment">/// Remove leaves and cancel the task, if it was the last one and the task has still been
+	/// fetching.
+	</span><span class="kw">pub fn </span>remove_leaves(<span class="kw-2">&amp;mut </span><span class="self">self</span>, leaves: <span class="kw-2">&amp;</span>HashSet&lt;Hash&gt;) {
+		<span class="kw">for </span>leaf <span class="kw">in </span>leaves {
+			<span class="self">self</span>.live_in.remove(leaf);
 		}
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">live_in</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_finished</span>() {
-			<span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">FetchedState::Canceled</span>
+		<span class="kw">if </span><span class="self">self</span>.live_in.is_empty() &amp;&amp; !<span class="self">self</span>.is_finished() {
+			<span class="self">self</span>.state = FetchedState::Canceled
 		}
 	}
 
-	<span class="doccomment">/// Whether there are still relay parents around with this candidate pending</span>
-	<span class="doccomment">/// availability.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_live</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="op">!</span><span class="self">self</span>.<span class="ident">live_in</span>.<span class="ident">is_empty</span>()
+	<span class="doccomment">/// Whether there are still relay parents around with this candidate pending
+	/// availability.
+	</span><span class="kw">pub fn </span>is_live(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.live_in.is_empty()
 	}
 
-	<span class="doccomment">/// Whether this task can be considered finished.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// That is, it is either canceled, succeeded or failed.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_finished</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span> {
-			<span class="ident">FetchedState::Canceled</span> =&gt; <span class="bool-val">true</span>,
-			<span class="ident">FetchedState::Started</span>(<span class="ident">sender</span>) =&gt; <span class="ident">sender</span>.<span class="ident">is_canceled</span>(),
+	<span class="doccomment">/// Whether this task can be considered finished.
+	///
+	/// That is, it is either canceled, succeeded or failed.
+	</span><span class="kw">pub fn </span>is_finished(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.state {
+			FetchedState::Canceled =&gt; <span class="bool-val">true</span>,
+			FetchedState::Started(sender) =&gt; sender.is_canceled(),
 		}
 	}
 }
 
-<span class="doccomment">/// Things that can go wrong in task execution.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">TaskError</span> {
-	<span class="doccomment">/// The peer failed to deliver a correct chunk for some reason (has been reported as</span>
-	<span class="doccomment">/// appropriate).</span>
-	<span class="ident">PeerError</span>,
-	<span class="doccomment">/// This very node is seemingly shutting down (sending of message failed).</span>
-	<span class="ident">ShuttingDown</span>,
+<span class="doccomment">/// Things that can go wrong in task execution.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>TaskError {
+	<span class="doccomment">/// The peer failed to deliver a correct chunk for some reason (has been reported as
+	/// appropriate).
+	</span>PeerError,
+	<span class="doccomment">/// This very node is seemingly shutting down (sending of message failed).
+	</span>ShuttingDown,
 }
 
-<span class="kw">impl</span> <span class="ident">RunningTask</span> {
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="self">self</span>, <span class="ident">kill</span>: <span class="ident">oneshot::Receiver</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) {
-		<span class="comment">// Wait for completion/or cancel.</span>
-		<span class="kw">let</span> <span class="ident">run_it</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run_inner</span>();
-		<span class="macro">futures::pin_mut!</span>(<span class="ident">run_it</span>);
-		<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">select</span>(<span class="ident">run_it</span>, <span class="ident">kill</span>).<span class="kw">await</span>;
+<span class="kw">impl </span>RunningTask {
+	<span class="kw">async fn </span>run(<span class="self">self</span>, kill: oneshot::Receiver&lt;()&gt;) {
+		<span class="comment">// Wait for completion/or cancel.
+		</span><span class="kw">let </span>run_it = <span class="self">self</span>.run_inner();
+		<span class="macro">futures::pin_mut!</span>(run_it);
+		<span class="kw">let _ </span>= select(run_it, kill).<span class="kw">await</span>;
 	}
 
-	<span class="doccomment">/// Fetch and store chunk.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Try validators in backing group in order.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bad_validators</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">succeeded</span> <span class="op">=</span> <span class="bool-val">false</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">_span</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">span</span>
-			.<span class="ident">child</span>(<span class="string">&quot;fetch-task&quot;</span>)
-			.<span class="ident">with_chunk_index</span>(<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">index</span>.<span class="number">0</span>)
-			.<span class="ident">with_relay_parent</span>(<span class="self">self</span>.<span class="ident">relay_parent</span>);
-		<span class="comment">// Try validators in reverse order:</span>
-		<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">validator</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">group</span>.<span class="ident">pop</span>() {
-			<span class="kw">let</span> <span class="ident">_try_span</span> <span class="op">=</span> <span class="ident">_span</span>.<span class="ident">child</span>(<span class="string">&quot;try&quot;</span>);
-			<span class="comment">// Report retries:</span>
-			<span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
-				<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_retry</span>();
+	<span class="doccomment">/// Fetch and store chunk.
+	///
+	/// Try validators in backing group in order.
+	</span><span class="kw">async fn </span>run_inner(<span class="kw-2">mut </span><span class="self">self</span>) {
+		<span class="kw">let </span><span class="kw-2">mut </span>bad_validators = Vec::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>succeeded = <span class="bool-val">false</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>count: u32 = <span class="number">0</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>_span = <span class="self">self
+			</span>.span
+			.child(<span class="string">&quot;fetch-task&quot;</span>)
+			.with_chunk_index(<span class="self">self</span>.request.index.<span class="number">0</span>)
+			.with_relay_parent(<span class="self">self</span>.relay_parent);
+		<span class="comment">// Try validators in reverse order:
+		</span><span class="kw">while let </span><span class="prelude-val">Some</span>(validator) = <span class="self">self</span>.group.pop() {
+			<span class="kw">let </span>_try_span = _span.child(<span class="string">&quot;try&quot;</span>);
+			<span class="comment">// Report retries:
+			</span><span class="kw">if </span>count &gt; <span class="number">0 </span>{
+				<span class="self">self</span>.metrics.on_retry();
 			}
-			<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+			count += <span class="number">1</span>;
 
-			<span class="comment">// Send request:</span>
-			<span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">do_request</span>(<span class="kw-2">&amp;</span><span class="ident">validator</span>).<span class="kw">await</span> {
-				<span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; <span class="ident">resp</span>,
-				<span class="prelude-val">Err</span>(<span class="ident">TaskError::ShuttingDown</span>) =&gt; {
+			<span class="comment">// Send request:
+			</span><span class="kw">let </span>resp = <span class="kw">match </span><span class="self">self</span>.do_request(<span class="kw-2">&amp;</span>validator).<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(resp) =&gt; resp,
+				<span class="prelude-val">Err</span>(TaskError::ShuttingDown) =&gt; {
 					<span class="macro">gum::info!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-						<span class="string">&quot;Node seems to be shutting down, canceling fetch task&quot;</span>
-					);
-					<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_fetch</span>(<span class="ident">FAILED</span>);
-					<span class="kw">return</span>
-				},
-				<span class="prelude-val">Err</span>(<span class="ident">TaskError::PeerError</span>) =&gt; {
-					<span class="ident">bad_validators</span>.<span class="ident">push</span>(<span class="ident">validator</span>);
-					<span class="kw">continue</span>
-				},
+						target: LOG_TARGET,
+						<span class="string">&quot;Node seems to be shutting down, canceling fetch task&quot;
+					</span>);
+					<span class="self">self</span>.metrics.on_fetch(FAILED);
+					<span class="kw">return
+				</span>},
+				<span class="prelude-val">Err</span>(TaskError::PeerError) =&gt; {
+					bad_validators.push(validator);
+					<span class="kw">continue
+				</span>},
 			};
-			<span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">resp</span> {
-				<span class="ident">ChunkFetchingResponse::Chunk</span>(<span class="ident">resp</span>) =&gt; <span class="ident">resp</span>.<span class="ident">recombine_into_chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">request</span>),
-				<span class="ident">ChunkFetchingResponse::NoSuchChunk</span> =&gt; {
+			<span class="kw">let </span>chunk = <span class="kw">match </span>resp {
+				ChunkFetchingResponse::Chunk(resp) =&gt; resp.recombine_into_chunk(<span class="kw-2">&amp;</span><span class="self">self</span>.request),
+				ChunkFetchingResponse::NoSuchChunk =&gt; {
 					<span class="macro">gum::debug!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-						<span class="ident">validator</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">validator</span>,
-						<span class="ident">relay_parent</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">relay_parent</span>,
-						<span class="ident">group_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">group_index</span>,
-						<span class="ident">session_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">session_index</span>,
-						<span class="ident">chunk_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">index</span>,
-						<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>,
-						<span class="string">&quot;Validator did not have our chunk&quot;</span>
-					);
-					<span class="ident">bad_validators</span>.<span class="ident">push</span>(<span class="ident">validator</span>);
-					<span class="kw">continue</span>
-				},
+						target: LOG_TARGET,
+						validator = <span class="question-mark">?</span>validator,
+						relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
+						group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
+						session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
+						chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
+						candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
+						<span class="string">&quot;Validator did not have our chunk&quot;
+					</span>);
+					bad_validators.push(validator);
+					<span class="kw">continue
+				</span>},
 			};
 
-			<span class="comment">// Data genuine?</span>
-			<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">validate_chunk</span>(<span class="kw-2">&amp;</span><span class="ident">validator</span>, <span class="kw-2">&amp;</span><span class="ident">chunk</span>) {
-				<span class="ident">bad_validators</span>.<span class="ident">push</span>(<span class="ident">validator</span>);
-				<span class="kw">continue</span>
-			}
+			<span class="comment">// Data genuine?
+			</span><span class="kw">if </span>!<span class="self">self</span>.validate_chunk(<span class="kw-2">&amp;</span>validator, <span class="kw-2">&amp;</span>chunk) {
+				bad_validators.push(validator);
+				<span class="kw">continue
+			</span>}
 
-			<span class="comment">// Ok, let&#39;s store it and be happy:</span>
-			<span class="self">self</span>.<span class="ident">store_chunk</span>(<span class="ident">chunk</span>).<span class="kw">await</span>;
-			<span class="ident">succeeded</span> <span class="op">=</span> <span class="bool-val">true</span>;
-			<span class="ident">_span</span>.<span class="ident">add_string_tag</span>(<span class="string">&quot;success&quot;</span>, <span class="string">&quot;true&quot;</span>);
-			<span class="kw">break</span>
-		}
-		<span class="ident">_span</span>.<span class="ident">add_int_tag</span>(<span class="string">&quot;tries&quot;</span>, <span class="ident">count</span> <span class="kw">as</span> <span class="kw">_</span>);
-		<span class="kw">if</span> <span class="ident">succeeded</span> {
-			<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_fetch</span>(<span class="ident">SUCCEEDED</span>);
-			<span class="self">self</span>.<span class="ident">conclude</span>(<span class="ident">bad_validators</span>).<span class="kw">await</span>;
-		} <span class="kw">else</span> {
-			<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">on_fetch</span>(<span class="ident">FAILED</span>);
-			<span class="self">self</span>.<span class="ident">conclude_fail</span>().<span class="kw">await</span>
-		}
+			<span class="comment">// Ok, let&#39;s store it and be happy:
+			</span><span class="self">self</span>.store_chunk(chunk).<span class="kw">await</span>;
+			succeeded = <span class="bool-val">true</span>;
+			_span.add_string_tag(<span class="string">&quot;success&quot;</span>, <span class="string">&quot;true&quot;</span>);
+			<span class="kw">break
+		</span>}
+		_span.add_int_tag(<span class="string">&quot;tries&quot;</span>, count <span class="kw">as _</span>);
+		<span class="kw">if </span>succeeded {
+			<span class="self">self</span>.metrics.on_fetch(SUCCEEDED);
+			<span class="self">self</span>.conclude(bad_validators).<span class="kw">await</span>;
+		} <span class="kw">else </span>{
+			<span class="self">self</span>.metrics.on_fetch(FAILED);
+			<span class="self">self</span>.conclude_fail().<span class="kw">await
+		</span>}
 	}
 
-	<span class="doccomment">/// Do request and return response, if successful.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">do_request</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">validator</span>: <span class="kw-2">&amp;</span><span class="ident">AuthorityDiscoveryId</span>,
-	) -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">ChunkFetchingResponse</span>, <span class="ident">TaskError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">full_request</span>, <span class="ident">response_recv</span>) <span class="op">=</span>
-			<span class="ident">OutgoingRequest::new</span>(<span class="ident">Recipient::Authority</span>(<span class="ident">validator</span>.<span class="ident">clone</span>()), <span class="self">self</span>.<span class="ident">request</span>);
-		<span class="kw">let</span> <span class="ident">requests</span> <span class="op">=</span> <span class="ident">Requests::ChunkFetchingV1</span>(<span class="ident">full_request</span>);
+	<span class="doccomment">/// Do request and return response, if successful.
+	</span><span class="kw">async fn </span>do_request(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		validator: <span class="kw-2">&amp;</span>AuthorityDiscoveryId,
+	) -&gt; std::result::Result&lt;ChunkFetchingResponse, TaskError&gt; {
+		<span class="kw">let </span>(full_request, response_recv) =
+			OutgoingRequest::new(Recipient::Authority(validator.clone()), <span class="self">self</span>.request);
+		<span class="kw">let </span>requests = Requests::ChunkFetchingV1(full_request);
 
-		<span class="self">self</span>.<span class="ident">sender</span>
-			.<span class="ident">send</span>(<span class="ident">FromFetchTask::Message</span>(
-				<span class="ident">NetworkBridgeTxMessage::SendRequests</span>(
-					<span class="macro">vec!</span>[<span class="ident">requests</span>],
-					<span class="ident">IfDisconnected::ImmediateError</span>,
+		<span class="self">self</span>.sender
+			.send(FromFetchTask::Message(
+				NetworkBridgeTxMessage::SendRequests(
+					<span class="macro">vec!</span>[requests],
+					IfDisconnected::ImmediateError,
 				)
-				.<span class="ident">into</span>(),
+				.into(),
 			))
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TaskError::ShuttingDown</span>)<span class="question-mark">?</span>;
+			.<span class="kw">await
+			</span>.map_err(|<span class="kw">_</span>| TaskError::ShuttingDown)<span class="question-mark">?</span>;
 
-		<span class="kw">match</span> <span class="ident">response_recv</span>.<span class="kw">await</span> {
-			<span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">resp</span>),
-			<span class="prelude-val">Err</span>(<span class="ident">RequestError::InvalidResponse</span>(<span class="ident">err</span>)) =&gt; {
+		<span class="kw">match </span>response_recv.<span class="kw">await </span>{
+			<span class="prelude-val">Ok</span>(resp) =&gt; <span class="prelude-val">Ok</span>(resp),
+			<span class="prelude-val">Err</span>(RequestError::InvalidResponse(err)) =&gt; {
 				<span class="macro">gum::warn!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="ident">origin</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">validator</span>,
-					<span class="ident">relay_parent</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">relay_parent</span>,
-					<span class="ident">group_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">group_index</span>,
-					<span class="ident">session_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">session_index</span>,
-					<span class="ident">chunk_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">index</span>,
-					<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>,
-					<span class="ident">err</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">err</span>,
-					<span class="string">&quot;Peer sent us invalid erasure chunk data&quot;</span>
-				);
-				<span class="prelude-val">Err</span>(<span class="ident">TaskError::PeerError</span>)
+					target: LOG_TARGET,
+					origin= <span class="question-mark">?</span>validator,
+					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
+					group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
+					session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
+					chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
+					candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
+					err= <span class="question-mark">?</span>err,
+					<span class="string">&quot;Peer sent us invalid erasure chunk data&quot;
+				</span>);
+				<span class="prelude-val">Err</span>(TaskError::PeerError)
 			},
-			<span class="prelude-val">Err</span>(<span class="ident">RequestError::NetworkError</span>(<span class="ident">err</span>)) =&gt; {
+			<span class="prelude-val">Err</span>(RequestError::NetworkError(err)) =&gt; {
 				<span class="macro">gum::debug!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="ident">origin</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">validator</span>,
-					<span class="ident">relay_parent</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">relay_parent</span>,
-					<span class="ident">group_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">group_index</span>,
-					<span class="ident">session_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">session_index</span>,
-					<span class="ident">chunk_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">index</span>,
-					<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>,
-					<span class="ident">err</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">err</span>,
-					<span class="string">&quot;Some network error occurred when fetching erasure chunk&quot;</span>
-				);
-				<span class="prelude-val">Err</span>(<span class="ident">TaskError::PeerError</span>)
+					target: LOG_TARGET,
+					origin= <span class="question-mark">?</span>validator,
+					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
+					group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
+					session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
+					chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
+					candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
+					err= <span class="question-mark">?</span>err,
+					<span class="string">&quot;Some network error occurred when fetching erasure chunk&quot;
+				</span>);
+				<span class="prelude-val">Err</span>(TaskError::PeerError)
 			},
-			<span class="prelude-val">Err</span>(<span class="ident">RequestError::Canceled</span>(<span class="ident">oneshot::Canceled</span>)) =&gt; {
+			<span class="prelude-val">Err</span>(RequestError::Canceled(oneshot::Canceled)) =&gt; {
 				<span class="macro">gum::debug!</span>(
-					<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-					<span class="ident">origin</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">validator</span>,
-					<span class="ident">relay_parent</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">relay_parent</span>,
-					<span class="ident">group_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">group_index</span>,
-					<span class="ident">session_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">session_index</span>,
-					<span class="ident">chunk_index</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">index</span>,
-					<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>,
-					<span class="string">&quot;Erasure chunk request got canceled&quot;</span>
-				);
-				<span class="prelude-val">Err</span>(<span class="ident">TaskError::PeerError</span>)
+					target: LOG_TARGET,
+					origin= <span class="question-mark">?</span>validator,
+					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
+					group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
+					session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
+					chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
+					candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
+					<span class="string">&quot;Erasure chunk request got canceled&quot;
+				</span>);
+				<span class="prelude-val">Err</span>(TaskError::PeerError)
 			},
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">validate_chunk</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">validator</span>: <span class="kw-2">&amp;</span><span class="ident">AuthorityDiscoveryId</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">ErasureChunk</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">let</span> <span class="ident">anticipated_hash</span> <span class="op">=</span>
-			<span class="kw">match</span> <span class="ident">branch_hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">erasure_root</span>, <span class="ident">chunk</span>.<span class="ident">proof</span>(), <span class="ident">chunk</span>.<span class="ident">index</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-				<span class="prelude-val">Ok</span>(<span class="ident">hash</span>) =&gt; <span class="ident">hash</span>,
-				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+	<span class="kw">fn </span>validate_chunk(<span class="kw-2">&amp;</span><span class="self">self</span>, validator: <span class="kw-2">&amp;</span>AuthorityDiscoveryId, chunk: <span class="kw-2">&amp;</span>ErasureChunk) -&gt; bool {
+		<span class="kw">let </span>anticipated_hash =
+			<span class="kw">match </span>branch_hash(<span class="kw-2">&amp;</span><span class="self">self</span>.erasure_root, chunk.proof(), chunk.index.<span class="number">0 </span><span class="kw">as </span>usize) {
+				<span class="prelude-val">Ok</span>(hash) =&gt; hash,
+				<span class="prelude-val">Err</span>(e) =&gt; {
 					<span class="macro">gum::warn!</span>(
-						<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-						<span class="ident">candidate_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>,
-						<span class="ident">origin</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">validator</span>,
-						<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>,
+						target: LOG_TARGET,
+						candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
+						origin = <span class="question-mark">?</span>validator,
+						error = <span class="question-mark">?</span>e,
 						<span class="string">&quot;Failed to calculate chunk merkle proof&quot;</span>,
 					);
-					<span class="kw">return</span> <span class="bool-val">false</span>
-				},
+					<span class="kw">return </span><span class="bool-val">false
+				</span>},
 			};
-		<span class="kw">let</span> <span class="ident">erasure_chunk_hash</span> <span class="op">=</span> <span class="ident">BlakeTwo256::hash</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>.<span class="ident">chunk</span>);
-		<span class="kw">if</span> <span class="ident">anticipated_hash</span> <span class="op">!</span><span class="op">=</span> <span class="ident">erasure_chunk_hash</span> {
-			<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="ident">origin</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">validator</span>,  <span class="string">&quot;Received chunk does not match merkle tree&quot;</span>);
-			<span class="kw">return</span> <span class="bool-val">false</span>
-		}
-		<span class="bool-val">true</span>
-	}
+		<span class="kw">let </span>erasure_chunk_hash = BlakeTwo256::hash(<span class="kw-2">&amp;</span>chunk.chunk);
+		<span class="kw">if </span>anticipated_hash != erasure_chunk_hash {
+			<span class="macro">gum::warn!</span>(target: LOG_TARGET, origin = <span class="question-mark">?</span>validator,  <span class="string">&quot;Received chunk does not match merkle tree&quot;</span>);
+			<span class="kw">return </span><span class="bool-val">false
+		</span>}
+		<span class="bool-val">true
+	</span>}
 
-	<span class="doccomment">/// Store given chunk and log any error.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">store_chunk</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="ident">ErasureChunk</span>) {
-		<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">sender</span>
-			.<span class="ident">send</span>(<span class="ident">FromFetchTask::Message</span>(
-				<span class="ident">AvailabilityStoreMessage::StoreChunk</span> {
-					<span class="ident">candidate_hash</span>: <span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>,
-					<span class="ident">chunk</span>,
-					<span class="ident">tx</span>,
+	<span class="doccomment">/// Store given chunk and log any error.
+	</span><span class="kw">async fn </span>store_chunk(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: ErasureChunk) {
+		<span class="kw">let </span>(tx, rx) = oneshot::channel();
+		<span class="kw">let </span>r = <span class="self">self
+			</span>.sender
+			.send(FromFetchTask::Message(
+				AvailabilityStoreMessage::StoreChunk {
+					candidate_hash: <span class="self">self</span>.request.candidate_hash,
+					chunk,
+					tx,
 				}
-				.<span class="ident">into</span>(),
+				.into(),
 			))
 			.<span class="kw">await</span>;
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">r</span> {
-			<span class="macro">gum::error!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="ident">err</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">err</span>, <span class="string">&quot;Storing erasure chunk failed, system shutting down?&quot;</span>);
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = r {
+			<span class="macro">gum::error!</span>(target: LOG_TARGET, err= <span class="question-mark">?</span>err, <span class="string">&quot;Storing erasure chunk failed, system shutting down?&quot;</span>);
 		}
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">oneshot::Canceled</span>) <span class="op">=</span> <span class="ident">rx</span>.<span class="kw">await</span> {
-			<span class="macro">gum::error!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="string">&quot;Storing erasure chunk failed&quot;</span>);
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(oneshot::Canceled) = rx.<span class="kw">await </span>{
+			<span class="macro">gum::error!</span>(target: LOG_TARGET, <span class="string">&quot;Storing erasure chunk failed&quot;</span>);
 		}
 	}
 
-	<span class="doccomment">/// Tell subsystem we are done.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">conclude</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">bad_validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bad_validators</span>.<span class="ident">is_empty</span>() {
-			<span class="prelude-val">None</span>
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">BadValidators</span> {
-				<span class="ident">session_index</span>: <span class="self">self</span>.<span class="ident">session_index</span>,
-				<span class="ident">group_index</span>: <span class="self">self</span>.<span class="ident">group_index</span>,
-				<span class="ident">bad_validators</span>,
+	<span class="doccomment">/// Tell subsystem we are done.
+	</span><span class="kw">async fn </span>conclude(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bad_validators: Vec&lt;AuthorityDiscoveryId&gt;) {
+		<span class="kw">let </span>payload = <span class="kw">if </span>bad_validators.is_empty() {
+			<span class="prelude-val">None
+		</span>} <span class="kw">else </span>{
+			<span class="prelude-val">Some</span>(BadValidators {
+				session_index: <span class="self">self</span>.session_index,
+				group_index: <span class="self">self</span>.group_index,
+				bad_validators,
 			})
 		};
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">FromFetchTask::Concluded</span>(<span class="ident">payload</span>)).<span class="kw">await</span> {
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.sender.send(FromFetchTask::Concluded(payload)).<span class="kw">await </span>{
 			<span class="macro">gum::warn!</span>(
-				<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-				<span class="ident">err</span><span class="op">=</span> <span class="question-mark">?</span><span class="ident">err</span>,
-				<span class="string">&quot;Sending concluded message for task failed&quot;</span>
-			);
+				target: LOG_TARGET,
+				err= <span class="question-mark">?</span>err,
+				<span class="string">&quot;Sending concluded message for task failed&quot;
+			</span>);
 		}
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">conclude_fail</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">FromFetchTask::Failed</span>(<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">candidate_hash</span>)).<span class="kw">await</span>
-		{
-			<span class="macro">gum::warn!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">err</span>, <span class="string">&quot;Sending `Failed` message for task failed&quot;</span>);
+	<span class="kw">async fn </span>conclude_fail(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.sender.send(FromFetchTask::Failed(<span class="self">self</span>.request.candidate_hash)).<span class="kw">await
+		</span>{
+			<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="string">&quot;Sending `Failed` message for task failed&quot;</span>);
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_availability_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="polkadot_availability_distribution" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

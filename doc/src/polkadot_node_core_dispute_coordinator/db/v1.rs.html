@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/dispute-coordinator/src/db/v1.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>v1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_dispute_coordinator/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/dispute-coordinator/src/db/v1.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>v1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_dispute_coordinator/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_dispute_coordinator/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -670,672 +664,671 @@
 <span id="664">664</span>
 <span id="665">665</span>
 <span id="666">666</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! `V1` database for the dispute coordinator.</span>
+</span><span class="doccomment">//! `V1` database for the dispute coordinator.
 
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives::DisputeStatus</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem</span>::{<span class="ident">SubsystemError</span>, <span class="ident">SubsystemResult</span>};
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::database</span>::{<span class="ident">DBTransaction</span>, <span class="ident">Database</span>};
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">CandidateHash</span>, <span class="ident">CandidateReceipt</span>, <span class="ident">Hash</span>, <span class="ident">InvalidDisputeStatementKind</span>, <span class="ident">SessionIndex</span>,
-	<span class="ident">ValidDisputeStatementKind</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>,
+</span><span class="kw">use </span>polkadot_node_primitives::DisputeStatus;
+<span class="kw">use </span>polkadot_node_subsystem::{SubsystemError, SubsystemResult};
+<span class="kw">use </span>polkadot_node_subsystem_util::database::{DBTransaction, Database};
+<span class="kw">use </span>polkadot_primitives::v2::{
+	CandidateHash, CandidateReceipt, Hash, InvalidDisputeStatementKind, SessionIndex,
+	ValidDisputeStatementKind, ValidatorIndex, ValidatorSignature,
 };
 
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">backend</span>::{<span class="ident">Backend</span>, <span class="ident">BackendWriteOp</span>, <span class="ident">OverlayedBackend</span>},
-	<span class="ident">error</span>::{<span class="ident">FatalError</span>, <span class="ident">FatalResult</span>},
-	<span class="ident">metrics::Metrics</span>,
-	<span class="ident">DISPUTE_WINDOW</span>, <span class="ident">LOG_TARGET</span>,
+<span class="kw">use crate</span>::{
+	backend::{Backend, BackendWriteOp, OverlayedBackend},
+	error::{FatalError, FatalResult},
+	metrics::Metrics,
+	DISPUTE_WINDOW, LOG_TARGET,
 };
 
-<span class="kw">const</span> <span class="ident">RECENT_DISPUTES_KEY</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">15</span>] <span class="op">=</span> <span class="string">b&quot;recent-disputes&quot;</span>;
-<span class="kw">const</span> <span class="ident">EARLIEST_SESSION_KEY</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span> <span class="string">b&quot;earliest-session&quot;</span>;
-<span class="kw">const</span> <span class="ident">CANDIDATE_VOTES_SUBKEY</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">15</span>] <span class="op">=</span> <span class="string">b&quot;candidate-votes&quot;</span>;
-<span class="doccomment">/// Until what session have votes been cleaned up already?</span>
-<span class="kw">const</span> <span class="ident">CLEANED_VOTES_WATERMARK_KEY</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">23</span>] <span class="op">=</span> <span class="string">b&quot;cleaned-votes-watermark&quot;</span>;
+<span class="kw">const </span>RECENT_DISPUTES_KEY: <span class="kw-2">&amp;</span>[u8; <span class="number">15</span>] = <span class="string">b&quot;recent-disputes&quot;</span>;
+<span class="kw">const </span>EARLIEST_SESSION_KEY: <span class="kw-2">&amp;</span>[u8; <span class="number">16</span>] = <span class="string">b&quot;earliest-session&quot;</span>;
+<span class="kw">const </span>CANDIDATE_VOTES_SUBKEY: <span class="kw-2">&amp;</span>[u8; <span class="number">15</span>] = <span class="string">b&quot;candidate-votes&quot;</span>;
+<span class="doccomment">/// Until what session have votes been cleaned up already?
+</span><span class="kw">const </span>CLEANED_VOTES_WATERMARK_KEY: <span class="kw-2">&amp;</span>[u8; <span class="number">23</span>] = <span class="string">b&quot;cleaned-votes-watermark&quot;</span>;
 
-<span class="doccomment">/// Restrict number of cleanup operations.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On the first run we are starting at session 0 going up all the way to the current session -</span>
-<span class="doccomment">/// this should not be done at once, but rather in smaller batches so nodes won&#39;t get stalled by</span>
-<span class="doccomment">/// this.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 300 is with session duration of 1 hour and 30 parachains around &lt;3_000_000 key purges in the worst</span>
-<span class="doccomment">/// case. Which is already quite a lot, at the same time we have around 21_000 sessions on</span>
-<span class="doccomment">/// Kusama. This means at 300 purged sessions per session, cleaning everything up will take</span>
-<span class="doccomment">/// around 3 days. Depending on how severe disk usage becomes, we might want to bump the batch</span>
-<span class="doccomment">/// size, at the cost of risking issues at session boundaries (performance).</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">const</span> <span class="ident">MAX_CLEAN_BATCH_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">10</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
-<span class="kw">const</span> <span class="ident">MAX_CLEAN_BATCH_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">300</span>;
+<span class="doccomment">/// Restrict number of cleanup operations.
+///
+/// On the first run we are starting at session 0 going up all the way to the current session -
+/// this should not be done at once, but rather in smaller batches so nodes won&#39;t get stalled by
+/// this.
+///
+/// 300 is with session duration of 1 hour and 30 parachains around &lt;3_000_000 key purges in the worst
+/// case. Which is already quite a lot, at the same time we have around 21_000 sessions on
+/// Kusama. This means at 300 purged sessions per session, cleaning everything up will take
+/// around 3 days. Depending on how severe disk usage becomes, we might want to bump the batch
+/// size, at the cost of risking issues at session boundaries (performance).
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">const </span>MAX_CLEAN_BATCH_SIZE: u32 = <span class="number">10</span>;
+<span class="attribute">#[cfg(not(test))]
+</span><span class="kw">const </span>MAX_CLEAN_BATCH_SIZE: u32 = <span class="number">300</span>;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DbBackend</span> {
-	<span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>,
-	<span class="ident">config</span>: <span class="ident">ColumnConfiguration</span>,
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
+<span class="kw">pub struct </span>DbBackend {
+	inner: Arc&lt;<span class="kw">dyn </span>Database&gt;,
+	config: ColumnConfiguration,
+	metrics: Metrics,
 }
 
-<span class="kw">impl</span> <span class="ident">DbBackend</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>, <span class="ident">config</span>: <span class="ident">ColumnConfiguration</span>, <span class="ident">metrics</span>: <span class="ident">Metrics</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">db</span>, <span class="ident">config</span>, <span class="ident">metrics</span> }
+<span class="kw">impl </span>DbBackend {
+	<span class="kw">pub fn </span>new(db: Arc&lt;<span class="kw">dyn </span>Database&gt;, config: ColumnConfiguration, metrics: Metrics) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ inner: db, config, metrics }
 	}
 
-	<span class="doccomment">/// Cleanup old votes.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Should be called whenever a new earliest session gets written.</span>
-	<span class="kw">fn</span> <span class="ident">add_vote_cleanup_tx</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">tx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">DBTransaction</span>,
-		<span class="ident">earliest_session</span>: <span class="ident">SessionIndex</span>,
-	) -&gt; <span class="ident">FatalResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="comment">// Cleanup old votes in db:</span>
-		<span class="kw">let</span> <span class="ident">watermark</span> <span class="op">=</span> <span class="ident">load_cleaned_votes_watermark</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>)<span class="question-mark">?</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">clean_until</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">earliest_session</span>.<span class="ident">saturating_sub</span>(<span class="ident">watermark</span>) <span class="op">&gt;</span> <span class="ident">MAX_CLEAN_BATCH_SIZE</span> {
-			<span class="ident">watermark</span> <span class="op">+</span> <span class="ident">MAX_CLEAN_BATCH_SIZE</span>
-		} <span class="kw">else</span> {
-			<span class="ident">earliest_session</span>
+	<span class="doccomment">/// Cleanup old votes.
+	///
+	/// Should be called whenever a new earliest session gets written.
+	</span><span class="kw">fn </span>add_vote_cleanup_tx(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		tx: <span class="kw-2">&amp;mut </span>DBTransaction,
+		earliest_session: SessionIndex,
+	) -&gt; FatalResult&lt;()&gt; {
+		<span class="comment">// Cleanup old votes in db:
+		</span><span class="kw">let </span>watermark = load_cleaned_votes_watermark(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config)<span class="question-mark">?</span>.unwrap_or(<span class="number">0</span>);
+		<span class="kw">let </span>clean_until = <span class="kw">if </span>earliest_session.saturating_sub(watermark) &gt; MAX_CLEAN_BATCH_SIZE {
+			watermark + MAX_CLEAN_BATCH_SIZE
+		} <span class="kw">else </span>{
+			earliest_session
 		};
 		<span class="macro">gum::trace!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">watermark</span>,
-			<span class="question-mark">?</span><span class="ident">clean_until</span>,
-			<span class="question-mark">?</span><span class="ident">earliest_session</span>,
-			<span class="question-mark">?</span><span class="ident">MAX_CLEAN_BATCH_SIZE</span>,
-			<span class="string">&quot;WriteEarliestSession&quot;</span>
-		);
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>watermark,
+			<span class="question-mark">?</span>clean_until,
+			<span class="question-mark">?</span>earliest_session,
+			<span class="question-mark">?</span>MAX_CLEAN_BATCH_SIZE,
+			<span class="string">&quot;WriteEarliestSession&quot;
+		</span>);
 
-		<span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="ident">watermark</span>..<span class="ident">clean_until</span> {
+		<span class="kw">for </span>index <span class="kw">in </span>watermark..clean_until {
 			<span class="macro">gum::trace!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-			<span class="question-mark">?</span><span class="ident">index</span>,
-			<span class="ident">encoded</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">candidate_votes_session_prefix</span>(<span class="ident">index</span>),
-			<span class="string">&quot;Cleaning votes for session index&quot;</span>
-			);
-			<span class="ident">tx</span>.<span class="ident">delete_prefix</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">col_data</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_votes_session_prefix</span>(<span class="ident">index</span>));
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>index,
+			encoded = <span class="question-mark">?</span>candidate_votes_session_prefix(index),
+			<span class="string">&quot;Cleaning votes for session index&quot;
+			</span>);
+			tx.delete_prefix(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>candidate_votes_session_prefix(index));
 		}
-		<span class="comment">// New watermark:</span>
-		<span class="ident">tx</span>.<span class="ident">put_vec</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">col_data</span>, <span class="ident">CLEANED_VOTES_WATERMARK_KEY</span>, <span class="ident">clean_until</span>.<span class="ident">encode</span>());
+		<span class="comment">// New watermark:
+		</span>tx.put_vec(<span class="self">self</span>.config.col_data, CLEANED_VOTES_WATERMARK_KEY, clean_until.encode());
 		<span class="prelude-val">Ok</span>(())
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">Backend</span> <span class="kw">for</span> <span class="ident">DbBackend</span> {
-	<span class="doccomment">/// Load the earliest session, if any.</span>
-	<span class="kw">fn</span> <span class="ident">load_earliest_session</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SessionIndex</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">load_earliest_session</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>)
+<span class="kw">impl </span>Backend <span class="kw">for </span>DbBackend {
+	<span class="doccomment">/// Load the earliest session, if any.
+	</span><span class="kw">fn </span>load_earliest_session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
+		load_earliest_session(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config)
 	}
 
-	<span class="doccomment">/// Load the recent disputes, if any.</span>
-	<span class="kw">fn</span> <span class="ident">load_recent_disputes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RecentDisputes</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">load_recent_disputes</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>)
+	<span class="doccomment">/// Load the recent disputes, if any.
+	</span><span class="kw">fn </span>load_recent_disputes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;RecentDisputes&gt;&gt; {
+		load_recent_disputes(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config)
 	}
 
-	<span class="doccomment">/// Load the candidate votes for the specific session-candidate pair, if any.</span>
-	<span class="kw">fn</span> <span class="ident">load_candidate_votes</span>(
+	<span class="doccomment">/// Load the candidate votes for the specific session-candidate pair, if any.
+	</span><span class="kw">fn </span>load_candidate_votes(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">session</span>: <span class="ident">SessionIndex</span>,
-		<span class="ident">candidate_hash</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>,
-	) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">load_candidate_votes</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>, <span class="ident">session</span>, <span class="ident">candidate_hash</span>)
+		session: SessionIndex,
+		candidate_hash: <span class="kw-2">&amp;</span>CandidateHash,
+	) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
+		load_candidate_votes(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config, session, candidate_hash)
 	}
 
-	<span class="doccomment">/// Atomically writes the list of operations, with later operations taking precedence over</span>
-	<span class="doccomment">/// prior.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// This also takes care of purging old votes (of obsolete sessions).</span>
-	<span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ops</span>: <span class="ident">I</span>) -&gt; <span class="ident">FatalResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BackendWriteOp</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Atomically writes the list of operations, with later operations taking precedence over
+	/// prior.
+	///
+	/// This also takes care of purging old votes (of obsolete sessions).
+	</span><span class="kw">fn </span>write&lt;I&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ops: I) -&gt; FatalResult&lt;()&gt;
+	<span class="kw">where
+		</span>I: IntoIterator&lt;Item = BackendWriteOp&gt;,
 	{
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">DBTransaction::new</span>();
-		<span class="comment">// Make sure the whole process is timed, including the actual transaction flush:</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cleanup_timer</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-		<span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="ident">ops</span> {
-			<span class="kw">match</span> <span class="ident">op</span> {
-				<span class="ident">BackendWriteOp::WriteEarliestSession</span>(<span class="ident">session</span>) =&gt; {
-					<span class="ident">cleanup_timer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cleanup_timer</span>.<span class="ident">take</span>() {
-						<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">metrics</span>.<span class="ident">time_vote_cleanup</span>()),
-						<span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">t</span>),
+		<span class="kw">let </span><span class="kw-2">mut </span>tx = DBTransaction::new();
+		<span class="comment">// Make sure the whole process is timed, including the actual transaction flush:
+		</span><span class="kw">let </span><span class="kw-2">mut </span>cleanup_timer = <span class="prelude-val">None</span>;
+		<span class="kw">for </span>op <span class="kw">in </span>ops {
+			<span class="kw">match </span>op {
+				BackendWriteOp::WriteEarliestSession(session) =&gt; {
+					cleanup_timer = <span class="kw">match </span>cleanup_timer.take() {
+						<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.metrics.time_vote_cleanup()),
+						<span class="prelude-val">Some</span>(t) =&gt; <span class="prelude-val">Some</span>(t),
 					};
-					<span class="self">self</span>.<span class="ident">add_vote_cleanup_tx</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tx</span>, <span class="ident">session</span>)<span class="question-mark">?</span>;
+					<span class="self">self</span>.add_vote_cleanup_tx(<span class="kw-2">&amp;mut </span>tx, session)<span class="question-mark">?</span>;
 
-					<span class="comment">// Actually write the earliest session.</span>
-					<span class="ident">tx</span>.<span class="ident">put_vec</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">col_data</span>, <span class="ident">EARLIEST_SESSION_KEY</span>, <span class="ident">session</span>.<span class="ident">encode</span>());
+					<span class="comment">// Actually write the earliest session.
+					</span>tx.put_vec(<span class="self">self</span>.config.col_data, EARLIEST_SESSION_KEY, session.encode());
 				},
-				<span class="ident">BackendWriteOp::WriteRecentDisputes</span>(<span class="ident">recent_disputes</span>) =&gt; {
-					<span class="ident">tx</span>.<span class="ident">put_vec</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">col_data</span>, <span class="ident">RECENT_DISPUTES_KEY</span>, <span class="ident">recent_disputes</span>.<span class="ident">encode</span>());
+				BackendWriteOp::WriteRecentDisputes(recent_disputes) =&gt; {
+					tx.put_vec(<span class="self">self</span>.config.col_data, RECENT_DISPUTES_KEY, recent_disputes.encode());
 				},
-				<span class="ident">BackendWriteOp::WriteCandidateVotes</span>(<span class="ident">session</span>, <span class="ident">candidate_hash</span>, <span class="ident">votes</span>) =&gt; {
-					<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">session</span>, <span class="string">&quot;Writing candidate votes&quot;</span>);
-					<span class="ident">tx</span>.<span class="ident">put_vec</span>(
-						<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">col_data</span>,
-						<span class="kw-2">&amp;</span><span class="ident">candidate_votes_key</span>(<span class="ident">session</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>),
-						<span class="ident">votes</span>.<span class="ident">encode</span>(),
+				BackendWriteOp::WriteCandidateVotes(session, candidate_hash, votes) =&gt; {
+					<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>session, <span class="string">&quot;Writing candidate votes&quot;</span>);
+					tx.put_vec(
+						<span class="self">self</span>.config.col_data,
+						<span class="kw-2">&amp;</span>candidate_votes_key(session, <span class="kw-2">&amp;</span>candidate_hash),
+						votes.encode(),
 					);
 				},
-				<span class="ident">BackendWriteOp::DeleteCandidateVotes</span>(<span class="ident">session</span>, <span class="ident">candidate_hash</span>) =&gt; {
-					<span class="ident">tx</span>.<span class="ident">delete</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">col_data</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_votes_key</span>(<span class="ident">session</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>));
+				BackendWriteOp::DeleteCandidateVotes(session, candidate_hash) =&gt; {
+					tx.delete(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>candidate_votes_key(session, <span class="kw-2">&amp;</span>candidate_hash));
 				},
 			}
 		}
 
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write</span>(<span class="ident">tx</span>).<span class="ident">map_err</span>(<span class="ident">FatalError::DbWriteFailed</span>)
+		<span class="self">self</span>.inner.write(tx).map_err(FatalError::DbWriteFailed)
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">candidate_votes_key</span>(<span class="ident">session</span>: <span class="ident">SessionIndex</span>, <span class="ident">candidate_hash</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>) -&gt; [<span class="ident">u8</span>; <span class="number">15</span> <span class="op">+</span> <span class="number">4</span> <span class="op">+</span> <span class="number">32</span>] {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">15</span> <span class="op">+</span> <span class="number">4</span> <span class="op">+</span> <span class="number">32</span>];
-	<span class="ident">buf</span>[..<span class="number">15</span>].<span class="ident">copy_from_slice</span>(<span class="ident">CANDIDATE_VOTES_SUBKEY</span>);
+<span class="kw">fn </span>candidate_votes_key(session: SessionIndex, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) -&gt; [u8; <span class="number">15 </span>+ <span class="number">4 </span>+ <span class="number">32</span>] {
+	<span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">15 </span>+ <span class="number">4 </span>+ <span class="number">32</span>];
+	buf[..<span class="number">15</span>].copy_from_slice(CANDIDATE_VOTES_SUBKEY);
 
-	<span class="comment">// big-endian encoding is used to ensure lexicographic ordering.</span>
-	<span class="ident">buf</span>[<span class="number">15</span>..][..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">session</span>.<span class="ident">to_be_bytes</span>());
-	<span class="ident">candidate_hash</span>.<span class="ident">using_encoded</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">buf</span>[(<span class="number">15</span> <span class="op">+</span> <span class="number">4</span>)..].<span class="ident">copy_from_slice</span>(<span class="ident">s</span>));
+	<span class="comment">// big-endian encoding is used to ensure lexicographic ordering.
+	</span>buf[<span class="number">15</span>..][..<span class="number">4</span>].copy_from_slice(<span class="kw-2">&amp;</span>session.to_be_bytes());
+	candidate_hash.using_encoded(|s| buf[(<span class="number">15 </span>+ <span class="number">4</span>)..].copy_from_slice(s));
 
-	<span class="ident">buf</span>
+	buf
 }
 
-<span class="kw">fn</span> <span class="ident">candidate_votes_session_prefix</span>(<span class="ident">session</span>: <span class="ident">SessionIndex</span>) -&gt; [<span class="ident">u8</span>; <span class="number">15</span> <span class="op">+</span> <span class="number">4</span>] {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">15</span> <span class="op">+</span> <span class="number">4</span>];
-	<span class="ident">buf</span>[..<span class="number">15</span>].<span class="ident">copy_from_slice</span>(<span class="ident">CANDIDATE_VOTES_SUBKEY</span>);
+<span class="kw">fn </span>candidate_votes_session_prefix(session: SessionIndex) -&gt; [u8; <span class="number">15 </span>+ <span class="number">4</span>] {
+	<span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">15 </span>+ <span class="number">4</span>];
+	buf[..<span class="number">15</span>].copy_from_slice(CANDIDATE_VOTES_SUBKEY);
 
-	<span class="comment">// big-endian encoding is used to ensure lexicographic ordering.</span>
-	<span class="ident">buf</span>[<span class="number">15</span>..][..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">session</span>.<span class="ident">to_be_bytes</span>());
-	<span class="ident">buf</span>
+	<span class="comment">// big-endian encoding is used to ensure lexicographic ordering.
+	</span>buf[<span class="number">15</span>..][..<span class="number">4</span>].copy_from_slice(<span class="kw-2">&amp;</span>session.to_be_bytes());
+	buf
 }
 
-<span class="doccomment">/// Column configuration information for the DB.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ColumnConfiguration</span> {
-	<span class="doccomment">/// The column in the key-value DB where data is stored.</span>
-	<span class="kw">pub</span> <span class="ident">col_data</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// Column configuration information for the DB.
+</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>ColumnConfiguration {
+	<span class="doccomment">/// The column in the key-value DB where data is stored.
+	</span><span class="kw">pub </span>col_data: u32,
 }
 
-<span class="doccomment">/// Tracked votes on candidates, for the purposes of dispute resolution.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CandidateVotes</span> {
-	<span class="doccomment">/// The receipt of the candidate itself.</span>
-	<span class="kw">pub</span> <span class="ident">candidate_receipt</span>: <span class="ident">CandidateReceipt</span>,
-	<span class="doccomment">/// Votes of validity, sorted by validator index.</span>
-	<span class="kw">pub</span> <span class="ident">valid</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">ValidDisputeStatementKind</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>)<span class="op">&gt;</span>,
-	<span class="doccomment">/// Votes of invalidity, sorted by validator index.</span>
-	<span class="kw">pub</span> <span class="ident">invalid</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">InvalidDisputeStatementKind</span>, <span class="ident">ValidatorIndex</span>, <span class="ident">ValidatorSignature</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Tracked votes on candidates, for the purposes of dispute resolution.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>CandidateVotes {
+	<span class="doccomment">/// The receipt of the candidate itself.
+	</span><span class="kw">pub </span>candidate_receipt: CandidateReceipt,
+	<span class="doccomment">/// Votes of validity, sorted by validator index.
+	</span><span class="kw">pub </span>valid: Vec&lt;(ValidDisputeStatementKind, ValidatorIndex, ValidatorSignature)&gt;,
+	<span class="doccomment">/// Votes of invalidity, sorted by validator index.
+	</span><span class="kw">pub </span>invalid: Vec&lt;(InvalidDisputeStatementKind, ValidatorIndex, ValidatorSignature)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">polkadot_node_primitives::CandidateVotes</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">db_votes</span>: <span class="ident">CandidateVotes</span>) -&gt; <span class="ident">polkadot_node_primitives::CandidateVotes</span> {
-		<span class="ident">polkadot_node_primitives::CandidateVotes</span> {
-			<span class="ident">candidate_receipt</span>: <span class="ident">db_votes</span>.<span class="ident">candidate_receipt</span>,
-			<span class="ident">valid</span>: <span class="ident">db_votes</span>.<span class="ident">valid</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">kind</span>, <span class="ident">i</span>, <span class="ident">sig</span>)<span class="op">|</span> (<span class="ident">i</span>, (<span class="ident">kind</span>, <span class="ident">sig</span>))).<span class="ident">collect</span>(),
-			<span class="ident">invalid</span>: <span class="ident">db_votes</span>.<span class="ident">invalid</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">kind</span>, <span class="ident">i</span>, <span class="ident">sig</span>)<span class="op">|</span> (<span class="ident">i</span>, (<span class="ident">kind</span>, <span class="ident">sig</span>))).<span class="ident">collect</span>(),
+<span class="kw">impl </span>From&lt;CandidateVotes&gt; <span class="kw">for </span>polkadot_node_primitives::CandidateVotes {
+	<span class="kw">fn </span>from(db_votes: CandidateVotes) -&gt; polkadot_node_primitives::CandidateVotes {
+		polkadot_node_primitives::CandidateVotes {
+			candidate_receipt: db_votes.candidate_receipt,
+			valid: db_votes.valid.into_iter().map(|(kind, i, sig)| (i, (kind, sig))).collect(),
+			invalid: db_votes.invalid.into_iter().map(|(kind, i, sig)| (i, (kind, sig))).collect(),
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">polkadot_node_primitives::CandidateVotes</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CandidateVotes</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">primitive_votes</span>: <span class="ident">polkadot_node_primitives::CandidateVotes</span>) -&gt; <span class="ident">CandidateVotes</span> {
-		<span class="ident">CandidateVotes</span> {
-			<span class="ident">candidate_receipt</span>: <span class="ident">primitive_votes</span>.<span class="ident">candidate_receipt</span>,
-			<span class="ident">valid</span>: <span class="ident">primitive_votes</span>
-				.<span class="ident">valid</span>
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, (<span class="ident">kind</span>, <span class="ident">sig</span>))<span class="op">|</span> (<span class="ident">kind</span>, <span class="ident">i</span>, <span class="ident">sig</span>))
-				.<span class="ident">collect</span>(),
-			<span class="ident">invalid</span>: <span class="ident">primitive_votes</span>.<span class="ident">invalid</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, (<span class="ident">k</span>, <span class="ident">sig</span>))<span class="op">|</span> (<span class="ident">k</span>, <span class="ident">i</span>, <span class="ident">sig</span>)).<span class="ident">collect</span>(),
+<span class="kw">impl </span>From&lt;polkadot_node_primitives::CandidateVotes&gt; <span class="kw">for </span>CandidateVotes {
+	<span class="kw">fn </span>from(primitive_votes: polkadot_node_primitives::CandidateVotes) -&gt; CandidateVotes {
+		CandidateVotes {
+			candidate_receipt: primitive_votes.candidate_receipt,
+			valid: primitive_votes
+				.valid
+				.into_iter()
+				.map(|(i, (kind, sig))| (kind, i, sig))
+				.collect(),
+			invalid: primitive_votes.invalid.into_iter().map(|(i, (k, sig))| (k, i, sig)).collect(),
 		}
 	}
 }
 
-<span class="doccomment">/// The mapping for recent disputes; any which have not yet been pruned for being ancient.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RecentDisputes</span> <span class="op">=</span> <span class="ident">std::collections::BTreeMap</span><span class="op">&lt;</span>(<span class="ident">SessionIndex</span>, <span class="ident">CandidateHash</span>), <span class="ident">DisputeStatus</span><span class="op">&gt;</span>;
+<span class="doccomment">/// The mapping for recent disputes; any which have not yet been pruned for being ancient.
+</span><span class="kw">pub type </span>RecentDisputes = std::collections::BTreeMap&lt;(SessionIndex, CandidateHash), DisputeStatus&gt;;
 
-<span class="doccomment">/// Errors while accessing things from the DB.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">thiserror::Error</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-	<span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-	<span class="ident">Io</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">std::io::Error</span>),
-	<span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-	<span class="ident">Codec</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">parity_scale_codec::Error</span>),
+<span class="doccomment">/// Errors while accessing things from the DB.
+</span><span class="attribute">#[derive(Debug, thiserror::Error)]
+</span><span class="kw">pub enum </span>Error {
+	<span class="attribute">#[error(transparent)]
+	</span>Io(<span class="attribute">#[from] </span>std::io::Error),
+	<span class="attribute">#[error(transparent)]
+	</span>Codec(<span class="attribute">#[from] </span>parity_scale_codec::Error),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">crate</span>::error::Error</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">Error</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">err</span> {
-			<span class="ident">Error::Io</span>(<span class="ident">io</span>) =&gt; <span class="ident"><span class="self">Self</span>::Io</span>(<span class="ident">io</span>),
-			<span class="ident">Error::Codec</span>(<span class="ident">e</span>) =&gt; <span class="ident"><span class="self">Self</span>::Codec</span>(<span class="ident">e</span>),
+<span class="kw">impl </span>From&lt;Error&gt; <span class="kw">for </span><span class="kw">crate</span>::error::Error {
+	<span class="kw">fn </span>from(err: Error) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>err {
+			Error::Io(io) =&gt; <span class="self">Self</span>::Io(io),
+			Error::Codec(e) =&gt; <span class="self">Self</span>::Codec(e),
 		}
 	}
 }
 
-<span class="doccomment">/// Result alias for DB errors.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Result alias for DB errors.
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, Error&gt;;
 
-<span class="kw">fn</span> <span class="ident">load_decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decode</span><span class="op">&gt;</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Database</span>, <span class="ident">col_data</span>: <span class="ident">u32</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">match</span> <span class="ident">db</span>.<span class="ident">get</span>(<span class="ident">col_data</span>, <span class="ident">key</span>)<span class="question-mark">?</span> {
-		<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-		<span class="prelude-val">Some</span>(<span class="ident">raw</span>) =&gt; <span class="ident">D::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">raw</span>[..]).<span class="ident">map</span>(<span class="prelude-val">Some</span>).<span class="ident">map_err</span>(<span class="ident">Into::into</span>),
+<span class="kw">fn </span>load_decode&lt;D: Decode&gt;(db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database, col_data: u32, key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;D&gt;&gt; {
+	<span class="kw">match </span>db.get(col_data, key)<span class="question-mark">? </span>{
+		<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+		<span class="prelude-val">Some</span>(raw) =&gt; D::decode(<span class="kw-2">&amp;mut &amp;</span>raw[..]).map(<span class="prelude-val">Some</span>).map_err(Into::into),
 	}
 }
 
-<span class="doccomment">/// Load the candidate votes for the specific session-candidate pair, if any.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">load_candidate_votes</span>(
-	<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Database</span>,
-	<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">ColumnConfiguration</span>,
-	<span class="ident">session</span>: <span class="ident">SessionIndex</span>,
-	<span class="ident">candidate_hash</span>: <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CandidateVotes</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="ident">load_decode</span>(<span class="ident">db</span>, <span class="ident">config</span>.<span class="ident">col_data</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_votes_key</span>(<span class="ident">session</span>, <span class="ident">candidate_hash</span>))
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SubsystemError::with_origin</span>(<span class="string">&quot;dispute-coordinator&quot;</span>, <span class="ident">e</span>))
+<span class="doccomment">/// Load the candidate votes for the specific session-candidate pair, if any.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_candidate_votes(
+	db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
+	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
+	session: SessionIndex,
+	candidate_hash: <span class="kw-2">&amp;</span>CandidateHash,
+) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
+	load_decode(db, config.col_data, <span class="kw-2">&amp;</span>candidate_votes_key(session, candidate_hash))
+		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
 }
 
-<span class="doccomment">/// Load the earliest session, if any.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">load_earliest_session</span>(
-	<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Database</span>,
-	<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">ColumnConfiguration</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SessionIndex</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="ident">load_decode</span>(<span class="ident">db</span>, <span class="ident">config</span>.<span class="ident">col_data</span>, <span class="ident">EARLIEST_SESSION_KEY</span>)
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SubsystemError::with_origin</span>(<span class="string">&quot;dispute-coordinator&quot;</span>, <span class="ident">e</span>))
+<span class="doccomment">/// Load the earliest session, if any.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_earliest_session(
+	db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
+	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
+) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
+	load_decode(db, config.col_data, EARLIEST_SESSION_KEY)
+		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
 }
 
-<span class="doccomment">/// Load the recent disputes, if any.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">load_recent_disputes</span>(
-	<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Database</span>,
-	<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">ColumnConfiguration</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RecentDisputes</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="ident">load_decode</span>(<span class="ident">db</span>, <span class="ident">config</span>.<span class="ident">col_data</span>, <span class="ident">RECENT_DISPUTES_KEY</span>)
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">SubsystemError::with_origin</span>(<span class="string">&quot;dispute-coordinator&quot;</span>, <span class="ident">e</span>))
+<span class="doccomment">/// Load the recent disputes, if any.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_recent_disputes(
+	db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
+	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
+) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;RecentDisputes&gt;&gt; {
+	load_decode(db, config.col_data, RECENT_DISPUTES_KEY)
+		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
 }
 
-<span class="doccomment">/// Maybe prune data in the DB based on the provided session index.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is intended to be called on every block, and as such will be used to populate the DB on</span>
-<span class="doccomment">/// first launch. If the on-disk data does not need to be pruned, only a single storage read</span>
-<span class="doccomment">/// will be performed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If one or more ancient sessions are pruned, all metadata on candidates within the ancient</span>
-<span class="doccomment">/// session will be deleted.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">note_current_session</span>(
-	<span class="ident">overlay_db</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OverlayedBackend</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="kw">impl</span> <span class="ident">Backend</span><span class="op">&gt;</span>,
-	<span class="ident">current_session</span>: <span class="ident">SessionIndex</span>,
-) -&gt; <span class="ident">SubsystemResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">new_earliest</span> <span class="op">=</span> <span class="ident">current_session</span>.<span class="ident">saturating_sub</span>(<span class="ident">DISPUTE_WINDOW</span>.<span class="ident">get</span>());
-	<span class="kw">match</span> <span class="ident">overlay_db</span>.<span class="ident">load_earliest_session</span>()<span class="question-mark">?</span> {
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="comment">// First launch - write new-earliest.</span>
-			<span class="ident">overlay_db</span>.<span class="ident">write_earliest_session</span>(<span class="ident">new_earliest</span>);
+<span class="doccomment">/// Maybe prune data in the DB based on the provided session index.
+///
+/// This is intended to be called on every block, and as such will be used to populate the DB on
+/// first launch. If the on-disk data does not need to be pruned, only a single storage read
+/// will be performed.
+///
+/// If one or more ancient sessions are pruned, all metadata on candidates within the ancient
+/// session will be deleted.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>note_current_session(
+	overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	current_session: SessionIndex,
+) -&gt; SubsystemResult&lt;()&gt; {
+	<span class="kw">let </span>new_earliest = current_session.saturating_sub(DISPUTE_WINDOW.get());
+	<span class="kw">match </span>overlay_db.load_earliest_session()<span class="question-mark">? </span>{
+		<span class="prelude-val">None </span>=&gt; {
+			<span class="comment">// First launch - write new-earliest.
+			</span>overlay_db.write_earliest_session(new_earliest);
 		},
-		<span class="prelude-val">Some</span>(<span class="ident">prev_earliest</span>) <span class="kw">if</span> <span class="ident">new_earliest</span> <span class="op">&gt;</span> <span class="ident">prev_earliest</span> =&gt; {
-			<span class="comment">// Prune all data in the outdated sessions.</span>
-			<span class="ident">overlay_db</span>.<span class="ident">write_earliest_session</span>(<span class="ident">new_earliest</span>);
+		<span class="prelude-val">Some</span>(prev_earliest) <span class="kw">if </span>new_earliest &gt; prev_earliest =&gt; {
+			<span class="comment">// Prune all data in the outdated sessions.
+			</span>overlay_db.write_earliest_session(new_earliest);
 
-			<span class="comment">// Clear recent disputes metadata.</span>
-			{
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">recent_disputes</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">load_recent_disputes</span>()<span class="question-mark">?</span>.<span class="ident">unwrap_or_default</span>();
+			<span class="comment">// Clear recent disputes metadata.
+			</span>{
+				<span class="kw">let </span><span class="kw-2">mut </span>recent_disputes = overlay_db.load_recent_disputes()<span class="question-mark">?</span>.unwrap_or_default();
 
-				<span class="kw">let</span> <span class="ident">lower_bound</span> <span class="op">=</span> (<span class="ident">new_earliest</span>, <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">0x00</span>)));
+				<span class="kw">let </span>lower_bound = (new_earliest, CandidateHash(Hash::repeat_byte(<span class="number">0x00</span>)));
 
-				<span class="kw">let</span> <span class="ident">new_recent_disputes</span> <span class="op">=</span> <span class="ident">recent_disputes</span>.<span class="ident">split_off</span>(<span class="kw-2">&amp;</span><span class="ident">lower_bound</span>);
-				<span class="comment">// Any remanining disputes are considered ancient and must be pruned.</span>
-				<span class="kw">let</span> <span class="ident">pruned_disputes</span> <span class="op">=</span> <span class="ident">recent_disputes</span>;
+				<span class="kw">let </span>new_recent_disputes = recent_disputes.split_off(<span class="kw-2">&amp;</span>lower_bound);
+				<span class="comment">// Any remanining disputes are considered ancient and must be pruned.
+				</span><span class="kw">let </span>pruned_disputes = recent_disputes;
 
-				<span class="kw">if</span> <span class="ident">pruned_disputes</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-					<span class="ident">overlay_db</span>.<span class="ident">write_recent_disputes</span>(<span class="ident">new_recent_disputes</span>);
-					<span class="comment">// Note: Deleting old candidate votes is handled in `write` based on the earliest session.</span>
-				}
+				<span class="kw">if </span>pruned_disputes.len() != <span class="number">0 </span>{
+					overlay_db.write_recent_disputes(new_recent_disputes);
+					<span class="comment">// Note: Deleting old candidate votes is handled in `write` based on the earliest session.
+				</span>}
 			}
 		},
 		<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-			<span class="comment">// nothing to do.</span>
-		},
+			<span class="comment">// nothing to do.
+		</span>},
 	}
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Until what session votes have been cleaned up already.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// That is the db has already been purged of votes for sessions older than the returned</span>
-<span class="doccomment">/// `SessionIndex`.</span>
-<span class="kw">fn</span> <span class="ident">load_cleaned_votes_watermark</span>(
-	<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Database</span>,
-	<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">ColumnConfiguration</span>,
-) -&gt; <span class="ident">FatalResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SessionIndex</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="ident">load_decode</span>(<span class="ident">db</span>, <span class="ident">config</span>.<span class="ident">col_data</span>, <span class="ident">CLEANED_VOTES_WATERMARK_KEY</span>)
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FatalError::DbReadFailed</span>(<span class="ident">e</span>))
+<span class="doccomment">/// Until what session votes have been cleaned up already.
+///
+/// That is the db has already been purged of votes for sessions older than the returned
+/// `SessionIndex`.
+</span><span class="kw">fn </span>load_cleaned_votes_watermark(
+	db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
+	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
+) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
+	load_decode(db, config.col_data, CLEANED_VOTES_WATERMARK_KEY)
+		.map_err(|e| FatalError::DbReadFailed(e))
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
 
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">::test_helpers</span>::{<span class="ident">dummy_candidate_receipt</span>, <span class="ident">dummy_hash</span>};
-	<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{<span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>};
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>::test_helpers::{dummy_candidate_receipt, dummy_hash};
+	<span class="kw">use </span>polkadot_primitives::v2::{Hash, Id <span class="kw">as </span>ParaId};
 
-	<span class="kw">fn</span> <span class="ident">make_db</span>() -&gt; <span class="ident">DbBackend</span> {
-		<span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">kvdb_memorydb::create</span>(<span class="number">1</span>);
-		<span class="kw">let</span> <span class="ident">db</span> <span class="op">=</span> <span class="ident">polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new</span>(<span class="ident">db</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>]);
-		<span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">db</span>);
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">ColumnConfiguration</span> { <span class="ident">col_data</span>: <span class="number">0</span> };
-		<span class="ident">DbBackend::new</span>(<span class="ident">store</span>, <span class="ident">config</span>, <span class="ident">Metrics::default</span>())
+	<span class="kw">fn </span>make_db() -&gt; DbBackend {
+		<span class="kw">let </span>db = kvdb_memorydb::create(<span class="number">1</span>);
+		<span class="kw">let </span>db = polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new(db, <span class="kw-2">&amp;</span>[<span class="number">0</span>]);
+		<span class="kw">let </span>store = Arc::new(db);
+		<span class="kw">let </span>config = ColumnConfiguration { col_data: <span class="number">0 </span>};
+		DbBackend::new(store, config, Metrics::default())
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">max_clean_batch_size_is_honored</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">make_db</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>max_clean_batch_size_is_honored() {
+		<span class="kw">let </span><span class="kw-2">mut </span>backend = make_db();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
-		<span class="kw">let</span> <span class="ident">current_session</span> <span class="op">=</span> <span class="ident">MAX_CLEAN_BATCH_SIZE</span> <span class="op">+</span> <span class="ident">DISPUTE_WINDOW</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">3</span>;
-		<span class="kw">let</span> <span class="ident">earliest_session</span> <span class="op">=</span> <span class="ident">current_session</span> <span class="op">-</span> <span class="ident">DISPUTE_WINDOW</span>.<span class="ident">get</span>();
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
+		<span class="kw">let </span>current_session = MAX_CLEAN_BATCH_SIZE + DISPUTE_WINDOW.get() + <span class="number">3</span>;
+		<span class="kw">let </span>earliest_session = current_session - DISPUTE_WINDOW.get();
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_earliest_session</span>(<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">candidate_hash</span> <span class="op">=</span> <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>));
+		overlay_db.write_earliest_session(<span class="number">0</span>);
+		<span class="kw">let </span>candidate_hash = CandidateHash(Hash::repeat_byte(<span class="number">1</span>));
 
-		<span class="kw">for</span> <span class="ident">session</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">current_session</span> <span class="op">+</span> <span class="number">1</span> {
-			<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(
-				<span class="ident">session</span>,
-				<span class="ident">candidate_hash</span>,
-				<span class="ident">CandidateVotes</span> {
-					<span class="ident">candidate_receipt</span>: <span class="ident">dummy_candidate_receipt</span>(<span class="ident">dummy_hash</span>()),
-					<span class="ident">valid</span>: <span class="ident">Vec::new</span>(),
-					<span class="ident">invalid</span>: <span class="ident">Vec::new</span>(),
+		<span class="kw">for </span>session <span class="kw">in </span><span class="number">0</span>..current_session + <span class="number">1 </span>{
+			overlay_db.write_candidate_votes(
+				session,
+				candidate_hash,
+				CandidateVotes {
+					candidate_receipt: dummy_candidate_receipt(dummy_hash()),
+					valid: Vec::new(),
+					invalid: Vec::new(),
 				},
 			);
 		}
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>.<span class="ident">load_candidate_votes</span>(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>).<span class="ident">unwrap</span>().<span class="ident">is_some</span>());
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">MAX_CLEAN_BATCH_SIZE</span> <span class="op">-</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_some</span>());
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">MAX_CLEAN_BATCH_SIZE</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_some</span>());
+		<span class="macro">assert!</span>(overlay_db.load_candidate_votes(<span class="number">0</span>, <span class="kw-2">&amp;</span>candidate_hash).unwrap().is_some());
+		<span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(MAX_CLEAN_BATCH_SIZE - <span class="number">1</span>, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_some());
+		<span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(MAX_CLEAN_BATCH_SIZE, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_some());
 
-		<span class="comment">// Cleanup only works for votes that have been written already - so write.</span>
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="comment">// Cleanup only works for votes that have been written already - so write.
+		</span><span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
-		<span class="macro">gum::trace!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">current_session</span>, <span class="string">&quot;Noting current session&quot;</span>);
-		<span class="ident">note_current_session</span>(<span class="kw-2">&amp;mut</span> <span class="ident">overlay_db</span>, <span class="ident">current_session</span>).<span class="ident">unwrap</span>();
+		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>current_session, <span class="string">&quot;Noting current session&quot;</span>);
+		note_current_session(<span class="kw-2">&amp;mut </span>overlay_db, current_session).unwrap();
 
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">MAX_CLEAN_BATCH_SIZE</span> <span class="op">-</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_none</span>());
-		<span class="comment">// After batch size votes should still be there:</span>
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">MAX_CLEAN_BATCH_SIZE</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_some</span>());
+		<span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(MAX_CLEAN_BATCH_SIZE - <span class="number">1</span>, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_none());
+		<span class="comment">// After batch size votes should still be there:
+		</span><span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(MAX_CLEAN_BATCH_SIZE, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_some());
 
-		<span class="kw">let</span> <span class="ident">current_session</span> <span class="op">=</span> <span class="ident">current_session</span> <span class="op">+</span> <span class="number">1</span>;
-		<span class="kw">let</span> <span class="ident">earliest_session</span> <span class="op">=</span> <span class="ident">earliest_session</span> <span class="op">+</span> <span class="number">1</span>;
+		<span class="kw">let </span>current_session = current_session + <span class="number">1</span>;
+		<span class="kw">let </span>earliest_session = earliest_session + <span class="number">1</span>;
 
-		<span class="ident">note_current_session</span>(<span class="kw-2">&amp;mut</span> <span class="ident">overlay_db</span>, <span class="ident">current_session</span>).<span class="ident">unwrap</span>();
+		note_current_session(<span class="kw-2">&amp;mut </span>overlay_db, current_session).unwrap();
 
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
-		<span class="kw">let</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
+		<span class="kw">let </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
-		<span class="comment">// All should be gone now:</span>
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">earliest_session</span> <span class="op">-</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_none</span>());
-		<span class="comment">// Earliest session should still be there:</span>
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">earliest_session</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_some</span>());
-		<span class="comment">// Old current session should still be there as well:</span>
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">current_session</span> <span class="op">-</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">candidate_hash</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_some</span>());
+		<span class="comment">// All should be gone now:
+		</span><span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(earliest_session - <span class="number">1</span>, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_none());
+		<span class="comment">// Earliest session should still be there:
+		</span><span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(earliest_session, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_some());
+		<span class="comment">// Old current session should still be there as well:
+		</span><span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(current_session - <span class="number">1</span>, <span class="kw-2">&amp;</span>candidate_hash)
+			.unwrap()
+			.is_some());
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">overlay_pre_and_post_commit_consistency</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">make_db</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>overlay_pre_and_post_commit_consistency() {
+		<span class="kw">let </span><span class="kw-2">mut </span>backend = make_db();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_earliest_session</span>(<span class="number">0</span>);
-		<span class="ident">overlay_db</span>.<span class="ident">write_earliest_session</span>(<span class="number">1</span>);
+		overlay_db.write_earliest_session(<span class="number">0</span>);
+		overlay_db.write_earliest_session(<span class="number">1</span>);
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_recent_disputes</span>(
-			<span class="macro">vec!</span>[((<span class="number">0</span>, <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">0</span>))), <span class="ident">DisputeStatus::Active</span>)]
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">collect</span>(),
+		overlay_db.write_recent_disputes(
+			<span class="macro">vec!</span>[((<span class="number">0</span>, CandidateHash(Hash::repeat_byte(<span class="number">0</span>))), DisputeStatus::Active)]
+				.into_iter()
+				.collect(),
 		);
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_recent_disputes</span>(
-			<span class="macro">vec!</span>[((<span class="number">1</span>, <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>))), <span class="ident">DisputeStatus::Active</span>)]
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">collect</span>(),
+		overlay_db.write_recent_disputes(
+			<span class="macro">vec!</span>[((<span class="number">1</span>, CandidateHash(Hash::repeat_byte(<span class="number">1</span>))), DisputeStatus::Active)]
+				.into_iter()
+				.collect(),
 		);
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(
+		overlay_db.write_candidate_votes(
 			<span class="number">1</span>,
-			<span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)),
-			<span class="ident">CandidateVotes</span> {
-				<span class="ident">candidate_receipt</span>: <span class="ident">dummy_candidate_receipt</span>(<span class="ident">dummy_hash</span>()),
-				<span class="ident">valid</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">invalid</span>: <span class="ident">Vec::new</span>(),
+			CandidateHash(Hash::repeat_byte(<span class="number">1</span>)),
+			CandidateVotes {
+				candidate_receipt: dummy_candidate_receipt(dummy_hash()),
+				valid: Vec::new(),
+				invalid: Vec::new(),
 			},
 		);
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(
+		overlay_db.write_candidate_votes(
 			<span class="number">1</span>,
-			<span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)),
-			<span class="ident">CandidateVotes</span> {
-				<span class="ident">candidate_receipt</span>: {
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">receipt</span> <span class="op">=</span> <span class="ident">dummy_candidate_receipt</span>(<span class="ident">dummy_hash</span>());
-					<span class="ident">receipt</span>.<span class="ident">descriptor</span>.<span class="ident">para_id</span> <span class="op">=</span> <span class="ident">ParaId::from</span>(<span class="number">5_u32</span>);
+			CandidateHash(Hash::repeat_byte(<span class="number">1</span>)),
+			CandidateVotes {
+				candidate_receipt: {
+					<span class="kw">let </span><span class="kw-2">mut </span>receipt = dummy_candidate_receipt(dummy_hash());
+					receipt.descriptor.para_id = ParaId::from(<span class="number">5_u32</span>);
 
-					<span class="ident">receipt</span>
+					receipt
 				},
-				<span class="ident">valid</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">invalid</span>: <span class="ident">Vec::new</span>(),
+				valid: Vec::new(),
+				invalid: Vec::new(),
 			},
 		);
 
-		<span class="comment">// Test that overlay returns the correct values before committing.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">overlay_db</span>.<span class="ident">load_earliest_session</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="number">1</span>);
+		<span class="comment">// Test that overlay returns the correct values before committing.
+		</span><span class="macro">assert_eq!</span>(overlay_db.load_earliest_session().unwrap().unwrap(), <span class="number">1</span>);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">overlay_db</span>.<span class="ident">load_recent_disputes</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-			<span class="macro">vec!</span>[((<span class="number">1</span>, <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>))), <span class="ident">DisputeStatus::Active</span>),]
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">collect</span>()
+			overlay_db.load_recent_disputes().unwrap().unwrap(),
+			<span class="macro">vec!</span>[((<span class="number">1</span>, CandidateHash(Hash::repeat_byte(<span class="number">1</span>))), DisputeStatus::Active),]
+				.into_iter()
+				.collect()
 		);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">overlay_db</span>
-				.<span class="ident">load_candidate_votes</span>(<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)))
-				.<span class="ident">unwrap</span>()
-				.<span class="ident">unwrap</span>()
-				.<span class="ident">candidate_receipt</span>
-				.<span class="ident">descriptor</span>
-				.<span class="ident">para_id</span>,
-			<span class="ident">ParaId::from</span>(<span class="number">5</span>),
+			overlay_db
+				.load_candidate_votes(<span class="number">1</span>, <span class="kw-2">&amp;</span>CandidateHash(Hash::repeat_byte(<span class="number">1</span>)))
+				.unwrap()
+				.unwrap()
+				.candidate_receipt
+				.descriptor
+				.para_id,
+			ParaId::from(<span class="number">5</span>),
 		);
 
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
-		<span class="comment">// Test that subsequent writes were written.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">backend</span>.<span class="ident">load_earliest_session</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(), <span class="number">1</span>);
+		<span class="comment">// Test that subsequent writes were written.
+		</span><span class="macro">assert_eq!</span>(backend.load_earliest_session().unwrap().unwrap(), <span class="number">1</span>);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">backend</span>.<span class="ident">load_recent_disputes</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
-			<span class="macro">vec!</span>[((<span class="number">1</span>, <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>))), <span class="ident">DisputeStatus::Active</span>),]
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">collect</span>()
+			backend.load_recent_disputes().unwrap().unwrap(),
+			<span class="macro">vec!</span>[((<span class="number">1</span>, CandidateHash(Hash::repeat_byte(<span class="number">1</span>))), DisputeStatus::Active),]
+				.into_iter()
+				.collect()
 		);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">backend</span>
-				.<span class="ident">load_candidate_votes</span>(<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)))
-				.<span class="ident">unwrap</span>()
-				.<span class="ident">unwrap</span>()
-				.<span class="ident">candidate_receipt</span>
-				.<span class="ident">descriptor</span>
-				.<span class="ident">para_id</span>,
-			<span class="ident">ParaId::from</span>(<span class="number">5</span>),
+			backend
+				.load_candidate_votes(<span class="number">1</span>, <span class="kw-2">&amp;</span>CandidateHash(Hash::repeat_byte(<span class="number">1</span>)))
+				.unwrap()
+				.unwrap()
+				.candidate_receipt
+				.descriptor
+				.para_id,
+			ParaId::from(<span class="number">5</span>),
 		);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">overlay_preserves_candidate_votes_operation_order</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">make_db</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>overlay_preserves_candidate_votes_operation_order() {
+		<span class="kw">let </span><span class="kw-2">mut </span>backend = make_db();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(
+		overlay_db.write_candidate_votes(
 			<span class="number">1</span>,
-			<span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)),
-			<span class="ident">CandidateVotes</span> {
-				<span class="ident">candidate_receipt</span>: <span class="ident">dummy_candidate_receipt</span>(<span class="ident">Hash::random</span>()),
-				<span class="ident">valid</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">invalid</span>: <span class="ident">Vec::new</span>(),
+			CandidateHash(Hash::repeat_byte(<span class="number">1</span>)),
+			CandidateVotes {
+				candidate_receipt: dummy_candidate_receipt(Hash::random()),
+				valid: Vec::new(),
+				invalid: Vec::new(),
 			},
 		);
 
-		<span class="kw">let</span> <span class="ident">receipt</span> <span class="op">=</span> <span class="ident">dummy_candidate_receipt</span>(<span class="ident">dummy_hash</span>());
+		<span class="kw">let </span>receipt = dummy_candidate_receipt(dummy_hash());
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(
+		overlay_db.write_candidate_votes(
 			<span class="number">1</span>,
-			<span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)),
-			<span class="ident">CandidateVotes</span> {
-				<span class="ident">candidate_receipt</span>: <span class="ident">receipt</span>.<span class="ident">clone</span>(),
-				<span class="ident">valid</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">invalid</span>: <span class="ident">Vec::new</span>(),
+			CandidateHash(Hash::repeat_byte(<span class="number">1</span>)),
+			CandidateVotes {
+				candidate_receipt: receipt.clone(),
+				valid: Vec::new(),
+				invalid: Vec::new(),
 			},
 		);
 
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">backend</span>
-				.<span class="ident">load_candidate_votes</span>(<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">1</span>)))
-				.<span class="ident">unwrap</span>()
-				.<span class="ident">unwrap</span>()
-				.<span class="ident">candidate_receipt</span>,
-			<span class="ident">receipt</span>,
+			backend
+				.load_candidate_votes(<span class="number">1</span>, <span class="kw-2">&amp;</span>CandidateHash(Hash::repeat_byte(<span class="number">1</span>)))
+				.unwrap()
+				.unwrap()
+				.candidate_receipt,
+			receipt,
 		);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">note_current_session_prunes_old</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">make_db</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>note_current_session_prunes_old() {
+		<span class="kw">let </span><span class="kw-2">mut </span>backend = make_db();
 
-		<span class="kw">let</span> <span class="ident">hash_a</span> <span class="op">=</span> <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">0x0a</span>));
-		<span class="kw">let</span> <span class="ident">hash_b</span> <span class="op">=</span> <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">0x0b</span>));
-		<span class="kw">let</span> <span class="ident">hash_c</span> <span class="op">=</span> <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">0x0c</span>));
-		<span class="kw">let</span> <span class="ident">hash_d</span> <span class="op">=</span> <span class="ident">CandidateHash</span>(<span class="ident">Hash::repeat_byte</span>(<span class="number">0x0d</span>));
+		<span class="kw">let </span>hash_a = CandidateHash(Hash::repeat_byte(<span class="number">0x0a</span>));
+		<span class="kw">let </span>hash_b = CandidateHash(Hash::repeat_byte(<span class="number">0x0b</span>));
+		<span class="kw">let </span>hash_c = CandidateHash(Hash::repeat_byte(<span class="number">0x0c</span>));
+		<span class="kw">let </span>hash_d = CandidateHash(Hash::repeat_byte(<span class="number">0x0d</span>));
 
-		<span class="kw">let</span> <span class="ident">prev_earliest_session</span> <span class="op">=</span> <span class="number">0</span>;
-		<span class="kw">let</span> <span class="ident">new_earliest_session</span> <span class="op">=</span> <span class="number">5</span>;
-		<span class="kw">let</span> <span class="ident">current_session</span> <span class="op">=</span> <span class="number">5</span> <span class="op">+</span> <span class="ident">DISPUTE_WINDOW</span>.<span class="ident">get</span>();
+		<span class="kw">let </span>prev_earliest_session = <span class="number">0</span>;
+		<span class="kw">let </span>new_earliest_session = <span class="number">5</span>;
+		<span class="kw">let </span>current_session = <span class="number">5 </span>+ DISPUTE_WINDOW.get();
 
-		<span class="kw">let</span> <span class="ident">super_old_no_dispute</span> <span class="op">=</span> <span class="number">1</span>;
-		<span class="kw">let</span> <span class="ident">very_old</span> <span class="op">=</span> <span class="number">3</span>;
-		<span class="kw">let</span> <span class="ident">slightly_old</span> <span class="op">=</span> <span class="number">4</span>;
-		<span class="kw">let</span> <span class="ident">very_recent</span> <span class="op">=</span> <span class="ident">current_session</span> <span class="op">-</span> <span class="number">1</span>;
+		<span class="kw">let </span>super_old_no_dispute = <span class="number">1</span>;
+		<span class="kw">let </span>very_old = <span class="number">3</span>;
+		<span class="kw">let </span>slightly_old = <span class="number">4</span>;
+		<span class="kw">let </span>very_recent = current_session - <span class="number">1</span>;
 
-		<span class="kw">let</span> <span class="ident">blank_candidate_votes</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">CandidateVotes</span> {
-			<span class="ident">candidate_receipt</span>: <span class="ident">dummy_candidate_receipt</span>(<span class="ident">dummy_hash</span>()),
-			<span class="ident">valid</span>: <span class="ident">Vec::new</span>(),
-			<span class="ident">invalid</span>: <span class="ident">Vec::new</span>(),
+		<span class="kw">let </span>blank_candidate_votes = || CandidateVotes {
+			candidate_receipt: dummy_candidate_receipt(dummy_hash()),
+			valid: Vec::new(),
+			invalid: Vec::new(),
 		};
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
-		<span class="ident">overlay_db</span>.<span class="ident">write_earliest_session</span>(<span class="ident">prev_earliest_session</span>);
-		<span class="ident">overlay_db</span>.<span class="ident">write_recent_disputes</span>(
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
+		overlay_db.write_earliest_session(prev_earliest_session);
+		overlay_db.write_recent_disputes(
 			<span class="macro">vec!</span>[
-				((<span class="ident">very_old</span>, <span class="ident">hash_a</span>), <span class="ident">DisputeStatus::Active</span>),
-				((<span class="ident">slightly_old</span>, <span class="ident">hash_b</span>), <span class="ident">DisputeStatus::Active</span>),
-				((<span class="ident">new_earliest_session</span>, <span class="ident">hash_c</span>), <span class="ident">DisputeStatus::Active</span>),
-				((<span class="ident">very_recent</span>, <span class="ident">hash_d</span>), <span class="ident">DisputeStatus::Active</span>),
+				((very_old, hash_a), DisputeStatus::Active),
+				((slightly_old, hash_b), DisputeStatus::Active),
+				((new_earliest_session, hash_c), DisputeStatus::Active),
+				((very_recent, hash_d), DisputeStatus::Active),
 			]
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">collect</span>(),
+			.into_iter()
+			.collect(),
 		);
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(<span class="ident">super_old_no_dispute</span>, <span class="ident">hash_a</span>, <span class="ident">blank_candidate_votes</span>());
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(<span class="ident">very_old</span>, <span class="ident">hash_a</span>, <span class="ident">blank_candidate_votes</span>());
+		overlay_db.write_candidate_votes(super_old_no_dispute, hash_a, blank_candidate_votes());
+		overlay_db.write_candidate_votes(very_old, hash_a, blank_candidate_votes());
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(<span class="ident">slightly_old</span>, <span class="ident">hash_b</span>, <span class="ident">blank_candidate_votes</span>());
+		overlay_db.write_candidate_votes(slightly_old, hash_b, blank_candidate_votes());
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(<span class="ident">new_earliest_session</span>, <span class="ident">hash_c</span>, <span class="ident">blank_candidate_votes</span>());
+		overlay_db.write_candidate_votes(new_earliest_session, hash_c, blank_candidate_votes());
 
-		<span class="ident">overlay_db</span>.<span class="ident">write_candidate_votes</span>(<span class="ident">very_recent</span>, <span class="ident">hash_d</span>, <span class="ident">blank_candidate_votes</span>());
+		overlay_db.write_candidate_votes(very_recent, hash_d, blank_candidate_votes());
 
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
-		<span class="ident">note_current_session</span>(<span class="kw-2">&amp;mut</span> <span class="ident">overlay_db</span>, <span class="ident">current_session</span>).<span class="ident">unwrap</span>();
+		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
+		note_current_session(<span class="kw-2">&amp;mut </span>overlay_db, current_session).unwrap();
 
-		<span class="macro">assert_eq!</span>(<span class="ident">overlay_db</span>.<span class="ident">load_earliest_session</span>().<span class="ident">unwrap</span>(), <span class="prelude-val">Some</span>(<span class="ident">new_earliest_session</span>));
+		<span class="macro">assert_eq!</span>(overlay_db.load_earliest_session().unwrap(), <span class="prelude-val">Some</span>(new_earliest_session));
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">overlay_db</span>.<span class="ident">load_recent_disputes</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>(),
+			overlay_db.load_recent_disputes().unwrap().unwrap(),
 			<span class="macro">vec!</span>[
-				((<span class="ident">new_earliest_session</span>, <span class="ident">hash_c</span>), <span class="ident">DisputeStatus::Active</span>),
-				((<span class="ident">very_recent</span>, <span class="ident">hash_d</span>), <span class="ident">DisputeStatus::Active</span>),
+				((new_earliest_session, hash_c), DisputeStatus::Active),
+				((very_recent, hash_d), DisputeStatus::Active),
 			]
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">collect</span>(),
+			.into_iter()
+			.collect(),
 		);
 
-		<span class="comment">// Votes are only cleaned up after actual write:</span>
-		<span class="kw">let</span> <span class="ident">write_ops</span> <span class="op">=</span> <span class="ident">overlay_db</span>.<span class="ident">into_write_ops</span>();
-		<span class="ident">backend</span>.<span class="ident">write</span>(<span class="ident">write_ops</span>).<span class="ident">unwrap</span>();
+		<span class="comment">// Votes are only cleaned up after actual write:
+		</span><span class="kw">let </span>write_ops = overlay_db.into_write_ops();
+		backend.write(write_ops).unwrap();
 
-		<span class="kw">let</span> <span class="ident">overlay_db</span> <span class="op">=</span> <span class="ident">OverlayedBackend::new</span>(<span class="kw-2">&amp;</span><span class="ident">backend</span>);
+		<span class="kw">let </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">super_old_no_dispute</span>, <span class="kw-2">&amp;</span><span class="ident">hash_a</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_none</span>());
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>.<span class="ident">load_candidate_votes</span>(<span class="ident">very_old</span>, <span class="kw-2">&amp;</span><span class="ident">hash_a</span>).<span class="ident">unwrap</span>().<span class="ident">is_none</span>());
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>.<span class="ident">load_candidate_votes</span>(<span class="ident">slightly_old</span>, <span class="kw-2">&amp;</span><span class="ident">hash_b</span>).<span class="ident">unwrap</span>().<span class="ident">is_none</span>());
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>
-			.<span class="ident">load_candidate_votes</span>(<span class="ident">new_earliest_session</span>, <span class="kw-2">&amp;</span><span class="ident">hash_c</span>)
-			.<span class="ident">unwrap</span>()
-			.<span class="ident">is_some</span>());
-		<span class="macro">assert!</span>(<span class="ident">overlay_db</span>.<span class="ident">load_candidate_votes</span>(<span class="ident">very_recent</span>, <span class="kw-2">&amp;</span><span class="ident">hash_d</span>).<span class="ident">unwrap</span>().<span class="ident">is_some</span>());
+		<span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(super_old_no_dispute, <span class="kw-2">&amp;</span>hash_a)
+			.unwrap()
+			.is_none());
+		<span class="macro">assert!</span>(overlay_db.load_candidate_votes(very_old, <span class="kw-2">&amp;</span>hash_a).unwrap().is_none());
+		<span class="macro">assert!</span>(overlay_db.load_candidate_votes(slightly_old, <span class="kw-2">&amp;</span>hash_b).unwrap().is_none());
+		<span class="macro">assert!</span>(overlay_db
+			.load_candidate_votes(new_earliest_session, <span class="kw-2">&amp;</span>hash_c)
+			.unwrap()
+			.is_some());
+		<span class="macro">assert!</span>(overlay_db.load_candidate_votes(very_recent, <span class="kw-2">&amp;</span>hash_d).unwrap().is_some());
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

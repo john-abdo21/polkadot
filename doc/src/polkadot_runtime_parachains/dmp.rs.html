@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/dmp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dmp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/dmp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dmp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -236,238 +230,237 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">configuration</span>::{<span class="self">self</span>, <span class="ident">HostConfiguration</span>},
-	<span class="ident">initializer</span>,
+</span><span class="kw">use crate</span>::{
+	configuration::{<span class="self">self</span>, HostConfiguration},
+	initializer,
 };
-<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">primitives::v2</span>::{<span class="ident">DownwardMessage</span>, <span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>, <span class="ident">InboundDownwardMessage</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Hash</span> <span class="kw">as</span> <span class="ident">HashT</span>, <span class="ident">SaturatedConversion</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">fmt</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">xcm::latest::SendError</span>;
+<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>primitives::v2::{DownwardMessage, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage};
+<span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Hash <span class="kw">as </span>HashT, SaturatedConversion};
+<span class="kw">use </span>sp_std::{fmt, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>xcm::latest::SendError;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// An error sending a downward message.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">derive</span>(<span class="ident">Debug</span>))]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">QueueDownwardMessageError</span> {
-	<span class="doccomment">/// The message being sent exceeds the configured max message size.</span>
-	<span class="ident">ExceedsMaxMessageSize</span>,
+<span class="doccomment">/// An error sending a downward message.
+</span><span class="attribute">#[cfg_attr(test, derive(Debug))]
+</span><span class="kw">pub enum </span>QueueDownwardMessageError {
+	<span class="doccomment">/// The message being sent exceeds the configured max message size.
+	</span>ExceedsMaxMessageSize,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">QueueDownwardMessageError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SendError</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">QueueDownwardMessageError</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">err</span> {
-			<span class="ident">QueueDownwardMessageError::ExceedsMaxMessageSize</span> =&gt; <span class="ident">SendError::ExceedsMaxMessageSize</span>,
+<span class="kw">impl </span>From&lt;QueueDownwardMessageError&gt; <span class="kw">for </span>SendError {
+	<span class="kw">fn </span>from(err: QueueDownwardMessageError) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>err {
+			QueueDownwardMessageError::ExceedsMaxMessageSize =&gt; SendError::ExceedsMaxMessageSize,
 		}
 	}
 }
 
-<span class="doccomment">/// An error returned by [`check_processed_downward_messages`] that indicates an acceptance check</span>
-<span class="doccomment">/// didn&#39;t pass.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProcessedDownwardMessagesAcceptanceErr</span> {
-	<span class="doccomment">/// If there are pending messages then `processed_downward_messages` should be at least 1,</span>
-	<span class="ident">AdvancementRule</span>,
-	<span class="doccomment">/// `processed_downward_messages` should not be greater than the number of pending messages.</span>
-	<span class="ident">Underflow</span> { <span class="ident">processed_downward_messages</span>: <span class="ident">u32</span>, <span class="ident">dmq_length</span>: <span class="ident">u32</span> },
+<span class="doccomment">/// An error returned by [`check_processed_downward_messages`] that indicates an acceptance check
+/// didn&#39;t pass.
+</span><span class="kw">pub enum </span>ProcessedDownwardMessagesAcceptanceErr {
+	<span class="doccomment">/// If there are pending messages then `processed_downward_messages` should be at least 1,
+	</span>AdvancementRule,
+	<span class="doccomment">/// `processed_downward_messages` should not be greater than the number of pending messages.
+	</span>Underflow { processed_downward_messages: u32, dmq_length: u32 },
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ProcessedDownwardMessagesAcceptanceErr</span> {
-	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-		<span class="kw">use</span> <span class="ident">ProcessedDownwardMessagesAcceptanceErr</span>::<span class="kw-2">*</span>;
-		<span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-			<span class="ident">AdvancementRule</span> =&gt;
-				<span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;DMQ is not empty, but processed_downward_messages is 0&quot;</span>,),
-			<span class="ident">Underflow</span> { <span class="ident">processed_downward_messages</span>, <span class="ident">dmq_length</span> } =&gt; <span class="macro">write!</span>(
-				<span class="ident">fmt</span>,
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ProcessedDownwardMessagesAcceptanceErr {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+		<span class="kw">use </span>ProcessedDownwardMessagesAcceptanceErr::<span class="kw-2">*</span>;
+		<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+			AdvancementRule =&gt;
+				<span class="macro">write!</span>(fmt, <span class="string">&quot;DMQ is not empty, but processed_downward_messages is 0&quot;</span>,),
+			Underflow { processed_downward_messages, dmq_length } =&gt; <span class="macro">write!</span>(
+				fmt,
 				<span class="string">&quot;processed_downward_messages = {}, but dmq_length is only {}&quot;</span>,
-				<span class="ident">processed_downward_messages</span>, <span class="ident">dmq_length</span>,
+				processed_downward_messages, dmq_length,
 			),
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">frame_support::pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[frame_support::pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_store</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Store</span>)]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> <span class="op">+</span> <span class="ident">configuration::Config</span> {}
+	<span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config + configuration::Config {}
 
-	<span class="doccomment">/// The downward messages addressed for a certain para.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">DownwardMessageQueues</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span>
+	<span class="doccomment">/// The downward messages addressed for a certain para.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>DownwardMessageQueues&lt;T: Config&gt; = StorageMap&lt;
 		<span class="kw">_</span>,
-		<span class="ident">Twox64Concat</span>,
-		<span class="ident">ParaId</span>,
-		<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">ValueQuery</span>,
-	<span class="op">&gt;</span>;
+		Twox64Concat,
+		ParaId,
+		Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt;,
+		ValueQuery,
+	&gt;;
 
-	<span class="doccomment">/// A mapping that stores the downward message queue MQC head for each para.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Each link in this chain has a form:</span>
-	<span class="doccomment">/// `(prev_head, B, H(M))`, where</span>
-	<span class="doccomment">/// - `prev_head`: is the previous head hash or zero if none.</span>
-	<span class="doccomment">/// - `B`: is the relay-chain block number in which a message was appended.</span>
-	<span class="doccomment">/// - `H(M)`: is the hash of the message being appended.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">DownwardMessageQueueHeads</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">ParaId</span>, <span class="ident">Hash</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// A mapping that stores the downward message queue MQC head for each para.
+	///
+	/// Each link in this chain has a form:
+	/// `(prev_head, B, H(M))`, where
+	/// - `prev_head`: is the previous head hash or zero if none.
+	/// - `B`: is the relay-chain block number in which a message was appended.
+	/// - `H(M)`: is the hash of the message being appended.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>DownwardMessageQueueHeads&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, Hash, ValueQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {}
 }
 
-<span class="doccomment">/// Routines and getters related to downward message passing.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Block initialization logic, called by initializer.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_initialize</span>(<span class="ident">_now</span>: <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">Weight::zero</span>()
+<span class="doccomment">/// Routines and getters related to downward message passing.
+</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+	<span class="doccomment">/// Block initialization logic, called by initializer.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+		Weight::zero()
 	}
 
-	<span class="doccomment">/// Block finalization logic, called by initializer.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_finalize</span>() {}
+	<span class="doccomment">/// Block finalization logic, called by initializer.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_finalize() {}
 
-	<span class="doccomment">/// Called by the initializer to note that a new session has started.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_on_new_session</span>(
-		<span class="ident">_notification</span>: <span class="kw-2">&amp;</span><span class="ident">initializer::SessionChangeNotification</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span>,
-		<span class="ident">outgoing_paras</span>: <span class="kw-2">&amp;</span>[<span class="ident">ParaId</span>],
+	<span class="doccomment">/// Called by the initializer to note that a new session has started.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
+		_notification: <span class="kw-2">&amp;</span>initializer::SessionChangeNotification&lt;T::BlockNumber&gt;,
+		outgoing_paras: <span class="kw-2">&amp;</span>[ParaId],
 	) {
-		<span class="ident"><span class="self">Self</span>::perform_outgoing_para_cleanup</span>(<span class="ident">outgoing_paras</span>);
+		<span class="self">Self</span>::perform_outgoing_para_cleanup(outgoing_paras);
 	}
 
-	<span class="doccomment">/// Iterate over all paras that were noted for offboarding and remove all the data</span>
-	<span class="doccomment">/// associated with them.</span>
-	<span class="kw">fn</span> <span class="ident">perform_outgoing_para_cleanup</span>(<span class="ident">outgoing</span>: <span class="kw-2">&amp;</span>[<span class="ident">ParaId</span>]) {
-		<span class="kw">for</span> <span class="ident">outgoing_para</span> <span class="kw">in</span> <span class="ident">outgoing</span> {
-			<span class="ident"><span class="self">Self</span>::clean_dmp_after_outgoing</span>(<span class="ident">outgoing_para</span>);
+	<span class="doccomment">/// Iterate over all paras that were noted for offboarding and remove all the data
+	/// associated with them.
+	</span><span class="kw">fn </span>perform_outgoing_para_cleanup(outgoing: <span class="kw-2">&amp;</span>[ParaId]) {
+		<span class="kw">for </span>outgoing_para <span class="kw">in </span>outgoing {
+			<span class="self">Self</span>::clean_dmp_after_outgoing(outgoing_para);
 		}
 	}
 
-	<span class="doccomment">/// Remove all relevant storage items for an outgoing parachain.</span>
-	<span class="kw">fn</span> <span class="ident">clean_dmp_after_outgoing</span>(<span class="ident">outgoing_para</span>: <span class="kw-2">&amp;</span><span class="ident">ParaId</span>) {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueues::remove</span>(<span class="ident">outgoing_para</span>);
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueueHeads::remove</span>(<span class="ident">outgoing_para</span>);
+	<span class="doccomment">/// Remove all relevant storage items for an outgoing parachain.
+	</span><span class="kw">fn </span>clean_dmp_after_outgoing(outgoing_para: <span class="kw-2">&amp;</span>ParaId) {
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::remove(outgoing_para);
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueueHeads::remove(outgoing_para);
 	}
 
-	<span class="doccomment">/// Enqueue a downward message to a specific recipient para.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// When encoded, the message should not exceed the `config.max_downward_message_size`.</span>
-	<span class="doccomment">/// Otherwise, the message won&#39;t be sent and `Err` will be returned.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// It is possible to send a downward message to a non-existent para. That, however, would lead</span>
-	<span class="doccomment">/// to a dangling storage. If the caller cannot statically prove that the recipient exists</span>
-	<span class="doccomment">/// then the caller should perform a runtime check.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue_downward_message</span>(
-		<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">HostConfiguration</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span>,
-		<span class="ident">para</span>: <span class="ident">ParaId</span>,
-		<span class="ident">msg</span>: <span class="ident">DownwardMessage</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">QueueDownwardMessageError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">serialized_len</span> <span class="op">=</span> <span class="ident">msg</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-		<span class="kw">if</span> <span class="ident">serialized_len</span> <span class="op">&gt;</span> <span class="ident">config</span>.<span class="ident">max_downward_message_size</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">QueueDownwardMessageError::ExceedsMaxMessageSize</span>)
+	<span class="doccomment">/// Enqueue a downward message to a specific recipient para.
+	///
+	/// When encoded, the message should not exceed the `config.max_downward_message_size`.
+	/// Otherwise, the message won&#39;t be sent and `Err` will be returned.
+	///
+	/// It is possible to send a downward message to a non-existent para. That, however, would lead
+	/// to a dangling storage. If the caller cannot statically prove that the recipient exists
+	/// then the caller should perform a runtime check.
+	</span><span class="kw">pub fn </span>queue_downward_message(
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		para: ParaId,
+		msg: DownwardMessage,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), QueueDownwardMessageError&gt; {
+		<span class="kw">let </span>serialized_len = msg.len() <span class="kw">as </span>u32;
+		<span class="kw">if </span>serialized_len &gt; config.max_downward_message_size {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(QueueDownwardMessageError::ExceedsMaxMessageSize)
 		}
 
-		<span class="kw">let</span> <span class="ident">inbound</span> <span class="op">=</span>
-			<span class="ident">InboundDownwardMessage</span> { <span class="ident">msg</span>, <span class="ident">sent_at</span>: <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>() };
+		<span class="kw">let </span>inbound =
+			InboundDownwardMessage { msg, sent_at: &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number() };
 
-		<span class="comment">// obtain the new link in the MQC and update the head.</span>
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueueHeads::mutate</span>(<span class="ident">para</span>, <span class="op">|</span><span class="ident">head</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">new_head</span> <span class="op">=</span>
-				<span class="ident">BlakeTwo256::hash_of</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">head</span>, <span class="ident">inbound</span>.<span class="ident">sent_at</span>, <span class="ident">T::Hashing::hash_of</span>(<span class="kw-2">&amp;</span><span class="ident">inbound</span>.<span class="ident">msg</span>)));
-			<span class="kw-2">*</span><span class="ident">head</span> <span class="op">=</span> <span class="ident">new_head</span>;
+		<span class="comment">// obtain the new link in the MQC and update the head.
+		</span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueueHeads::mutate(para, |head| {
+			<span class="kw">let </span>new_head =
+				BlakeTwo256::hash_of(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>head, inbound.sent_at, T::Hashing::hash_of(<span class="kw-2">&amp;</span>inbound.msg)));
+			<span class="kw-2">*</span>head = new_head;
 		});
 
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueues::mutate</span>(<span class="ident">para</span>, <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-			<span class="ident">v</span>.<span class="ident">push</span>(<span class="ident">inbound</span>);
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::mutate(para, |v| {
+			v.push(inbound);
 		});
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Checks if the number of processed downward messages is valid.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_processed_downward_messages</span>(
-		<span class="ident">para</span>: <span class="ident">ParaId</span>,
-		<span class="ident">processed_downward_messages</span>: <span class="ident">u32</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ProcessedDownwardMessagesAcceptanceErr</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">dmq_length</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::dmq_length</span>(<span class="ident">para</span>);
+	<span class="doccomment">/// Checks if the number of processed downward messages is valid.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_processed_downward_messages(
+		para: ParaId,
+		processed_downward_messages: u32,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessedDownwardMessagesAcceptanceErr&gt; {
+		<span class="kw">let </span>dmq_length = <span class="self">Self</span>::dmq_length(para);
 
-		<span class="kw">if</span> <span class="ident">dmq_length</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">processed_downward_messages</span> <span class="op">==</span> <span class="number">0</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ProcessedDownwardMessagesAcceptanceErr::AdvancementRule</span>)
+		<span class="kw">if </span>dmq_length &gt; <span class="number">0 </span>&amp;&amp; processed_downward_messages == <span class="number">0 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(ProcessedDownwardMessagesAcceptanceErr::AdvancementRule)
 		}
-		<span class="kw">if</span> <span class="ident">dmq_length</span> <span class="op">&lt;</span> <span class="ident">processed_downward_messages</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ProcessedDownwardMessagesAcceptanceErr::Underflow</span> {
-				<span class="ident">processed_downward_messages</span>,
-				<span class="ident">dmq_length</span>,
+		<span class="kw">if </span>dmq_length &lt; processed_downward_messages {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(ProcessedDownwardMessagesAcceptanceErr::Underflow {
+				processed_downward_messages,
+				dmq_length,
 			})
 		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Prunes the specified number of messages from the downward message queue of the given para.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">prune_dmq</span>(<span class="ident">para</span>: <span class="ident">ParaId</span>, <span class="ident">processed_downward_messages</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueues::mutate</span>(<span class="ident">para</span>, <span class="op">|</span><span class="ident">q</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">processed_downward_messages</span> <span class="op">=</span> <span class="ident">processed_downward_messages</span> <span class="kw">as</span> <span class="ident">usize</span>;
-			<span class="kw">if</span> <span class="ident">processed_downward_messages</span> <span class="op">&gt;</span> <span class="ident">q</span>.<span class="ident">len</span>() {
-				<span class="comment">// reaching this branch is unexpected due to the constraint established by</span>
-				<span class="comment">// `check_processed_downward_messages`. But better be safe than sorry.</span>
-				<span class="ident">q</span>.<span class="ident">clear</span>();
-			} <span class="kw">else</span> {
-				<span class="kw-2">*</span><span class="ident">q</span> <span class="op">=</span> <span class="ident">q</span>.<span class="ident">split_off</span>(<span class="ident">processed_downward_messages</span>);
+	<span class="doccomment">/// Prunes the specified number of messages from the downward message queue of the given para.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prune_dmq(para: ParaId, processed_downward_messages: u32) -&gt; Weight {
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::mutate(para, |q| {
+			<span class="kw">let </span>processed_downward_messages = processed_downward_messages <span class="kw">as </span>usize;
+			<span class="kw">if </span>processed_downward_messages &gt; q.len() {
+				<span class="comment">// reaching this branch is unexpected due to the constraint established by
+				// `check_processed_downward_messages`. But better be safe than sorry.
+				</span>q.clear();
+			} <span class="kw">else </span>{
+				<span class="kw-2">*</span>q = q.split_off(processed_downward_messages);
 			}
 		});
-		<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="number">1</span>)
+		T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
 	}
 
-	<span class="doccomment">/// Returns the Head of Message Queue Chain for the given para or `None` if there is none</span>
-	<span class="doccomment">/// associated with it.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">dmq_mqc_head</span>(<span class="ident">para</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">Hash</span> {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueueHeads::get</span>(<span class="kw-2">&amp;</span><span class="ident">para</span>)
+	<span class="doccomment">/// Returns the Head of Message Queue Chain for the given para or `None` if there is none
+	/// associated with it.
+	</span><span class="attribute">#[cfg(test)]
+	</span><span class="kw">fn </span>dmq_mqc_head(para: ParaId) -&gt; Hash {
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueueHeads::get(<span class="kw-2">&amp;</span>para)
 	}
 
-	<span class="doccomment">/// Returns the number of pending downward messages addressed to the given para.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns 0 if the para doesn&#39;t have an associated downward message queue.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dmq_length</span>(<span class="ident">para</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">u32</span> {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueues::decode_len</span>(<span class="kw-2">&amp;</span><span class="ident">para</span>)
-			.<span class="ident">unwrap_or</span>(<span class="number">0</span>)
-			.<span class="ident">saturated_into</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()
+	<span class="doccomment">/// Returns the number of pending downward messages addressed to the given para.
+	///
+	/// Returns 0 if the para doesn&#39;t have an associated downward message queue.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_length(para: ParaId) -&gt; u32 {
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::decode_len(<span class="kw-2">&amp;</span>para)
+			.unwrap_or(<span class="number">0</span>)
+			.saturated_into::&lt;u32&gt;()
 	}
 
-	<span class="doccomment">/// Returns the downward message queue contents for the given para.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The most recent messages are the latest in the vector.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dmq_contents</span>(<span class="ident">recipient</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InboundDownwardMessage</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::DownwardMessageQueues::get</span>(<span class="kw-2">&amp;</span><span class="ident">recipient</span>)
+	<span class="doccomment">/// Returns the downward message queue contents for the given para.
+	///
+	/// The most recent messages are the latest in the vector.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(recipient: ParaId) -&gt; Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt; {
+		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::get(<span class="kw-2">&amp;</span>recipient)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

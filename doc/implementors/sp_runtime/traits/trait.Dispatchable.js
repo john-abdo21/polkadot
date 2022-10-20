@@ -1,9 +1,9 @@
-(function() {var implementors = {};
-implementors["kusama_runtime"] = [{"text":"impl Dispatchable for <a class=\"enum\" href=\"kusama_runtime/enum.RuntimeCall.html\" title=\"enum kusama_runtime::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["kusama_runtime::RuntimeCall"]}];
-implementors["polkadot_runtime"] = [{"text":"impl Dispatchable for <a class=\"enum\" href=\"polkadot_runtime/enum.RuntimeCall.html\" title=\"enum polkadot_runtime::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["polkadot_runtime::RuntimeCall"]}];
-implementors["polkadot_service"] = [];
-implementors["polkadot_test_runtime"] = [{"text":"impl Dispatchable for <a class=\"enum\" href=\"polkadot_test_runtime/enum.RuntimeCall.html\" title=\"enum polkadot_test_runtime::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["polkadot_test_runtime::RuntimeCall"]}];
-implementors["rococo_runtime"] = [{"text":"impl Dispatchable for <a class=\"enum\" href=\"rococo_runtime/enum.RuntimeCall.html\" title=\"enum rococo_runtime::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["rococo_runtime::RuntimeCall"]}];
-implementors["westend_runtime"] = [{"text":"impl Dispatchable for <a class=\"enum\" href=\"westend_runtime/enum.RuntimeCall.html\" title=\"enum westend_runtime::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["westend_runtime::RuntimeCall"]}];
-implementors["xcm_fuzzer"] = [{"text":"impl Dispatchable for <a class=\"enum\" href=\"xcm_fuzzer/parachain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::parachain::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["xcm_fuzzer::parachain::RuntimeCall"]},{"text":"impl Dispatchable for <a class=\"enum\" href=\"xcm_fuzzer/relay_chain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::relay_chain::RuntimeCall\">RuntimeCall</a>","synthetic":false,"types":["xcm_fuzzer::relay_chain::RuntimeCall"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"kusama_runtime":[["impl Dispatchable for <a class=\"enum\" href=\"kusama_runtime/enum.RuntimeCall.html\" title=\"enum kusama_runtime::RuntimeCall\">RuntimeCall</a>"]],
+"polkadot_runtime":[["impl Dispatchable for <a class=\"enum\" href=\"polkadot_runtime/enum.RuntimeCall.html\" title=\"enum polkadot_runtime::RuntimeCall\">RuntimeCall</a>"]],
+"polkadot_service":[],
+"polkadot_test_runtime":[["impl Dispatchable for <a class=\"enum\" href=\"polkadot_test_runtime/enum.RuntimeCall.html\" title=\"enum polkadot_test_runtime::RuntimeCall\">RuntimeCall</a>"]],
+"rococo_runtime":[["impl Dispatchable for <a class=\"enum\" href=\"rococo_runtime/enum.RuntimeCall.html\" title=\"enum rococo_runtime::RuntimeCall\">RuntimeCall</a>"]],
+"westend_runtime":[["impl Dispatchable for <a class=\"enum\" href=\"westend_runtime/enum.RuntimeCall.html\" title=\"enum westend_runtime::RuntimeCall\">RuntimeCall</a>"]],
+"xcm_fuzzer":[["impl Dispatchable for <a class=\"enum\" href=\"xcm_fuzzer/parachain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::parachain::RuntimeCall\">RuntimeCall</a>"],["impl Dispatchable for <a class=\"enum\" href=\"xcm_fuzzer/relay_chain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::relay_chain::RuntimeCall\">RuntimeCall</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

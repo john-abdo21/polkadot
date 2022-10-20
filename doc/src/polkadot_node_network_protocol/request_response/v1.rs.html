@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/request_response/v1.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>v1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/network/protocol/src/request_response/v1.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>v1.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_network_protocol/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_network_protocol/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -221,223 +215,222 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Requests and responses as sent over the wire for the individual protocols.</span>
+</span><span class="doccomment">//! Requests and responses as sent over the wire for the individual protocols.
 
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 
-<span class="kw">use</span> <span class="ident">polkadot_node_primitives</span>::{
-	<span class="ident">AvailableData</span>, <span class="ident">DisputeMessage</span>, <span class="ident">ErasureChunk</span>, <span class="ident">PoV</span>, <span class="ident">Proof</span>, <span class="ident">UncheckedDisputeMessage</span>,
+<span class="kw">use </span>polkadot_node_primitives::{
+	AvailableData, DisputeMessage, ErasureChunk, PoV, Proof, UncheckedDisputeMessage,
 };
-<span class="kw">use</span> <span class="ident">polkadot_primitives::v2</span>::{
-	<span class="ident">CandidateHash</span>, <span class="ident">CandidateReceipt</span>, <span class="ident">CommittedCandidateReceipt</span>, <span class="ident">Hash</span>, <span class="ident">Id</span> <span class="kw">as</span> <span class="ident">ParaId</span>, <span class="ident">ValidatorIndex</span>,
+<span class="kw">use </span>polkadot_primitives::v2::{
+	CandidateHash, CandidateReceipt, CommittedCandidateReceipt, Hash, Id <span class="kw">as </span>ParaId, ValidatorIndex,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">IsRequest</span>, <span class="ident">Protocol</span>};
+<span class="kw">use super</span>::{IsRequest, Protocol};
 
-<span class="doccomment">/// Request an availability chunk.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChunkFetchingRequest</span> {
-	<span class="doccomment">/// Hash of candidate we want a chunk for.</span>
-	<span class="kw">pub</span> <span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
-	<span class="doccomment">/// The index of the chunk to fetch.</span>
-	<span class="kw">pub</span> <span class="ident">index</span>: <span class="ident">ValidatorIndex</span>,
+<span class="doccomment">/// Request an availability chunk.
+</span><span class="attribute">#[derive(Debug, Copy, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>ChunkFetchingRequest {
+	<span class="doccomment">/// Hash of candidate we want a chunk for.
+	</span><span class="kw">pub </span>candidate_hash: CandidateHash,
+	<span class="doccomment">/// The index of the chunk to fetch.
+	</span><span class="kw">pub </span>index: ValidatorIndex,
 }
 
-<span class="doccomment">/// Receive a requested erasure chunk.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ChunkFetchingResponse</span> {
-	<span class="doccomment">/// The requested chunk data.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>)]</span>
-	<span class="ident">Chunk</span>(<span class="ident">ChunkResponse</span>),
-	<span class="doccomment">/// Node was not in possession of the requested chunk.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">1</span>)]</span>
-	<span class="ident">NoSuchChunk</span>,
+<span class="doccomment">/// Receive a requested erasure chunk.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub enum </span>ChunkFetchingResponse {
+	<span class="doccomment">/// The requested chunk data.
+	</span><span class="attribute">#[codec(index = <span class="number">0</span>)]
+	</span>Chunk(ChunkResponse),
+	<span class="doccomment">/// Node was not in possession of the requested chunk.
+	</span><span class="attribute">#[codec(index = <span class="number">1</span>)]
+	</span>NoSuchChunk,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChunkResponse</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChunkFetchingResponse</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ChunkResponse</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">x</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">ChunkFetchingResponse::Chunk</span>(<span class="ident">c</span>),
-			<span class="prelude-val">None</span> =&gt; <span class="ident">ChunkFetchingResponse::NoSuchChunk</span>,
+<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;ChunkResponse&gt;&gt; <span class="kw">for </span>ChunkFetchingResponse {
+	<span class="kw">fn </span>from(x: <span class="prelude-ty">Option</span>&lt;ChunkResponse&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>x {
+			<span class="prelude-val">Some</span>(c) =&gt; ChunkFetchingResponse::Chunk(c),
+			<span class="prelude-val">None </span>=&gt; ChunkFetchingResponse::NoSuchChunk,
 		}
 	}
 }
 
-<span class="doccomment">/// Skimmed down variant of `ErasureChunk`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Instead of transmitting a full `ErasureChunk` we transmit `ChunkResponse` in</span>
-<span class="doccomment">/// `ChunkFetchingResponse`, which omits the chunk&#39;s index. The index is already known by</span>
-<span class="doccomment">/// the requester and by not transmitting it, we ensure the requester is going to use his index</span>
-<span class="doccomment">/// value for validating the response, thus making sure he got what he requested.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChunkResponse</span> {
-	<span class="doccomment">/// The erasure-encoded chunk of data belonging to the candidate block.</span>
-	<span class="kw">pub</span> <span class="ident">chunk</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Proof for this chunk&#39;s branch in the Merkle tree.</span>
-	<span class="kw">pub</span> <span class="ident">proof</span>: <span class="ident">Proof</span>,
+<span class="doccomment">/// Skimmed down variant of `ErasureChunk`.
+///
+/// Instead of transmitting a full `ErasureChunk` we transmit `ChunkResponse` in
+/// `ChunkFetchingResponse`, which omits the chunk&#39;s index. The index is already known by
+/// the requester and by not transmitting it, we ensure the requester is going to use his index
+/// value for validating the response, thus making sure he got what he requested.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>ChunkResponse {
+	<span class="doccomment">/// The erasure-encoded chunk of data belonging to the candidate block.
+	</span><span class="kw">pub </span>chunk: Vec&lt;u8&gt;,
+	<span class="doccomment">/// Proof for this chunk&#39;s branch in the Merkle tree.
+	</span><span class="kw">pub </span>proof: Proof,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ErasureChunk</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChunkResponse</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ErasureChunk</span> { <span class="ident">chunk</span>, <span class="ident">index</span>: <span class="kw">_</span>, <span class="ident">proof</span> }: <span class="ident">ErasureChunk</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">ChunkResponse</span> { <span class="ident">chunk</span>, <span class="ident">proof</span> }
+<span class="kw">impl </span>From&lt;ErasureChunk&gt; <span class="kw">for </span>ChunkResponse {
+	<span class="kw">fn </span>from(ErasureChunk { chunk, index: <span class="kw">_</span>, proof }: ErasureChunk) -&gt; <span class="self">Self </span>{
+		ChunkResponse { chunk, proof }
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">ChunkResponse</span> {
-	<span class="doccomment">/// Re-build an `ErasureChunk` from response and request.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recombine_into_chunk</span>(<span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">ChunkFetchingRequest</span>) -&gt; <span class="ident">ErasureChunk</span> {
-		<span class="ident">ErasureChunk</span> { <span class="ident">chunk</span>: <span class="self">self</span>.<span class="ident">chunk</span>, <span class="ident">proof</span>: <span class="self">self</span>.<span class="ident">proof</span>, <span class="ident">index</span>: <span class="ident">req</span>.<span class="ident">index</span> }
+<span class="kw">impl </span>ChunkResponse {
+	<span class="doccomment">/// Re-build an `ErasureChunk` from response and request.
+	</span><span class="kw">pub fn </span>recombine_into_chunk(<span class="self">self</span>, req: <span class="kw-2">&amp;</span>ChunkFetchingRequest) -&gt; ErasureChunk {
+		ErasureChunk { chunk: <span class="self">self</span>.chunk, proof: <span class="self">self</span>.proof, index: req.index }
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">IsRequest</span> <span class="kw">for</span> <span class="ident">ChunkFetchingRequest</span> {
-	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">ChunkFetchingResponse</span>;
-	<span class="kw">const</span> <span class="ident">PROTOCOL</span>: <span class="ident">Protocol</span> <span class="op">=</span> <span class="ident">Protocol::ChunkFetchingV1</span>;
+<span class="kw">impl </span>IsRequest <span class="kw">for </span>ChunkFetchingRequest {
+	<span class="kw">type </span>Response = ChunkFetchingResponse;
+	<span class="kw">const </span>PROTOCOL: Protocol = Protocol::ChunkFetchingV1;
 }
 
-<span class="doccomment">/// Request the advertised collation at that relay-parent.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CollationFetchingRequest</span> {
-	<span class="doccomment">/// Relay parent we want a collation for.</span>
-	<span class="kw">pub</span> <span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-	<span class="doccomment">/// The `ParaId` of the collation.</span>
-	<span class="kw">pub</span> <span class="ident">para_id</span>: <span class="ident">ParaId</span>,
+<span class="doccomment">/// Request the advertised collation at that relay-parent.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>CollationFetchingRequest {
+	<span class="doccomment">/// Relay parent we want a collation for.
+	</span><span class="kw">pub </span>relay_parent: Hash,
+	<span class="doccomment">/// The `ParaId` of the collation.
+	</span><span class="kw">pub </span>para_id: ParaId,
 }
 
-<span class="doccomment">/// Responses as sent by collators.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CollationFetchingResponse</span> {
-	<span class="doccomment">/// Deliver requested collation.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>)]</span>
-	<span class="ident">Collation</span>(<span class="ident">CandidateReceipt</span>, <span class="ident">PoV</span>),
+<span class="doccomment">/// Responses as sent by collators.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub enum </span>CollationFetchingResponse {
+	<span class="doccomment">/// Deliver requested collation.
+	</span><span class="attribute">#[codec(index = <span class="number">0</span>)]
+	</span>Collation(CandidateReceipt, PoV),
 }
 
-<span class="kw">impl</span> <span class="ident">IsRequest</span> <span class="kw">for</span> <span class="ident">CollationFetchingRequest</span> {
-	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">CollationFetchingResponse</span>;
-	<span class="kw">const</span> <span class="ident">PROTOCOL</span>: <span class="ident">Protocol</span> <span class="op">=</span> <span class="ident">Protocol::CollationFetchingV1</span>;
+<span class="kw">impl </span>IsRequest <span class="kw">for </span>CollationFetchingRequest {
+	<span class="kw">type </span>Response = CollationFetchingResponse;
+	<span class="kw">const </span>PROTOCOL: Protocol = Protocol::CollationFetchingV1;
 }
 
-<span class="doccomment">/// Request the advertised collation at that relay-parent.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PoVFetchingRequest</span> {
-	<span class="doccomment">/// Candidate we want a PoV for.</span>
-	<span class="kw">pub</span> <span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
+<span class="doccomment">/// Request the advertised collation at that relay-parent.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>PoVFetchingRequest {
+	<span class="doccomment">/// Candidate we want a PoV for.
+	</span><span class="kw">pub </span>candidate_hash: CandidateHash,
 }
 
-<span class="doccomment">/// Responses to `PoVFetchingRequest`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PoVFetchingResponse</span> {
-	<span class="doccomment">/// Deliver requested PoV.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>)]</span>
-	<span class="ident">PoV</span>(<span class="ident">PoV</span>),
-	<span class="doccomment">/// PoV was not found in store.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">1</span>)]</span>
-	<span class="ident">NoSuchPoV</span>,
+<span class="doccomment">/// Responses to `PoVFetchingRequest`.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub enum </span>PoVFetchingResponse {
+	<span class="doccomment">/// Deliver requested PoV.
+	</span><span class="attribute">#[codec(index = <span class="number">0</span>)]
+	</span>PoV(PoV),
+	<span class="doccomment">/// PoV was not found in store.
+	</span><span class="attribute">#[codec(index = <span class="number">1</span>)]
+	</span>NoSuchPoV,
 }
 
-<span class="kw">impl</span> <span class="ident">IsRequest</span> <span class="kw">for</span> <span class="ident">PoVFetchingRequest</span> {
-	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">PoVFetchingResponse</span>;
-	<span class="kw">const</span> <span class="ident">PROTOCOL</span>: <span class="ident">Protocol</span> <span class="op">=</span> <span class="ident">Protocol::PoVFetchingV1</span>;
+<span class="kw">impl </span>IsRequest <span class="kw">for </span>PoVFetchingRequest {
+	<span class="kw">type </span>Response = PoVFetchingResponse;
+	<span class="kw">const </span>PROTOCOL: Protocol = Protocol::PoVFetchingV1;
 }
 
-<span class="doccomment">/// Request the entire available data for a candidate.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AvailableDataFetchingRequest</span> {
-	<span class="doccomment">/// The candidate hash to get the available data for.</span>
-	<span class="kw">pub</span> <span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
+<span class="doccomment">/// Request the entire available data for a candidate.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>AvailableDataFetchingRequest {
+	<span class="doccomment">/// The candidate hash to get the available data for.
+	</span><span class="kw">pub </span>candidate_hash: CandidateHash,
 }
 
-<span class="doccomment">/// Receive a requested available data.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AvailableDataFetchingResponse</span> {
-	<span class="doccomment">/// The requested data.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>)]</span>
-	<span class="ident">AvailableData</span>(<span class="ident">AvailableData</span>),
-	<span class="doccomment">/// Node was not in possession of the requested data.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">1</span>)]</span>
-	<span class="ident">NoSuchData</span>,
+<span class="doccomment">/// Receive a requested available data.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub enum </span>AvailableDataFetchingResponse {
+	<span class="doccomment">/// The requested data.
+	</span><span class="attribute">#[codec(index = <span class="number">0</span>)]
+	</span>AvailableData(AvailableData),
+	<span class="doccomment">/// Node was not in possession of the requested data.
+	</span><span class="attribute">#[codec(index = <span class="number">1</span>)]
+	</span>NoSuchData,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AvailableData</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AvailableDataFetchingResponse</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AvailableData</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">x</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">data</span>) =&gt; <span class="ident">AvailableDataFetchingResponse::AvailableData</span>(<span class="ident">data</span>),
-			<span class="prelude-val">None</span> =&gt; <span class="ident">AvailableDataFetchingResponse::NoSuchData</span>,
+<span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;AvailableData&gt;&gt; <span class="kw">for </span>AvailableDataFetchingResponse {
+	<span class="kw">fn </span>from(x: <span class="prelude-ty">Option</span>&lt;AvailableData&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>x {
+			<span class="prelude-val">Some</span>(data) =&gt; AvailableDataFetchingResponse::AvailableData(data),
+			<span class="prelude-val">None </span>=&gt; AvailableDataFetchingResponse::NoSuchData,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">IsRequest</span> <span class="kw">for</span> <span class="ident">AvailableDataFetchingRequest</span> {
-	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">AvailableDataFetchingResponse</span>;
-	<span class="kw">const</span> <span class="ident">PROTOCOL</span>: <span class="ident">Protocol</span> <span class="op">=</span> <span class="ident">Protocol::AvailableDataFetchingV1</span>;
+<span class="kw">impl </span>IsRequest <span class="kw">for </span>AvailableDataFetchingRequest {
+	<span class="kw">type </span>Response = AvailableDataFetchingResponse;
+	<span class="kw">const </span>PROTOCOL: Protocol = Protocol::AvailableDataFetchingV1;
 }
 
-<span class="doccomment">/// Request for fetching a large statement via request/response.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatementFetchingRequest</span> {
-	<span class="doccomment">/// Data needed to locate and identify the needed statement.</span>
-	<span class="kw">pub</span> <span class="ident">relay_parent</span>: <span class="ident">Hash</span>,
-	<span class="doccomment">/// Hash of candidate that was used create the `CommitedCandidateRecept`.</span>
-	<span class="kw">pub</span> <span class="ident">candidate_hash</span>: <span class="ident">CandidateHash</span>,
+<span class="doccomment">/// Request for fetching a large statement via request/response.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub struct </span>StatementFetchingRequest {
+	<span class="doccomment">/// Data needed to locate and identify the needed statement.
+	</span><span class="kw">pub </span>relay_parent: Hash,
+	<span class="doccomment">/// Hash of candidate that was used create the `CommitedCandidateRecept`.
+	</span><span class="kw">pub </span>candidate_hash: CandidateHash,
 }
 
-<span class="doccomment">/// Respond with found full statement.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In this protocol the requester will only request data it was previously notified about,</span>
-<span class="doccomment">/// therefore not having the data is not really an option and would just result in a</span>
-<span class="doccomment">/// `RequestFailure`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StatementFetchingResponse</span> {
-	<span class="doccomment">/// Data missing to reconstruct the full signed statement.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>)]</span>
-	<span class="ident">Statement</span>(<span class="ident">CommittedCandidateReceipt</span>),
+<span class="doccomment">/// Respond with found full statement.
+///
+/// In this protocol the requester will only request data it was previously notified about,
+/// therefore not having the data is not really an option and would just result in a
+/// `RequestFailure`.
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub enum </span>StatementFetchingResponse {
+	<span class="doccomment">/// Data missing to reconstruct the full signed statement.
+	</span><span class="attribute">#[codec(index = <span class="number">0</span>)]
+	</span>Statement(CommittedCandidateReceipt),
 }
 
-<span class="kw">impl</span> <span class="ident">IsRequest</span> <span class="kw">for</span> <span class="ident">StatementFetchingRequest</span> {
-	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">StatementFetchingResponse</span>;
-	<span class="kw">const</span> <span class="ident">PROTOCOL</span>: <span class="ident">Protocol</span> <span class="op">=</span> <span class="ident">Protocol::StatementFetchingV1</span>;
+<span class="kw">impl </span>IsRequest <span class="kw">for </span>StatementFetchingRequest {
+	<span class="kw">type </span>Response = StatementFetchingResponse;
+	<span class="kw">const </span>PROTOCOL: Protocol = Protocol::StatementFetchingV1;
 }
 
-<span class="doccomment">/// A dispute request.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Contains an invalid vote a valid one for a particular candidate in a given session.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DisputeRequest</span>(<span class="kw">pub</span> <span class="ident">UncheckedDisputeMessage</span>);
+<span class="doccomment">/// A dispute request.
+///
+/// Contains an invalid vote a valid one for a particular candidate in a given session.
+</span><span class="attribute">#[derive(Clone, Encode, Decode, Debug)]
+</span><span class="kw">pub struct </span>DisputeRequest(<span class="kw">pub </span>UncheckedDisputeMessage);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DisputeMessage</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DisputeRequest</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">msg</span>: <span class="ident">DisputeMessage</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span>(<span class="ident">msg</span>.<span class="ident">into</span>())
+<span class="kw">impl </span>From&lt;DisputeMessage&gt; <span class="kw">for </span>DisputeRequest {
+	<span class="kw">fn </span>from(msg: DisputeMessage) -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>(msg.into())
 	}
 }
 
-<span class="doccomment">/// Possible responses to a `DisputeRequest`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DisputeResponse</span> {
-	<span class="doccomment">/// Recipient successfully processed the dispute request.</span>
-	<span class="attribute">#[<span class="ident">codec</span>(<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>)]</span>
-	<span class="ident">Confirmed</span>,
+<span class="doccomment">/// Possible responses to a `DisputeRequest`.
+</span><span class="attribute">#[derive(Encode, Decode, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>DisputeResponse {
+	<span class="doccomment">/// Recipient successfully processed the dispute request.
+	</span><span class="attribute">#[codec(index = <span class="number">0</span>)]
+	</span>Confirmed,
 }
 
-<span class="kw">impl</span> <span class="ident">IsRequest</span> <span class="kw">for</span> <span class="ident">DisputeRequest</span> {
-	<span class="kw">type</span> <span class="ident">Response</span> <span class="op">=</span> <span class="ident">DisputeResponse</span>;
-	<span class="kw">const</span> <span class="ident">PROTOCOL</span>: <span class="ident">Protocol</span> <span class="op">=</span> <span class="ident">Protocol::DisputeSendingV1</span>;
+<span class="kw">impl </span>IsRequest <span class="kw">for </span>DisputeRequest {
+	<span class="kw">type </span>Response = DisputeResponse;
+	<span class="kw">const </span>PROTOCOL: Protocol = Protocol::DisputeSendingV1;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_network_protocol" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

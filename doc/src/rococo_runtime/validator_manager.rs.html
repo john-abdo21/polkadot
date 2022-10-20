@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/rococo/src/validator_manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator_manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../rococo_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../rococo_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rococo_runtime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/rococo/src/validator_manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator_manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../rococo_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rococo_runtime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -145,147 +139,146 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! A pallet for managing validators on Rococo.</span>
+</span><span class="doccomment">//! A pallet for managing validators on Rococo.
 
-<span class="kw">use</span> <span class="ident">sp_staking::SessionIndex</span>;
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+</span><span class="kw">use </span>sp_staking::SessionIndex;
+<span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="kw">type</span> <span class="ident">Session</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">pallet_session::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+<span class="kw">type </span>Session&lt;T&gt; = pallet_session::Pallet&lt;T&gt;;
 
-<span class="attribute">#[<span class="ident">frame_support::pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">dispatch::DispatchResult</span>, <span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>, <span class="ident">traits::EnsureOrigin</span>};
-	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[frame_support::pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::{dispatch::DispatchResult, pallet_prelude::<span class="kw-2">*</span>, traits::EnsureOrigin};
+	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
-	<span class="doccomment">/// Configuration for the parachain proposer.</span>
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> <span class="op">+</span> <span class="ident">pallet_session::Config</span> {
-		<span class="doccomment">/// The overreaching event type.</span>
-		<span class="kw">type</span> <span class="ident">RuntimeEvent</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::RuntimeEvent</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Configuration for the parachain proposer.
+	</span><span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config + pallet_session::Config {
+		<span class="doccomment">/// The overreaching event type.
+		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 
-		<span class="doccomment">/// Privileged origin that can add or remove validators.</span>
-		<span class="kw">type</span> <span class="ident">PrivilegedOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::RuntimeOrigin</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Privileged origin that can add or remove validators.
+		</span><span class="kw">type </span>PrivilegedOrigin: EnsureOrigin&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin&gt;;
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_deposit</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">deposit_event</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// New validators were added to the set.</span>
-		<span class="ident">ValidatorsRegistered</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span>),
-		<span class="doccomment">/// Validators were removed from the set.</span>
-		<span class="ident">ValidatorsDeregistered</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span>),
+	<span class="attribute">#[pallet::event]
+	#[pallet::generate_deposit(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>deposit_event)]
+	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
+		<span class="doccomment">/// New validators were added to the set.
+		</span>ValidatorsRegistered(Vec&lt;T::ValidatorId&gt;),
+		<span class="doccomment">/// Validators were removed from the set.
+		</span>ValidatorsDeregistered(Vec&lt;T::ValidatorId&gt;),
 	}
 
-	<span class="doccomment">/// Validators that should be retired, because their Parachain was deregistered.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ValidatorsToRetire</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Validators that should be retired, because their Parachain was deregistered.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ValidatorsToRetire&lt;T: Config&gt; =
+		StorageValue&lt;<span class="kw">_</span>, Vec&lt;T::ValidatorId&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// Validators that should be added.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ValidatorsToAdd</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Validators that should be added.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ValidatorsToAdd&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;T::ValidatorId&gt;, ValueQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Add new validators to the set.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// The new validators will be active from current session + 2.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="number">100_000</span>)]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_validators</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::PrivilegedOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="doccomment">/// Add new validators to the set.
+		///
+		/// The new validators will be active from current session + 2.
+		</span><span class="attribute">#[pallet::weight(<span class="number">100_000</span>)]
+		</span><span class="kw">pub fn </span>register_validators(
+			origin: OriginFor&lt;T&gt;,
+			validators: Vec&lt;T::ValidatorId&gt;,
+		) -&gt; DispatchResult {
+			T::PrivilegedOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
-			<span class="ident">validators</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">ValidatorsToAdd</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::append</span>(<span class="ident">v</span>));
+			validators.clone().into_iter().for_each(|v| ValidatorsToAdd::&lt;T&gt;::append(v));
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::ValidatorsRegistered</span>(<span class="ident">validators</span>));
+			<span class="self">Self</span>::deposit_event(Event::ValidatorsRegistered(validators));
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Remove validators from the set.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// The removed validators will be deactivated from current session + 2.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="number">100_000</span>)]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deregister_validators</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">validators</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::PrivilegedOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove validators from the set.
+		///
+		/// The removed validators will be deactivated from current session + 2.
+		</span><span class="attribute">#[pallet::weight(<span class="number">100_000</span>)]
+		</span><span class="kw">pub fn </span>deregister_validators(
+			origin: OriginFor&lt;T&gt;,
+			validators: Vec&lt;T::ValidatorId&gt;,
+		) -&gt; DispatchResult {
+			T::PrivilegedOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
-			<span class="ident">validators</span>.<span class="ident">clone</span>().<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">ValidatorsToRetire</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::append</span>(<span class="ident">v</span>));
+			validators.clone().into_iter().for_each(|v| ValidatorsToRetire::&lt;T&gt;::append(v));
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::ValidatorsDeregistered</span>(<span class="ident">validators</span>));
+			<span class="self">Self</span>::deposit_event(Event::ValidatorsDeregistered(validators));
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">pallet_session::SessionManager</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">new_session</span>(<span class="ident">new_index</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="ident">new_index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> {
-			<span class="kw">return</span> <span class="prelude-val">None</span>
-		}
+<span class="kw">impl</span>&lt;T: Config&gt; pallet_session::SessionManager&lt;T::ValidatorId&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+	<span class="kw">fn </span>new_session(new_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;T::ValidatorId&gt;&gt; {
+		<span class="kw">if </span>new_index &lt;= <span class="number">1 </span>{
+			<span class="kw">return </span><span class="prelude-val">None
+		</span>}
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">validators</span> <span class="op">=</span> <span class="ident">Session</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::validators</span>();
+		<span class="kw">let </span><span class="kw-2">mut </span>validators = Session::&lt;T&gt;::validators();
 
-		<span class="ident">ValidatorsToRetire</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::take</span>().<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>) <span class="op">=</span> <span class="ident">validators</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span> <span class="op">==</span> <span class="ident">v</span>) {
-				<span class="ident">validators</span>.<span class="ident">swap_remove</span>(<span class="ident">pos</span>);
+		ValidatorsToRetire::&lt;T&gt;::take().iter().for_each(|v| {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(pos) = validators.iter().position(|r| r == v) {
+				validators.swap_remove(pos);
 			}
 		});
 
-		<span class="ident">ValidatorsToAdd</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::take</span>().<span class="ident">into_iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">validators</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
-				<span class="ident">validators</span>.<span class="ident">push</span>(<span class="ident">v</span>);
+		ValidatorsToAdd::&lt;T&gt;::take().into_iter().for_each(|v| {
+			<span class="kw">if </span>!validators.contains(<span class="kw-2">&amp;</span>v) {
+				validators.push(v);
 			}
 		});
 
-		<span class="prelude-val">Some</span>(<span class="ident">validators</span>)
+		<span class="prelude-val">Some</span>(validators)
 	}
 
-	<span class="kw">fn</span> <span class="ident">end_session</span>(<span class="kw">_</span>: <span class="ident">SessionIndex</span>) {}
+	<span class="kw">fn </span>end_session(<span class="kw">_</span>: SessionIndex) {}
 
-	<span class="kw">fn</span> <span class="ident">start_session</span>(<span class="ident">_start_index</span>: <span class="ident">SessionIndex</span>) {}
+	<span class="kw">fn </span>start_session(_start_index: SessionIndex) {}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">pallet_session::historical::SessionManager</span><span class="op">&lt;</span><span class="ident">T::ValidatorId</span>, ()<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">new_session</span>(<span class="ident">new_index</span>: <span class="ident">SessionIndex</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">T::ValidatorId</span>, ())<span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">pallet_session::SessionManager</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::new_session</span>(<span class="ident">new_index</span>)
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> (<span class="ident">v</span>, <span class="ident">Default::default</span>())).<span class="ident">collect</span>())
+<span class="kw">impl</span>&lt;T: Config&gt; pallet_session::historical::SessionManager&lt;T::ValidatorId, ()&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+	<span class="kw">fn </span>new_session(new_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;(T::ValidatorId, ())&gt;&gt; {
+		&lt;<span class="self">Self </span><span class="kw">as </span>pallet_session::SessionManager&lt;<span class="kw">_</span>&gt;&gt;::new_session(new_index)
+			.map(|r| r.into_iter().map(|v| (v, Default::default())).collect())
 	}
 
-	<span class="kw">fn</span> <span class="ident">start_session</span>(<span class="ident">start_index</span>: <span class="ident">SessionIndex</span>) {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">pallet_session::SessionManager</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::start_session</span>(<span class="ident">start_index</span>)
+	<span class="kw">fn </span>start_session(start_index: SessionIndex) {
+		&lt;<span class="self">Self </span><span class="kw">as </span>pallet_session::SessionManager&lt;<span class="kw">_</span>&gt;&gt;::start_session(start_index)
 	}
 
-	<span class="kw">fn</span> <span class="ident">end_session</span>(<span class="ident">end_index</span>: <span class="ident">SessionIndex</span>) {
-		<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">pallet_session::SessionManager</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::end_session</span>(<span class="ident">end_index</span>)
+	<span class="kw">fn </span>end_session(end_index: SessionIndex) {
+		&lt;<span class="self">Self </span><span class="kw">as </span>pallet_session::SessionManager&lt;<span class="kw">_</span>&gt;&gt;::end_session(end_index)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rococo_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rococo_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/configuration/migration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/configuration/migration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -347,349 +341,348 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! A module that is responsible for migration of storage.</span>
+</span><span class="doccomment">//! A module that is responsible for migration of storage.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::configuration</span>::{<span class="self">self</span>, <span class="ident">Config</span>, <span class="ident">Pallet</span>, <span class="ident">Store</span>, <span class="ident">MAX_POV_SIZE</span>};
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>,
-	<span class="ident">traits::StorageVersion</span>,
-	<span class="ident">weights</span>::{<span class="ident">OldWeight</span>, <span class="ident">Weight</span>},
+</span><span class="kw">use </span><span class="kw">crate</span>::configuration::{<span class="self">self</span>, Config, Pallet, Store, MAX_POV_SIZE};
+<span class="kw">use </span>frame_support::{
+	pallet_prelude::<span class="kw-2">*</span>,
+	traits::StorageVersion,
+	weights::{OldWeight, Weight},
 };
-<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude::BlockNumberFor</span>;
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 
-<span class="doccomment">/// The current storage version.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// v0-v1: &lt;https://github.com/paritytech/polkadot/pull/3575&gt;</span>
-<span class="doccomment">/// v1-v2: &lt;https://github.com/paritytech/polkadot/pull/4420&gt;</span>
-<span class="doccomment">/// v2-v3: &lt;https://github.com/paritytech/polkadot/pull/6091&gt;</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STORAGE_VERSION</span>: <span class="ident">StorageVersion</span> <span class="op">=</span> <span class="ident">StorageVersion::new</span>(<span class="number">3</span>);
+<span class="doccomment">/// The current storage version.
+///
+/// v0-v1: &lt;https://github.com/paritytech/polkadot/pull/3575&gt;
+/// v1-v2: &lt;https://github.com/paritytech/polkadot/pull/4420&gt;
+/// v2-v3: &lt;https://github.com/paritytech/polkadot/pull/6091&gt;
+</span><span class="kw">pub const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">3</span>);
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">v3</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgrade</span>;
-	<span class="kw">use</span> <span class="ident">primitives::v2</span>::{<span class="ident">Balance</span>, <span class="ident">SessionIndex</span>};
+<span class="kw">pub mod </span>v3 {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::traits::OnRuntimeUpgrade;
+	<span class="kw">use </span>primitives::v2::{Balance, SessionIndex};
 
-	<span class="comment">// Copied over from configuration.rs @ de9e147695b9f1be8bd44e07861a31e483c8343a and removed</span>
-	<span class="comment">// all the comments, and changed the Weight struct to OldWeight</span>
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">parity_scale_codec::Encode</span>, <span class="ident">parity_scale_codec::Decode</span>, <span class="ident">Debug</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OldHostConfiguration</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> {
-		<span class="kw">pub</span> <span class="ident">max_code_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_head_data_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_upward_queue_count</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_upward_queue_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_upward_message_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_upward_message_num_per_candidate</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_max_message_num_per_candidate</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">validation_upgrade_cooldown</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">validation_upgrade_delay</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">max_pov_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_downward_message_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">ump_service_total_weight</span>: <span class="ident">OldWeight</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_max_parachain_outbound_channels</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_max_parathread_outbound_channels</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_sender_deposit</span>: <span class="ident">Balance</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_recipient_deposit</span>: <span class="ident">Balance</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_channel_max_capacity</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_channel_max_total_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_max_parachain_inbound_channels</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_max_parathread_inbound_channels</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">hrmp_channel_max_message_size</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">code_retention_period</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">parathread_cores</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">parathread_retries</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">group_rotation_frequency</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">chain_availability_period</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">thread_availability_period</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">scheduling_lookahead</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">max_validators_per_core</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="kw">pub</span> <span class="ident">max_validators</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="kw">pub</span> <span class="ident">dispute_period</span>: <span class="ident">SessionIndex</span>,
-		<span class="kw">pub</span> <span class="ident">dispute_post_conclusion_acceptance_period</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">dispute_max_spam_slots</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">dispute_conclusion_by_time_out_period</span>: <span class="ident">BlockNumber</span>,
-		<span class="kw">pub</span> <span class="ident">no_show_slots</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">n_delay_tranches</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">zeroth_delay_tranche_width</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">needed_approvals</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">relay_vrf_modulo_samples</span>: <span class="ident">u32</span>,
-		<span class="kw">pub</span> <span class="ident">ump_max_individual_weight</span>: <span class="ident">OldWeight</span>,
-		<span class="kw">pub</span> <span class="ident">pvf_checking_enabled</span>: <span class="ident">bool</span>,
-		<span class="kw">pub</span> <span class="ident">pvf_voting_ttl</span>: <span class="ident">SessionIndex</span>,
-		<span class="kw">pub</span> <span class="ident">minimum_validation_upgrade_delay</span>: <span class="ident">BlockNumber</span>,
+	<span class="comment">// Copied over from configuration.rs @ de9e147695b9f1be8bd44e07861a31e483c8343a and removed
+	// all the comments, and changed the Weight struct to OldWeight
+	</span><span class="attribute">#[derive(parity_scale_codec::Encode, parity_scale_codec::Decode, Debug)]
+	</span><span class="kw">pub struct </span>OldHostConfiguration&lt;BlockNumber&gt; {
+		<span class="kw">pub </span>max_code_size: u32,
+		<span class="kw">pub </span>max_head_data_size: u32,
+		<span class="kw">pub </span>max_upward_queue_count: u32,
+		<span class="kw">pub </span>max_upward_queue_size: u32,
+		<span class="kw">pub </span>max_upward_message_size: u32,
+		<span class="kw">pub </span>max_upward_message_num_per_candidate: u32,
+		<span class="kw">pub </span>hrmp_max_message_num_per_candidate: u32,
+		<span class="kw">pub </span>validation_upgrade_cooldown: BlockNumber,
+		<span class="kw">pub </span>validation_upgrade_delay: BlockNumber,
+		<span class="kw">pub </span>max_pov_size: u32,
+		<span class="kw">pub </span>max_downward_message_size: u32,
+		<span class="kw">pub </span>ump_service_total_weight: OldWeight,
+		<span class="kw">pub </span>hrmp_max_parachain_outbound_channels: u32,
+		<span class="kw">pub </span>hrmp_max_parathread_outbound_channels: u32,
+		<span class="kw">pub </span>hrmp_sender_deposit: Balance,
+		<span class="kw">pub </span>hrmp_recipient_deposit: Balance,
+		<span class="kw">pub </span>hrmp_channel_max_capacity: u32,
+		<span class="kw">pub </span>hrmp_channel_max_total_size: u32,
+		<span class="kw">pub </span>hrmp_max_parachain_inbound_channels: u32,
+		<span class="kw">pub </span>hrmp_max_parathread_inbound_channels: u32,
+		<span class="kw">pub </span>hrmp_channel_max_message_size: u32,
+		<span class="kw">pub </span>code_retention_period: BlockNumber,
+		<span class="kw">pub </span>parathread_cores: u32,
+		<span class="kw">pub </span>parathread_retries: u32,
+		<span class="kw">pub </span>group_rotation_frequency: BlockNumber,
+		<span class="kw">pub </span>chain_availability_period: BlockNumber,
+		<span class="kw">pub </span>thread_availability_period: BlockNumber,
+		<span class="kw">pub </span>scheduling_lookahead: u32,
+		<span class="kw">pub </span>max_validators_per_core: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+		<span class="kw">pub </span>max_validators: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+		<span class="kw">pub </span>dispute_period: SessionIndex,
+		<span class="kw">pub </span>dispute_post_conclusion_acceptance_period: BlockNumber,
+		<span class="kw">pub </span>dispute_max_spam_slots: u32,
+		<span class="kw">pub </span>dispute_conclusion_by_time_out_period: BlockNumber,
+		<span class="kw">pub </span>no_show_slots: u32,
+		<span class="kw">pub </span>n_delay_tranches: u32,
+		<span class="kw">pub </span>zeroth_delay_tranche_width: u32,
+		<span class="kw">pub </span>needed_approvals: u32,
+		<span class="kw">pub </span>relay_vrf_modulo_samples: u32,
+		<span class="kw">pub </span>ump_max_individual_weight: OldWeight,
+		<span class="kw">pub </span>pvf_checking_enabled: bool,
+		<span class="kw">pub </span>pvf_voting_ttl: SessionIndex,
+		<span class="kw">pub </span>minimum_validation_upgrade_delay: BlockNumber,
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">BlockNumber</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">OldHostConfiguration</span><span class="op">&lt;</span><span class="ident">BlockNumber</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-			<span class="self">Self</span> {
-				<span class="ident">group_rotation_frequency</span>: <span class="number">1u32</span>.<span class="ident">into</span>(),
-				<span class="ident">chain_availability_period</span>: <span class="number">1u32</span>.<span class="ident">into</span>(),
-				<span class="ident">thread_availability_period</span>: <span class="number">1u32</span>.<span class="ident">into</span>(),
-				<span class="ident">no_show_slots</span>: <span class="number">1u32</span>.<span class="ident">into</span>(),
-				<span class="ident">validation_upgrade_cooldown</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">validation_upgrade_delay</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">code_retention_period</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_code_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_pov_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_head_data_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">parathread_cores</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">parathread_retries</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">scheduling_lookahead</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_validators_per_core</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_validators</span>: <span class="prelude-val">None</span>,
-				<span class="ident">dispute_period</span>: <span class="number">6</span>,
-				<span class="ident">dispute_post_conclusion_acceptance_period</span>: <span class="number">100</span>.<span class="ident">into</span>(),
-				<span class="ident">dispute_max_spam_slots</span>: <span class="number">2</span>,
-				<span class="ident">dispute_conclusion_by_time_out_period</span>: <span class="number">200</span>.<span class="ident">into</span>(),
-				<span class="ident">n_delay_tranches</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">zeroth_delay_tranche_width</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">needed_approvals</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">relay_vrf_modulo_samples</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_upward_queue_count</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_upward_queue_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_downward_message_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">ump_service_total_weight</span>: <span class="ident">OldWeight</span>(<span class="ident">Default::default</span>()),
-				<span class="ident">max_upward_message_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">max_upward_message_num_per_candidate</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_sender_deposit</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_recipient_deposit</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_channel_max_capacity</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_channel_max_total_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_max_parachain_inbound_channels</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_max_parathread_inbound_channels</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_channel_max_message_size</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_max_parachain_outbound_channels</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_max_parathread_outbound_channels</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">hrmp_max_message_num_per_candidate</span>: <span class="ident">Default::default</span>(),
-				<span class="ident">ump_max_individual_weight</span>: <span class="ident">OldWeight</span>(
-					<span class="ident">frame_support::weights::constants::WEIGHT_PER_MILLIS</span>.<span class="ident">ref_time</span>() <span class="op">*</span> <span class="number">20</span>,
+	<span class="kw">impl</span>&lt;BlockNumber: Default + From&lt;u32&gt;&gt; Default <span class="kw">for </span>OldHostConfiguration&lt;BlockNumber&gt; {
+		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+			<span class="self">Self </span>{
+				group_rotation_frequency: <span class="number">1u32</span>.into(),
+				chain_availability_period: <span class="number">1u32</span>.into(),
+				thread_availability_period: <span class="number">1u32</span>.into(),
+				no_show_slots: <span class="number">1u32</span>.into(),
+				validation_upgrade_cooldown: Default::default(),
+				validation_upgrade_delay: Default::default(),
+				code_retention_period: Default::default(),
+				max_code_size: Default::default(),
+				max_pov_size: Default::default(),
+				max_head_data_size: Default::default(),
+				parathread_cores: Default::default(),
+				parathread_retries: Default::default(),
+				scheduling_lookahead: Default::default(),
+				max_validators_per_core: Default::default(),
+				max_validators: <span class="prelude-val">None</span>,
+				dispute_period: <span class="number">6</span>,
+				dispute_post_conclusion_acceptance_period: <span class="number">100</span>.into(),
+				dispute_max_spam_slots: <span class="number">2</span>,
+				dispute_conclusion_by_time_out_period: <span class="number">200</span>.into(),
+				n_delay_tranches: Default::default(),
+				zeroth_delay_tranche_width: Default::default(),
+				needed_approvals: Default::default(),
+				relay_vrf_modulo_samples: Default::default(),
+				max_upward_queue_count: Default::default(),
+				max_upward_queue_size: Default::default(),
+				max_downward_message_size: Default::default(),
+				ump_service_total_weight: OldWeight(Default::default()),
+				max_upward_message_size: Default::default(),
+				max_upward_message_num_per_candidate: Default::default(),
+				hrmp_sender_deposit: Default::default(),
+				hrmp_recipient_deposit: Default::default(),
+				hrmp_channel_max_capacity: Default::default(),
+				hrmp_channel_max_total_size: Default::default(),
+				hrmp_max_parachain_inbound_channels: Default::default(),
+				hrmp_max_parathread_inbound_channels: Default::default(),
+				hrmp_channel_max_message_size: Default::default(),
+				hrmp_max_parachain_outbound_channels: Default::default(),
+				hrmp_max_parathread_outbound_channels: Default::default(),
+				hrmp_max_message_num_per_candidate: Default::default(),
+				ump_max_individual_weight: OldWeight(
+					frame_support::weights::constants::WEIGHT_PER_MILLIS.ref_time() * <span class="number">20</span>,
 				),
-				<span class="ident">pvf_checking_enabled</span>: <span class="bool-val">false</span>,
-				<span class="ident">pvf_voting_ttl</span>: <span class="number">2u32</span>.<span class="ident">into</span>(),
-				<span class="ident">minimum_validation_upgrade_delay</span>: <span class="number">2</span>.<span class="ident">into</span>(),
+				pvf_checking_enabled: <span class="bool-val">false</span>,
+				pvf_voting_ttl: <span class="number">2u32</span>.into(),
+				minimum_validation_upgrade_delay: <span class="number">2</span>.into(),
 			}
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigrateToV3</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">sp_std::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">MigrateToV3</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-			<span class="kw">if</span> <span class="ident">StorageVersion::get</span>::<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">2</span> {
-				<span class="kw">let</span> <span class="ident">weight_consumed</span> <span class="op">=</span> <span class="ident">migrate_to_v3</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+	<span class="kw">pub struct </span>MigrateToV3&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
+	<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateToV3&lt;T&gt; {
+		<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+			<span class="kw">if </span>StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">2 </span>{
+				<span class="kw">let </span>weight_consumed = migrate_to_v3::&lt;T&gt;();
 
-				<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="ident">configuration::LOG_TARGET</span>, <span class="string">&quot;MigrateToV3 executed successfully&quot;</span>);
-				<span class="ident">STORAGE_VERSION</span>.<span class="ident">put</span>::<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+				<span class="macro">log::info!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV3 executed successfully&quot;</span>);
+				STORAGE_VERSION.put::&lt;Pallet&lt;T&gt;&gt;();
 
-				<span class="ident">weight_consumed</span>
-			} <span class="kw">else</span> {
-				<span class="macro">log::warn!</span>(<span class="ident">target</span>: <span class="ident">configuration::LOG_TARGET</span>, <span class="string">&quot;MigrateToV3 should be removed.&quot;</span>);
-				<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span>)
+				weight_consumed
+			} <span class="kw">else </span>{
+				<span class="macro">log::warn!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV3 should be removed.&quot;</span>);
+				T::DbWeight::get().reads(<span class="number">1</span>)
 			}
 		}
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">migrate_to_v3</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">Weight</span> {
-	<span class="comment">// Unusual formatting is justified:</span>
-	<span class="comment">// - make it easier to verify that fields assign what they supposed to assign.</span>
-	<span class="comment">// - this code is transient and will be removed after all migrations are done.</span>
-	<span class="comment">// - this code is important enough to optimize for legibility sacrificing consistency.</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">let</span> <span class="ident">translate</span> <span class="op">=</span>
-		<span class="op">|</span><span class="ident">pre</span>: <span class="ident">v3::OldHostConfiguration</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">|</span> -&gt;
-<span class="ident">configuration::HostConfiguration</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">fn </span>migrate_to_v3&lt;T: Config&gt;() -&gt; Weight {
+	<span class="comment">// Unusual formatting is justified:
+	// - make it easier to verify that fields assign what they supposed to assign.
+	// - this code is transient and will be removed after all migrations are done.
+	// - this code is important enough to optimize for legibility sacrificing consistency.
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">let </span>translate =
+		|pre: v3::OldHostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;| -&gt;
+configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;
 	{
-		<span class="ident"><span class="kw">super</span>::HostConfiguration</span> {
-<span class="ident">max_code_size</span>                            : <span class="ident">pre</span>.<span class="ident">max_code_size</span>,
-<span class="ident">max_head_data_size</span>                       : <span class="ident">pre</span>.<span class="ident">max_head_data_size</span>,
-<span class="ident">max_upward_queue_count</span>                   : <span class="ident">pre</span>.<span class="ident">max_upward_queue_count</span>,
-<span class="ident">max_upward_queue_size</span>                    : <span class="ident">pre</span>.<span class="ident">max_upward_queue_size</span>,
-<span class="ident">max_upward_message_size</span>                  : <span class="ident">pre</span>.<span class="ident">max_upward_message_size</span>,
-<span class="ident">max_upward_message_num_per_candidate</span>     : <span class="ident">pre</span>.<span class="ident">max_upward_message_num_per_candidate</span>,
-<span class="ident">hrmp_max_message_num_per_candidate</span>       : <span class="ident">pre</span>.<span class="ident">hrmp_max_message_num_per_candidate</span>,
-<span class="ident">validation_upgrade_cooldown</span>              : <span class="ident">pre</span>.<span class="ident">validation_upgrade_cooldown</span>,
-<span class="ident">validation_upgrade_delay</span>                 : <span class="ident">pre</span>.<span class="ident">validation_upgrade_delay</span>,
-<span class="ident">max_pov_size</span>                             : <span class="ident">pre</span>.<span class="ident">max_pov_size</span>,
-<span class="ident">max_downward_message_size</span>                : <span class="ident">pre</span>.<span class="ident">max_downward_message_size</span>,
-<span class="ident">hrmp_max_parachain_outbound_channels</span>     : <span class="ident">pre</span>.<span class="ident">hrmp_max_parachain_outbound_channels</span>,
-<span class="ident">hrmp_max_parathread_outbound_channels</span>    : <span class="ident">pre</span>.<span class="ident">hrmp_max_parathread_outbound_channels</span>,
-<span class="ident">hrmp_sender_deposit</span>                      : <span class="ident">pre</span>.<span class="ident">hrmp_sender_deposit</span>,
-<span class="ident">hrmp_recipient_deposit</span>                   : <span class="ident">pre</span>.<span class="ident">hrmp_recipient_deposit</span>,
-<span class="ident">hrmp_channel_max_capacity</span>                : <span class="ident">pre</span>.<span class="ident">hrmp_channel_max_capacity</span>,
-<span class="ident">hrmp_channel_max_total_size</span>              : <span class="ident">pre</span>.<span class="ident">hrmp_channel_max_total_size</span>,
-<span class="ident">hrmp_max_parachain_inbound_channels</span>      : <span class="ident">pre</span>.<span class="ident">hrmp_max_parachain_inbound_channels</span>,
-<span class="ident">hrmp_max_parathread_inbound_channels</span>     : <span class="ident">pre</span>.<span class="ident">hrmp_max_parathread_inbound_channels</span>,
-<span class="ident">hrmp_channel_max_message_size</span>            : <span class="ident">pre</span>.<span class="ident">hrmp_channel_max_message_size</span>,
-<span class="ident">code_retention_period</span>                    : <span class="ident">pre</span>.<span class="ident">code_retention_period</span>,
-<span class="ident">parathread_cores</span>                         : <span class="ident">pre</span>.<span class="ident">parathread_cores</span>,
-<span class="ident">parathread_retries</span>                       : <span class="ident">pre</span>.<span class="ident">parathread_retries</span>,
-<span class="ident">group_rotation_frequency</span>                 : <span class="ident">pre</span>.<span class="ident">group_rotation_frequency</span>,
-<span class="ident">chain_availability_period</span>                : <span class="ident">pre</span>.<span class="ident">chain_availability_period</span>,
-<span class="ident">thread_availability_period</span>               : <span class="ident">pre</span>.<span class="ident">thread_availability_period</span>,
-<span class="ident">scheduling_lookahead</span>                     : <span class="ident">pre</span>.<span class="ident">scheduling_lookahead</span>,
-<span class="ident">max_validators_per_core</span>                  : <span class="ident">pre</span>.<span class="ident">max_validators_per_core</span>,
-<span class="ident">max_validators</span>                           : <span class="ident">pre</span>.<span class="ident">max_validators</span>,
-<span class="ident">dispute_period</span>                           : <span class="ident">pre</span>.<span class="ident">dispute_period</span>,
-<span class="ident">dispute_post_conclusion_acceptance_period</span>: <span class="ident">pre</span>.<span class="ident">dispute_post_conclusion_acceptance_period</span>,
-<span class="ident">dispute_max_spam_slots</span>                   : <span class="ident">pre</span>.<span class="ident">dispute_max_spam_slots</span>,
-<span class="ident">dispute_conclusion_by_time_out_period</span>    : <span class="ident">pre</span>.<span class="ident">dispute_conclusion_by_time_out_period</span>,
-<span class="ident">no_show_slots</span>                            : <span class="ident">pre</span>.<span class="ident">no_show_slots</span>,
-<span class="ident">n_delay_tranches</span>                         : <span class="ident">pre</span>.<span class="ident">n_delay_tranches</span>,
-<span class="ident">zeroth_delay_tranche_width</span>               : <span class="ident">pre</span>.<span class="ident">zeroth_delay_tranche_width</span>,
-<span class="ident">needed_approvals</span>                         : <span class="ident">pre</span>.<span class="ident">needed_approvals</span>,
-<span class="ident">relay_vrf_modulo_samples</span>                 : <span class="ident">pre</span>.<span class="ident">relay_vrf_modulo_samples</span>,
-<span class="ident">pvf_checking_enabled</span>                     : <span class="ident">pre</span>.<span class="ident">pvf_checking_enabled</span>,
-<span class="ident">pvf_voting_ttl</span>                           : <span class="ident">pre</span>.<span class="ident">pvf_voting_ttl</span>,
-<span class="ident">minimum_validation_upgrade_delay</span>         : <span class="ident">pre</span>.<span class="ident">minimum_validation_upgrade_delay</span>,
+		<span class="kw">super</span>::HostConfiguration {
+max_code_size                            : pre.max_code_size,
+max_head_data_size                       : pre.max_head_data_size,
+max_upward_queue_count                   : pre.max_upward_queue_count,
+max_upward_queue_size                    : pre.max_upward_queue_size,
+max_upward_message_size                  : pre.max_upward_message_size,
+max_upward_message_num_per_candidate     : pre.max_upward_message_num_per_candidate,
+hrmp_max_message_num_per_candidate       : pre.hrmp_max_message_num_per_candidate,
+validation_upgrade_cooldown              : pre.validation_upgrade_cooldown,
+validation_upgrade_delay                 : pre.validation_upgrade_delay,
+max_pov_size                             : pre.max_pov_size,
+max_downward_message_size                : pre.max_downward_message_size,
+hrmp_max_parachain_outbound_channels     : pre.hrmp_max_parachain_outbound_channels,
+hrmp_max_parathread_outbound_channels    : pre.hrmp_max_parathread_outbound_channels,
+hrmp_sender_deposit                      : pre.hrmp_sender_deposit,
+hrmp_recipient_deposit                   : pre.hrmp_recipient_deposit,
+hrmp_channel_max_capacity                : pre.hrmp_channel_max_capacity,
+hrmp_channel_max_total_size              : pre.hrmp_channel_max_total_size,
+hrmp_max_parachain_inbound_channels      : pre.hrmp_max_parachain_inbound_channels,
+hrmp_max_parathread_inbound_channels     : pre.hrmp_max_parathread_inbound_channels,
+hrmp_channel_max_message_size            : pre.hrmp_channel_max_message_size,
+code_retention_period                    : pre.code_retention_period,
+parathread_cores                         : pre.parathread_cores,
+parathread_retries                       : pre.parathread_retries,
+group_rotation_frequency                 : pre.group_rotation_frequency,
+chain_availability_period                : pre.chain_availability_period,
+thread_availability_period               : pre.thread_availability_period,
+scheduling_lookahead                     : pre.scheduling_lookahead,
+max_validators_per_core                  : pre.max_validators_per_core,
+max_validators                           : pre.max_validators,
+dispute_period                           : pre.dispute_period,
+dispute_post_conclusion_acceptance_period: pre.dispute_post_conclusion_acceptance_period,
+dispute_max_spam_slots                   : pre.dispute_max_spam_slots,
+dispute_conclusion_by_time_out_period    : pre.dispute_conclusion_by_time_out_period,
+no_show_slots                            : pre.no_show_slots,
+n_delay_tranches                         : pre.n_delay_tranches,
+zeroth_delay_tranche_width               : pre.zeroth_delay_tranche_width,
+needed_approvals                         : pre.needed_approvals,
+relay_vrf_modulo_samples                 : pre.relay_vrf_modulo_samples,
+pvf_checking_enabled                     : pre.pvf_checking_enabled,
+pvf_voting_ttl                           : pre.pvf_voting_ttl,
+minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 
-<span class="ident">ump_service_total_weight</span>: <span class="ident">Weight::from_ref_time</span>(<span class="ident">pre</span>.<span class="ident">ump_service_total_weight</span>.<span class="number">0</span>).<span class="ident">set_proof_size</span>(<span class="ident">MAX_POV_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>),
-<span class="ident">ump_max_individual_weight</span>: <span class="ident">Weight::from_ref_time</span>(<span class="ident">pre</span>.<span class="ident">ump_max_individual_weight</span>.<span class="number">0</span>).<span class="ident">set_proof_size</span>(<span class="ident">MAX_POV_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>),
+ump_service_total_weight: Weight::from_ref_time(pre.ump_service_total_weight.<span class="number">0</span>).set_proof_size(MAX_POV_SIZE <span class="kw">as </span>u64),
+ump_max_individual_weight: Weight::from_ref_time(pre.ump_max_individual_weight.<span class="number">0</span>).set_proof_size(MAX_POV_SIZE <span class="kw">as </span>u64),
 		}
 	};
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="ident">Store</span><span class="op">&gt;</span><span class="ident">::ActiveConfig::translate</span>(<span class="op">|</span><span class="ident">pre</span><span class="op">|</span> <span class="ident">pre</span>.<span class="ident">map</span>(<span class="ident">translate</span>)) {
-		<span class="comment">// `Err` is returned when the pre-migration type cannot be deserialized. This</span>
-		<span class="comment">// cannot happen if the migration runs correctly, i.e. against the expected version.</span>
-		<span class="comment">//</span>
-		<span class="comment">// This happening almost surely will lead to a panic somewhere else. Corruption seems</span>
-		<span class="comment">// to be unlikely to be caused by this. So we just log. Maybe it&#39;ll work out still?</span>
-		<span class="macro">log::error!</span>(
-			<span class="ident">target</span>: <span class="ident">configuration::LOG_TARGET</span>,
-			<span class="string">&quot;unexpected error when performing translation of the configuration type during storage upgrade to v2.&quot;</span>
-		);
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = &lt;Pallet&lt;T&gt; <span class="kw">as </span>Store&gt;::ActiveConfig::translate(|pre| pre.map(translate)) {
+		<span class="comment">// `Err` is returned when the pre-migration type cannot be deserialized. This
+		// cannot happen if the migration runs correctly, i.e. against the expected version.
+		//
+		// This happening almost surely will lead to a panic somewhere else. Corruption seems
+		// to be unlikely to be caused by this. So we just log. Maybe it&#39;ll work out still?
+		</span><span class="macro">log::error!</span>(
+			target: configuration::LOG_TARGET,
+			<span class="string">&quot;unexpected error when performing translation of the configuration type during storage upgrade to v2.&quot;
+		</span>);
 	}
 
-	<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="number">1</span>)
+	T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mock</span>::{<span class="ident">new_test_ext</span>, <span class="ident">Test</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::mock::{new_test_ext, Test};
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">v2_deserialized_from_actual_data</span>() {
-		<span class="comment">// Fetched at Kusama 14,703,780 (0x3b2c305d01bd4adf1973d32a2d55ca1260a55eea8dfb3168e317c57f2841fdf1)</span>
-		<span class="comment">//</span>
-		<span class="comment">// This exceeds the maximal line width length, but that&#39;s fine, since this is not code and</span>
-		<span class="comment">// doesn&#39;t need to be read and also leaving it as one line allows to easily copy it.</span>
-		<span class="kw">let</span> <span class="ident">raw_config</span> <span class="op">=</span> <span class="macro">hex_literal::hex!</span>[<span class="string">&quot;0000a000005000000a00000000c8000000c800000a0000000a000000100e0000580200000000500000c8000000e87648170000001e00000000000000005039278c0400000000000000000000005039278c0400000000000000000000e8030000009001001e00000000000000009001008070000000000000000000000a0000000a0000000a00000001000000010500000001c8000000060000005802000002000000580200000200000059000000000000001e0000002800000000c817a804000000000200000014000000&quot;</span>];
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>v2_deserialized_from_actual_data() {
+		<span class="comment">// Fetched at Kusama 14,703,780 (0x3b2c305d01bd4adf1973d32a2d55ca1260a55eea8dfb3168e317c57f2841fdf1)
+		//
+		// This exceeds the maximal line width length, but that&#39;s fine, since this is not code and
+		// doesn&#39;t need to be read and also leaving it as one line allows to easily copy it.
+		</span><span class="kw">let </span>raw_config = <span class="macro">hex_literal::hex!</span>[<span class="string">&quot;0000a000005000000a00000000c8000000c800000a0000000a000000100e0000580200000000500000c8000000e87648170000001e00000000000000005039278c0400000000000000000000005039278c0400000000000000000000e8030000009001001e00000000000000009001008070000000000000000000000a0000000a0000000a00000001000000010500000001c8000000060000005802000002000000580200000200000059000000000000001e0000002800000000c817a804000000000200000014000000&quot;</span>];
 
-		<span class="kw">let</span> <span class="ident">v2</span> <span class="op">=</span>
-			<span class="ident">v3::OldHostConfiguration</span>::<span class="op">&lt;</span><span class="ident">primitives::v2::BlockNumber</span><span class="op">&gt;</span><span class="ident">::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">raw_config</span>[..])
-				.<span class="ident">unwrap</span>();
+		<span class="kw">let </span>v2 =
+			v3::OldHostConfiguration::&lt;primitives::v2::BlockNumber&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>raw_config[..])
+				.unwrap();
 
-		<span class="comment">// We check only a sample of the values here. If we missed any fields or messed up data types</span>
-		<span class="comment">// that would skew all the fields coming after.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_code_size</span>, <span class="number">10_485_760</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">validation_upgrade_cooldown</span>, <span class="number">3600</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_pov_size</span>, <span class="number">5_242_880</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_channel_max_message_size</span>, <span class="number">102_400</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">dispute_max_spam_slots</span>, <span class="number">2</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">n_delay_tranches</span>, <span class="number">89</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">ump_max_individual_weight</span>, <span class="ident">OldWeight</span>(<span class="number">20_000_000_000</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">minimum_validation_upgrade_delay</span>, <span class="number">20</span>);
+		<span class="comment">// We check only a sample of the values here. If we missed any fields or messed up data types
+		// that would skew all the fields coming after.
+		</span><span class="macro">assert_eq!</span>(v2.max_code_size, <span class="number">10_485_760</span>);
+		<span class="macro">assert_eq!</span>(v2.validation_upgrade_cooldown, <span class="number">3600</span>);
+		<span class="macro">assert_eq!</span>(v2.max_pov_size, <span class="number">5_242_880</span>);
+		<span class="macro">assert_eq!</span>(v2.hrmp_channel_max_message_size, <span class="number">102_400</span>);
+		<span class="macro">assert_eq!</span>(v2.dispute_max_spam_slots, <span class="number">2</span>);
+		<span class="macro">assert_eq!</span>(v2.n_delay_tranches, <span class="number">89</span>);
+		<span class="macro">assert_eq!</span>(v2.ump_max_individual_weight, OldWeight(<span class="number">20_000_000_000</span>));
+		<span class="macro">assert_eq!</span>(v2.minimum_validation_upgrade_delay, <span class="number">20</span>);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_migrate_to_v3</span>() {
-		<span class="comment">// Host configuration has lots of fields. However, in this migration we add only a couple of</span>
-		<span class="comment">// fields. The most important part to check are a couple of the last fields. We also pick</span>
-		<span class="comment">// extra fields to check arbitrarily, e.g. depending on their position (i.e. the middle) and</span>
-		<span class="comment">// also their type.</span>
-		<span class="comment">//</span>
-		<span class="comment">// We specify only the picked fields and the rest should be provided by the `Default`</span>
-		<span class="comment">// implementation. That implementation is copied over between the two types and should work</span>
-		<span class="comment">// fine.</span>
-		<span class="kw">let</span> <span class="ident">v2</span> <span class="op">=</span> <span class="ident">v3::OldHostConfiguration</span>::<span class="op">&lt;</span><span class="ident">primitives::v2::BlockNumber</span><span class="op">&gt;</span> {
-			<span class="ident">ump_max_individual_weight</span>: <span class="ident">OldWeight</span>(<span class="number">0x71616e6f6e0au64</span>),
-			<span class="ident">needed_approvals</span>: <span class="number">69</span>,
-			<span class="ident">thread_availability_period</span>: <span class="number">55</span>,
-			<span class="ident">hrmp_recipient_deposit</span>: <span class="number">1337</span>,
-			<span class="ident">max_pov_size</span>: <span class="number">1111</span>,
-			<span class="ident">chain_availability_period</span>: <span class="number">33</span>,
-			<span class="ident">minimum_validation_upgrade_delay</span>: <span class="number">20</span>,
-			..<span class="ident">Default::default</span>()
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_migrate_to_v3() {
+		<span class="comment">// Host configuration has lots of fields. However, in this migration we add only a couple of
+		// fields. The most important part to check are a couple of the last fields. We also pick
+		// extra fields to check arbitrarily, e.g. depending on their position (i.e. the middle) and
+		// also their type.
+		//
+		// We specify only the picked fields and the rest should be provided by the `Default`
+		// implementation. That implementation is copied over between the two types and should work
+		// fine.
+		</span><span class="kw">let </span>v2 = v3::OldHostConfiguration::&lt;primitives::v2::BlockNumber&gt; {
+			ump_max_individual_weight: OldWeight(<span class="number">0x71616e6f6e0au64</span>),
+			needed_approvals: <span class="number">69</span>,
+			thread_availability_period: <span class="number">55</span>,
+			hrmp_recipient_deposit: <span class="number">1337</span>,
+			max_pov_size: <span class="number">1111</span>,
+			chain_availability_period: <span class="number">33</span>,
+			minimum_validation_upgrade_delay: <span class="number">20</span>,
+			..Default::default()
 		};
 
-		<span class="ident">new_test_ext</span>(<span class="ident">Default::default</span>()).<span class="ident">execute_with</span>(<span class="op">|</span><span class="op">|</span> {
-			<span class="comment">// Implant the v2 version in the state.</span>
-			<span class="ident">frame_support::storage::unhashed::put_raw</span>(
-				<span class="kw-2">&amp;</span><span class="ident">configuration::ActiveConfig</span>::<span class="op">&lt;</span><span class="ident">Test</span><span class="op">&gt;</span><span class="ident">::hashed_key</span>(),
-				<span class="kw-2">&amp;</span><span class="ident">v2</span>.<span class="ident">encode</span>(),
+		new_test_ext(Default::default()).execute_with(|| {
+			<span class="comment">// Implant the v2 version in the state.
+			</span>frame_support::storage::unhashed::put_raw(
+				<span class="kw-2">&amp;</span>configuration::ActiveConfig::&lt;Test&gt;::hashed_key(),
+				<span class="kw-2">&amp;</span>v2.encode(),
 			);
 
-			<span class="ident">migrate_to_v3</span>::<span class="op">&lt;</span><span class="ident">Test</span><span class="op">&gt;</span>();
+			migrate_to_v3::&lt;Test&gt;();
 
-			<span class="kw">let</span> <span class="ident">v3</span> <span class="op">=</span> <span class="ident">configuration::ActiveConfig</span>::<span class="op">&lt;</span><span class="ident">Test</span><span class="op">&gt;</span><span class="ident">::get</span>();
+			<span class="kw">let </span>v3 = configuration::ActiveConfig::&lt;Test&gt;::get();
 
-			<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-			{
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_code_size</span>                            , <span class="ident">v3</span>.<span class="ident">max_code_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_head_data_size</span>                       , <span class="ident">v3</span>.<span class="ident">max_head_data_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_upward_queue_count</span>                   , <span class="ident">v3</span>.<span class="ident">max_upward_queue_count</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_upward_queue_size</span>                    , <span class="ident">v3</span>.<span class="ident">max_upward_queue_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_upward_message_size</span>                  , <span class="ident">v3</span>.<span class="ident">max_upward_message_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_upward_message_num_per_candidate</span>     , <span class="ident">v3</span>.<span class="ident">max_upward_message_num_per_candidate</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_max_message_num_per_candidate</span>       , <span class="ident">v3</span>.<span class="ident">hrmp_max_message_num_per_candidate</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">validation_upgrade_cooldown</span>              , <span class="ident">v3</span>.<span class="ident">validation_upgrade_cooldown</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">validation_upgrade_delay</span>                 , <span class="ident">v3</span>.<span class="ident">validation_upgrade_delay</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_pov_size</span>                             , <span class="ident">v3</span>.<span class="ident">max_pov_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_downward_message_size</span>                , <span class="ident">v3</span>.<span class="ident">max_downward_message_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_max_parachain_outbound_channels</span>     , <span class="ident">v3</span>.<span class="ident">hrmp_max_parachain_outbound_channels</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_max_parathread_outbound_channels</span>    , <span class="ident">v3</span>.<span class="ident">hrmp_max_parathread_outbound_channels</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_sender_deposit</span>                      , <span class="ident">v3</span>.<span class="ident">hrmp_sender_deposit</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_recipient_deposit</span>                   , <span class="ident">v3</span>.<span class="ident">hrmp_recipient_deposit</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_channel_max_capacity</span>                , <span class="ident">v3</span>.<span class="ident">hrmp_channel_max_capacity</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_channel_max_total_size</span>              , <span class="ident">v3</span>.<span class="ident">hrmp_channel_max_total_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_max_parachain_inbound_channels</span>      , <span class="ident">v3</span>.<span class="ident">hrmp_max_parachain_inbound_channels</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_max_parathread_inbound_channels</span>     , <span class="ident">v3</span>.<span class="ident">hrmp_max_parathread_inbound_channels</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">hrmp_channel_max_message_size</span>            , <span class="ident">v3</span>.<span class="ident">hrmp_channel_max_message_size</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">code_retention_period</span>                    , <span class="ident">v3</span>.<span class="ident">code_retention_period</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">parathread_cores</span>                         , <span class="ident">v3</span>.<span class="ident">parathread_cores</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">parathread_retries</span>                       , <span class="ident">v3</span>.<span class="ident">parathread_retries</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">group_rotation_frequency</span>                 , <span class="ident">v3</span>.<span class="ident">group_rotation_frequency</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">chain_availability_period</span>                , <span class="ident">v3</span>.<span class="ident">chain_availability_period</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">thread_availability_period</span>               , <span class="ident">v3</span>.<span class="ident">thread_availability_period</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">scheduling_lookahead</span>                     , <span class="ident">v3</span>.<span class="ident">scheduling_lookahead</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_validators_per_core</span>                  , <span class="ident">v3</span>.<span class="ident">max_validators_per_core</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">max_validators</span>                           , <span class="ident">v3</span>.<span class="ident">max_validators</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">dispute_period</span>                           , <span class="ident">v3</span>.<span class="ident">dispute_period</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">dispute_post_conclusion_acceptance_period</span>, <span class="ident">v3</span>.<span class="ident">dispute_post_conclusion_acceptance_period</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">dispute_max_spam_slots</span>                   , <span class="ident">v3</span>.<span class="ident">dispute_max_spam_slots</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">dispute_conclusion_by_time_out_period</span>    , <span class="ident">v3</span>.<span class="ident">dispute_conclusion_by_time_out_period</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">no_show_slots</span>                            , <span class="ident">v3</span>.<span class="ident">no_show_slots</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">n_delay_tranches</span>                         , <span class="ident">v3</span>.<span class="ident">n_delay_tranches</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">zeroth_delay_tranche_width</span>               , <span class="ident">v3</span>.<span class="ident">zeroth_delay_tranche_width</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">needed_approvals</span>                         , <span class="ident">v3</span>.<span class="ident">needed_approvals</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">relay_vrf_modulo_samples</span>                 , <span class="ident">v3</span>.<span class="ident">relay_vrf_modulo_samples</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">pvf_checking_enabled</span>                     , <span class="ident">v3</span>.<span class="ident">pvf_checking_enabled</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">pvf_voting_ttl</span>                           , <span class="ident">v3</span>.<span class="ident">pvf_voting_ttl</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">minimum_validation_upgrade_delay</span>         , <span class="ident">v3</span>.<span class="ident">minimum_validation_upgrade_delay</span>);
+			<span class="attribute">#[rustfmt::skip]
+			</span>{
+				<span class="macro">assert_eq!</span>(v2.max_code_size                            , v3.max_code_size);
+				<span class="macro">assert_eq!</span>(v2.max_head_data_size                       , v3.max_head_data_size);
+				<span class="macro">assert_eq!</span>(v2.max_upward_queue_count                   , v3.max_upward_queue_count);
+				<span class="macro">assert_eq!</span>(v2.max_upward_queue_size                    , v3.max_upward_queue_size);
+				<span class="macro">assert_eq!</span>(v2.max_upward_message_size                  , v3.max_upward_message_size);
+				<span class="macro">assert_eq!</span>(v2.max_upward_message_num_per_candidate     , v3.max_upward_message_num_per_candidate);
+				<span class="macro">assert_eq!</span>(v2.hrmp_max_message_num_per_candidate       , v3.hrmp_max_message_num_per_candidate);
+				<span class="macro">assert_eq!</span>(v2.validation_upgrade_cooldown              , v3.validation_upgrade_cooldown);
+				<span class="macro">assert_eq!</span>(v2.validation_upgrade_delay                 , v3.validation_upgrade_delay);
+				<span class="macro">assert_eq!</span>(v2.max_pov_size                             , v3.max_pov_size);
+				<span class="macro">assert_eq!</span>(v2.max_downward_message_size                , v3.max_downward_message_size);
+				<span class="macro">assert_eq!</span>(v2.hrmp_max_parachain_outbound_channels     , v3.hrmp_max_parachain_outbound_channels);
+				<span class="macro">assert_eq!</span>(v2.hrmp_max_parathread_outbound_channels    , v3.hrmp_max_parathread_outbound_channels);
+				<span class="macro">assert_eq!</span>(v2.hrmp_sender_deposit                      , v3.hrmp_sender_deposit);
+				<span class="macro">assert_eq!</span>(v2.hrmp_recipient_deposit                   , v3.hrmp_recipient_deposit);
+				<span class="macro">assert_eq!</span>(v2.hrmp_channel_max_capacity                , v3.hrmp_channel_max_capacity);
+				<span class="macro">assert_eq!</span>(v2.hrmp_channel_max_total_size              , v3.hrmp_channel_max_total_size);
+				<span class="macro">assert_eq!</span>(v2.hrmp_max_parachain_inbound_channels      , v3.hrmp_max_parachain_inbound_channels);
+				<span class="macro">assert_eq!</span>(v2.hrmp_max_parathread_inbound_channels     , v3.hrmp_max_parathread_inbound_channels);
+				<span class="macro">assert_eq!</span>(v2.hrmp_channel_max_message_size            , v3.hrmp_channel_max_message_size);
+				<span class="macro">assert_eq!</span>(v2.code_retention_period                    , v3.code_retention_period);
+				<span class="macro">assert_eq!</span>(v2.parathread_cores                         , v3.parathread_cores);
+				<span class="macro">assert_eq!</span>(v2.parathread_retries                       , v3.parathread_retries);
+				<span class="macro">assert_eq!</span>(v2.group_rotation_frequency                 , v3.group_rotation_frequency);
+				<span class="macro">assert_eq!</span>(v2.chain_availability_period                , v3.chain_availability_period);
+				<span class="macro">assert_eq!</span>(v2.thread_availability_period               , v3.thread_availability_period);
+				<span class="macro">assert_eq!</span>(v2.scheduling_lookahead                     , v3.scheduling_lookahead);
+				<span class="macro">assert_eq!</span>(v2.max_validators_per_core                  , v3.max_validators_per_core);
+				<span class="macro">assert_eq!</span>(v2.max_validators                           , v3.max_validators);
+				<span class="macro">assert_eq!</span>(v2.dispute_period                           , v3.dispute_period);
+				<span class="macro">assert_eq!</span>(v2.dispute_post_conclusion_acceptance_period, v3.dispute_post_conclusion_acceptance_period);
+				<span class="macro">assert_eq!</span>(v2.dispute_max_spam_slots                   , v3.dispute_max_spam_slots);
+				<span class="macro">assert_eq!</span>(v2.dispute_conclusion_by_time_out_period    , v3.dispute_conclusion_by_time_out_period);
+				<span class="macro">assert_eq!</span>(v2.no_show_slots                            , v3.no_show_slots);
+				<span class="macro">assert_eq!</span>(v2.n_delay_tranches                         , v3.n_delay_tranches);
+				<span class="macro">assert_eq!</span>(v2.zeroth_delay_tranche_width               , v3.zeroth_delay_tranche_width);
+				<span class="macro">assert_eq!</span>(v2.needed_approvals                         , v3.needed_approvals);
+				<span class="macro">assert_eq!</span>(v2.relay_vrf_modulo_samples                 , v3.relay_vrf_modulo_samples);
+				<span class="macro">assert_eq!</span>(v2.pvf_checking_enabled                     , v3.pvf_checking_enabled);
+				<span class="macro">assert_eq!</span>(v2.pvf_voting_ttl                           , v3.pvf_voting_ttl);
+				<span class="macro">assert_eq!</span>(v2.minimum_validation_upgrade_delay         , v3.minimum_validation_upgrade_delay);
 
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">ump_service_total_weight</span>, <span class="ident">OldWeight</span>(<span class="ident">v3</span>.<span class="ident">ump_service_total_weight</span>.<span class="ident">ref_time</span>()));
-				<span class="macro">assert_eq!</span>(<span class="ident">v2</span>.<span class="ident">ump_max_individual_weight</span>, <span class="ident">OldWeight</span>(<span class="ident">v3</span>.<span class="ident">ump_max_individual_weight</span>.<span class="ident">ref_time</span>()));
-				<span class="macro">assert_eq!</span>(<span class="ident">v3</span>.<span class="ident">ump_service_total_weight</span>.<span class="ident">proof_size</span>(), <span class="ident">MAX_POV_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>);
-				<span class="macro">assert_eq!</span>(<span class="ident">v3</span>.<span class="ident">ump_max_individual_weight</span>.<span class="ident">proof_size</span>(), <span class="ident">MAX_POV_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span>);
-			}; <span class="comment">// ; makes this a statement. `rustfmt::skip` cannot be put on an expression.</span>
-		});
+				<span class="macro">assert_eq!</span>(v2.ump_service_total_weight, OldWeight(v3.ump_service_total_weight.ref_time()));
+				<span class="macro">assert_eq!</span>(v2.ump_max_individual_weight, OldWeight(v3.ump_max_individual_weight.ref_time()));
+				<span class="macro">assert_eq!</span>(v3.ump_service_total_weight.proof_size(), MAX_POV_SIZE <span class="kw">as </span>u64);
+				<span class="macro">assert_eq!</span>(v3.ump_max_individual_weight.proof_size(), MAX_POV_SIZE <span class="kw">as </span>u64);
+			}; <span class="comment">// ; makes this a statement. `rustfmt::skip` cannot be put on an expression.
+		</span>});
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

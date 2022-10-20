@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/prepare/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/pvf/src/prepare/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../polkadot_node_core_pvf/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../polkadot_node_core_pvf/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -786,381 +780,381 @@
 <span id="780">780</span>
 <span id="781">781</span>
 <span id="782">782</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! A queue that handles requests for PVF preparation.</span>
+</span><span class="doccomment">//! A queue that handles requests for PVF preparation.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::pool</span>::{<span class="self">self</span>, <span class="ident">Worker</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">artifacts::ArtifactId</span>, <span class="ident">metrics::Metrics</span>, <span class="ident">PrepareResult</span>, <span class="ident">Priority</span>, <span class="ident">Pvf</span>, <span class="ident">LOG_TARGET</span>};
-<span class="kw">use</span> <span class="ident">always_assert</span>::{<span class="ident">always</span>, <span class="ident">never</span>};
-<span class="kw">use</span> <span class="ident">async_std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">channel::mpsc</span>, <span class="ident">stream::StreamExt</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">Future</span>, <span class="ident">SinkExt</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>},
-	<span class="ident">time::Duration</span>,
+</span><span class="kw">use </span><span class="kw">super</span>::pool::{<span class="self">self</span>, Worker};
+<span class="kw">use crate</span>::{artifacts::ArtifactId, metrics::Metrics, PrepareResult, Priority, Pvf, LOG_TARGET};
+<span class="kw">use </span>always_assert::{always, never};
+<span class="kw">use </span>async_std::path::PathBuf;
+<span class="kw">use </span>futures::{channel::mpsc, stream::StreamExt <span class="kw">as _</span>, Future, SinkExt};
+<span class="kw">use </span>std::{
+	collections::{HashMap, VecDeque},
+	time::Duration,
 };
 
-<span class="doccomment">/// A request to pool.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ToQueue</span> {
-	<span class="doccomment">/// This schedules preparation of the given PVF.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Note that it is incorrect to enqueue the same PVF again without first receiving the</span>
-	<span class="doccomment">/// [`FromQueue`] response.</span>
-	<span class="ident">Enqueue</span> { <span class="ident">priority</span>: <span class="ident">Priority</span>, <span class="ident">pvf</span>: <span class="ident">Pvf</span>, <span class="ident">compilation_timeout</span>: <span class="ident">Duration</span> },
+<span class="doccomment">/// A request to pool.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ToQueue {
+	<span class="doccomment">/// This schedules preparation of the given PVF.
+	///
+	/// Note that it is incorrect to enqueue the same PVF again without first receiving the
+	/// [`FromQueue`] response.
+	</span>Enqueue { priority: Priority, pvf: Pvf, compilation_timeout: Duration },
 }
 
-<span class="doccomment">/// A response from queue.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FromQueue</span> {
-	<span class="doccomment">/// Identifier of an artifact.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">artifact_id</span>: <span class="ident">ArtifactId</span>,
-	<span class="doccomment">/// Outcome of the PVF processing. [`Ok`] indicates that compiled artifact</span>
-	<span class="doccomment">/// is successfully stored on disk. Otherwise, an [error](crate::error::PrepareError)</span>
-	<span class="doccomment">/// is supplied.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">result</span>: <span class="ident">PrepareResult</span>,
+<span class="doccomment">/// A response from queue.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>FromQueue {
+	<span class="doccomment">/// Identifier of an artifact.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) artifact_id: ArtifactId,
+	<span class="doccomment">/// Outcome of the PVF processing. [`Ok`] indicates that compiled artifact
+	/// is successfully stored on disk. Otherwise, an [error](crate::error::PrepareError)
+	/// is supplied.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) result: PrepareResult,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Limits</span> {
-	<span class="doccomment">/// The maximum number of workers this pool can ever host. This is expected to be a small</span>
-	<span class="doccomment">/// number, e.g. within a dozen.</span>
-	<span class="ident">hard_capacity</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Default)]
+</span><span class="kw">struct </span>Limits {
+	<span class="doccomment">/// The maximum number of workers this pool can ever host. This is expected to be a small
+	/// number, e.g. within a dozen.
+	</span>hard_capacity: usize,
 
-	<span class="doccomment">/// The number of workers we want aim to have. If there is a critical job and we are already</span>
-	<span class="doccomment">/// at `soft_capacity`, we are allowed to grow up to `hard_capacity`. Thus this should be equal</span>
-	<span class="doccomment">/// or smaller than `hard_capacity`.</span>
-	<span class="ident">soft_capacity</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// The number of workers we want aim to have. If there is a critical job and we are already
+	/// at `soft_capacity`, we are allowed to grow up to `hard_capacity`. Thus this should be equal
+	/// or smaller than `hard_capacity`.
+	</span>soft_capacity: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">Limits</span> {
-	<span class="doccomment">/// Returns `true` if the queue is allowed to request one more worker.</span>
-	<span class="kw">fn</span> <span class="ident">can_afford_one_more</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">spawned_num</span>: <span class="ident">usize</span>, <span class="ident">critical</span>: <span class="ident">bool</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">critical</span> { <span class="self">self</span>.<span class="ident">hard_capacity</span> } <span class="kw">else</span> { <span class="self">self</span>.<span class="ident">soft_capacity</span> };
-		<span class="ident">spawned_num</span> <span class="op">&lt;</span> <span class="ident">cap</span>
+<span class="kw">impl </span>Limits {
+	<span class="doccomment">/// Returns `true` if the queue is allowed to request one more worker.
+	</span><span class="kw">fn </span>can_afford_one_more(<span class="kw-2">&amp;</span><span class="self">self</span>, spawned_num: usize, critical: bool) -&gt; bool {
+		<span class="kw">let </span>cap = <span class="kw">if </span>critical { <span class="self">self</span>.hard_capacity } <span class="kw">else </span>{ <span class="self">self</span>.soft_capacity };
+		spawned_num &lt; cap
 	}
 
-	<span class="doccomment">/// Offer the worker back to the pool. The passed worker ID must be considered unusable unless</span>
-	<span class="doccomment">/// it wasn&#39;t taken by the pool, in which case it will be returned as `Some`.</span>
-	<span class="kw">fn</span> <span class="ident">should_cull</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">spawned_num</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
-		<span class="ident">spawned_num</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">soft_capacity</span>
-	}
-}
-
-<span class="macro">slotmap::new_key_type!</span> { <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Job</span>; }
-
-<span class="kw">struct</span> <span class="ident">JobData</span> {
-	<span class="doccomment">/// The priority of this job. Can be bumped.</span>
-	<span class="ident">priority</span>: <span class="ident">Priority</span>,
-	<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-	<span class="doccomment">/// The timeout for the preparation job.</span>
-	<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
-	<span class="ident">worker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Worker</span><span class="op">&gt;</span>,
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">WorkerData</span> {
-	<span class="ident">job</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Job</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">WorkerData</span> {
-	<span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">job</span>.<span class="ident">is_none</span>()
+	<span class="doccomment">/// Offer the worker back to the pool. The passed worker ID must be considered unusable unless
+	/// it wasn&#39;t taken by the pool, in which case it will be returned as `Some`.
+	</span><span class="kw">fn </span>should_cull(<span class="kw-2">&amp;mut </span><span class="self">self</span>, spawned_num: usize) -&gt; bool {
+		spawned_num &gt; <span class="self">self</span>.soft_capacity
 	}
 }
 
-<span class="doccomment">/// A queue structured like this is prone to starving, however, we don&#39;t care that much since we expect</span>
-<span class="doccomment">/// there is going to be a limited number of critical jobs and we don&#39;t really care if background starve.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Unscheduled</span> {
-	<span class="ident">normal</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Job</span><span class="op">&gt;</span>,
-	<span class="ident">critical</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Job</span><span class="op">&gt;</span>,
+<span class="macro">slotmap::new_key_type! </span>{ <span class="kw">pub struct </span>Job; }
+
+<span class="kw">struct </span>JobData {
+	<span class="doccomment">/// The priority of this job. Can be bumped.
+	</span>priority: Priority,
+	pvf: Pvf,
+	<span class="doccomment">/// The timeout for the preparation job.
+	</span>compilation_timeout: Duration,
+	worker: <span class="prelude-ty">Option</span>&lt;Worker&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Unscheduled</span> {
-	<span class="kw">fn</span> <span class="ident">queue_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">prio</span>: <span class="ident">Priority</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Job</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="ident">prio</span> {
-			<span class="ident">Priority::Normal</span> =&gt; <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">normal</span>,
-			<span class="ident">Priority::Critical</span> =&gt; <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">critical</span>,
+<span class="attribute">#[derive(Default)]
+</span><span class="kw">struct </span>WorkerData {
+	job: <span class="prelude-ty">Option</span>&lt;Job&gt;,
+}
+
+<span class="kw">impl </span>WorkerData {
+	<span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.job.is_none()
+	}
+}
+
+<span class="doccomment">/// A queue structured like this is prone to starving, however, we don&#39;t care that much since we expect
+/// there is going to be a limited number of critical jobs and we don&#39;t really care if background starve.
+</span><span class="attribute">#[derive(Default)]
+</span><span class="kw">struct </span>Unscheduled {
+	normal: VecDeque&lt;Job&gt;,
+	critical: VecDeque&lt;Job&gt;,
+}
+
+<span class="kw">impl </span>Unscheduled {
+	<span class="kw">fn </span>queue_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prio: Priority) -&gt; <span class="kw-2">&amp;mut </span>VecDeque&lt;Job&gt; {
+		<span class="kw">match </span>prio {
+			Priority::Normal =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.normal,
+			Priority::Critical =&gt; <span class="kw-2">&amp;mut </span><span class="self">self</span>.critical,
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">prio</span>: <span class="ident">Priority</span>, <span class="ident">job</span>: <span class="ident">Job</span>) {
-		<span class="self">self</span>.<span class="ident">queue_mut</span>(<span class="ident">prio</span>).<span class="ident">push_back</span>(<span class="ident">job</span>);
+	<span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prio: Priority, job: Job) {
+		<span class="self">self</span>.queue_mut(prio).push_back(job);
 	}
 
-	<span class="kw">fn</span> <span class="ident">readd</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">prio</span>: <span class="ident">Priority</span>, <span class="ident">job</span>: <span class="ident">Job</span>) {
-		<span class="self">self</span>.<span class="ident">queue_mut</span>(<span class="ident">prio</span>).<span class="ident">push_front</span>(<span class="ident">job</span>);
+	<span class="kw">fn </span>readd(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prio: Priority, job: Job) {
+		<span class="self">self</span>.queue_mut(prio).push_front(job);
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">normal</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">critical</span>.<span class="ident">is_empty</span>()
+	<span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.normal.is_empty() &amp;&amp; <span class="self">self</span>.critical.is_empty()
 	}
 
-	<span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Job</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">check</span> <span class="op">=</span> <span class="op">|</span><span class="ident">prio</span>: <span class="ident">Priority</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">queue_mut</span>(<span class="ident">prio</span>).<span class="ident">pop_front</span>();
-		<span class="ident">check</span>(<span class="ident">Priority::Critical</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">check</span>(<span class="ident">Priority::Normal</span>))
+	<span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Job&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>check = |prio: Priority| <span class="self">self</span>.queue_mut(prio).pop_front();
+		check(Priority::Critical).or_else(|| check(Priority::Normal))
 	}
 }
 
-<span class="kw">struct</span> <span class="ident">Queue</span> {
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
+<span class="kw">struct </span>Queue {
+	metrics: Metrics,
 
-	<span class="ident">to_queue_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>,
-	<span class="ident">from_queue_tx</span>: <span class="ident">mpsc::UnboundedSender</span><span class="op">&lt;</span><span class="ident">FromQueue</span><span class="op">&gt;</span>,
+	to_queue_rx: mpsc::Receiver&lt;ToQueue&gt;,
+	from_queue_tx: mpsc::UnboundedSender&lt;FromQueue&gt;,
 
-	<span class="ident">to_pool_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">pool::ToPool</span><span class="op">&gt;</span>,
-	<span class="ident">from_pool_rx</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">pool::FromPool</span><span class="op">&gt;</span>,
+	to_pool_tx: mpsc::Sender&lt;pool::ToPool&gt;,
+	from_pool_rx: mpsc::UnboundedReceiver&lt;pool::FromPool&gt;,
 
-	<span class="ident">cache_path</span>: <span class="ident">PathBuf</span>,
-	<span class="ident">limits</span>: <span class="ident">Limits</span>,
+	cache_path: PathBuf,
+	limits: Limits,
 
-	<span class="ident">jobs</span>: <span class="ident">slotmap::SlotMap</span><span class="op">&lt;</span><span class="ident">Job</span>, <span class="ident">JobData</span><span class="op">&gt;</span>,
+	jobs: slotmap::SlotMap&lt;Job, JobData&gt;,
 
-	<span class="doccomment">/// A mapping from artifact id to a job.</span>
-	<span class="ident">artifact_id_to_job</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ArtifactId</span>, <span class="ident">Job</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The registry of all workers.</span>
-	<span class="ident">workers</span>: <span class="ident">slotmap::SparseSecondaryMap</span><span class="op">&lt;</span><span class="ident">Worker</span>, <span class="ident">WorkerData</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The number of workers requested to spawn but not yet spawned.</span>
-	<span class="ident">spawn_inflight</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// A mapping from artifact id to a job.
+	</span>artifact_id_to_job: HashMap&lt;ArtifactId, Job&gt;,
+	<span class="doccomment">/// The registry of all workers.
+	</span>workers: slotmap::SparseSecondaryMap&lt;Worker, WorkerData&gt;,
+	<span class="doccomment">/// The number of workers requested to spawn but not yet spawned.
+	</span>spawn_inflight: usize,
 
-	<span class="doccomment">/// The jobs that are not yet scheduled. These are waiting until the next `poll` where they are</span>
-	<span class="doccomment">/// processed all at once.</span>
-	<span class="ident">unscheduled</span>: <span class="ident">Unscheduled</span>,
+	<span class="doccomment">/// The jobs that are not yet scheduled. These are waiting until the next `poll` where they are
+	/// processed all at once.
+	</span>unscheduled: Unscheduled,
 }
 
-<span class="doccomment">/// A fatal error that warrants stopping the queue.</span>
-<span class="kw">struct</span> <span class="ident">Fatal</span>;
+<span class="doccomment">/// A fatal error that warrants stopping the queue.
+</span><span class="kw">struct </span>Fatal;
 
-<span class="kw">impl</span> <span class="ident">Queue</span> {
-	<span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
-		<span class="ident">soft_capacity</span>: <span class="ident">usize</span>,
-		<span class="ident">hard_capacity</span>: <span class="ident">usize</span>,
-		<span class="ident">cache_path</span>: <span class="ident">PathBuf</span>,
-		<span class="ident">to_queue_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>,
-		<span class="ident">from_queue_tx</span>: <span class="ident">mpsc::UnboundedSender</span><span class="op">&lt;</span><span class="ident">FromQueue</span><span class="op">&gt;</span>,
-		<span class="ident">to_pool_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">pool::ToPool</span><span class="op">&gt;</span>,
-		<span class="ident">from_pool_rx</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">pool::FromPool</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">metrics</span>,
-			<span class="ident">to_queue_rx</span>,
-			<span class="ident">from_queue_tx</span>,
-			<span class="ident">to_pool_tx</span>,
-			<span class="ident">from_pool_rx</span>,
-			<span class="ident">cache_path</span>,
-			<span class="ident">spawn_inflight</span>: <span class="number">0</span>,
-			<span class="ident">limits</span>: <span class="ident">Limits</span> { <span class="ident">hard_capacity</span>, <span class="ident">soft_capacity</span> },
-			<span class="ident">jobs</span>: <span class="ident">slotmap::SlotMap::with_key</span>(),
-			<span class="ident">unscheduled</span>: <span class="ident">Unscheduled::default</span>(),
-			<span class="ident">artifact_id_to_job</span>: <span class="ident">HashMap::new</span>(),
-			<span class="ident">workers</span>: <span class="ident">slotmap::SparseSecondaryMap::new</span>(),
+<span class="kw">impl </span>Queue {
+	<span class="kw">fn </span>new(
+		metrics: Metrics,
+		soft_capacity: usize,
+		hard_capacity: usize,
+		cache_path: PathBuf,
+		to_queue_rx: mpsc::Receiver&lt;ToQueue&gt;,
+		from_queue_tx: mpsc::UnboundedSender&lt;FromQueue&gt;,
+		to_pool_tx: mpsc::Sender&lt;pool::ToPool&gt;,
+		from_pool_rx: mpsc::UnboundedReceiver&lt;pool::FromPool&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			metrics,
+			to_queue_rx,
+			from_queue_tx,
+			to_pool_tx,
+			from_pool_rx,
+			cache_path,
+			spawn_inflight: <span class="number">0</span>,
+			limits: Limits { hard_capacity, soft_capacity },
+			jobs: slotmap::SlotMap::with_key(),
+			unscheduled: Unscheduled::default(),
+			artifact_id_to_job: HashMap::new(),
+			workers: slotmap::SparseSecondaryMap::new(),
 		}
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-		<span class="macro">macro_rules!</span> <span class="ident">break_if_fatal</span> {
-			(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">Fatal</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
-					<span class="kw">break</span>
-				}
+	<span class="kw">async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) {
+		<span class="macro">macro_rules! </span>break_if_fatal {
+			(<span class="macro-nonterminal">$expr</span>:expr) =&gt; {
+				<span class="kw">if let </span><span class="prelude-val">Err</span>(Fatal) = <span class="macro-nonterminal">$expr </span>{
+					<span class="kw">break
+				</span>}
 			};
 		}
 
-		<span class="kw">loop</span> {
-			<span class="comment">// biased to make it behave deterministically for tests.</span>
-			<span class="macro">futures::select_biased!</span> {
-				<span class="ident">to_queue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_queue_rx</span>.<span class="ident">select_next_some</span>() =&gt;
-					<span class="macro">break_if_fatal!</span>(<span class="ident">handle_to_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">to_queue</span>).<span class="kw">await</span>),
-				<span class="ident">from_pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">from_pool_rx</span>.<span class="ident">select_next_some</span>() =&gt;
-					<span class="macro">break_if_fatal!</span>(<span class="ident">handle_from_pool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from_pool</span>).<span class="kw">await</span>),
+		<span class="kw">loop </span>{
+			<span class="comment">// biased to make it behave deterministically for tests.
+			</span><span class="macro">futures::select_biased! </span>{
+				to_queue = <span class="self">self</span>.to_queue_rx.select_next_some() =&gt;
+					<span class="macro">break_if_fatal!</span>(handle_to_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, to_queue).<span class="kw">await</span>),
+				from_pool = <span class="self">self</span>.from_pool_rx.select_next_some() =&gt;
+					<span class="macro">break_if_fatal!</span>(handle_from_pool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from_pool).<span class="kw">await</span>),
 			}
 		}
 	}
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_to_queue</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">to_queue</span>: <span class="ident">ToQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">match</span> <span class="ident">to_queue</span> {
-		<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">compilation_timeout</span> } =&gt; {
-			<span class="ident">handle_enqueue</span>(<span class="ident">queue</span>, <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">compilation_timeout</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+<span class="kw">async fn </span>handle_to_queue(queue: <span class="kw-2">&amp;mut </span>Queue, to_queue: ToQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">match </span>to_queue {
+		ToQueue::Enqueue { priority, pvf, compilation_timeout } =&gt; {
+			handle_enqueue(queue, priority, pvf, compilation_timeout).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
 	}
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_enqueue</span>(
-	<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>,
-	<span class="ident">priority</span>: <span class="ident">Priority</span>,
-	<span class="ident">pvf</span>: <span class="ident">Pvf</span>,
-	<span class="ident">compilation_timeout</span>: <span class="ident">Duration</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
+<span class="kw">async fn </span>handle_enqueue(
+	queue: <span class="kw-2">&amp;mut </span>Queue,
+	priority: Priority,
+	pvf: Pvf,
+	compilation_timeout: Duration,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">pvf</span>.<span class="ident">code_hash</span>,
-		<span class="question-mark">?</span><span class="ident">priority</span>,
-		<span class="question-mark">?</span><span class="ident">compilation_timeout</span>,
+		target: LOG_TARGET,
+		validation_code_hash = <span class="question-mark">?</span>pvf.code_hash,
+		<span class="question-mark">?</span>priority,
+		<span class="question-mark">?</span>compilation_timeout,
 		<span class="string">&quot;PVF is enqueued for preparation.&quot;</span>,
 	);
-	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">prepare_enqueued</span>();
+	queue.metrics.prepare_enqueued();
 
-	<span class="kw">let</span> <span class="ident">artifact_id</span> <span class="op">=</span> <span class="ident">pvf</span>.<span class="ident">as_artifact_id</span>();
-	<span class="kw">if</span> <span class="macro">never!</span>(
-		<span class="ident">queue</span>.<span class="ident">artifact_id_to_job</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>),
-		<span class="string">&quot;second Enqueue sent for a known artifact&quot;</span>
-	) {
-		<span class="comment">// This function is called in response to a `Enqueue` message;</span>
-		<span class="comment">// Precondition for `Enqueue` is that it is sent only once for a PVF;</span>
-		<span class="comment">// Thus this should always be `false`;</span>
-		<span class="comment">// qed.</span>
-		<span class="macro">gum::warn!</span>(
-			<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
+	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
+	<span class="kw">if </span><span class="macro">never!</span>(
+		queue.artifact_id_to_job.contains_key(<span class="kw-2">&amp;</span>artifact_id),
+		<span class="string">&quot;second Enqueue sent for a known artifact&quot;
+	</span>) {
+		<span class="comment">// This function is called in response to a `Enqueue` message;
+		// Precondition for `Enqueue` is that it is sent only once for a PVF;
+		// Thus this should always be `false`;
+		// qed.
+		</span><span class="macro">gum::warn!</span>(
+			target: LOG_TARGET,
 			<span class="string">&quot;duplicate `enqueue` command received for {:?}&quot;</span>,
-			<span class="ident">artifact_id</span>,
+			artifact_id,
 		);
-		<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+		<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">jobs</span>.<span class="ident">insert</span>(<span class="ident">JobData</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>, <span class="ident">compilation_timeout</span>, <span class="ident">worker</span>: <span class="prelude-val">None</span> });
-	<span class="ident">queue</span>.<span class="ident">artifact_id_to_job</span>.<span class="ident">insert</span>(<span class="ident">artifact_id</span>, <span class="ident">job</span>);
+	<span class="kw">let </span>job = queue.jobs.insert(JobData { priority, pvf, compilation_timeout, worker: <span class="prelude-val">None </span>});
+	queue.artifact_id_to_job.insert(artifact_id, job);
 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">available</span>) <span class="op">=</span> <span class="ident">find_idle_worker</span>(<span class="ident">queue</span>) {
-		<span class="comment">// This may seem not fair (w.r.t priority) on the first glance, but it should be. This is</span>
-		<span class="comment">// because as soon as a worker finishes with the job it&#39;s immediately given the next one.</span>
-		<span class="ident">assign</span>(<span class="ident">queue</span>, <span class="ident">available</span>, <span class="ident">job</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-	} <span class="kw">else</span> {
-		<span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>, <span class="ident">priority</span>.<span class="ident">is_critical</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="ident">queue</span>.<span class="ident">unscheduled</span>.<span class="ident">add</span>(<span class="ident">priority</span>, <span class="ident">job</span>);
-	}
-
-	<span class="prelude-val">Ok</span>(())
-}
-
-<span class="kw">fn</span> <span class="ident">find_idle_worker</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Worker</span><span class="op">&gt;</span> {
-	<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">data</span>)<span class="op">|</span> <span class="ident">data</span>.<span class="ident">is_idle</span>()).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">k</span>).<span class="ident">next</span>()
-}
-
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_from_pool</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">from_pool</span>: <span class="ident">pool::FromPool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">use</span> <span class="ident">pool::FromPool</span>::<span class="kw-2">*</span>;
-	<span class="kw">match</span> <span class="ident">from_pool</span> {
-		<span class="ident">Spawned</span>(<span class="ident">worker</span>) =&gt; <span class="ident">handle_worker_spawned</span>(<span class="ident">queue</span>, <span class="ident">worker</span>).<span class="kw">await</span><span class="question-mark">?</span>,
-		<span class="ident">Concluded</span> { <span class="ident">worker</span>, <span class="ident">rip</span>, <span class="ident">result</span> } =&gt;
-			<span class="ident">handle_worker_concluded</span>(<span class="ident">queue</span>, <span class="ident">worker</span>, <span class="ident">rip</span>, <span class="ident">result</span>).<span class="kw">await</span><span class="question-mark">?</span>,
-		<span class="ident">Rip</span>(<span class="ident">worker</span>) =&gt; <span class="ident">handle_worker_rip</span>(<span class="ident">queue</span>, <span class="ident">worker</span>).<span class="kw">await</span><span class="question-mark">?</span>,
-	}
-	<span class="prelude-val">Ok</span>(())
-}
-
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_worker_spawned</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">worker</span>: <span class="ident">Worker</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(<span class="ident">worker</span>, <span class="ident">WorkerData::default</span>());
-	<span class="ident">queue</span>.<span class="ident">spawn_inflight</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">unscheduled</span>.<span class="ident">next</span>() {
-		<span class="ident">assign</span>(<span class="ident">queue</span>, <span class="ident">worker</span>, <span class="ident">job</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(available) = find_idle_worker(queue) {
+		<span class="comment">// This may seem not fair (w.r.t priority) on the first glance, but it should be. This is
+		// because as soon as a worker finishes with the job it&#39;s immediately given the next one.
+		</span>assign(queue, available, job).<span class="kw">await</span><span class="question-mark">?</span>;
+	} <span class="kw">else </span>{
+		spawn_extra_worker(queue, priority.is_critical()).<span class="kw">await</span><span class="question-mark">?</span>;
+		queue.unscheduled.add(priority, job);
 	}
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_worker_concluded</span>(
-	<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>,
-	<span class="ident">worker</span>: <span class="ident">Worker</span>,
-	<span class="ident">rip</span>: <span class="ident">bool</span>,
-	<span class="ident">result</span>: <span class="ident">PrepareResult</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="ident">queue</span>.<span class="ident">metrics</span>.<span class="ident">prepare_concluded</span>();
+<span class="kw">fn </span>find_idle_worker(queue: <span class="kw-2">&amp;mut </span>Queue) -&gt; <span class="prelude-ty">Option</span>&lt;Worker&gt; {
+	queue.workers.iter().filter(|(<span class="kw">_</span>, data)| data.is_idle()).map(|(k, <span class="kw">_</span>)| k).next()
+}
 
-	<span class="macro">macro_rules!</span> <span class="ident">never_none</span> {
-		(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>) =&gt; {
-			<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
-				<span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
-				<span class="prelude-val">None</span> =&gt; {
-					<span class="comment">// Precondition of calling this is that the `$expr` is never none;</span>
-					<span class="comment">// Assume the conditions holds, then this never is not hit;</span>
-					<span class="comment">// qed.</span>
-					<span class="macro">never!</span>(<span class="string">&quot;never_none, {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>));
-					<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
+<span class="kw">async fn </span>handle_from_pool(queue: <span class="kw-2">&amp;mut </span>Queue, from_pool: pool::FromPool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">use </span>pool::FromPool::<span class="kw-2">*</span>;
+	<span class="kw">match </span>from_pool {
+		Spawned(worker) =&gt; handle_worker_spawned(queue, worker).<span class="kw">await</span><span class="question-mark">?</span>,
+		Concluded { worker, rip, result } =&gt;
+			handle_worker_concluded(queue, worker, rip, result).<span class="kw">await</span><span class="question-mark">?</span>,
+		Rip(worker) =&gt; handle_worker_rip(queue, worker).<span class="kw">await</span><span class="question-mark">?</span>,
+	}
+	<span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">async fn </span>handle_worker_spawned(queue: <span class="kw-2">&amp;mut </span>Queue, worker: Worker) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	queue.workers.insert(worker, WorkerData::default());
+	queue.spawn_inflight -= <span class="number">1</span>;
+
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(job) = queue.unscheduled.next() {
+		assign(queue, worker, job).<span class="kw">await</span><span class="question-mark">?</span>;
+	}
+
+	<span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">async fn </span>handle_worker_concluded(
+	queue: <span class="kw-2">&amp;mut </span>Queue,
+	worker: Worker,
+	rip: bool,
+	result: PrepareResult,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	queue.metrics.prepare_concluded();
+
+	<span class="macro">macro_rules! </span>never_none {
+		(<span class="macro-nonterminal">$expr</span>:expr) =&gt; {
+			<span class="kw">match </span><span class="macro-nonterminal">$expr </span>{
+				<span class="prelude-val">Some</span>(v) =&gt; v,
+				<span class="prelude-val">None </span>=&gt; {
+					<span class="comment">// Precondition of calling this is that the `$expr` is never none;
+					// Assume the conditions holds, then this never is not hit;
+					// qed.
+					</span><span class="macro">never!</span>(<span class="string">&quot;never_none, {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$expr</span>));
+					<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 				},
 			}
 		};
 	}
 
-	<span class="comment">// Find out on which artifact was the worker working.</span>
+	<span class="comment">// Find out on which artifact was the worker working.
 
-	<span class="comment">// workers are registered upon spawn and removed in one of the following cases:</span>
-	<span class="comment">//   1. received rip signal</span>
-	<span class="comment">//   2. received concluded signal with rip=true;</span>
-	<span class="comment">// concluded signal only comes from a spawned worker and only once;</span>
-	<span class="comment">// rip signal is not sent after conclusion with rip=true;</span>
-	<span class="comment">// the worker should be registered;</span>
-	<span class="comment">// this can&#39;t be None;</span>
-	<span class="comment">// qed.</span>
-	<span class="kw">let</span> <span class="ident">worker_data</span> <span class="op">=</span> <span class="macro">never_none!</span>(<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">get_mut</span>(<span class="ident">worker</span>));
+	// workers are registered upon spawn and removed in one of the following cases:
+	//   1. received rip signal
+	//   2. received concluded signal with rip=true;
+	// concluded signal only comes from a spawned worker and only once;
+	// rip signal is not sent after conclusion with rip=true;
+	// the worker should be registered;
+	// this can&#39;t be None;
+	// qed.
+	</span><span class="kw">let </span>worker_data = <span class="macro">never_none!</span>(queue.workers.get_mut(worker));
 
-	<span class="comment">// worker_data.job is set only by `assign` and removed only here for a worker;</span>
-	<span class="comment">// concluded signal only comes for a worker that was previously assigned and only once;</span>
-	<span class="comment">// the worker should have the job;</span>
-	<span class="comment">// this can&#39;t be None;</span>
-	<span class="comment">// qed.</span>
-	<span class="kw">let</span> <span class="ident">job</span> <span class="op">=</span> <span class="macro">never_none!</span>(<span class="ident">worker_data</span>.<span class="ident">job</span>.<span class="ident">take</span>());
+	<span class="comment">// worker_data.job is set only by `assign` and removed only here for a worker;
+	// concluded signal only comes for a worker that was previously assigned and only once;
+	// the worker should have the job;
+	// this can&#39;t be None;
+	// qed.
+	</span><span class="kw">let </span>job = <span class="macro">never_none!</span>(worker_data.job.take());
 
-	<span class="comment">// job_data is inserted upon enqueue and removed only here;</span>
-	<span class="comment">// as was established above, this worker was previously `assign`ed to the job;</span>
-	<span class="comment">// that implies that the job was enqueued;</span>
-	<span class="comment">// conclude signal only comes once;</span>
-	<span class="comment">// we are just to remove the job for the first and the only time;</span>
-	<span class="comment">// this can&#39;t be None;</span>
-	<span class="comment">// qed.</span>
-	<span class="kw">let</span> <span class="ident">job_data</span> <span class="op">=</span> <span class="macro">never_none!</span>(<span class="ident">queue</span>.<span class="ident">jobs</span>.<span class="ident">remove</span>(<span class="ident">job</span>));
-	<span class="kw">let</span> <span class="ident">artifact_id</span> <span class="op">=</span> <span class="ident">job_data</span>.<span class="ident">pvf</span>.<span class="ident">as_artifact_id</span>();
+	<span class="comment">// job_data is inserted upon enqueue and removed only here;
+	// as was established above, this worker was previously `assign`ed to the job;
+	// that implies that the job was enqueued;
+	// conclude signal only comes once;
+	// we are just to remove the job for the first and the only time;
+	// this can&#39;t be None;
+	// qed.
+	</span><span class="kw">let </span>job_data = <span class="macro">never_none!</span>(queue.jobs.remove(job));
+	<span class="kw">let </span>artifact_id = job_data.pvf.as_artifact_id();
 
-	<span class="ident">queue</span>.<span class="ident">artifact_id_to_job</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">artifact_id</span>);
+	queue.artifact_id_to_job.remove(<span class="kw-2">&amp;</span>artifact_id);
 
 	<span class="macro">gum::debug!</span>(
-		<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>,
-		<span class="ident">validation_code_hash</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">artifact_id</span>.<span class="ident">code_hash</span>,
-		<span class="question-mark">?</span><span class="ident">worker</span>,
-		<span class="question-mark">?</span><span class="ident">rip</span>,
+		target: LOG_TARGET,
+		validation_code_hash = <span class="question-mark">?</span>artifact_id.code_hash,
+		<span class="question-mark">?</span>worker,
+		<span class="question-mark">?</span>rip,
 		<span class="string">&quot;prepare worker concluded&quot;</span>,
 	);
 
-	<span class="ident">reply</span>(<span class="kw-2">&amp;mut</span> <span class="ident">queue</span>.<span class="ident">from_queue_tx</span>, <span class="ident">FromQueue</span> { <span class="ident">artifact_id</span>, <span class="ident">result</span> })<span class="question-mark">?</span>;
+	reply(<span class="kw-2">&amp;mut </span>queue.from_queue_tx, FromQueue { artifact_id, result })<span class="question-mark">?</span>;
 
-	<span class="comment">// Figure out what to do with the worker.</span>
-	<span class="kw">if</span> <span class="ident">rip</span> {
-		<span class="kw">let</span> <span class="ident">worker_data</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">remove</span>(<span class="ident">worker</span>);
-		<span class="comment">// worker should exist, it&#39;s asserted above;</span>
-		<span class="comment">// qed.</span>
-		<span class="macro">always!</span>(<span class="ident">worker_data</span>.<span class="ident">is_some</span>());
+	<span class="comment">// Figure out what to do with the worker.
+	</span><span class="kw">if </span>rip {
+		<span class="kw">let </span>worker_data = queue.workers.remove(worker);
+		<span class="comment">// worker should exist, it&#39;s asserted above;
+		// qed.
+		</span><span class="macro">always!</span>(worker_data.is_some());
 
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">queue</span>.<span class="ident">unscheduled</span>.<span class="ident">is_empty</span>() {
-			<span class="comment">// That is unconditionally not critical just to not accidentally fill up</span>
-			<span class="comment">// the pool up to the hard cap.</span>
-			<span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">if </span>!queue.unscheduled.is_empty() {
+			<span class="comment">// That is unconditionally not critical just to not accidentally fill up
+			// the pool up to the hard cap.
+			</span>spawn_extra_worker(queue, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
-	} <span class="kw">else</span> {
-		<span class="kw">if</span> <span class="ident">queue</span>.<span class="ident">limits</span>.<span class="ident">should_cull</span>(<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">queue</span>.<span class="ident">spawn_inflight</span>) {
-			<span class="comment">// We no longer need services of this worker. Kill it.</span>
-			<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">remove</span>(<span class="ident">worker</span>);
-			<span class="ident">send_pool</span>(<span class="kw-2">&amp;mut</span> <span class="ident">queue</span>.<span class="ident">to_pool_tx</span>, <span class="ident">pool::ToPool::Kill</span>(<span class="ident">worker</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
-		} <span class="kw">else</span> {
-			<span class="comment">// see if there are more work available and schedule it.</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">unscheduled</span>.<span class="ident">next</span>() {
-				<span class="ident">assign</span>(<span class="ident">queue</span>, <span class="ident">worker</span>, <span class="ident">job</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+	} <span class="kw">else </span>{
+		<span class="kw">if </span>queue.limits.should_cull(queue.workers.len() + queue.spawn_inflight) {
+			<span class="comment">// We no longer need services of this worker. Kill it.
+			</span>queue.workers.remove(worker);
+			send_pool(<span class="kw-2">&amp;mut </span>queue.to_pool_tx, pool::ToPool::Kill(worker)).<span class="kw">await</span><span class="question-mark">?</span>;
+		} <span class="kw">else </span>{
+			<span class="comment">// see if there are more work available and schedule it.
+			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(job) = queue.unscheduled.next() {
+				assign(queue, worker, job).<span class="kw">await</span><span class="question-mark">?</span>;
 			}
 		}
 	}
@@ -1168,66 +1162,66 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">handle_worker_rip</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">worker</span>: <span class="ident">Worker</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="macro">gum::debug!</span>(<span class="ident">target</span>: <span class="ident">LOG_TARGET</span>, <span class="question-mark">?</span><span class="ident">worker</span>, <span class="string">&quot;prepare worker ripped&quot;</span>);
+<span class="kw">async fn </span>handle_worker_rip(queue: <span class="kw-2">&amp;mut </span>Queue, worker: Worker) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="question-mark">?</span>worker, <span class="string">&quot;prepare worker ripped&quot;</span>);
 
-	<span class="kw">let</span> <span class="ident">worker_data</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">remove</span>(<span class="ident">worker</span>);
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">WorkerData</span> { <span class="ident">job</span>: <span class="prelude-val">Some</span>(<span class="ident">job</span>), .. }) <span class="op">=</span> <span class="ident">worker_data</span> {
-		<span class="comment">// This is an edge case where the worker ripped after we sent assignment but before it</span>
-		<span class="comment">// was received by the pool.</span>
-		<span class="kw">let</span> <span class="ident">priority</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">jobs</span>.<span class="ident">get</span>(<span class="ident">job</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">data</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">priority</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-			<span class="comment">// job is inserted upon enqueue and removed on concluded signal;</span>
-			<span class="comment">// this is enclosed in the if statement that narrows the situation to before</span>
-			<span class="comment">// conclusion;</span>
-			<span class="comment">// that means that the job still exists and is known;</span>
-			<span class="comment">// this path cannot be hit;</span>
-			<span class="comment">// qed.</span>
-			<span class="macro">never!</span>(<span class="string">&quot;the job of the ripped worker must be known but it is not&quot;</span>);
-			<span class="ident">Priority::Normal</span>
+	<span class="kw">let </span>worker_data = queue.workers.remove(worker);
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(WorkerData { job: <span class="prelude-val">Some</span>(job), .. }) = worker_data {
+		<span class="comment">// This is an edge case where the worker ripped after we sent assignment but before it
+		// was received by the pool.
+		</span><span class="kw">let </span>priority = queue.jobs.get(job).map(|data| data.priority).unwrap_or_else(|| {
+			<span class="comment">// job is inserted upon enqueue and removed on concluded signal;
+			// this is enclosed in the if statement that narrows the situation to before
+			// conclusion;
+			// that means that the job still exists and is known;
+			// this path cannot be hit;
+			// qed.
+			</span><span class="macro">never!</span>(<span class="string">&quot;the job of the ripped worker must be known but it is not&quot;</span>);
+			Priority::Normal
 		});
-		<span class="ident">queue</span>.<span class="ident">unscheduled</span>.<span class="ident">readd</span>(<span class="ident">priority</span>, <span class="ident">job</span>);
+		queue.unscheduled.readd(priority, job);
 	}
 
-	<span class="comment">// If there are still jobs left, spawn another worker to replace the ripped one (but only if it</span>
-	<span class="comment">// was indeed removed). That is unconditionally not critical just to not accidentally fill up</span>
-	<span class="comment">// the pool up to the hard cap.</span>
-	<span class="kw">if</span> <span class="ident">worker_data</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">queue</span>.<span class="ident">unscheduled</span>.<span class="ident">is_empty</span>() {
-		<span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="comment">// If there are still jobs left, spawn another worker to replace the ripped one (but only if it
+	// was indeed removed). That is unconditionally not critical just to not accidentally fill up
+	// the pool up to the hard cap.
+	</span><span class="kw">if </span>worker_data.is_some() &amp;&amp; !queue.unscheduled.is_empty() {
+		spawn_extra_worker(queue, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 	}
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Spawns an extra worker if possible.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">spawn_extra_worker</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">critical</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">if</span> <span class="ident">queue</span>
-		.<span class="ident">limits</span>
-		.<span class="ident">can_afford_one_more</span>(<span class="ident">queue</span>.<span class="ident">workers</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">queue</span>.<span class="ident">spawn_inflight</span>, <span class="ident">critical</span>)
+<span class="doccomment">/// Spawns an extra worker if possible.
+</span><span class="kw">async fn </span>spawn_extra_worker(queue: <span class="kw-2">&amp;mut </span>Queue, critical: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">if </span>queue
+		.limits
+		.can_afford_one_more(queue.workers.len() + queue.spawn_inflight, critical)
 	{
-		<span class="ident">queue</span>.<span class="ident">spawn_inflight</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-		<span class="ident">send_pool</span>(<span class="kw-2">&amp;mut</span> <span class="ident">queue</span>.<span class="ident">to_pool_tx</span>, <span class="ident">pool::ToPool::Spawn</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		queue.spawn_inflight += <span class="number">1</span>;
+		send_pool(<span class="kw-2">&amp;mut </span>queue.to_pool_tx, pool::ToPool::Spawn).<span class="kw">await</span><span class="question-mark">?</span>;
 	}
 
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Attaches the work to the given worker telling the poll about the job.</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">assign</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Queue</span>, <span class="ident">worker</span>: <span class="ident">Worker</span>, <span class="ident">job</span>: <span class="ident">Job</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">job_data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">queue</span>.<span class="ident">jobs</span>[<span class="ident">job</span>];
+<span class="doccomment">/// Attaches the work to the given worker telling the poll about the job.
+</span><span class="kw">async fn </span>assign(queue: <span class="kw-2">&amp;mut </span>Queue, worker: Worker, job: Job) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>job_data = <span class="kw-2">&amp;mut </span>queue.jobs[job];
 
-	<span class="kw">let</span> <span class="ident">artifact_id</span> <span class="op">=</span> <span class="ident">job_data</span>.<span class="ident">pvf</span>.<span class="ident">as_artifact_id</span>();
-	<span class="kw">let</span> <span class="ident">artifact_path</span> <span class="op">=</span> <span class="ident">artifact_id</span>.<span class="ident">path</span>(<span class="kw-2">&amp;</span><span class="ident">queue</span>.<span class="ident">cache_path</span>);
+	<span class="kw">let </span>artifact_id = job_data.pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_path = artifact_id.path(<span class="kw-2">&amp;</span>queue.cache_path);
 
-	<span class="ident">job_data</span>.<span class="ident">worker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">worker</span>);
+	job_data.worker = <span class="prelude-val">Some</span>(worker);
 
-	<span class="ident">queue</span>.<span class="ident">workers</span>[<span class="ident">worker</span>].<span class="ident">job</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>);
+	queue.workers[worker].job = <span class="prelude-val">Some</span>(job);
 
-	<span class="ident">send_pool</span>(
-		<span class="kw-2">&amp;mut</span> <span class="ident">queue</span>.<span class="ident">to_pool_tx</span>,
-		<span class="ident">pool::ToPool::StartWork</span> {
-			<span class="ident">worker</span>,
-			<span class="ident">code</span>: <span class="ident">job_data</span>.<span class="ident">pvf</span>.<span class="ident">code</span>.<span class="ident">clone</span>(),
-			<span class="ident">artifact_path</span>,
-			<span class="ident">compilation_timeout</span>: <span class="ident">job_data</span>.<span class="ident">compilation_timeout</span>,
+	send_pool(
+		<span class="kw-2">&amp;mut </span>queue.to_pool_tx,
+		pool::ToPool::StartWork {
+			worker,
+			code: job_data.pvf.code.clone(),
+			artifact_path,
+			compilation_timeout: job_data.compilation_timeout,
 		},
 	)
 	.<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1235,339 +1229,338 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">reply</span>(<span class="ident">from_queue_tx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::UnboundedSender</span><span class="op">&lt;</span><span class="ident">FromQueue</span><span class="op">&gt;</span>, <span class="ident">m</span>: <span class="ident">FromQueue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="ident">from_queue_tx</span>.<span class="ident">unbounded_send</span>(<span class="ident">m</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-		<span class="comment">// The host has hung up and thus it&#39;s fatal and we should shutdown ourselves.</span>
-		<span class="ident">Fatal</span>
+<span class="kw">fn </span>reply(from_queue_tx: <span class="kw-2">&amp;mut </span>mpsc::UnboundedSender&lt;FromQueue&gt;, m: FromQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	from_queue_tx.unbounded_send(m).map_err(|<span class="kw">_</span>| {
+		<span class="comment">// The host has hung up and thus it&#39;s fatal and we should shutdown ourselves.
+		</span>Fatal
 	})
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_pool</span>(
-	<span class="ident">to_pool_tx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">pool::ToPool</span><span class="op">&gt;</span>,
-	<span class="ident">m</span>: <span class="ident">pool::ToPool</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Fatal</span><span class="op">&gt;</span> {
-	<span class="ident">to_pool_tx</span>.<span class="ident">send</span>(<span class="ident">m</span>).<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-		<span class="comment">// The pool has hung up and thus we are no longer are able to fulfill our duties. Shutdown.</span>
-		<span class="ident">Fatal</span>
+<span class="kw">async fn </span>send_pool(
+	to_pool_tx: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;pool::ToPool&gt;,
+	m: pool::ToPool,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	to_pool_tx.send(m).<span class="kw">await</span>.map_err(|<span class="kw">_</span>| {
+		<span class="comment">// The pool has hung up and thus we are no longer are able to fulfill our duties. Shutdown.
+		</span>Fatal
 	})
 }
 
-<span class="doccomment">/// Spins up the queue and returns the future that should be polled to make the queue functional.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(
-	<span class="ident">metrics</span>: <span class="ident">Metrics</span>,
-	<span class="ident">soft_capacity</span>: <span class="ident">usize</span>,
-	<span class="ident">hard_capacity</span>: <span class="ident">usize</span>,
-	<span class="ident">cache_path</span>: <span class="ident">PathBuf</span>,
-	<span class="ident">to_pool_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">pool::ToPool</span><span class="op">&gt;</span>,
-	<span class="ident">from_pool_rx</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">pool::FromPool</span><span class="op">&gt;</span>,
-) -&gt; (<span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>, <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">FromQueue</span><span class="op">&gt;</span>, <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>) {
-	<span class="kw">let</span> (<span class="ident">to_queue_tx</span>, <span class="ident">to_queue_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">150</span>);
-	<span class="kw">let</span> (<span class="ident">from_queue_tx</span>, <span class="ident">from_queue_rx</span>) <span class="op">=</span> <span class="ident">mpsc::unbounded</span>();
+<span class="doccomment">/// Spins up the queue and returns the future that should be polled to make the queue functional.
+</span><span class="kw">pub fn </span>start(
+	metrics: Metrics,
+	soft_capacity: usize,
+	hard_capacity: usize,
+	cache_path: PathBuf,
+	to_pool_tx: mpsc::Sender&lt;pool::ToPool&gt;,
+	from_pool_rx: mpsc::UnboundedReceiver&lt;pool::FromPool&gt;,
+) -&gt; (mpsc::Sender&lt;ToQueue&gt;, mpsc::UnboundedReceiver&lt;FromQueue&gt;, <span class="kw">impl </span>Future&lt;Output = ()&gt;) {
+	<span class="kw">let </span>(to_queue_tx, to_queue_rx) = mpsc::channel(<span class="number">150</span>);
+	<span class="kw">let </span>(from_queue_tx, from_queue_rx) = mpsc::unbounded();
 
-	<span class="kw">let</span> <span class="ident">run</span> <span class="op">=</span> <span class="ident">Queue::new</span>(
-		<span class="ident">metrics</span>,
-		<span class="ident">soft_capacity</span>,
-		<span class="ident">hard_capacity</span>,
-		<span class="ident">cache_path</span>,
-		<span class="ident">to_queue_rx</span>,
-		<span class="ident">from_queue_tx</span>,
-		<span class="ident">to_pool_tx</span>,
-		<span class="ident">from_pool_rx</span>,
+	<span class="kw">let </span>run = Queue::new(
+		metrics,
+		soft_capacity,
+		hard_capacity,
+		cache_path,
+		to_queue_rx,
+		from_queue_tx,
+		to_pool_tx,
+		from_pool_rx,
 	)
-	.<span class="ident">run</span>();
+	.run();
 
-	(<span class="ident">to_queue_tx</span>, <span class="ident">from_queue_rx</span>, <span class="ident">run</span>)
+	(to_queue_tx, from_queue_rx, run)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::PrepareError</span>, <span class="ident">host::PRECHECK_COMPILATION_TIMEOUT</span>};
-	<span class="kw">use</span> <span class="ident">assert_matches::assert_matches</span>;
-	<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::BoxFuture</span>, <span class="ident">FutureExt</span>};
-	<span class="kw">use</span> <span class="ident">slotmap::SlotMap</span>;
-	<span class="kw">use</span> <span class="ident">std::task::Poll</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use crate</span>::{error::PrepareError, host::PRECHECK_COMPILATION_TIMEOUT};
+	<span class="kw">use </span>assert_matches::assert_matches;
+	<span class="kw">use </span>futures::{future::BoxFuture, FutureExt};
+	<span class="kw">use </span>slotmap::SlotMap;
+	<span class="kw">use </span>std::task::Poll;
 
-	<span class="doccomment">/// Creates a new PVF which artifact id can be uniquely identified by the given number.</span>
-	<span class="kw">fn</span> <span class="ident">pvf</span>(<span class="ident">descriminator</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Pvf</span> {
-		<span class="ident">Pvf::from_discriminator</span>(<span class="ident">descriminator</span>)
+	<span class="doccomment">/// Creates a new PVF which artifact id can be uniquely identified by the given number.
+	</span><span class="kw">fn </span>pvf(descriminator: u32) -&gt; Pvf {
+		Pvf::from_discriminator(descriminator)
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_until</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-		<span class="ident">task</span>: <span class="kw-2">&amp;mut</span> (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Unpin</span>),
-		<span class="kw-2">mut</span> <span class="ident">fut</span>: (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Unpin</span>),
-	) -&gt; <span class="ident">R</span> {
-		<span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">std::time::Instant::now</span>();
-		<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">fut</span>;
-		<span class="kw">loop</span> {
-			<span class="kw">if</span> <span class="ident">start</span>.<span class="ident">elapsed</span>() <span class="op">&gt;</span> <span class="ident">std::time::Duration::from_secs</span>(<span class="number">1</span>) {
-				<span class="comment">// We expect that this will take only a couple of iterations and thus to take way</span>
-				<span class="comment">// less than a second.</span>
-				<span class="macro">panic!</span>(<span class="string">&quot;timeout&quot;</span>);
+	<span class="kw">async fn </span>run_until&lt;R&gt;(
+		task: <span class="kw-2">&amp;mut </span>(<span class="kw">impl </span>Future&lt;Output = ()&gt; + Unpin),
+		<span class="kw-2">mut </span>fut: (<span class="kw">impl </span>Future&lt;Output = R&gt; + Unpin),
+	) -&gt; R {
+		<span class="kw">let </span>start = std::time::Instant::now();
+		<span class="kw">let </span>fut = <span class="kw-2">&amp;mut </span>fut;
+		<span class="kw">loop </span>{
+			<span class="kw">if </span>start.elapsed() &gt; std::time::Duration::from_secs(<span class="number">1</span>) {
+				<span class="comment">// We expect that this will take only a couple of iterations and thus to take way
+				// less than a second.
+				</span><span class="macro">panic!</span>(<span class="string">&quot;timeout&quot;</span>);
 			}
 
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">fut</span>) {
-				<span class="kw">break</span> <span class="ident">r</span>
+			<span class="kw">if let </span>Poll::Ready(r) = <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut *</span>fut) {
+				<span class="kw">break </span>r
 			}
 
-			<span class="kw">if</span> <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">task</span>).<span class="ident">is_ready</span>() {
+			<span class="kw">if </span><span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut *</span>task).is_ready() {
 				<span class="macro">panic!</span>()
 			}
 		}
 	}
 
-	<span class="kw">struct</span> <span class="ident">Test</span> {
-		<span class="ident">_tempdir</span>: <span class="ident">tempfile::TempDir</span>,
-		<span class="ident">run</span>: <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span>,
-		<span class="ident">workers</span>: <span class="ident">SlotMap</span><span class="op">&lt;</span><span class="ident">Worker</span>, ()<span class="op">&gt;</span>,
-		<span class="ident">from_pool_tx</span>: <span class="ident">mpsc::UnboundedSender</span><span class="op">&lt;</span><span class="ident">pool::FromPool</span><span class="op">&gt;</span>,
-		<span class="ident">to_pool_rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">pool::ToPool</span><span class="op">&gt;</span>,
-		<span class="ident">to_queue_tx</span>: <span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">ToQueue</span><span class="op">&gt;</span>,
-		<span class="ident">from_queue_rx</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">FromQueue</span><span class="op">&gt;</span>,
+	<span class="kw">struct </span>Test {
+		_tempdir: tempfile::TempDir,
+		run: BoxFuture&lt;<span class="lifetime">&#39;static</span>, ()&gt;,
+		workers: SlotMap&lt;Worker, ()&gt;,
+		from_pool_tx: mpsc::UnboundedSender&lt;pool::FromPool&gt;,
+		to_pool_rx: mpsc::Receiver&lt;pool::ToPool&gt;,
+		to_queue_tx: mpsc::Sender&lt;ToQueue&gt;,
+		from_queue_rx: mpsc::UnboundedReceiver&lt;FromQueue&gt;,
 	}
 
-	<span class="kw">impl</span> <span class="ident">Test</span> {
-		<span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">soft_capacity</span>: <span class="ident">usize</span>, <span class="ident">hard_capacity</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-			<span class="kw">let</span> <span class="ident">tempdir</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+	<span class="kw">impl </span>Test {
+		<span class="kw">fn </span>new(soft_capacity: usize, hard_capacity: usize) -&gt; <span class="self">Self </span>{
+			<span class="kw">let </span>tempdir = tempfile::tempdir().unwrap();
 
-			<span class="kw">let</span> (<span class="ident">to_pool_tx</span>, <span class="ident">to_pool_rx</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">10</span>);
-			<span class="kw">let</span> (<span class="ident">from_pool_tx</span>, <span class="ident">from_pool_rx</span>) <span class="op">=</span> <span class="ident">mpsc::unbounded</span>();
+			<span class="kw">let </span>(to_pool_tx, to_pool_rx) = mpsc::channel(<span class="number">10</span>);
+			<span class="kw">let </span>(from_pool_tx, from_pool_rx) = mpsc::unbounded();
 
-			<span class="kw">let</span> <span class="ident">workers</span>: <span class="ident">SlotMap</span><span class="op">&lt;</span><span class="ident">Worker</span>, ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">SlotMap::with_key</span>();
+			<span class="kw">let </span>workers: SlotMap&lt;Worker, ()&gt; = SlotMap::with_key();
 
-			<span class="kw">let</span> (<span class="ident">to_queue_tx</span>, <span class="ident">from_queue_rx</span>, <span class="ident">run</span>) <span class="op">=</span> <span class="ident">start</span>(
-				<span class="ident">Metrics::default</span>(),
-				<span class="ident">soft_capacity</span>,
-				<span class="ident">hard_capacity</span>,
-				<span class="ident">tempdir</span>.<span class="ident">path</span>().<span class="ident">to_owned</span>().<span class="ident">into</span>(),
-				<span class="ident">to_pool_tx</span>,
-				<span class="ident">from_pool_rx</span>,
+			<span class="kw">let </span>(to_queue_tx, from_queue_rx, run) = start(
+				Metrics::default(),
+				soft_capacity,
+				hard_capacity,
+				tempdir.path().to_owned().into(),
+				to_pool_tx,
+				from_pool_rx,
 			);
 
-			<span class="self">Self</span> {
-				<span class="ident">_tempdir</span>: <span class="ident">tempdir</span>,
-				<span class="ident">run</span>: <span class="ident">run</span>.<span class="ident">boxed</span>(),
-				<span class="ident">workers</span>,
-				<span class="ident">from_pool_tx</span>,
-				<span class="ident">to_pool_rx</span>,
-				<span class="ident">to_queue_tx</span>,
-				<span class="ident">from_queue_rx</span>,
+			<span class="self">Self </span>{
+				_tempdir: tempdir,
+				run: run.boxed(),
+				workers,
+				from_pool_tx,
+				to_pool_rx,
+				to_queue_tx,
+				from_queue_rx,
 			}
 		}
 
-		<span class="kw">fn</span> <span class="ident">send_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">to_queue</span>: <span class="ident">ToQueue</span>) {
-			<span class="self">self</span>.<span class="ident">to_queue_tx</span>.<span class="ident">send</span>(<span class="ident">to_queue</span>).<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
+		<span class="kw">fn </span>send_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, to_queue: ToQueue) {
+			<span class="self">self</span>.to_queue_tx.send(to_queue).now_or_never().unwrap().unwrap();
 		}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_and_recv_from_queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">FromQueue</span> {
-			<span class="kw">let</span> <span class="ident">from_queue_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">from_queue_rx</span>;
-			<span class="ident">run_until</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>, <span class="kw">async</span> { <span class="ident">from_queue_rx</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>() }.<span class="ident">boxed</span>()).<span class="kw">await</span>
+		<span class="kw">async fn </span>poll_and_recv_from_queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; FromQueue {
+			<span class="kw">let </span>from_queue_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.from_queue_rx;
+			run_until(<span class="kw-2">&amp;mut </span><span class="self">self</span>.run, <span class="kw">async </span>{ from_queue_rx.next().<span class="kw">await</span>.unwrap() }.boxed()).<span class="kw">await
+		</span>}
+
+		<span class="kw">fn </span>send_from_pool(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from_pool: pool::FromPool) {
+			<span class="self">self</span>.from_pool_tx.send(from_pool).now_or_never().unwrap().unwrap();
 		}
 
-		<span class="kw">fn</span> <span class="ident">send_from_pool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from_pool</span>: <span class="ident">pool::FromPool</span>) {
-			<span class="self">self</span>.<span class="ident">from_pool_tx</span>.<span class="ident">send</span>(<span class="ident">from_pool</span>).<span class="ident">now_or_never</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap</span>();
-		}
+		<span class="kw">async fn </span>poll_and_recv_to_pool(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; pool::ToPool {
+			<span class="kw">let </span>to_pool_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.to_pool_rx;
+			run_until(<span class="kw-2">&amp;mut </span><span class="self">self</span>.run, <span class="kw">async </span>{ to_pool_rx.next().<span class="kw">await</span>.unwrap() }.boxed()).<span class="kw">await
+		</span>}
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_and_recv_to_pool</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">pool::ToPool</span> {
-			<span class="kw">let</span> <span class="ident">to_pool_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_pool_rx</span>;
-			<span class="ident">run_until</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>, <span class="kw">async</span> { <span class="ident">to_pool_rx</span>.<span class="ident">next</span>().<span class="kw">await</span>.<span class="ident">unwrap</span>() }.<span class="ident">boxed</span>()).<span class="kw">await</span>
-		}
+		<span class="kw">async fn </span>poll_ensure_to_pool_is_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+			<span class="kw">use </span>futures_timer::Delay;
 
-		<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">poll_ensure_to_pool_is_empty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-			<span class="kw">use</span> <span class="ident">futures_timer::Delay</span>;
-
-			<span class="kw">let</span> <span class="ident">to_pool_rx</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">to_pool_rx</span>;
-			<span class="ident">run_until</span>(
-				<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">run</span>,
-				<span class="kw">async</span> {
-					<span class="macro">futures::select!</span> {
-						<span class="kw">_</span> <span class="op">=</span> <span class="ident">Delay::new</span>(<span class="ident">Duration::from_millis</span>(<span class="number">500</span>)).<span class="ident">fuse</span>() =&gt; (),
-						<span class="kw">_</span> <span class="op">=</span> <span class="ident">to_pool_rx</span>.<span class="ident">next</span>().<span class="ident">fuse</span>() =&gt; {
+			<span class="kw">let </span>to_pool_rx = <span class="kw-2">&amp;mut </span><span class="self">self</span>.to_pool_rx;
+			run_until(
+				<span class="kw-2">&amp;mut </span><span class="self">self</span>.run,
+				<span class="kw">async </span>{
+					<span class="macro">futures::select! </span>{
+						<span class="kw">_ </span>= Delay::new(Duration::from_millis(<span class="number">500</span>)).fuse() =&gt; (),
+						<span class="kw">_ </span>= to_pool_rx.next().fuse() =&gt; {
 							<span class="macro">panic!</span>(<span class="string">&quot;to pool supposed to be empty&quot;</span>)
 						}
 					}
 				}
-				.<span class="ident">boxed</span>(),
+				.boxed(),
 			)
-			.<span class="kw">await</span>
-		}
+			.<span class="kw">await
+		</span>}
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">properly_concludes</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>properly_concludes() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
-			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
-			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
-			<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+		test.send_queue(ToQueue::Enqueue {
+			priority: Priority::Normal,
+			pvf: pvf(<span class="number">1</span>),
+			compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
 		});
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w</span>));
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Concluded</span> { <span class="ident">worker</span>: <span class="ident">w</span>, <span class="ident">rip</span>: <span class="bool-val">false</span>, <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) });
+		<span class="kw">let </span>w = test.workers.insert(());
+		test.send_from_pool(pool::FromPool::Spawned(w));
+		test.send_from_pool(pool::FromPool::Concluded { worker: w, rip: <span class="bool-val">false</span>, result: <span class="prelude-val">Ok</span>(()) });
 
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_from_queue</span>().<span class="kw">await</span>.<span class="ident">artifact_id</span>, <span class="ident">pvf</span>(<span class="number">1</span>).<span class="ident">as_artifact_id</span>());
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">dont_spawn_over_soft_limit_unless_critical</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">3</span>);
-		<span class="kw">let</span> <span class="ident">compilation_timeout</span> <span class="op">=</span> <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>;
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>dont_spawn_over_soft_limit_unless_critical() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">3</span>);
+		<span class="kw">let </span>compilation_timeout = PRECHECK_COMPILATION_TIMEOUT;
 
-		<span class="kw">let</span> <span class="ident">priority</span> <span class="op">=</span> <span class="ident">Priority::Normal</span>;
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>), <span class="ident">compilation_timeout</span> });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>), <span class="ident">compilation_timeout</span> });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">3</span>), <span class="ident">compilation_timeout</span> });
+		<span class="kw">let </span>priority = Priority::Normal;
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), compilation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), compilation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), compilation_timeout });
 
-		<span class="comment">// Receive only two spawns.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="comment">// Receive only two spawns.
+		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="kw">let</span> <span class="ident">w1</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="kw">let</span> <span class="ident">w2</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
+		<span class="kw">let </span>w1 = test.workers.insert(());
+		<span class="kw">let </span>w2 = test.workers.insert(());
 
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w1</span>));
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w2</span>));
+		test.send_from_pool(pool::FromPool::Spawned(w1));
+		test.send_from_pool(pool::FromPool::Spawned(w2));
 
-		<span class="comment">// Get two start works.</span>
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
+		<span class="comment">// Get two start works.
+		</span><span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Concluded</span> { <span class="ident">worker</span>: <span class="ident">w1</span>, <span class="ident">rip</span>: <span class="bool-val">false</span>, <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) });
+		test.send_from_pool(pool::FromPool::Concluded { worker: w1, rip: <span class="bool-val">false</span>, result: <span class="prelude-val">Ok</span>(()) });
 
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
-		<span class="comment">// Enqueue a critical job.</span>
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
-			<span class="ident">priority</span>: <span class="ident">Priority::Critical</span>,
-			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">4</span>),
-			<span class="ident">compilation_timeout</span>,
+		<span class="comment">// Enqueue a critical job.
+		</span>test.send_queue(ToQueue::Enqueue {
+			priority: Priority::Critical,
+			pvf: pvf(<span class="number">4</span>),
+			compilation_timeout,
 		});
 
-		<span class="comment">// 2 out of 2 are working, but there is a critical job incoming. That means that spawning</span>
-		<span class="comment">// another worker is warranted.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="comment">// 2 out of 2 are working, but there is a critical job incoming. That means that spawning
+		// another worker is warranted.
+		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">cull_unwanted</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">1</span>, <span class="number">2</span>);
-		<span class="kw">let</span> <span class="ident">compilation_timeout</span> <span class="op">=</span> <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>;
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>cull_unwanted() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">1</span>, <span class="number">2</span>);
+		<span class="kw">let </span>compilation_timeout = PRECHECK_COMPILATION_TIMEOUT;
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
-			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
-			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
-			<span class="ident">compilation_timeout</span>,
+		test.send_queue(ToQueue::Enqueue {
+			priority: Priority::Normal,
+			pvf: pvf(<span class="number">1</span>),
+			compilation_timeout,
 		});
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
-		<span class="kw">let</span> <span class="ident">w1</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w1</span>));
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
+		<span class="kw">let </span>w1 = test.workers.insert(());
+		test.send_from_pool(pool::FromPool::Spawned(w1));
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
-		<span class="comment">// Enqueue a critical job, which warrants spawning over the soft limit.</span>
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
-			<span class="ident">priority</span>: <span class="ident">Priority::Critical</span>,
-			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>),
-			<span class="ident">compilation_timeout</span>,
+		<span class="comment">// Enqueue a critical job, which warrants spawning over the soft limit.
+		</span>test.send_queue(ToQueue::Enqueue {
+			priority: Priority::Critical,
+			pvf: pvf(<span class="number">2</span>),
+			compilation_timeout,
 		});
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="comment">// However, before the new worker had a chance to spawn, the first worker finishes with its</span>
-		<span class="comment">// job. The old worker will be killed while the new worker will be let live, even though</span>
-		<span class="comment">// it&#39;s not instantiated.</span>
-		<span class="comment">//</span>
-		<span class="comment">// That&#39;s a bit silly in this context, but in production there will be an entire pool up</span>
-		<span class="comment">// to the `soft_capacity` of workers and it doesn&#39;t matter which one to cull. Either way,</span>
-		<span class="comment">// we just check that edge case of an edge case works.</span>
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Concluded</span> { <span class="ident">worker</span>: <span class="ident">w1</span>, <span class="ident">rip</span>: <span class="bool-val">false</span>, <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) });
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Kill</span>(<span class="ident">w1</span>));
+		<span class="comment">// However, before the new worker had a chance to spawn, the first worker finishes with its
+		// job. The old worker will be killed while the new worker will be let live, even though
+		// it&#39;s not instantiated.
+		//
+		// That&#39;s a bit silly in this context, but in production there will be an entire pool up
+		// to the `soft_capacity` of workers and it doesn&#39;t matter which one to cull. Either way,
+		// we just check that edge case of an edge case works.
+		</span>test.send_from_pool(pool::FromPool::Concluded { worker: w1, rip: <span class="bool-val">false</span>, result: <span class="prelude-val">Ok</span>(()) });
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Kill(w1));
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">worker_mass_die_out_doesnt_stall_queue</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>worker_mass_die_out_doesnt_stall_queue() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="kw">let</span> (<span class="ident">priority</span>, <span class="ident">compilation_timeout</span>) <span class="op">=</span> (<span class="ident">Priority::Normal</span>, <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>);
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>), <span class="ident">compilation_timeout</span> });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">2</span>), <span class="ident">compilation_timeout</span> });
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> { <span class="ident">priority</span>, <span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">3</span>), <span class="ident">compilation_timeout</span> });
+		<span class="kw">let </span>(priority, compilation_timeout) = (Priority::Normal, PRECHECK_COMPILATION_TIMEOUT);
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), compilation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), compilation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), compilation_timeout });
 
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="kw">let</span> <span class="ident">w1</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="kw">let</span> <span class="ident">w2</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
+		<span class="kw">let </span>w1 = test.workers.insert(());
+		<span class="kw">let </span>w2 = test.workers.insert(());
 
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w1</span>));
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w2</span>));
+		test.send_from_pool(pool::FromPool::Spawned(w1));
+		test.send_from_pool(pool::FromPool::Spawned(w2));
 
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
-		<span class="comment">// Conclude worker 1 and rip it.</span>
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Concluded</span> { <span class="ident">worker</span>: <span class="ident">w1</span>, <span class="ident">rip</span>: <span class="bool-val">true</span>, <span class="ident">result</span>: <span class="prelude-val">Ok</span>(()) });
+		<span class="comment">// Conclude worker 1 and rip it.
+		</span>test.send_from_pool(pool::FromPool::Concluded { worker: w1, rip: <span class="bool-val">true</span>, result: <span class="prelude-val">Ok</span>(()) });
 
-		<span class="comment">// Since there is still work, the queue requested one extra worker to spawn to handle the</span>
-		<span class="comment">// remaining enqueued work items.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_from_queue</span>().<span class="kw">await</span>.<span class="ident">artifact_id</span>, <span class="ident">pvf</span>(<span class="number">1</span>).<span class="ident">as_artifact_id</span>());
+		<span class="comment">// Since there is still work, the queue requested one extra worker to spawn to handle the
+		// remaining enqueued work items.
+		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">doesnt_resurrect_ripped_worker_if_no_work</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>doesnt_resurrect_ripped_worker_if_no_work() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
-			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
-			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
-			<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+		test.send_queue(ToQueue::Enqueue {
+			priority: Priority::Normal,
+			pvf: pvf(<span class="number">1</span>),
+			compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
 		});
 
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="kw">let</span> <span class="ident">w1</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w1</span>));
+		<span class="kw">let </span>w1 = test.workers.insert(());
+		test.send_from_pool(pool::FromPool::Spawned(w1));
 
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Concluded</span> {
-			<span class="ident">worker</span>: <span class="ident">w1</span>,
-			<span class="ident">rip</span>: <span class="bool-val">true</span>,
-			<span class="ident">result</span>: <span class="prelude-val">Err</span>(<span class="ident">PrepareError::DidNotMakeIt</span>),
+		test.send_from_pool(pool::FromPool::Concluded {
+			worker: w1,
+			rip: <span class="bool-val">true</span>,
+			result: <span class="prelude-val">Err</span>(PrepareError::DidNotMakeIt),
 		});
-		<span class="ident">test</span>.<span class="ident">poll_ensure_to_pool_is_empty</span>().<span class="kw">await</span>;
+		test.poll_ensure_to_pool_is_empty().<span class="kw">await</span>;
 	}
 
-	<span class="attribute">#[<span class="ident">async_std::test</span>]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">rip_for_start_work</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">test</span> <span class="op">=</span> <span class="ident">Test::new</span>(<span class="number">2</span>, <span class="number">2</span>);
+	<span class="attribute">#[async_std::test]
+	</span><span class="kw">async fn </span>rip_for_start_work() {
+		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="ident">test</span>.<span class="ident">send_queue</span>(<span class="ident">ToQueue::Enqueue</span> {
-			<span class="ident">priority</span>: <span class="ident">Priority::Normal</span>,
-			<span class="ident">pvf</span>: <span class="ident">pvf</span>(<span class="number">1</span>),
-			<span class="ident">compilation_timeout</span>: <span class="ident">PRECHECK_COMPILATION_TIMEOUT</span>,
+		test.send_queue(ToQueue::Enqueue {
+			priority: Priority::Normal,
+			pvf: pvf(<span class="number">1</span>),
+			compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
 		});
 
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="kw">let</span> <span class="ident">w1</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w1</span>));
+		<span class="kw">let </span>w1 = test.workers.insert(());
+		test.send_from_pool(pool::FromPool::Spawned(w1));
 
-		<span class="comment">// Now, to the interesting part. After the queue normally issues the `start_work` command to</span>
-		<span class="comment">// the pool, before receiving the command the queue may report that the worker ripped.</span>
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Rip</span>(<span class="ident">w1</span>));
+		<span class="comment">// Now, to the interesting part. After the queue normally issues the `start_work` command to
+		// the pool, before receiving the command the queue may report that the worker ripped.
+		</span><span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
+		test.send_from_pool(pool::FromPool::Rip(w1));
 
-		<span class="comment">// In this case, the pool should spawn a new worker and request it to work on the item.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::Spawn</span>);
+		<span class="comment">// In this case, the pool should spawn a new worker and request it to work on the item.
+		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
-		<span class="kw">let</span> <span class="ident">w2</span> <span class="op">=</span> <span class="ident">test</span>.<span class="ident">workers</span>.<span class="ident">insert</span>(());
-		<span class="ident">test</span>.<span class="ident">send_from_pool</span>(<span class="ident">pool::FromPool::Spawned</span>(<span class="ident">w2</span>));
-		<span class="macro">assert_matches!</span>(<span class="ident">test</span>.<span class="ident">poll_and_recv_to_pool</span>().<span class="kw">await</span>, <span class="ident">pool::ToPool::StartWork</span> { .. });
+		<span class="kw">let </span>w2 = test.workers.insert(());
+		test.send_from_pool(pool::FromPool::Spawned(w2));
+		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="polkadot_node_core_pvf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/session_info.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>session_info.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/parachains/src/session_info.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>session_info.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_runtime_parachains/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_runtime_parachains/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -224,226 +218,225 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! The session info pallet provides information about validator sets</span>
-<span class="doccomment">//! from prior sessions needed for approvals and disputes.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! See &lt;https://w3f.github.io/parachain-implementers-guide/runtime/session_info.html&gt;.</span>
+</span><span class="doccomment">//! The session info pallet provides information about validator sets
+//! from prior sessions needed for approvals and disputes.
+//!
+//! See &lt;https://w3f.github.io/parachain-implementers-guide/runtime/session_info.html&gt;.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-	<span class="ident">configuration</span>, <span class="ident">paras</span>, <span class="ident">scheduler</span>, <span class="ident">shared</span>,
-	<span class="ident">util</span>::{<span class="ident">take_active_subset</span>, <span class="ident">take_active_subset_and_inactive</span>},
+</span><span class="kw">use crate</span>::{
+	configuration, paras, scheduler, shared,
+	util::{take_active_subset, take_active_subset_and_inactive},
 };
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>,
-	<span class="ident">traits</span>::{<span class="ident">OneSessionHandler</span>, <span class="ident">ValidatorSet</span>, <span class="ident">ValidatorSetWithIdentification</span>},
+<span class="kw">use </span>frame_support::{
+	pallet_prelude::<span class="kw-2">*</span>,
+	traits::{OneSessionHandler, ValidatorSet, ValidatorSetWithIdentification},
 };
-<span class="kw">use</span> <span class="ident">primitives::v2</span>::{<span class="ident">AssignmentId</span>, <span class="ident">AuthorityDiscoveryId</span>, <span class="ident">SessionIndex</span>, <span class="ident">SessionInfo</span>};
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+<span class="kw">use </span>primitives::v2::{AssignmentId, AuthorityDiscoveryId, SessionIndex, SessionInfo};
+<span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">migration</span>;
+<span class="kw">pub mod </span>migration;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// A type for representing the validator account id in a session.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AccountId</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::ValidatorSet</span> <span class="kw">as</span> <span class="ident">ValidatorSet</span><span class="op">&lt;</span>
-	<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
-<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValidatorId</span>;
+<span class="doccomment">/// A type for representing the validator account id in a session.
+</span><span class="kw">pub type </span>AccountId&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::ValidatorSet <span class="kw">as </span>ValidatorSet&lt;
+	&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+&gt;&gt;::ValidatorId;
 
-<span class="doccomment">/// A tuple of `(AccountId, Identification)` where `Identification`</span>
-<span class="doccomment">/// is the full identification of `AccountId`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IdentificationTuple</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> (
-	<span class="ident">AccountId</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::ValidatorSet</span> <span class="kw">as</span> <span class="ident">ValidatorSetWithIdentification</span><span class="op">&lt;</span>
-		<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
-	<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Identification</span>,
+<span class="doccomment">/// A tuple of `(AccountId, Identification)` where `Identification`
+/// is the full identification of `AccountId`.
+</span><span class="kw">pub type </span>IdentificationTuple&lt;T&gt; = (
+	AccountId&lt;T&gt;,
+	&lt;&lt;T <span class="kw">as </span>Config&gt;::ValidatorSet <span class="kw">as </span>ValidatorSetWithIdentification&lt;
+		&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+	&gt;&gt;::Identification,
 );
 
-<span class="attribute">#[<span class="ident">frame_support::pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[frame_support::pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_store</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">Store</span>)]</span>
-	<span class="attribute">#[<span class="ident">pallet::storage_version</span>(<span class="ident">migration::STORAGE_VERSION</span>)]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw">_</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
+	#[pallet::storage_version(migration::STORAGE_VERSION)]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>:
-		<span class="ident">frame_system::Config</span>
-		<span class="op">+</span> <span class="ident">configuration::Config</span>
-		<span class="op">+</span> <span class="ident">shared::Config</span>
-		<span class="op">+</span> <span class="ident">paras::Config</span>
-		<span class="op">+</span> <span class="ident">scheduler::Config</span>
-		<span class="op">+</span> <span class="ident">AuthorityDiscoveryConfig</span>
+	<span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config:
+		frame_system::Config
+		+ configuration::Config
+		+ shared::Config
+		+ paras::Config
+		+ scheduler::Config
+		+ AuthorityDiscoveryConfig
 	{
-		<span class="doccomment">/// A type for retrieving `AccountId`s of the validators in the current session.</span>
-		<span class="doccomment">/// These are stash keys of the validators.</span>
-		<span class="doccomment">/// It&#39;s used for rewards and slashing. `Identification` is only needed for slashing.</span>
-		<span class="kw">type</span> <span class="ident">ValidatorSet</span>: <span class="ident">ValidatorSetWithIdentification</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// A type for retrieving `AccountId`s of the validators in the current session.
+		/// These are stash keys of the validators.
+		/// It&#39;s used for rewards and slashing. `Identification` is only needed for slashing.
+		</span><span class="kw">type </span>ValidatorSet: ValidatorSetWithIdentification&lt;<span class="self">Self</span>::AccountId&gt;;
 	}
 
-	<span class="doccomment">/// Assignment keys for the current session.</span>
-	<span class="doccomment">/// Note that this API is private due to it being prone to &#39;off-by-one&#39; at session boundaries.</span>
-	<span class="doccomment">/// When in doubt, use `Sessions` API instead.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">AssignmentKeysUnsafe</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AssignmentId</span><span class="op">&gt;</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Assignment keys for the current session.
+	/// Note that this API is private due to it being prone to &#39;off-by-one&#39; at session boundaries.
+	/// When in doubt, use `Sessions` API instead.
+	</span><span class="attribute">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>AssignmentKeysUnsafe&lt;T: Config&gt; =
+		StorageValue&lt;<span class="kw">_</span>, Vec&lt;AssignmentId&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// The earliest session for which previous session info is stored.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">earliest_stored_session</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">EarliestStoredSession</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">SessionIndex</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// The earliest session for which previous session info is stored.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>earliest_stored_session)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>EarliestStoredSession&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, SessionIndex, ValueQuery&gt;;
 
-	<span class="doccomment">/// Session information in a rolling window.</span>
-	<span class="doccomment">/// Should have an entry in range `EarliestStoredSession..=CurrentSessionIndex`.</span>
-	<span class="doccomment">/// Does not have any entries before the session index in the first session change notification.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">session_info</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Sessions</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Identity</span>, <span class="ident">SessionIndex</span>, <span class="ident">SessionInfo</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Session information in a rolling window.
+	/// Should have an entry in range `EarliestStoredSession..=CurrentSessionIndex`.
+	/// Does not have any entries before the session index in the first session change notification.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>session_info)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Sessions&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Identity, SessionIndex, SessionInfo&gt;;
 
-	<span class="doccomment">/// The validator account keys of the validators actively participating in parachain consensus.</span>
-	<span class="comment">// We do not store this in `SessionInfo` to avoid leaking the `AccountId` type to the client,</span>
-	<span class="comment">// which would complicate the migration process if we are to change it in the future.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">account_keys</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">AccountKeys</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Identity</span>, <span class="ident">SessionIndex</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// The validator account keys of the validators actively participating in parachain consensus.
+	</span><span class="comment">// We do not store this in `SessionInfo` to avoid leaking the `AccountId` type to the client,
+	// which would complicate the migration process if we are to change it in the future.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>account_keys)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>AccountKeys&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Identity, SessionIndex, Vec&lt;AccountId&lt;T&gt;&gt;&gt;;
 }
 
-<span class="doccomment">/// An abstraction for the authority discovery pallet</span>
-<span class="doccomment">/// to help with mock testing.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AuthorityDiscoveryConfig</span> {
-	<span class="doccomment">/// Retrieve authority identifiers of the current authority set in canonical ordering.</span>
-	<span class="kw">fn</span> <span class="ident">authorities</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span>;
+<span class="doccomment">/// An abstraction for the authority discovery pallet
+/// to help with mock testing.
+</span><span class="kw">pub trait </span>AuthorityDiscoveryConfig {
+	<span class="doccomment">/// Retrieve authority identifiers of the current authority set in canonical ordering.
+	</span><span class="kw">fn </span>authorities() -&gt; Vec&lt;AuthorityDiscoveryId&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">pallet_authority_discovery::Config</span><span class="op">&gt;</span> <span class="ident">AuthorityDiscoveryConfig</span> <span class="kw">for</span> <span class="ident">T</span> {
-	<span class="kw">fn</span> <span class="ident">authorities</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AuthorityDiscoveryId</span><span class="op">&gt;</span> {
-		<span class="op">&lt;</span><span class="ident">pallet_authority_discovery::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::current_authorities</span>().<span class="ident">to_vec</span>()
+<span class="kw">impl</span>&lt;T: pallet_authority_discovery::Config&gt; AuthorityDiscoveryConfig <span class="kw">for </span>T {
+	<span class="kw">fn </span>authorities() -&gt; Vec&lt;AuthorityDiscoveryId&gt; {
+		&lt;pallet_authority_discovery::Pallet&lt;T&gt;&gt;::current_authorities().to_vec()
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Handle an incoming session change.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_on_new_session</span>(
-		<span class="ident">notification</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::initializer::SessionChangeNotification</span><span class="op">&lt;</span><span class="ident">T::BlockNumber</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+	<span class="doccomment">/// Handle an incoming session change.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
+		notification: <span class="kw-2">&amp;</span><span class="kw">crate</span>::initializer::SessionChangeNotification&lt;T::BlockNumber&gt;,
 	) {
-		<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">configuration::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::config</span>();
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
-		<span class="kw">let</span> <span class="ident">dispute_period</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">dispute_period</span>;
+		<span class="kw">let </span>dispute_period = config.dispute_period;
 
-		<span class="kw">let</span> <span class="ident">validators</span> <span class="op">=</span> <span class="ident">notification</span>.<span class="ident">validators</span>.<span class="ident">clone</span>();
-		<span class="kw">let</span> <span class="ident">discovery_keys</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">AuthorityDiscoveryConfig</span><span class="op">&gt;</span><span class="ident">::authorities</span>();
-		<span class="kw">let</span> <span class="ident">assignment_keys</span> <span class="op">=</span> <span class="ident">AssignmentKeysUnsafe</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">let</span> <span class="ident">active_set</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">shared::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::active_validator_indices</span>();
+		<span class="kw">let </span>validators = notification.validators.clone();
+		<span class="kw">let </span>discovery_keys = &lt;T <span class="kw">as </span>AuthorityDiscoveryConfig&gt;::authorities();
+		<span class="kw">let </span>assignment_keys = AssignmentKeysUnsafe::&lt;T&gt;::get();
+		<span class="kw">let </span>active_set = &lt;shared::Pallet&lt;T&gt;&gt;::active_validator_indices();
 
-		<span class="kw">let</span> <span class="ident">validator_groups</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::validator_groups</span>();
-		<span class="kw">let</span> <span class="ident">n_cores</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">scheduler::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::availability_cores</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-		<span class="kw">let</span> <span class="ident">zeroth_delay_tranche_width</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">zeroth_delay_tranche_width</span>;
-		<span class="kw">let</span> <span class="ident">relay_vrf_modulo_samples</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">relay_vrf_modulo_samples</span>;
-		<span class="kw">let</span> <span class="ident">n_delay_tranches</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">n_delay_tranches</span>;
-		<span class="kw">let</span> <span class="ident">no_show_slots</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">no_show_slots</span>;
-		<span class="kw">let</span> <span class="ident">needed_approvals</span> <span class="op">=</span> <span class="ident">config</span>.<span class="ident">needed_approvals</span>;
+		<span class="kw">let </span>validator_groups = &lt;scheduler::Pallet&lt;T&gt;&gt;::validator_groups();
+		<span class="kw">let </span>n_cores = &lt;scheduler::Pallet&lt;T&gt;&gt;::availability_cores().len() <span class="kw">as </span>u32;
+		<span class="kw">let </span>zeroth_delay_tranche_width = config.zeroth_delay_tranche_width;
+		<span class="kw">let </span>relay_vrf_modulo_samples = config.relay_vrf_modulo_samples;
+		<span class="kw">let </span>n_delay_tranches = config.n_delay_tranches;
+		<span class="kw">let </span>no_show_slots = config.no_show_slots;
+		<span class="kw">let </span>needed_approvals = config.needed_approvals;
 
-		<span class="kw">let</span> <span class="ident">new_session_index</span> <span class="op">=</span> <span class="ident">notification</span>.<span class="ident">session_index</span>;
-		<span class="kw">let</span> <span class="ident">random_seed</span> <span class="op">=</span> <span class="ident">notification</span>.<span class="ident">random_seed</span>;
-		<span class="kw">let</span> <span class="ident">old_earliest_stored_session</span> <span class="op">=</span> <span class="ident">EarliestStoredSession</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>();
-		<span class="kw">let</span> <span class="ident">new_earliest_stored_session</span> <span class="op">=</span> <span class="ident">new_session_index</span>.<span class="ident">saturating_sub</span>(<span class="ident">dispute_period</span>);
-		<span class="kw">let</span> <span class="ident">new_earliest_stored_session</span> <span class="op">=</span>
-			<span class="ident">core::cmp::max</span>(<span class="ident">new_earliest_stored_session</span>, <span class="ident">old_earliest_stored_session</span>);
-		<span class="comment">// remove all entries from `Sessions` from the previous value up to the new value</span>
-		<span class="comment">// avoid a potentially heavy loop when introduced on a live chain</span>
-		<span class="kw">if</span> <span class="ident">old_earliest_stored_session</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">Sessions</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="number">0</span>).<span class="ident">is_some</span>() {
-			<span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="ident">old_earliest_stored_session</span>..<span class="ident">new_earliest_stored_session</span> {
-				<span class="ident">Sessions</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">idx</span>);
-				<span class="comment">// Idx will be missing for a few sessions after the runtime upgrade.</span>
-				<span class="comment">// But it shouldn&#39;be be a problem.</span>
-				<span class="ident">AccountKeys</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">idx</span>);
+		<span class="kw">let </span>new_session_index = notification.session_index;
+		<span class="kw">let </span>random_seed = notification.random_seed;
+		<span class="kw">let </span>old_earliest_stored_session = EarliestStoredSession::&lt;T&gt;::get();
+		<span class="kw">let </span>new_earliest_stored_session = new_session_index.saturating_sub(dispute_period);
+		<span class="kw">let </span>new_earliest_stored_session =
+			core::cmp::max(new_earliest_stored_session, old_earliest_stored_session);
+		<span class="comment">// remove all entries from `Sessions` from the previous value up to the new value
+		// avoid a potentially heavy loop when introduced on a live chain
+		</span><span class="kw">if </span>old_earliest_stored_session != <span class="number">0 </span>|| Sessions::&lt;T&gt;::get(<span class="number">0</span>).is_some() {
+			<span class="kw">for </span>idx <span class="kw">in </span>old_earliest_stored_session..new_earliest_stored_session {
+				Sessions::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>idx);
+				<span class="comment">// Idx will be missing for a few sessions after the runtime upgrade.
+				// But it shouldn&#39;be be a problem.
+				</span>AccountKeys::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>idx);
 			}
-			<span class="comment">// update `EarliestStoredSession` based on `config.dispute_period`</span>
-			<span class="ident">EarliestStoredSession</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">new_earliest_stored_session</span>);
-		} <span class="kw">else</span> {
-			<span class="comment">// just introduced on a live chain</span>
-			<span class="ident">EarliestStoredSession</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">new_session_index</span>);
+			<span class="comment">// update `EarliestStoredSession` based on `config.dispute_period`
+			</span>EarliestStoredSession::&lt;T&gt;::set(new_earliest_stored_session);
+		} <span class="kw">else </span>{
+			<span class="comment">// just introduced on a live chain
+			</span>EarliestStoredSession::&lt;T&gt;::set(new_session_index);
 		}
 
-		<span class="comment">// The validator set is guaranteed to be of the current session</span>
-		<span class="comment">// because we delay `on_new_session` till the end of the block.</span>
-		<span class="kw">let</span> <span class="ident">account_ids</span> <span class="op">=</span> <span class="ident">T::ValidatorSet::validators</span>();
-		<span class="kw">let</span> <span class="ident">active_account_ids</span> <span class="op">=</span> <span class="ident">take_active_subset</span>(<span class="kw-2">&amp;</span><span class="ident">active_set</span>, <span class="kw-2">&amp;</span><span class="ident">account_ids</span>);
-		<span class="ident">AccountKeys</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">new_session_index</span>, <span class="kw-2">&amp;</span><span class="ident">active_account_ids</span>);
+		<span class="comment">// The validator set is guaranteed to be of the current session
+		// because we delay `on_new_session` till the end of the block.
+		</span><span class="kw">let </span>account_ids = T::ValidatorSet::validators();
+		<span class="kw">let </span>active_account_ids = take_active_subset(<span class="kw-2">&amp;</span>active_set, <span class="kw-2">&amp;</span>account_ids);
+		AccountKeys::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_session_index, <span class="kw-2">&amp;</span>active_account_ids);
 
-		<span class="comment">// create a new entry in `Sessions` with information about the current session</span>
-		<span class="kw">let</span> <span class="ident">new_session_info</span> <span class="op">=</span> <span class="ident">SessionInfo</span> {
-			<span class="ident">validators</span>, <span class="comment">// these are from the notification and are thus already correct.</span>
-			<span class="ident">discovery_keys</span>: <span class="ident">take_active_subset_and_inactive</span>(<span class="kw-2">&amp;</span><span class="ident">active_set</span>, <span class="kw-2">&amp;</span><span class="ident">discovery_keys</span>),
-			<span class="ident">assignment_keys</span>: <span class="ident">take_active_subset</span>(<span class="kw-2">&amp;</span><span class="ident">active_set</span>, <span class="kw-2">&amp;</span><span class="ident">assignment_keys</span>),
-			<span class="ident">validator_groups</span>,
-			<span class="ident">n_cores</span>,
-			<span class="ident">zeroth_delay_tranche_width</span>,
-			<span class="ident">relay_vrf_modulo_samples</span>,
-			<span class="ident">n_delay_tranches</span>,
-			<span class="ident">no_show_slots</span>,
-			<span class="ident">needed_approvals</span>,
-			<span class="ident">active_validator_indices</span>: <span class="ident">active_set</span>,
-			<span class="ident">random_seed</span>,
-			<span class="ident">dispute_period</span>,
+		<span class="comment">// create a new entry in `Sessions` with information about the current session
+		</span><span class="kw">let </span>new_session_info = SessionInfo {
+			validators, <span class="comment">// these are from the notification and are thus already correct.
+			</span>discovery_keys: take_active_subset_and_inactive(<span class="kw-2">&amp;</span>active_set, <span class="kw-2">&amp;</span>discovery_keys),
+			assignment_keys: take_active_subset(<span class="kw-2">&amp;</span>active_set, <span class="kw-2">&amp;</span>assignment_keys),
+			validator_groups,
+			n_cores,
+			zeroth_delay_tranche_width,
+			relay_vrf_modulo_samples,
+			n_delay_tranches,
+			no_show_slots,
+			needed_approvals,
+			active_validator_indices: active_set,
+			random_seed,
+			dispute_period,
 		};
-		<span class="ident">Sessions</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">new_session_index</span>, <span class="kw-2">&amp;</span><span class="ident">new_session_info</span>);
+		Sessions::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_session_index, <span class="kw-2">&amp;</span>new_session_info);
 	}
 
-	<span class="doccomment">/// Called by the initializer to initialize the session info pallet.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_initialize</span>(<span class="ident">_now</span>: <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">Weight::zero</span>()
+	<span class="doccomment">/// Called by the initializer to initialize the session info pallet.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+		Weight::zero()
 	}
 
-	<span class="doccomment">/// Called by the initializer to finalize the session info pallet.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initializer_finalize</span>() {}
+	<span class="doccomment">/// Called by the initializer to finalize the session info pallet.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_finalize() {}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">sp_runtime::BoundToRuntimeAppPublic</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">type</span> <span class="ident">Public</span> <span class="op">=</span> <span class="ident">AssignmentId</span>;
+<span class="kw">impl</span>&lt;T: Config&gt; sp_runtime::BoundToRuntimeAppPublic <span class="kw">for </span>Pallet&lt;T&gt; {
+	<span class="kw">type </span>Public = AssignmentId;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">pallet_session::Config</span> <span class="op">+</span> <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OneSessionHandler</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">type</span> <span class="ident">Key</span> <span class="op">=</span> <span class="ident">AssignmentId</span>;
+<span class="kw">impl</span>&lt;T: pallet_session::Config + Config&gt; OneSessionHandler&lt;T::AccountId&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+	<span class="kw">type </span>Key = AssignmentId;
 
-	<span class="kw">fn</span> <span class="ident">on_genesis_session</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">_validators</span>: <span class="ident">I</span>)
-	<span class="kw">where</span>
-		<span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T::AccountId</span>, <span class="ident"><span class="self">Self</span>::Key</span>)<span class="op">&gt;</span>,
+	<span class="kw">fn </span>on_genesis_session&lt;<span class="lifetime">&#39;a</span>, I: <span class="lifetime">&#39;a</span>&gt;(_validators: I)
+	<span class="kw">where
+		</span>I: Iterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::AccountId, <span class="self">Self</span>::Key)&gt;,
 	{
 	}
 
-	<span class="kw">fn</span> <span class="ident">on_new_session</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">I</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">_changed</span>: <span class="ident">bool</span>, <span class="ident">validators</span>: <span class="ident">I</span>, <span class="ident">_queued</span>: <span class="ident">I</span>)
-	<span class="kw">where</span>
-		<span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T::AccountId</span>, <span class="ident"><span class="self">Self</span>::Key</span>)<span class="op">&gt;</span>,
+	<span class="kw">fn </span>on_new_session&lt;<span class="lifetime">&#39;a</span>, I: <span class="lifetime">&#39;a</span>&gt;(_changed: bool, validators: I, _queued: I)
+	<span class="kw">where
+		</span>I: Iterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T::AccountId, <span class="self">Self</span>::Key)&gt;,
 	{
-		<span class="kw">let</span> <span class="ident">assignment_keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">validators</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="ident">v</span>).<span class="ident">collect</span>();
-		<span class="ident">AssignmentKeysUnsafe</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set</span>(<span class="ident">assignment_keys</span>);
+		<span class="kw">let </span>assignment_keys: Vec&lt;<span class="kw">_</span>&gt; = validators.map(|(<span class="kw">_</span>, v)| v).collect();
+		AssignmentKeysUnsafe::&lt;T&gt;::set(assignment_keys);
 	}
 
-	<span class="kw">fn</span> <span class="ident">on_disabled</span>(<span class="ident">_i</span>: <span class="ident">u32</span>) {}
+	<span class="kw">fn </span>on_disabled(_i: u32) {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_runtime_parachains" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>

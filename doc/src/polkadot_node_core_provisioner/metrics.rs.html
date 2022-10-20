@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/provisioner/src/metrics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>metrics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_provisioner/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/core/provisioner/src/metrics.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>metrics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../polkadot_node_core_provisioner/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polkadot_node_core_provisioner/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -218,220 +212,219 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.</span>
-<span class="comment">// This file is part of Polkadot.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-<span class="comment">// Polkadot is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Polkadot is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::disputes::prioritized_selection::PartitionedDisputes</span>;
-<span class="kw">use</span> <span class="ident">polkadot_node_subsystem_util::metrics</span>::{<span class="self">self</span>, <span class="ident">prometheus</span>};
+</span><span class="kw">use </span><span class="kw">crate</span>::disputes::prioritized_selection::PartitionedDisputes;
+<span class="kw">use </span>polkadot_node_subsystem_util::metrics::{<span class="self">self</span>, prometheus};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">struct</span> <span class="ident">MetricsInner</span> {
-	<span class="doccomment">/// Tracks successful/unsuccessful inherent data requests</span>
-	<span class="ident">inherent_data_requests</span>: <span class="ident">prometheus::CounterVec</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// How much time the `RequestInherentData` processing takes</span>
-	<span class="ident">request_inherent_data_duration</span>: <span class="ident">prometheus::Histogram</span>,
-	<span class="doccomment">/// How much time `ProvisionableData` processing takes</span>
-	<span class="ident">provisionable_data_duration</span>: <span class="ident">prometheus::Histogram</span>,
-	<span class="doccomment">/// Bitfields array length in `ProvisionerInherentData` (the result for `RequestInherentData`)</span>
-	<span class="ident">inherent_data_response_bitfields</span>: <span class="ident">prometheus::Histogram</span>,
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">struct </span>MetricsInner {
+	<span class="doccomment">/// Tracks successful/unsuccessful inherent data requests
+	</span>inherent_data_requests: prometheus::CounterVec&lt;prometheus::U64&gt;,
+	<span class="doccomment">/// How much time the `RequestInherentData` processing takes
+	</span>request_inherent_data_duration: prometheus::Histogram,
+	<span class="doccomment">/// How much time `ProvisionableData` processing takes
+	</span>provisionable_data_duration: prometheus::Histogram,
+	<span class="doccomment">/// Bitfields array length in `ProvisionerInherentData` (the result for `RequestInherentData`)
+	</span>inherent_data_response_bitfields: prometheus::Histogram,
 
-	<span class="doccomment">/// The following metrics track how many disputes/votes the runtime will have to process. These will count</span>
-	<span class="doccomment">/// all recent statements meaning every dispute from last sessions: 10 min on Rococo, 60 min on Kusama and</span>
-	<span class="doccomment">/// 4 hours on Polkadot. The metrics are updated only when the node authors a block, so values vary across nodes.</span>
-	<span class="ident">inherent_data_dispute_statement_sets</span>: <span class="ident">prometheus::Counter</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
-	<span class="ident">inherent_data_dispute_statements</span>: <span class="ident">prometheus::CounterVec</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The following metrics track how many disputes/votes the runtime will have to process. These will count
+	/// all recent statements meaning every dispute from last sessions: 10 min on Rococo, 60 min on Kusama and
+	/// 4 hours on Polkadot. The metrics are updated only when the node authors a block, so values vary across nodes.
+	</span>inherent_data_dispute_statement_sets: prometheus::Counter&lt;prometheus::U64&gt;,
+	inherent_data_dispute_statements: prometheus::CounterVec&lt;prometheus::U64&gt;,
 
-	<span class="doccomment">/// The disputes received from `disputes-coordinator` by partition</span>
-	<span class="ident">partitioned_disputes</span>: <span class="ident">prometheus::CounterVec</span><span class="op">&lt;</span><span class="ident">prometheus::U64</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The disputes received from `disputes-coordinator` by partition
+	</span>partitioned_disputes: prometheus::CounterVec&lt;prometheus::U64&gt;,
 }
 
-<span class="doccomment">/// Provisioner metrics.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Metrics</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MetricsInner</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Provisioner metrics.
+</span><span class="attribute">#[derive(Default, Clone)]
+</span><span class="kw">pub struct </span>Metrics(<span class="prelude-ty">Option</span>&lt;MetricsInner&gt;);
 
-<span class="kw">impl</span> <span class="ident">Metrics</span> {
-	<span class="doccomment">/// Creates new dummy `Metrics` instance. Used for testing only.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_dummy</span>() -&gt; <span class="ident">Metrics</span> {
-		<span class="ident">Metrics</span>(<span class="prelude-val">None</span>)
+<span class="kw">impl </span>Metrics {
+	<span class="doccomment">/// Creates new dummy `Metrics` instance. Used for testing only.
+	</span><span class="attribute">#[cfg(test)]
+	</span><span class="kw">pub fn </span>new_dummy() -&gt; Metrics {
+		Metrics(<span class="prelude-val">None</span>)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">on_inherent_data_request</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">response</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="kw">match</span> <span class="ident">response</span> {
-				<span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">metrics</span>.<span class="ident">inherent_data_requests</span>.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;succeeded&quot;</span>]).<span class="ident">inc</span>(),
-				<span class="prelude-val">Err</span>(()) =&gt; <span class="ident">metrics</span>.<span class="ident">inherent_data_requests</span>.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;failed&quot;</span>]).<span class="ident">inc</span>(),
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_inherent_data_request(<span class="kw-2">&amp;</span><span class="self">self</span>, response: <span class="prelude-ty">Result</span>&lt;(), ()&gt;) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			<span class="kw">match </span>response {
+				<span class="prelude-val">Ok</span>(()) =&gt; metrics.inherent_data_requests.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;succeeded&quot;</span>]).inc(),
+				<span class="prelude-val">Err</span>(()) =&gt; metrics.inherent_data_requests.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;failed&quot;</span>]).inc(),
 			}
 		}
 	}
 
-	<span class="doccomment">/// Provide a timer for `request_inherent_data` which observes on drop.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">time_request_inherent_data</span>(
+	<span class="doccomment">/// Provide a timer for `request_inherent_data` which observes on drop.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_request_inherent_data(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">metrics::prometheus::prometheus::HistogramTimer</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>
-			.<span class="ident">as_ref</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">metrics</span><span class="op">|</span> <span class="ident">metrics</span>.<span class="ident">request_inherent_data_duration</span>.<span class="ident">start_timer</span>())
+	) -&gt; <span class="prelude-ty">Option</span>&lt;metrics::prometheus::prometheus::HistogramTimer&gt; {
+		<span class="self">self</span>.<span class="number">0
+			</span>.as_ref()
+			.map(|metrics| metrics.request_inherent_data_duration.start_timer())
 	}
 
-	<span class="doccomment">/// Provide a timer for `provisionable_data` which observes on drop.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">time_provisionable_data</span>(
+	<span class="doccomment">/// Provide a timer for `provisionable_data` which observes on drop.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_provisionable_data(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">metrics::prometheus::prometheus::HistogramTimer</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">metrics</span><span class="op">|</span> <span class="ident">metrics</span>.<span class="ident">provisionable_data_duration</span>.<span class="ident">start_timer</span>())
+	) -&gt; <span class="prelude-ty">Option</span>&lt;metrics::prometheus::prometheus::HistogramTimer&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| metrics.provisionable_data_duration.start_timer())
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">observe_inherent_data_bitfields_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bitfields_count</span>: <span class="ident">usize</span>) {
-		<span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">metrics</span><span class="op">|</span> {
-			<span class="ident">metrics</span>.<span class="ident">inherent_data_response_bitfields</span>.<span class="ident">observe</span>(<span class="ident">bitfields_count</span> <span class="kw">as</span> <span class="ident">f64</span>)
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>observe_inherent_data_bitfields_count(<span class="kw-2">&amp;</span><span class="self">self</span>, bitfields_count: usize) {
+		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| {
+			metrics.inherent_data_response_bitfields.observe(bitfields_count <span class="kw">as </span>f64)
 		});
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inc_valid_statements_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">votes</span>: <span class="ident">usize</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="ident">metrics</span>
-				.<span class="ident">inherent_data_dispute_statements</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;valid&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">votes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_valid_statements_by(<span class="kw-2">&amp;</span><span class="self">self</span>, votes: usize) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			metrics
+				.inherent_data_dispute_statements
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;valid&quot;</span>])
+				.inc_by(votes.try_into().unwrap_or(<span class="number">0</span>));
 		}
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inc_invalid_statements_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">votes</span>: <span class="ident">usize</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="ident">metrics</span>
-				.<span class="ident">inherent_data_dispute_statements</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;invalid&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">votes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_invalid_statements_by(<span class="kw-2">&amp;</span><span class="self">self</span>, votes: usize) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			metrics
+				.inherent_data_dispute_statements
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;invalid&quot;</span>])
+				.inc_by(votes.try_into().unwrap_or(<span class="number">0</span>));
 		}
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inc_dispute_statement_sets_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">disputes</span>: <span class="ident">usize</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="ident">metrics</span>
-				.<span class="ident">inherent_data_dispute_statement_sets</span>
-				.<span class="ident">inc_by</span>(<span class="ident">disputes</span>.<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_dispute_statement_sets_by(<span class="kw-2">&amp;</span><span class="self">self</span>, disputes: usize) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			metrics
+				.inherent_data_dispute_statement_sets
+				.inc_by(disputes.try_into().unwrap_or(<span class="number">0</span>));
 		}
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">on_partition_recent_disputes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">disputes</span>: <span class="kw-2">&amp;</span><span class="ident">PartitionedDisputes</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">metrics</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span> {
-			<span class="kw">let</span> <span class="ident">PartitionedDisputes</span> {
-				<span class="ident">inactive_unknown_onchain</span>,
-				<span class="ident">inactive_unconcluded_onchain</span>: <span class="ident">inactive_unconcluded_known_onchain</span>,
-				<span class="ident">active_unknown_onchain</span>,
-				<span class="ident">active_unconcluded_onchain</span>,
-				<span class="ident">active_concluded_onchain</span>,
-				<span class="ident">inactive_concluded_onchain</span>: <span class="ident">inactive_concluded_known_onchain</span>,
-			} <span class="op">=</span> <span class="ident">disputes</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_partition_recent_disputes(<span class="kw-2">&amp;</span><span class="self">self</span>, disputes: <span class="kw-2">&amp;</span>PartitionedDisputes) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			<span class="kw">let </span>PartitionedDisputes {
+				inactive_unknown_onchain,
+				inactive_unconcluded_onchain: inactive_unconcluded_known_onchain,
+				active_unknown_onchain,
+				active_unconcluded_onchain,
+				active_concluded_onchain,
+				inactive_concluded_onchain: inactive_concluded_known_onchain,
+			} = disputes;
 
-			<span class="ident">metrics</span>
-				.<span class="ident">partitioned_disputes</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;inactive_unknown_onchain&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">inactive_unknown_onchain</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
-			<span class="ident">metrics</span>
-				.<span class="ident">partitioned_disputes</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;inactive_unconcluded_known_onchain&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">inactive_unconcluded_known_onchain</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
-			<span class="ident">metrics</span>
-				.<span class="ident">partitioned_disputes</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;active_unknown_onchain&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">active_unknown_onchain</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
-			<span class="ident">metrics</span>
-				.<span class="ident">partitioned_disputes</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;active_unconcluded_onchain&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">active_unconcluded_onchain</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
-			<span class="ident">metrics</span>
-				.<span class="ident">partitioned_disputes</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;active_concluded_onchain&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">active_concluded_onchain</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
-			<span class="ident">metrics</span>
-				.<span class="ident">partitioned_disputes</span>
-				.<span class="ident">with_label_values</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;inactive_concluded_known_onchain&quot;</span>])
-				.<span class="ident">inc_by</span>(<span class="ident">inactive_concluded_known_onchain</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>));
+			metrics
+				.partitioned_disputes
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;inactive_unknown_onchain&quot;</span>])
+				.inc_by(inactive_unknown_onchain.len().try_into().unwrap_or(<span class="number">0</span>));
+			metrics
+				.partitioned_disputes
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;inactive_unconcluded_known_onchain&quot;</span>])
+				.inc_by(inactive_unconcluded_known_onchain.len().try_into().unwrap_or(<span class="number">0</span>));
+			metrics
+				.partitioned_disputes
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;active_unknown_onchain&quot;</span>])
+				.inc_by(active_unknown_onchain.len().try_into().unwrap_or(<span class="number">0</span>));
+			metrics
+				.partitioned_disputes
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;active_unconcluded_onchain&quot;</span>])
+				.inc_by(active_unconcluded_onchain.len().try_into().unwrap_or(<span class="number">0</span>));
+			metrics
+				.partitioned_disputes
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;active_concluded_onchain&quot;</span>])
+				.inc_by(active_concluded_onchain.len().try_into().unwrap_or(<span class="number">0</span>));
+			metrics
+				.partitioned_disputes
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;inactive_concluded_known_onchain&quot;</span>])
+				.inc_by(inactive_concluded_known_onchain.len().try_into().unwrap_or(<span class="number">0</span>));
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">metrics::Metrics</span> <span class="kw">for</span> <span class="ident">Metrics</span> {
-	<span class="kw">fn</span> <span class="ident">try_register</span>(<span class="ident">registry</span>: <span class="kw-2">&amp;</span><span class="ident">prometheus::Registry</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">prometheus::PrometheusError</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">metrics</span> <span class="op">=</span> <span class="ident">MetricsInner</span> {
-			<span class="ident">inherent_data_requests</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::CounterVec::new</span>(
-					<span class="ident">prometheus::Opts::new</span>(
+<span class="kw">impl </span>metrics::Metrics <span class="kw">for </span>Metrics {
+	<span class="kw">fn </span>try_register(registry: <span class="kw-2">&amp;</span>prometheus::Registry) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, prometheus::PrometheusError&gt; {
+		<span class="kw">let </span>metrics = MetricsInner {
+			inherent_data_requests: prometheus::register(
+				prometheus::CounterVec::new(
+					prometheus::Opts::new(
 						<span class="string">&quot;polkadot_parachain_inherent_data_requests_total&quot;</span>,
 						<span class="string">&quot;Number of InherentData requests served by provisioner.&quot;</span>,
 					),
 					<span class="kw-2">&amp;</span>[<span class="string">&quot;success&quot;</span>],
 				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
+				registry,
 			)<span class="question-mark">?</span>,
-			<span class="ident">request_inherent_data_duration</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Histogram::with_opts</span>(<span class="ident">prometheus::HistogramOpts::new</span>(
+			request_inherent_data_duration: prometheus::register(
+				prometheus::Histogram::with_opts(prometheus::HistogramOpts::new(
 					<span class="string">&quot;polkadot_parachain_provisioner_request_inherent_data_time&quot;</span>,
 					<span class="string">&quot;Time spent within `provisioner::request_inherent_data`&quot;</span>,
 				))<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
+				registry,
 			)<span class="question-mark">?</span>,
-			<span class="ident">provisionable_data_duration</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Histogram::with_opts</span>(<span class="ident">prometheus::HistogramOpts::new</span>(
+			provisionable_data_duration: prometheus::register(
+				prometheus::Histogram::with_opts(prometheus::HistogramOpts::new(
 					<span class="string">&quot;polkadot_parachain_provisioner_provisionable_data_time&quot;</span>,
 					<span class="string">&quot;Time spent within `provisioner::provisionable_data`&quot;</span>,
 				))<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
+				registry,
 			)<span class="question-mark">?</span>,
-			<span class="ident">inherent_data_dispute_statements</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::CounterVec::new</span>(
-					<span class="ident">prometheus::Opts::new</span>(
+			inherent_data_dispute_statements: prometheus::register(
+				prometheus::CounterVec::new(
+					prometheus::Opts::new(
 						<span class="string">&quot;polkadot_parachain_inherent_data_dispute_statements&quot;</span>,
 						<span class="string">&quot;Number of dispute statements passed to `create_inherent()`.&quot;</span>,
 					),
 					<span class="kw-2">&amp;</span>[<span class="string">&quot;validity&quot;</span>],
 				)<span class="question-mark">?</span>,
-				<span class="kw-2">&amp;</span><span class="ident">registry</span>,
+				<span class="kw-2">&amp;</span>registry,
 			)<span class="question-mark">?</span>,
-			<span class="ident">inherent_data_dispute_statement_sets</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Counter::new</span>(
+			inherent_data_dispute_statement_sets: prometheus::register(
+				prometheus::Counter::new(
 					<span class="string">&quot;polkadot_parachain_inherent_data_dispute_statement_sets&quot;</span>,
 					<span class="string">&quot;Number of dispute statements sets passed to `create_inherent()`.&quot;</span>,
 				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
+				registry,
 			)<span class="question-mark">?</span>,
-			<span class="ident">inherent_data_response_bitfields</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::Histogram::with_opts</span>(
-					<span class="ident">prometheus::HistogramOpts::new</span>(
+			inherent_data_response_bitfields: prometheus::register(
+				prometheus::Histogram::with_opts(
+					prometheus::HistogramOpts::new(
 						<span class="string">&quot;polkadot_parachain_provisioner_inherent_data_response_bitfields_sent&quot;</span>,
 						<span class="string">&quot;Number of inherent bitfields sent in response to `ProvisionerMessage::RequestInherentData`.&quot;</span>,
-					).<span class="ident">buckets</span>(<span class="macro">vec!</span>[<span class="number">0.0</span>, <span class="number">10.0</span>, <span class="number">25.0</span>, <span class="number">50.0</span>, <span class="number">75.0</span>, <span class="number">100.0</span>, <span class="number">150.0</span>, <span class="number">200.0</span>, <span class="number">250.0</span>, <span class="number">300.0</span>]),
+					).buckets(<span class="macro">vec!</span>[<span class="number">0.0</span>, <span class="number">10.0</span>, <span class="number">25.0</span>, <span class="number">50.0</span>, <span class="number">75.0</span>, <span class="number">100.0</span>, <span class="number">150.0</span>, <span class="number">200.0</span>, <span class="number">250.0</span>, <span class="number">300.0</span>]),
 				)<span class="question-mark">?</span>,
-				<span class="ident">registry</span>,
+				registry,
 			)<span class="question-mark">?</span>,
-			<span class="ident">partitioned_disputes</span>: <span class="ident">prometheus::register</span>(
-				<span class="ident">prometheus::CounterVec::new</span>(
-					<span class="ident">prometheus::Opts::new</span>(
+			partitioned_disputes: prometheus::register(
+				prometheus::CounterVec::new(
+					prometheus::Opts::new(
 						<span class="string">&quot;polkadot_parachain_provisioner_partitioned_disputes&quot;</span>,
 						<span class="string">&quot;some fancy description&quot;</span>,
 					),
 					<span class="kw-2">&amp;</span>[<span class="string">&quot;partition&quot;</span>],
 				)<span class="question-mark">?</span>,
-				<span class="kw-2">&amp;</span><span class="ident">registry</span>,
+				<span class="kw-2">&amp;</span>registry,
 			)<span class="question-mark">?</span>,
 		};
-		<span class="prelude-val">Ok</span>(<span class="ident">Metrics</span>(<span class="prelude-val">Some</span>(<span class="ident">metrics</span>)))
+		<span class="prelude-val">Ok</span>(Metrics(<span class="prelude-val">Some</span>(metrics)))
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_provisioner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7fe022f5a 2022-07-24)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polkadot_node_core_provisioner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (81f391930 2022-10-09)" ></div></body></html>
