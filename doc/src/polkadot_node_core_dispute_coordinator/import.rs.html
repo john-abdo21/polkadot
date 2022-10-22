@@ -595,8 +595,8 @@
 <span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, SignedDisputeStatement};
 <span class="kw">use </span>polkadot_node_subsystem_util::rolling_session_window::RollingSessionWindow;
 <span class="kw">use </span>polkadot_primitives::v2::{
-	CandidateReceipt, DisputeStatement, SessionIndex, SessionInfo, ValidDisputeStatementKind,
-	ValidatorId, ValidatorIndex, ValidatorPair, ValidatorSignature,
+	CandidateReceipt, DisputeStatement, IndexedVec, SessionIndex, SessionInfo,
+	ValidDisputeStatementKind, ValidatorId, ValidatorIndex, ValidatorPair, ValidatorSignature,
 };
 <span class="kw">use </span>sc_keystore::LocalKeystore;
 
@@ -627,7 +627,7 @@
 	}
 
 	<span class="doccomment">/// Validators in the candidate&#39;s session.
-	</span><span class="kw">pub fn </span>validators(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;ValidatorId&gt; {
+	</span><span class="kw">pub fn </span>validators(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexedVec&lt;ValidatorIndex, ValidatorId&gt; {
 		<span class="kw-2">&amp;</span><span class="self">self</span>.session.validators
 	}
 
@@ -793,7 +793,7 @@
 		<span class="kw">for </span>(statement, val_index) <span class="kw">in </span>statements {
 			<span class="kw">if </span>env
 				.validators()
-				.get(val_index.<span class="number">0 </span><span class="kw">as </span>usize)
+				.get(val_index)
 				.map_or(<span class="bool-val">true</span>, |v| v != statement.validator_public())
 			{
 				<span class="macro">gum::error!</span>(
@@ -1052,7 +1052,7 @@
 		<span class="kw">for </span>(index, sig) <span class="kw">in </span>approval_votes.into_iter() {
 			<span class="macro">debug_assert!</span>(
 				{
-					<span class="kw">let </span>pub_key = <span class="kw-2">&amp;</span>env.session_info().validators[index.<span class="number">0 </span><span class="kw">as </span>usize];
+					<span class="kw">let </span>pub_key = <span class="kw-2">&amp;</span>env.session_info().validators.get(index).expect(<span class="string">&quot;indices are validated by approval-voting subsystem; qed&quot;</span>);
 					<span class="kw">let </span>candidate_hash = votes.candidate_receipt.hash();
 					<span class="kw">let </span>session_index = env.session_index();
 					DisputeStatement::Valid(ValidDisputeStatementKind::ApprovalChecking)
@@ -1102,7 +1102,7 @@
 /// That is all `ValidatorIndex`es we have private keys for. Usually this will only be one.
 </span><span class="kw">fn </span>find_controlled_validator_indices(
 	keystore: <span class="kw-2">&amp;</span>LocalKeystore,
-	validators: <span class="kw-2">&amp;</span>[ValidatorId],
+	validators: <span class="kw-2">&amp;</span>IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 ) -&gt; HashSet&lt;ValidatorIndex&gt; {
 	<span class="kw">let </span><span class="kw-2">mut </span>controlled = HashSet::new();
 	<span class="kw">for </span>(index, validator) <span class="kw">in </span>validators.iter().enumerate() {

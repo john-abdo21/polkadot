@@ -1138,7 +1138,7 @@
 <span class="kw">use </span>polkadot_node_subsystem_util::request_session_info;
 <span class="kw">use </span>polkadot_primitives::v2::{
 	AuthorityDiscoveryId, BlakeTwo256, BlockNumber, CandidateHash, CandidateReceipt, GroupIndex,
-	Hash, HashT, SessionIndex, SessionInfo, ValidatorId, ValidatorIndex,
+	Hash, HashT, IndexedVec, SessionIndex, SessionInfo, ValidatorId, ValidatorIndex,
 };
 
 <span class="kw">mod </span>error;
@@ -1214,7 +1214,7 @@
 	</span>validator_authority_keys: Vec&lt;AuthorityDiscoveryId&gt;,
 
 	<span class="doccomment">/// Validators relevant to this `RecoveryTask`.
-	</span>validators: Vec&lt;ValidatorId&gt;,
+	</span>validators: IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 
 	<span class="doccomment">/// The number of pieces needed.
 	</span>threshold: usize,
@@ -1951,7 +1951,7 @@
 	};
 
 	<span class="kw">let </span>phase = backing_group
-		.and_then(|g| session_info.validator_groups.get(g.<span class="number">0 </span><span class="kw">as </span>usize))
+		.and_then(|g| session_info.validator_groups.get(g))
 		.map(|group| Source::RequestFromBackers(RequestFromBackers::new(group.clone())))
 		.unwrap_or_else(|| {
 			Source::RequestChunks(RequestChunksFromValidators::new(params.validators.len() <span class="kw">as _</span>))

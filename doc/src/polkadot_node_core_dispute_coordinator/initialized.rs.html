@@ -1312,6 +1312,9 @@
 <span id="1312">1312</span>
 <span id="1313">1313</span>
 <span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1686,7 +1689,7 @@
 				.filter_map(|(validator_index, attestation)| {
 					<span class="kw">let </span>validator_public: ValidatorId = session_info
 						.validators
-						.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
+						.get(validator_index)
 						.or_else(|| {
 							<span class="macro">gum::error!</span>(
 								target: LOG_TARGET,
@@ -1787,7 +1790,7 @@
 
 					<span class="kw">let </span>validator_public: ValidatorId = session_info
 						.validators
-						.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
+						.get(validator_index)
 						.or_else(|| {
 							<span class="macro">gum::error!</span>(
 								target: LOG_TARGET,
@@ -2217,7 +2220,7 @@
 			<span class="kw">let </span>no_votes = Vec::new();
 			<span class="kw">let </span>our_approval_votes = new_state.own_approval_votes().unwrap_or(<span class="kw-2">&amp;</span>no_votes);
 			<span class="kw">for </span>(validator_index, sig) <span class="kw">in </span>our_approval_votes {
-				<span class="kw">let </span>pub_key = <span class="kw">match </span>env.validators().get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize) {
+				<span class="kw">let </span>pub_key = <span class="kw">match </span>env.validators().get(<span class="kw-2">*</span>validator_index) {
 					<span class="prelude-val">None </span>=&gt; {
 						<span class="macro">gum::error!</span>(
 							target: LOG_TARGET,
@@ -2411,7 +2414,10 @@
 				valid,
 				candidate_hash,
 				session,
-				env.validators()[index.<span class="number">0 </span><span class="kw">as </span>usize].clone(),
+				env.validators()
+					.get(<span class="kw-2">*</span>index)
+					.expect(<span class="string">&quot;`controlled_indices` are derived from `validators`; qed&quot;</span>)
+					.clone(),
 			)
 			.<span class="kw">await</span>;
 
@@ -2552,7 +2558,7 @@
 				our_vote.candidate_hash().clone(),
 				our_vote.session_index(),
 				validators
-					.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
+					.get(<span class="kw-2">*</span>validator_index)
 					.ok_or(DisputeMessageCreationError::InvalidValidatorIndex)<span class="question-mark">?
 					</span>.clone(),
 				validator_signature.clone(),
@@ -2567,7 +2573,7 @@
 				our_vote.candidate_hash().clone(),
 				our_vote.session_index(),
 				validators
-					.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
+					.get(<span class="kw-2">*</span>validator_index)
 					.ok_or(DisputeMessageCreationError::InvalidValidatorIndex)<span class="question-mark">?
 					</span>.clone(),
 				validator_signature.clone(),

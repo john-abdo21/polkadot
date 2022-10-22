@@ -2141,6 +2141,9 @@
 <span id="2141">2141</span>
 <span id="2142">2142</span>
 <span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2190,8 +2193,8 @@
 };
 <span class="kw">use </span>polkadot_primitives::v2::{
 	AuthorityDiscoveryId, CandidateHash, CommittedCandidateReceipt, CompactStatement, Hash,
-	SignedStatement, SigningContext, UncheckedSignedStatement, ValidatorId, ValidatorIndex,
-	ValidatorSignature,
+	IndexedVec, SignedStatement, SigningContext, UncheckedSignedStatement, ValidatorId,
+	ValidatorIndex, ValidatorSignature,
 };
 
 <span class="kw">use </span>futures::{
@@ -2808,7 +2811,7 @@
 	<span class="doccomment">/// Large statements we are waiting for with associated meta data.
 	</span>waiting_large_statements: HashMap&lt;CandidateHash, LargeStatementStatus&gt;,
 	<span class="doccomment">/// The parachain validators at the head&#39;s child session index.
-	</span>validators: Vec&lt;ValidatorId&gt;,
+	</span>validators: IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 	<span class="doccomment">/// The current session index of this fork.
 	</span>session_index: sp_staking::SessionIndex,
 	<span class="doccomment">/// How many `Seconded` statements we&#39;ve seen per validator.
@@ -2819,7 +2822,7 @@
 
 <span class="kw">impl </span>ActiveHeadData {
 	<span class="kw">fn </span>new(
-		validators: Vec&lt;ValidatorId&gt;,
+		validators: IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 		session_index: sp_staking::SessionIndex,
 		span: PerLeafSpan,
 	) -&gt; <span class="self">Self </span>{
@@ -3021,7 +3024,7 @@
 		SigningContext { session_index: head.session_index, parent_hash: relay_parent };
 
 	head.validators
-		.get(statement.unchecked_validator_index().<span class="number">0 </span><span class="kw">as </span>usize)
+		.get(statement.unchecked_validator_index())
 		.ok_or_else(|| statement.clone())
 		.and_then(|v| statement.try_into_checked(<span class="kw-2">&amp;</span>signing_context, v))
 }
@@ -4215,7 +4218,10 @@
 					// directly:
 					</span><span class="kw">let </span>group_peers = {
 						<span class="kw">if let </span><span class="prelude-val">Some</span>(our_group) = validator_info.our_group {
-							<span class="kw">let </span>our_group = <span class="kw-2">&amp;</span>session_info.validator_groups[our_group.<span class="number">0 </span><span class="kw">as </span>usize];
+							<span class="kw">let </span>our_group = <span class="kw-2">&amp;</span>session_info
+								.validator_groups
+								.get(our_group)
+								.expect(<span class="string">&quot;`our_group` is derived from `validator_groups`; qed&quot;</span>);
 
 							our_group
 								.into_iter()

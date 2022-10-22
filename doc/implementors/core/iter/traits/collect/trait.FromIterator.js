@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"polkadot_primitives":[["impl&lt;K, V&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.FromIterator.html\" title=\"trait core::iter::traits::collect::FromIterator\">FromIterator</a>&lt;V&gt; for <a class=\"struct\" href=\"polkadot_primitives/v2/struct.IndexedVec.html\" title=\"struct polkadot_primitives::v2::IndexedVec\">IndexedVec</a>&lt;K, V&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

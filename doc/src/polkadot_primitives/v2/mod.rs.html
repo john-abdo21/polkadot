@@ -1818,6 +1818,101 @@
 <span id="1818">1818</span>
 <span id="1819">1819</span>
 <span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
+<span id="1829">1829</span>
+<span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1839,7 +1934,12 @@
 </span><span class="kw">use </span>bitvec::vec::BitVec;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
-<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>sp_std::{
+	marker::PhantomData,
+	prelude::<span class="kw-2">*</span>,
+	slice::{Iter, IterMut},
+	vec::IntoIter,
+};
 
 <span class="kw">use </span>application_crypto::KeyTypeId;
 <span class="kw">use </span>inherents::InherentIdentifier;
@@ -1943,6 +2043,12 @@
 	}
 }
 
+<span class="doccomment">/// Trait required for type specific indices e.g. `ValidatorIndex` and `GroupIndex`
+</span><span class="kw">pub trait </span>TypeIndex {
+	<span class="doccomment">/// Returns the index associated to this value.
+	</span><span class="kw">fn </span>type_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
+}
+
 <span class="doccomment">/// Index of the validator is used as a lightweight replacement of the `ValidatorId` when appropriate.
 </span><span class="attribute">#[derive(Eq, Ord, PartialEq, PartialOrd, Copy, Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash, MallocSizeOf))]
@@ -1952,6 +2058,12 @@
 </span><span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>ValidatorIndex {
 	<span class="kw">fn </span>from(n: u32) -&gt; <span class="self">Self </span>{
 		ValidatorIndex(n)
+	}
+}
+
+<span class="kw">impl </span>TypeIndex <span class="kw">for </span>ValidatorIndex {
+	<span class="kw">fn </span>type_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span>usize
 	}
 }
 
@@ -2599,6 +2711,12 @@
 	}
 }
 
+<span class="kw">impl </span>TypeIndex <span class="kw">for </span>CoreIndex {
+	<span class="kw">fn </span>type_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span>usize
+	}
+}
+
 <span class="doccomment">/// The unique (during session) index of a validator group.
 </span><span class="attribute">#[derive(Encode, Decode, Default, Clone, Copy, Debug, PartialEq, Eq, TypeInfo)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Hash, MallocSizeOf))]
@@ -2607,6 +2725,12 @@
 <span class="kw">impl </span>From&lt;u32&gt; <span class="kw">for </span>GroupIndex {
 	<span class="kw">fn </span>from(i: u32) -&gt; GroupIndex {
 		GroupIndex(i)
+	}
+}
+
+<span class="kw">impl </span>TypeIndex <span class="kw">for </span>GroupIndex {
+	<span class="kw">fn </span>type_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span>usize
 	}
 }
 
@@ -3389,6 +3513,72 @@
 	}
 }
 
+<span class="doccomment">/// `IndexedVec` struct indexed by type specific indices.
+</span><span class="attribute">#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(PartialEq, MallocSizeOf))]
+</span><span class="kw">pub struct </span>IndexedVec&lt;K, V&gt;(Vec&lt;V&gt;, PhantomData&lt;<span class="kw">fn</span>(K) -&gt; K&gt;);
+
+<span class="kw">impl</span>&lt;K, V&gt; Default <span class="kw">for </span>IndexedVec&lt;K, V&gt; {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>(<span class="macro">vec!</span>[], PhantomData)
+	}
+}
+
+<span class="kw">impl</span>&lt;K, V&gt; From&lt;Vec&lt;V&gt;&gt; <span class="kw">for </span>IndexedVec&lt;K, V&gt; {
+	<span class="kw">fn </span>from(validators: Vec&lt;V&gt;) -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>(validators, PhantomData)
+	}
+}
+
+<span class="kw">impl</span>&lt;K, V&gt; FromIterator&lt;V&gt; <span class="kw">for </span>IndexedVec&lt;K, V&gt; {
+	<span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = V&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>(Vec::from_iter(iter), PhantomData)
+	}
+}
+
+<span class="kw">impl</span>&lt;K, V&gt; IndexedVec&lt;K, V&gt;
+<span class="kw">where
+	</span>V: Clone,
+{
+	<span class="doccomment">/// Returns a reference to an element indexed using `K`.
+	</span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: K) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt;
+	<span class="kw">where
+		</span>K: TypeIndex,
+	{
+		<span class="self">self</span>.<span class="number">0</span>.get(index.type_index())
+	}
+
+	<span class="doccomment">/// Returns number of elements in vector.
+	</span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="self">self</span>.<span class="number">0</span>.len()
+	}
+
+	<span class="doccomment">/// Returns contained vector.
+	</span><span class="kw">pub fn </span>to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;V&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.clone()
+	}
+
+	<span class="doccomment">/// Returns an iterator over the underlying vector.
+	</span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>, V&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.iter()
+	}
+
+	<span class="doccomment">/// Returns a mutable iterator over the underlying vector.
+	</span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;_</span>, V&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.iter_mut()
+	}
+
+	<span class="doccomment">/// Creates a consuming iterator.
+	</span><span class="kw">pub fn </span>into_iter(<span class="self">self</span>) -&gt; IntoIter&lt;V&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.into_iter()
+	}
+
+	<span class="doccomment">/// Returns true if the underlying container is empty.
+	</span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.<span class="number">0</span>.is_empty()
+	}
+}
+
 <span class="doccomment">/// The maximum number of validators `f` which may safely be faulty.
 ///
 /// The total number of validators is `n = 3f + e` where `e in { 1, 2, 3 }`.
@@ -3423,7 +3613,7 @@
 	/// [`max_validators`](https://github.com/paritytech/polkadot/blob/a52dca2be7840b23c19c153cf7e110b1e3e475f8/runtime/parachains/src/configuration.rs#L148).
 	///
 	/// `SessionInfo::validators` will be limited to to `max_validators` when set.
-	</span><span class="kw">pub </span>validators: Vec&lt;ValidatorId&gt;,
+	</span><span class="kw">pub </span>validators: IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 	<span class="doccomment">/// Validators&#39; authority discovery keys for the session in canonical ordering.
 	///
 	/// NOTE: The first `validators.len()` entries will match the corresponding validators in
@@ -3446,7 +3636,7 @@
 	<span class="doccomment">/// Validators in shuffled ordering - these are the validator groups as produced
 	/// by the `Scheduler` module for the session and are typically referred to by
 	/// `GroupIndex`.
-	</span><span class="kw">pub </span>validator_groups: Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;,
+	</span><span class="kw">pub </span>validator_groups: IndexedVec&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;,
 	<span class="doccomment">/// The number of availability cores used by the protocol during this session.
 	</span><span class="kw">pub </span>n_cores: u32,
 	<span class="doccomment">/// The zeroth delay tranche width.
@@ -3499,7 +3689,7 @@
 	/// [`max_validators`](https://github.com/paritytech/polkadot/blob/a52dca2be7840b23c19c153cf7e110b1e3e475f8/runtime/parachains/src/configuration.rs#L148).
 	///
 	/// `SessionInfo::validators` will be limited to to `max_validators` when set.
-	</span><span class="kw">pub </span>validators: Vec&lt;ValidatorId&gt;,
+	</span><span class="kw">pub </span>validators: IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 	<span class="doccomment">/// Validators&#39; authority discovery keys for the session in canonical ordering.
 	///
 	/// NOTE: The first `validators.len()` entries will match the corresponding validators in
@@ -3522,7 +3712,7 @@
 	<span class="doccomment">/// Validators in shuffled ordering - these are the validator groups as produced
 	/// by the `Scheduler` module for the session and are typically referred to by
 	/// `GroupIndex`.
-	</span><span class="kw">pub </span>validator_groups: Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;,
+	</span><span class="kw">pub </span>validator_groups: IndexedVec&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;,
 	<span class="doccomment">/// The number of availability cores used by the protocol during this session.
 	</span><span class="kw">pub </span>n_cores: u32,
 	<span class="doccomment">/// The zeroth delay tranche width.

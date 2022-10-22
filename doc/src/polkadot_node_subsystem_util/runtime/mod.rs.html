@@ -340,6 +340,9 @@
 <span id="340">340</span>
 <span id="341">341</span>
 <span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -369,9 +372,9 @@
 
 <span class="kw">use </span>polkadot_node_subsystem::{messages::RuntimeApiMessage, overseer, SubsystemSender};
 <span class="kw">use </span>polkadot_primitives::v2::{
-	CandidateEvent, CoreState, EncodeAs, GroupIndex, GroupRotationInfo, Hash, OccupiedCore,
-	ScrapedOnChainVotes, SessionIndex, SessionInfo, Signed, SigningContext, UncheckedSigned,
-	ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
+	CandidateEvent, CoreState, EncodeAs, GroupIndex, GroupRotationInfo, Hash, IndexedVec,
+	OccupiedCore, ScrapedOnChainVotes, SessionIndex, SessionInfo, Signed, SigningContext,
+	UncheckedSigned, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
 };
 
 <span class="kw">use crate</span>::{
@@ -570,7 +573,10 @@
 	<span class="doccomment">/// Get our `ValidatorIndex`.
 	///
 	/// Returns: None if we are not a validator.
-	</span><span class="kw">async fn </span>get_our_index(<span class="kw-2">&amp;</span><span class="self">self</span>, validators: <span class="kw-2">&amp;</span>[ValidatorId]) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorIndex&gt; {
+	</span><span class="kw">async fn </span>get_our_index(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		validators: <span class="kw-2">&amp;</span>IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorIndex&gt; {
 		<span class="kw">let </span>keystore = <span class="self">self</span>.keystore.as_ref()<span class="question-mark">?</span>;
 		<span class="kw">for </span>(i, v) <span class="kw">in </span>validators.iter().enumerate() {
 			<span class="kw">if </span>CryptoStore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), ValidatorId::ID)]).<span class="kw">await </span>{
@@ -596,7 +602,7 @@
 
 	session_info
 		.validators
-		.get(signed.unchecked_validator_index().<span class="number">0 </span><span class="kw">as </span>usize)
+		.get(signed.unchecked_validator_index())
 		.ok_or_else(|| signed.clone())
 		.and_then(|v| signed.try_into_checked(<span class="kw-2">&amp;</span>signing_context, v))
 }

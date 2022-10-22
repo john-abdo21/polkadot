@@ -1386,6 +1386,14 @@
 <span id="1386">1386</span>
 <span id="1387">1387</span>
 <span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2008,7 +2016,9 @@
 	<span class="kw">use </span>polkadot_node_subsystem::messages::{AllMessages, ApprovalVotingMessage};
 	<span class="kw">use </span>polkadot_node_subsystem_test_helpers::make_subsystem_context;
 	<span class="kw">use </span>polkadot_node_subsystem_util::database::Database;
-	<span class="kw">use </span>polkadot_primitives::v2::{Id <span class="kw">as </span>ParaId, SessionInfo, ValidatorIndex};
+	<span class="kw">use </span>polkadot_primitives::v2::{
+		Id <span class="kw">as </span>ParaId, IndexedVec, SessionInfo, ValidatorId, ValidatorIndex,
+	};
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>sp_consensus_babe::{
 		digests::{CompatibleDigestItem, PreDigest, SecondaryVRFPreDigest},
 		AllowedSlots, BabeEpochConfiguration, Epoch <span class="kw">as </span>BabeEpoch,
@@ -2101,10 +2111,10 @@
 
 	<span class="kw">fn </span>dummy_session_info(index: SessionIndex) -&gt; SessionInfo {
 		SessionInfo {
-			validators: Vec::new(),
+			validators: Default::default(),
 			discovery_keys: Vec::new(),
 			assignment_keys: Vec::new(),
-			validator_groups: Vec::new(),
+			validator_groups: Default::default(),
 			n_cores: index <span class="kw">as _</span>,
 			zeroth_delay_tranche_width: index <span class="kw">as _</span>,
 			relay_vrf_modulo_samples: index <span class="kw">as _</span>,
@@ -2562,21 +2572,27 @@
 
 		<span class="kw">let </span>session = <span class="number">5</span>;
 		<span class="kw">let </span>irrelevant = <span class="number">666</span>;
-		<span class="kw">let </span>session_info = SessionInfo {
-			validators: <span class="macro">vec!</span>[Sr25519Keyring::Alice.public().into(); <span class="number">6</span>],
-			discovery_keys: Vec::new(),
-			assignment_keys: Vec::new(),
-			validator_groups: <span class="macro">vec!</span>[<span class="macro">vec!</span>[ValidatorIndex(<span class="number">0</span>); <span class="number">5</span>], <span class="macro">vec!</span>[ValidatorIndex(<span class="number">0</span>); <span class="number">2</span>]],
-			n_cores: <span class="number">6</span>,
-			needed_approvals: <span class="number">2</span>,
-			zeroth_delay_tranche_width: irrelevant,
-			relay_vrf_modulo_samples: irrelevant,
-			n_delay_tranches: irrelevant,
-			no_show_slots: irrelevant,
-			active_validator_indices: Vec::new(),
-			dispute_period: <span class="number">6</span>,
-			random_seed: [<span class="number">0u8</span>; <span class="number">32</span>],
-		};
+		<span class="kw">let </span>session_info =
+			SessionInfo {
+				validators: IndexedVec::&lt;ValidatorIndex, ValidatorId&gt;::from(
+					<span class="macro">vec!</span>[Sr25519Keyring::Alice.public().into(); <span class="number">6</span>],
+				),
+				discovery_keys: Vec::new(),
+				assignment_keys: Vec::new(),
+				validator_groups: IndexedVec::&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;::from(<span class="macro">vec!</span>[
+					<span class="macro">vec!</span>[ValidatorIndex(<span class="number">0</span>); <span class="number">5</span>],
+					<span class="macro">vec!</span>[ValidatorIndex(<span class="number">0</span>); <span class="number">2</span>],
+				]),
+				n_cores: <span class="number">6</span>,
+				needed_approvals: <span class="number">2</span>,
+				zeroth_delay_tranche_width: irrelevant,
+				relay_vrf_modulo_samples: irrelevant,
+				n_delay_tranches: irrelevant,
+				no_show_slots: irrelevant,
+				active_validator_indices: Vec::new(),
+				dispute_period: <span class="number">6</span>,
+				random_seed: [<span class="number">0u8</span>; <span class="number">32</span>],
+			};
 
 		<span class="kw">let </span>slot = Slot::from(<span class="number">10</span>);
 

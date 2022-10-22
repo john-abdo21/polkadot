@@ -884,6 +884,10 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -907,7 +911,8 @@
 	<span class="self">self </span><span class="kw">as </span>approval_types, AssignmentCert, AssignmentCertKind, DelayTranche, RelayVRFStory,
 };
 <span class="kw">use </span>polkadot_primitives::v2::{
-	AssignmentId, AssignmentPair, CandidateHash, CoreIndex, GroupIndex, SessionInfo, ValidatorIndex,
+	AssignmentId, AssignmentPair, CandidateHash, CoreIndex, GroupIndex, IndexedVec, SessionInfo,
+	ValidatorIndex,
 };
 <span class="kw">use </span>sc_keystore::LocalKeystore;
 <span class="kw">use </span>sp_application_crypto::ByteArray;
@@ -1024,7 +1029,7 @@
 	<span class="doccomment">/// The assignment public keys for validators.
 	</span>assignment_keys: Vec&lt;AssignmentId&gt;,
 	<span class="doccomment">/// The groups of validators assigned to each core.
-	</span>validator_groups: Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;,
+	</span>validator_groups: IndexedVec&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;,
 	<span class="doccomment">/// The number of availability cores used by the protocol during this session.
 	</span>n_cores: u32,
 	<span class="doccomment">/// The zeroth delay tranche width.
@@ -1427,11 +1432,11 @@
 }
 
 <span class="kw">fn </span>is_in_backing_group(
-	validator_groups: <span class="kw-2">&amp;</span>[Vec&lt;ValidatorIndex&gt;],
+	validator_groups: <span class="kw-2">&amp;</span>IndexedVec&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;,
 	validator: ValidatorIndex,
 	group: GroupIndex,
 ) -&gt; bool {
-	validator_groups.get(group.<span class="number">0 </span><span class="kw">as </span>usize).map_or(<span class="bool-val">false</span>, |g| g.contains(<span class="kw-2">&amp;</span>validator))
+	validator_groups.get(group).map_or(<span class="bool-val">false</span>, |g| g.contains(<span class="kw-2">&amp;</span>validator))
 }
 
 <span class="attribute">#[cfg(test)]
@@ -1476,7 +1481,10 @@
 			.collect()
 	}
 
-	<span class="kw">fn </span>basic_groups(n_validators: usize, n_groups: usize) -&gt; Vec&lt;Vec&lt;ValidatorIndex&gt;&gt; {
+	<span class="kw">fn </span>basic_groups(
+		n_validators: usize,
+		n_groups: usize,
+	) -&gt; IndexedVec&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt; {
 		<span class="kw">let </span>size = n_validators / n_groups;
 		<span class="kw">let </span>big_groups = n_validators % n_groups;
 		<span class="kw">let </span>scraps = n_groups * size;
@@ -1517,10 +1525,10 @@
 					Sr25519Keyring::Bob,
 					Sr25519Keyring::Charlie,
 				]),
-				validator_groups: <span class="macro">vec!</span>[
+				validator_groups: IndexedVec::&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;::from(<span class="macro">vec!</span>[
 					<span class="macro">vec!</span>[ValidatorIndex(<span class="number">0</span>)],
 					<span class="macro">vec!</span>[ValidatorIndex(<span class="number">1</span>), ValidatorIndex(<span class="number">2</span>)],
-				],
+				]),
 				n_cores: <span class="number">2</span>,
 				zeroth_delay_tranche_width: <span class="number">10</span>,
 				relay_vrf_modulo_samples: <span class="number">3</span>,
@@ -1552,10 +1560,10 @@
 					Sr25519Keyring::Bob,
 					Sr25519Keyring::Charlie,
 				]),
-				validator_groups: <span class="macro">vec!</span>[
+				validator_groups: IndexedVec::&lt;GroupIndex, Vec&lt;ValidatorIndex&gt;&gt;::from(<span class="macro">vec!</span>[
 					<span class="macro">vec!</span>[ValidatorIndex(<span class="number">0</span>)],
 					<span class="macro">vec!</span>[ValidatorIndex(<span class="number">1</span>), ValidatorIndex(<span class="number">2</span>)],
-				],
+				]),
 				n_cores: <span class="number">2</span>,
 				zeroth_delay_tranche_width: <span class="number">10</span>,
 				relay_vrf_modulo_samples: <span class="number">3</span>,
@@ -1582,7 +1590,7 @@
 					Sr25519Keyring::Bob,
 					Sr25519Keyring::Charlie,
 				]),
-				validator_groups: <span class="macro">vec!</span>[],
+				validator_groups: Default::default(),
 				n_cores: <span class="number">0</span>,
 				zeroth_delay_tranche_width: <span class="number">10</span>,
 				relay_vrf_modulo_samples: <span class="number">3</span>,
