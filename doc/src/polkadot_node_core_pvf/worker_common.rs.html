@@ -313,6 +313,18 @@
 <span id="313">313</span>
 <span id="314">314</span>
 <span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -515,7 +527,7 @@
 <span class="doccomment">/// This is a representation of a potentially running worker. Drop it and the process will be killed.
 ///
 /// A worker&#39;s handle is also a future that resolves when it&#39;s detected that the worker&#39;s process
-/// has been terminated. Since the worker is running in another process it is obviously not necessarily
+/// has been terminated. Since the worker is running in another process it is obviously not necessary
 ///  to poll this future to make the worker run, it&#39;s only for termination detection.
 ///
 /// This future relies on the fact that a child process&#39;s stdout `fd` is closed upon it&#39;s termination.
@@ -524,6 +536,7 @@
 	child: async_process::Child,
 	<span class="attribute">#[pin]
 	</span>stdout: async_process::ChildStdout,
+	program: PathBuf,
 	drop_box: Box&lt;[u8]&gt;,
 }
 
@@ -548,6 +561,7 @@
 		<span class="prelude-val">Ok</span>(WorkerHandle {
 			child,
 			stdout,
+			program: program.as_ref().to_path_buf(),
 			<span class="comment">// We don&#39;t expect the bytes to be ever read. But in case we do, we should not use a buffer
 			// of a small size, because otherwise if the child process does return any data we will end up
 			// issuing a syscall for each byte. We also prefer not to do allocate that on the stack, since
@@ -582,10 +596,20 @@
 				</span>cx.waker().wake_by_ref();
 				Poll::Pending
 			},
-			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+			<span class="prelude-val">Err</span>(err) =&gt; {
 				<span class="comment">// The implementation is guaranteed to not to return `WouldBlock` and Interrupted. This
-				// leaves us with a legit errors which we suppose were due to termination.
-				</span>Poll::Ready(())
+				// leaves us with legit errors which we suppose were due to termination.
+
+				// Log the status code.
+				</span><span class="macro">gum::debug!</span>(
+					target: LOG_TARGET,
+					worker_pid = %me.child.id(),
+					status_code = <span class="question-mark">?</span>me.child.try_status(),
+					<span class="string">&quot;pvf worker ({}): {:?}&quot;</span>,
+					me.program.display(),
+					err,
+				);
+				Poll::Ready(())
 			},
 		}
 	}
