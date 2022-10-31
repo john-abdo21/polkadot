@@ -2606,6 +2606,29 @@
 <span id="2606">2606</span>
 <span id="2607">2607</span>
 <span id="2608">2608</span>
+<span id="2609">2609</span>
+<span id="2610">2610</span>
+<span id="2611">2611</span>
+<span id="2612">2612</span>
+<span id="2613">2613</span>
+<span id="2614">2614</span>
+<span id="2615">2615</span>
+<span id="2616">2616</span>
+<span id="2617">2617</span>
+<span id="2618">2618</span>
+<span id="2619">2619</span>
+<span id="2620">2620</span>
+<span id="2621">2621</span>
+<span id="2622">2622</span>
+<span id="2623">2623</span>
+<span id="2624">2624</span>
+<span id="2625">2625</span>
+<span id="2626">2626</span>
+<span id="2627">2627</span>
+<span id="2628">2628</span>
+<span id="2629">2629</span>
+<span id="2630">2630</span>
+<span id="2631">2631</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2986,6 +3009,25 @@
 	}
 }
 
+<span class="comment">// Checks and logs approval vote db state. It is perfectly normal to start with an
+// empty approval vote DB if we changed DB type or the node will sync from scratch.
+</span><span class="kw">fn </span>db_sanity_check(db: Arc&lt;<span class="kw">dyn </span>Database&gt;, config: DatabaseConfig) -&gt; SubsystemResult&lt;()&gt; {
+	<span class="kw">let </span>backend = DbBackend::new(db, config);
+	<span class="kw">let </span>all_blocks = backend.load_all_blocks()<span class="question-mark">?</span>;
+
+	<span class="kw">if </span>all_blocks.is_empty() {
+		<span class="macro">gum::info!</span>(target: LOG_TARGET, <span class="string">&quot;Starting with an empty approval vote DB.&quot;</span>,);
+	} <span class="kw">else </span>{
+		<span class="macro">gum::debug!</span>(
+			target: LOG_TARGET,
+			<span class="string">&quot;Starting with {} blocks in approval vote DB.&quot;</span>,
+			all_blocks.len()
+		);
+	}
+
+	<span class="prelude-val">Ok</span>(())
+}
+
 <span class="attribute">#[overseer::subsystem(ApprovalVoting, error = SubsystemError, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">impl</span>&lt;Context: Send&gt; ApprovalVotingSubsystem {
 	<span class="kw">fn </span>start(<span class="self">self</span>, ctx: Context) -&gt; SpawnedSubsystem {
@@ -3340,6 +3382,10 @@
 <span class="kw">where
 	</span>B: Backend,
 {
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = db_sanity_check(subsystem.db, subsystem.db_config) {
+		<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="string">&quot;Could not run approval vote DB sanity check&quot;</span>);
+	}
+
 	<span class="kw">let </span><span class="kw-2">mut </span>state = State {
 		session_window: <span class="prelude-val">None</span>,
 		keystore: subsystem.keystore,
