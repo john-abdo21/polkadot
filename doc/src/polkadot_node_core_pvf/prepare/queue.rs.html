@@ -815,7 +815,7 @@
 	///
 	/// Note that it is incorrect to enqueue the same PVF again without first receiving the
 	/// [`FromQueue`] response.
-	</span>Enqueue { priority: Priority, pvf: Pvf, compilation_timeout: Duration },
+	</span>Enqueue { priority: Priority, pvf: Pvf, preparation_timeout: Duration },
 }
 
 <span class="doccomment">/// A response from queue.
@@ -862,7 +862,7 @@
 	</span>priority: Priority,
 	pvf: Pvf,
 	<span class="doccomment">/// The timeout for the preparation job.
-	</span>compilation_timeout: Duration,
+	</span>preparation_timeout: Duration,
 	worker: <span class="prelude-ty">Option</span>&lt;Worker&gt;,
 }
 
@@ -990,8 +990,8 @@
 
 <span class="kw">async fn </span>handle_to_queue(queue: <span class="kw-2">&amp;mut </span>Queue, to_queue: ToQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">match </span>to_queue {
-		ToQueue::Enqueue { priority, pvf, compilation_timeout } =&gt; {
-			handle_enqueue(queue, priority, pvf, compilation_timeout).<span class="kw">await</span><span class="question-mark">?</span>;
+		ToQueue::Enqueue { priority, pvf, preparation_timeout } =&gt; {
+			handle_enqueue(queue, priority, pvf, preparation_timeout).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
 	}
 	<span class="prelude-val">Ok</span>(())
@@ -1001,13 +1001,13 @@
 	queue: <span class="kw-2">&amp;mut </span>Queue,
 	priority: Priority,
 	pvf: Pvf,
-	compilation_timeout: Duration,
+	preparation_timeout: Duration,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="macro">gum::debug!</span>(
 		target: LOG_TARGET,
 		validation_code_hash = <span class="question-mark">?</span>pvf.code_hash,
 		<span class="question-mark">?</span>priority,
-		<span class="question-mark">?</span>compilation_timeout,
+		<span class="question-mark">?</span>preparation_timeout,
 		<span class="string">&quot;PVF is enqueued for preparation.&quot;</span>,
 	);
 	queue.metrics.prepare_enqueued();
@@ -1029,7 +1029,7 @@
 		<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">let </span>job = queue.jobs.insert(JobData { priority, pvf, compilation_timeout, worker: <span class="prelude-val">None </span>});
+	<span class="kw">let </span>job = queue.jobs.insert(JobData { priority, pvf, preparation_timeout, worker: <span class="prelude-val">None </span>});
 	queue.artifact_id_to_job.insert(artifact_id, job);
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(available) = find_idle_worker(queue) {
@@ -1221,7 +1221,7 @@
 			worker,
 			code: job_data.pvf.code.clone(),
 			artifact_path,
-			compilation_timeout: job_data.compilation_timeout,
+			preparation_timeout: job_data.preparation_timeout,
 		},
 	)
 	.<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1276,7 +1276,7 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use crate</span>::{error::PrepareError, host::PRECHECK_COMPILATION_TIMEOUT};
+	<span class="kw">use crate</span>::{error::PrepareError, host::PRECHECK_PREPARATION_TIMEOUT};
 	<span class="kw">use </span>assert_matches::assert_matches;
 	<span class="kw">use </span>futures::{future::BoxFuture, FutureExt};
 	<span class="kw">use </span>slotmap::SlotMap;
@@ -1394,7 +1394,7 @@
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
 			pvf: pvf(<span class="number">1</span>),
-			compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
+			preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
@@ -1408,12 +1408,12 @@
 	<span class="attribute">#[async_std::test]
 	</span><span class="kw">async fn </span>dont_spawn_over_soft_limit_unless_critical() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">3</span>);
-		<span class="kw">let </span>compilation_timeout = PRECHECK_COMPILATION_TIMEOUT;
+		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
 
 		<span class="kw">let </span>priority = Priority::Normal;
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), compilation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), compilation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), compilation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), preparation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), preparation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), preparation_timeout });
 
 		<span class="comment">// Receive only two spawns.
 		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1437,7 +1437,7 @@
 		</span>test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Critical,
 			pvf: pvf(<span class="number">4</span>),
-			compilation_timeout,
+			preparation_timeout,
 		});
 
 		<span class="comment">// 2 out of 2 are working, but there is a critical job incoming. That means that spawning
@@ -1448,12 +1448,12 @@
 	<span class="attribute">#[async_std::test]
 	</span><span class="kw">async fn </span>cull_unwanted() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">1</span>, <span class="number">2</span>);
-		<span class="kw">let </span>compilation_timeout = PRECHECK_COMPILATION_TIMEOUT;
+		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
 
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
 			pvf: pvf(<span class="number">1</span>),
-			compilation_timeout,
+			preparation_timeout,
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 		<span class="kw">let </span>w1 = test.workers.insert(());
@@ -1464,7 +1464,7 @@
 		</span>test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Critical,
 			pvf: pvf(<span class="number">2</span>),
-			compilation_timeout,
+			preparation_timeout,
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 
@@ -1483,10 +1483,10 @@
 	</span><span class="kw">async fn </span>worker_mass_die_out_doesnt_stall_queue() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="kw">let </span>(priority, compilation_timeout) = (Priority::Normal, PRECHECK_COMPILATION_TIMEOUT);
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), compilation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), compilation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), compilation_timeout });
+		<span class="kw">let </span>(priority, preparation_timeout) = (Priority::Normal, PRECHECK_PREPARATION_TIMEOUT);
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), preparation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), preparation_timeout });
+		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), preparation_timeout });
 
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1516,7 +1516,7 @@
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
 			pvf: pvf(<span class="number">1</span>),
-			compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
+			preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
 		});
 
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1541,7 +1541,7 @@
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
 			pvf: pvf(<span class="number">1</span>),
-			compilation_timeout: PRECHECK_COMPILATION_TIMEOUT,
+			preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
 		});
 
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);

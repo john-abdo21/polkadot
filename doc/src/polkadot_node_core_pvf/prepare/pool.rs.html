@@ -467,7 +467,7 @@
 		worker: Worker,
 		code: Arc&lt;Vec&lt;u8&gt;&gt;,
 		artifact_path: PathBuf,
-		compilation_timeout: Duration,
+		preparation_timeout: Duration,
 	},
 }
 
@@ -612,7 +612,7 @@
 			metrics.prepare_worker().on_begin_spawn();
 			mux.push(spawn_worker_task(program_path.to_owned(), spawn_timeout).boxed());
 		},
-		ToPool::StartWork { worker, code, artifact_path, compilation_timeout } =&gt; {
+		ToPool::StartWork { worker, code, artifact_path, preparation_timeout } =&gt; {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(data) = spawned.get_mut(worker) {
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(idle) = data.idle.take() {
 					<span class="kw">let </span>preparation_timer = metrics.time_preparation();
@@ -623,7 +623,7 @@
 							code,
 							cache_path.to_owned(),
 							artifact_path,
-							compilation_timeout,
+							preparation_timeout,
 							preparation_timer,
 						)
 						.boxed(),
@@ -671,11 +671,11 @@
 	code: Arc&lt;Vec&lt;u8&gt;&gt;,
 	cache_path: PathBuf,
 	artifact_path: PathBuf,
-	compilation_timeout: Duration,
+	preparation_timeout: Duration,
 	_preparation_timer: <span class="prelude-ty">Option</span>&lt;Timer&gt;,
 ) -&gt; PoolEvent {
 	<span class="kw">let </span>outcome =
-		worker::start_work(idle, code, <span class="kw-2">&amp;</span>cache_path, artifact_path, compilation_timeout).<span class="kw">await</span>;
+		worker::start_work(idle, code, <span class="kw-2">&amp;</span>cache_path, artifact_path, preparation_timeout).<span class="kw">await</span>;
 	PoolEvent::StartWork(worker, outcome)
 }
 
