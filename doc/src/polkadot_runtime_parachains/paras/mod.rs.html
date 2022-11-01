@@ -2085,6 +2085,75 @@
 <span id="2085">2085</span>
 <span id="2086">2086</span>
 <span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
+<span id="2096">2096</span>
+<span id="2097">2097</span>
+<span id="2098">2098</span>
+<span id="2099">2099</span>
+<span id="2100">2100</span>
+<span id="2101">2101</span>
+<span id="2102">2102</span>
+<span id="2103">2103</span>
+<span id="2104">2104</span>
+<span id="2105">2105</span>
+<span id="2106">2106</span>
+<span id="2107">2107</span>
+<span id="2108">2108</span>
+<span id="2109">2109</span>
+<span id="2110">2110</span>
+<span id="2111">2111</span>
+<span id="2112">2112</span>
+<span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
+<span id="2148">2148</span>
+<span id="2149">2149</span>
+<span id="2150">2150</span>
+<span id="2151">2151</span>
+<span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
+<span id="2156">2156</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2202,7 +2271,7 @@
 	ConsensusLog, HeadData, Id <span class="kw">as </span>ParaId, PvfCheckStatement, SessionIndex, UpgradeGoAhead,
 	UpgradeRestriction, ValidationCode, ValidationCodeHash, ValidatorSignature,
 };
-<span class="kw">use </span>scale_info::TypeInfo;
+<span class="kw">use </span>scale_info::{Type, TypeInfo};
 <span class="kw">use </span>sp_core::RuntimeDebug;
 <span class="kw">use </span>sp_runtime::{
 	traits::{AppVerify, One, Saturating},
@@ -2378,8 +2447,76 @@
 	</span><span class="kw">pub </span>genesis_head: HeadData,
 	<span class="doccomment">/// The initial validation code to use.
 	</span><span class="kw">pub </span>validation_code: ValidationCode,
-	<span class="doccomment">/// True if parachain, false if parathread.
-	</span><span class="kw">pub </span>parachain: bool,
+	<span class="doccomment">/// Parachain or Parathread.
+	</span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, serde(rename = <span class="string">&quot;parachain&quot;</span>))]
+	</span><span class="kw">pub </span>para_kind: ParaKind,
+}
+
+<span class="doccomment">/// Distinguishes between Parachain and Parathread
+</span><span class="attribute">#[derive(PartialEq, Eq, Clone, RuntimeDebug)]
+</span><span class="kw">pub enum </span>ParaKind {
+	Parathread,
+	Parachain,
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl </span>Serialize <span class="kw">for </span>ParaKind {
+	<span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+	<span class="kw">where
+		</span>S: serde::Serializer,
+	{
+		<span class="kw">match </span><span class="self">self </span>{
+			ParaKind::Parachain =&gt; serializer.serialize_bool(<span class="bool-val">true</span>),
+			ParaKind::Parathread =&gt; serializer.serialize_bool(<span class="bool-val">false</span>),
+		}
+	}
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>ParaKind {
+	<span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
+	<span class="kw">where
+		</span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+	{
+		<span class="kw">match </span>serde::de::Deserialize::deserialize(deserializer) {
+			<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(ParaKind::Parachain),
+			<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(ParaKind::Parathread),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(serde::de::Error::custom(<span class="string">&quot;invalid ParaKind serde representation&quot;</span>)),
+		}
+	}
+}
+
+<span class="comment">// Manual encoding, decoding, and TypeInfo as the parakind field in ParaGenesisArgs used to be a bool
+</span><span class="kw">impl </span>Encode <span class="kw">for </span>ParaKind {
+	<span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+		<span class="bool-val">true</span>.size_hint()
+	}
+
+	<span class="kw">fn </span>using_encoded&lt;R, F: FnOnce(<span class="kw-2">&amp;</span>[u8]) -&gt; R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; R {
+		<span class="kw">match </span><span class="self">self </span>{
+			ParaKind::Parachain =&gt; <span class="bool-val">true</span>.using_encoded(f),
+			ParaKind::Parathread =&gt; <span class="bool-val">false</span>.using_encoded(f),
+		}
+	}
+}
+
+<span class="kw">impl </span>Decode <span class="kw">for </span>ParaKind {
+	<span class="kw">fn </span>decode&lt;I: parity_scale_codec::Input&gt;(
+		input: <span class="kw-2">&amp;mut </span>I,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, parity_scale_codec::Error&gt; {
+		<span class="kw">match </span>bool::decode(input) {
+			<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(ParaKind::Parachain),
+			<span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(ParaKind::Parathread),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Invalid ParaKind representation&quot;</span>.into()),
+		}
+	}
+}
+
+<span class="kw">impl </span>TypeInfo <span class="kw">for </span>ParaKind {
+	<span class="kw">type </span>Identity = bool;
+	<span class="kw">fn </span>type_info() -&gt; Type {
+		bool::type_info()
+	}
 }
 
 <span class="doccomment">/// This enum describes a reason why a particular PVF pre-checking vote was initiated. When the
@@ -4108,11 +4245,12 @@
 		id: ParaId,
 		genesis_data: <span class="kw-2">&amp;</span>ParaGenesisArgs,
 	) {
-		<span class="kw">if </span>genesis_data.parachain {
-			parachains.add(id);
-			ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, ParaLifecycle::Parachain);
-		} <span class="kw">else </span>{
-			ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, ParaLifecycle::Parathread);
+		<span class="kw">match </span>genesis_data.para_kind {
+			ParaKind::Parachain =&gt; {
+				parachains.add(id);
+				ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, ParaLifecycle::Parachain);
+			},
+			ParaKind::Parathread =&gt; ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, ParaLifecycle::Parathread),
 		}
 
 		<span class="comment">// HACK: see the notice in `schedule_para_initialize`.

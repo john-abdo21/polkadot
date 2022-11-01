@@ -1415,6 +1415,7 @@
 <span id="1415">1415</span>
 <span id="1416">1416</span>
 <span id="1417">1417</span>
+<span id="1418">1418</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1452,6 +1453,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::traits::{OnSwap, Registrar};
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+<span class="kw">use </span>runtime_parachains::paras::ParaKind;
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::{
 	traits::{CheckedSub, Saturating},
@@ -1987,7 +1989,7 @@
 		};
 		<span class="macro">ensure!</span>(paras::Pallet::&lt;T&gt;::lifecycle(id).is_none(), Error::&lt;T&gt;::AlreadyRegistered);
 		<span class="kw">let </span>(genesis, deposit) =
-			<span class="self">Self</span>::validate_onboarding_data(genesis_head, validation_code, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::validate_onboarding_data(genesis_head, validation_code, ParaKind::Parathread)<span class="question-mark">?</span>;
 		<span class="kw">let </span>deposit = deposit_override.unwrap_or(deposit);
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(additional) = deposit.checked_sub(<span class="kw-2">&amp;</span>deposited) {
@@ -2030,7 +2032,7 @@
 	</span><span class="kw">fn </span>validate_onboarding_data(
 		genesis_head: HeadData,
 		validation_code: ValidationCode,
-		parachain: bool,
+		para_kind: ParaKind,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(ParaGenesisArgs, BalanceOf&lt;T&gt;), sp_runtime::DispatchError&gt; {
 		<span class="kw">let </span>config = configuration::Pallet::&lt;T&gt;::config();
 		<span class="macro">ensure!</span>(validation_code.<span class="number">0</span>.len() &gt; <span class="number">0</span>, Error::&lt;T&gt;::EmptyCode);
@@ -2045,7 +2047,7 @@
 			.saturating_add(per_byte_fee.saturating_mul((genesis_head.<span class="number">0</span>.len() <span class="kw">as </span>u32).into()))
 			.saturating_add(per_byte_fee.saturating_mul((validation_code.<span class="number">0</span>.len() <span class="kw">as </span>u32).into()));
 
-		<span class="prelude-val">Ok</span>((ParaGenesisArgs { genesis_head, validation_code, parachain }, deposit))
+		<span class="prelude-val">Ok</span>((ParaGenesisArgs { genesis_head, validation_code, para_kind }, deposit))
 	}
 
 	<span class="doccomment">/// Swap a parachain and parathread, which involves scheduling an appropriate lifecycle update.
