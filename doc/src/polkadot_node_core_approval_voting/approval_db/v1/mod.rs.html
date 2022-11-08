@@ -339,6 +339,12 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -431,41 +437,45 @@
 			<span class="kw">match </span>op {
 				BackendWriteOp::WriteStoredBlockRange(stored_block_range) =&gt; {
 					tx.put_vec(
-						<span class="self">self</span>.config.col_data,
+						<span class="self">self</span>.config.col_approval_data,
 						<span class="kw-2">&amp;</span>STORED_BLOCKS_KEY,
 						stored_block_range.encode(),
 					);
 				},
 				BackendWriteOp::DeleteStoredBlockRange =&gt; {
-					tx.delete(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>STORED_BLOCKS_KEY);
+					tx.delete(<span class="self">self</span>.config.col_approval_data, <span class="kw-2">&amp;</span>STORED_BLOCKS_KEY);
 				},
 				BackendWriteOp::WriteBlocksAtHeight(h, blocks) =&gt; {
-					tx.put_vec(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>blocks_at_height_key(h), blocks.encode());
+					tx.put_vec(
+						<span class="self">self</span>.config.col_approval_data,
+						<span class="kw-2">&amp;</span>blocks_at_height_key(h),
+						blocks.encode(),
+					);
 				},
 				BackendWriteOp::DeleteBlocksAtHeight(h) =&gt; {
-					tx.delete(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>blocks_at_height_key(h));
+					tx.delete(<span class="self">self</span>.config.col_approval_data, <span class="kw-2">&amp;</span>blocks_at_height_key(h));
 				},
 				BackendWriteOp::WriteBlockEntry(block_entry) =&gt; {
 					<span class="kw">let </span>block_entry: BlockEntry = block_entry.into();
 					tx.put_vec(
-						<span class="self">self</span>.config.col_data,
+						<span class="self">self</span>.config.col_approval_data,
 						<span class="kw-2">&amp;</span>block_entry_key(<span class="kw-2">&amp;</span>block_entry.block_hash),
 						block_entry.encode(),
 					);
 				},
 				BackendWriteOp::DeleteBlockEntry(hash) =&gt; {
-					tx.delete(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>block_entry_key(<span class="kw-2">&amp;</span>hash));
+					tx.delete(<span class="self">self</span>.config.col_approval_data, <span class="kw-2">&amp;</span>block_entry_key(<span class="kw-2">&amp;</span>hash));
 				},
 				BackendWriteOp::WriteCandidateEntry(candidate_entry) =&gt; {
 					<span class="kw">let </span>candidate_entry: CandidateEntry = candidate_entry.into();
 					tx.put_vec(
-						<span class="self">self</span>.config.col_data,
+						<span class="self">self</span>.config.col_approval_data,
 						<span class="kw-2">&amp;</span>candidate_entry_key(<span class="kw-2">&amp;</span>candidate_entry.candidate.hash()),
 						candidate_entry.encode(),
 					);
 				},
 				BackendWriteOp::DeleteCandidateEntry(candidate_hash) =&gt; {
-					tx.delete(<span class="self">self</span>.config.col_data, <span class="kw-2">&amp;</span>candidate_entry_key(<span class="kw-2">&amp;</span>candidate_hash));
+					tx.delete(<span class="self">self</span>.config.col_approval_data, <span class="kw-2">&amp;</span>candidate_entry_key(<span class="kw-2">&amp;</span>candidate_hash));
 				},
 			}
 		}
@@ -490,7 +500,9 @@
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Config {
 	<span class="doccomment">/// The column family in the database where data is stored.
-	</span><span class="kw">pub </span>col_data: u32,
+	</span><span class="kw">pub </span>col_approval_data: u32,
+	<span class="doccomment">/// The column of the database where rolling session window data is stored.
+	</span><span class="kw">pub </span>col_session_data: u32,
 }
 
 <span class="doccomment">/// Details pertaining to our assignment on a block.
@@ -584,10 +596,10 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_decode&lt;D: Decode&gt;(
 	store: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
-	col_data: u32,
+	col_approval_data: u32,
 	key: <span class="kw-2">&amp;</span>[u8],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;D&gt;&gt; {
-	<span class="kw">match </span>store.get(col_data, key)<span class="question-mark">? </span>{
+	<span class="kw">match </span>store.get(col_approval_data, key)<span class="question-mark">? </span>{
 		<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
 		<span class="prelude-val">Some</span>(raw) =&gt; D::decode(<span class="kw-2">&amp;mut &amp;</span>raw[..]).map(<span class="prelude-val">Some</span>).map_err(Into::into),
 	}
@@ -644,7 +656,7 @@
 	store: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
 	config: <span class="kw-2">&amp;</span>Config,
 ) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;StoredBlockRange&gt;&gt; {
-	load_decode(store, config.col_data, STORED_BLOCKS_KEY)
+	load_decode(store, config.col_approval_data, STORED_BLOCKS_KEY)
 		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;approval-voting&quot;</span>, e))
 }
 
@@ -654,7 +666,7 @@
 	config: <span class="kw-2">&amp;</span>Config,
 	block_number: <span class="kw-2">&amp;</span>BlockNumber,
 ) -&gt; SubsystemResult&lt;Vec&lt;Hash&gt;&gt; {
-	load_decode(store, config.col_data, <span class="kw-2">&amp;</span>blocks_at_height_key(<span class="kw-2">*</span>block_number))
+	load_decode(store, config.col_approval_data, <span class="kw-2">&amp;</span>blocks_at_height_key(<span class="kw-2">*</span>block_number))
 		.map(|x| x.unwrap_or_default())
 		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;approval-voting&quot;</span>, e))
 }
@@ -665,7 +677,7 @@
 	config: <span class="kw-2">&amp;</span>Config,
 	block_hash: <span class="kw-2">&amp;</span>Hash,
 ) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;BlockEntry&gt;&gt; {
-	load_decode(store, config.col_data, <span class="kw-2">&amp;</span>block_entry_key(block_hash))
+	load_decode(store, config.col_approval_data, <span class="kw-2">&amp;</span>block_entry_key(block_hash))
 		.map(|u: <span class="prelude-ty">Option</span>&lt;BlockEntry&gt;| u.map(|v| v.into()))
 		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;approval-voting&quot;</span>, e))
 }
@@ -676,7 +688,7 @@
 	config: <span class="kw-2">&amp;</span>Config,
 	candidate_hash: <span class="kw-2">&amp;</span>CandidateHash,
 ) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateEntry&gt;&gt; {
-	load_decode(store, config.col_data, <span class="kw-2">&amp;</span>candidate_entry_key(candidate_hash))
+	load_decode(store, config.col_approval_data, <span class="kw-2">&amp;</span>candidate_entry_key(candidate_hash))
 		.map(|u: <span class="prelude-ty">Option</span>&lt;CandidateEntry&gt;| u.map(|v| v.into()))
 		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;approval-voting&quot;</span>, e))
 }

@@ -2629,6 +2629,25 @@
 <span id="2629">2629</span>
 <span id="2630">2630</span>
 <span id="2631">2631</span>
+<span id="2632">2632</span>
+<span id="2633">2633</span>
+<span id="2634">2634</span>
+<span id="2635">2635</span>
+<span id="2636">2636</span>
+<span id="2637">2637</span>
+<span id="2638">2638</span>
+<span id="2639">2639</span>
+<span id="2640">2640</span>
+<span id="2641">2641</span>
+<span id="2642">2642</span>
+<span id="2643">2643</span>
+<span id="2644">2644</span>
+<span id="2645">2645</span>
+<span id="2646">2646</span>
+<span id="2647">2647</span>
+<span id="2648">2648</span>
+<span id="2649">2649</span>
+<span id="2650">2650</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2675,8 +2694,7 @@
 	database::Database,
 	metrics::{<span class="self">self</span>, prometheus},
 	rolling_session_window::{
-		new_session_window_size, RollingSessionWindow, SessionWindowSize, SessionWindowUpdate,
-		SessionsUnavailable,
+		DatabaseParams, RollingSessionWindow, SessionWindowUpdate, SessionsUnavailable,
 	},
 	TimeoutExt,
 };
@@ -2728,8 +2746,6 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">pub const </span>APPROVAL_SESSIONS: SessionWindowSize = <span class="macro">new_session_window_size!</span>(<span class="number">6</span>);
-
 <span class="kw">const </span>APPROVAL_CHECKING_TIMEOUT: Duration = Duration::from_secs(<span class="number">120</span>);
 <span class="doccomment">/// How long are we willing to wait for approval signatures?
 ///
@@ -2749,7 +2765,9 @@
 </span><span class="attribute">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Config {
 	<span class="doccomment">/// The column family in the DB where approval-voting data is stored.
-	</span><span class="kw">pub </span>col_data: u32,
+	</span><span class="kw">pub </span>col_approval_data: u32,
+	<span class="doccomment">/// The of the DB where rolling session info is stored.
+	</span><span class="kw">pub </span>col_session_data: u32,
 	<span class="doccomment">/// The slot duration of the consensus algorithm, in milliseconds. Should be evenly
 	/// divisible by 500.
 	</span><span class="kw">pub </span>slot_duration_millis: u64,
@@ -2989,7 +3007,10 @@
 			keystore,
 			slot_duration_millis: config.slot_duration_millis,
 			db,
-			db_config: DatabaseConfig { col_data: config.col_data },
+			db_config: DatabaseConfig {
+				col_approval_data: config.col_approval_data,
+				col_session_data: config.col_session_data,
+			},
 			mode: Mode::Syncing(sync_oracle),
 			metrics,
 		}
@@ -2998,7 +3019,10 @@
 	<span class="doccomment">/// Revert to the block corresponding to the specified `hash`.
 	/// The operation is not allowed for blocks older than the last finalized one.
 	</span><span class="kw">pub fn </span>revert_to(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;(), SubsystemError&gt; {
-		<span class="kw">let </span>config = approval_db::v1::Config { col_data: <span class="self">self</span>.db_config.col_data };
+		<span class="kw">let </span>config = approval_db::v1::Config {
+			col_approval_data: <span class="self">self</span>.db_config.col_approval_data,
+			col_session_data: <span class="self">self</span>.db_config.col_session_data,
+		};
 		<span class="kw">let </span><span class="kw-2">mut </span>backend = approval_db::v1::DbBackend::new(<span class="self">self</span>.db.clone(), config);
 		<span class="kw">let </span><span class="kw-2">mut </span>overlay = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
@@ -3265,6 +3289,9 @@
 	slot_duration_millis: u64,
 	clock: Box&lt;<span class="kw">dyn </span>Clock + Send + Sync&gt;,
 	assignment_criteria: Box&lt;<span class="kw">dyn </span>AssignmentCriteria + Send + Sync&gt;,
+	<span class="comment">// Require for `RollingSessionWindow`.
+	</span>db_config: DatabaseConfig,
+	db: Arc&lt;<span class="kw">dyn </span>Database&gt;,
 }
 
 <span class="attribute">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
@@ -3286,8 +3313,17 @@
 		<span class="kw">match </span>session_window {
 			<span class="prelude-val">None </span>=&gt; {
 				<span class="kw">let </span>sender = ctx.sender().clone();
-				<span class="self">self</span>.session_window =
-					<span class="prelude-val">Some</span>(RollingSessionWindow::new(sender, APPROVAL_SESSIONS, head).<span class="kw">await</span><span class="question-mark">?</span>);
+				<span class="self">self</span>.session_window = <span class="prelude-val">Some</span>(
+					RollingSessionWindow::new(
+						sender,
+						head,
+						DatabaseParams {
+							db: <span class="self">self</span>.db.clone(),
+							db_column: <span class="self">self</span>.db_config.col_session_data,
+						},
+					)
+					.<span class="kw">await</span><span class="question-mark">?</span>,
+				);
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 			},
 			<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>session_window) =&gt; {
@@ -3382,7 +3418,7 @@
 <span class="kw">where
 	</span>B: Backend,
 {
-	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = db_sanity_check(subsystem.db, subsystem.db_config) {
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = db_sanity_check(subsystem.db.clone(), subsystem.db_config.clone()) {
 		<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="string">&quot;Could not run approval vote DB sanity check&quot;</span>);
 	}
 
@@ -3392,6 +3428,8 @@
 		slot_duration_millis: subsystem.slot_duration_millis,
 		clock,
 		assignment_criteria,
+		db_config: subsystem.db_config,
+		db: subsystem.db,
 	};
 
 	<span class="kw">let </span><span class="kw-2">mut </span>wakeups = Wakeups::default();

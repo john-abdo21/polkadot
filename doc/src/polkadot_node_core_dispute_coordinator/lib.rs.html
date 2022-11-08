@@ -396,6 +396,17 @@
 <span id="396">396</span>
 <span id="397">397</span>
 <span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -433,7 +444,8 @@
 	overseer, ActivatedLeaf, FromOrchestra, OverseerSignal, SpawnedSubsystem, SubsystemError,
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::{
-	database::Database, rolling_session_window::RollingSessionWindow,
+	database::Database,
+	rolling_session_window::{DatabaseParams, RollingSessionWindow},
 };
 <span class="kw">use </span>polkadot_primitives::v2::{ScrapedOnChainVotes, ValidatorIndex, ValidatorPair};
 
@@ -515,12 +527,17 @@
 </span><span class="attribute">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Config {
 	<span class="doccomment">/// The data column in the store to use for dispute data.
-	</span><span class="kw">pub </span>col_data: u32,
+	</span><span class="kw">pub </span>col_dispute_data: u32,
+	<span class="doccomment">/// The data column in the store to use for session data.
+	</span><span class="kw">pub </span>col_session_data: u32,
 }
 
 <span class="kw">impl </span>Config {
 	<span class="kw">fn </span>column_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; db::v1::ColumnConfiguration {
-		db::v1::ColumnConfiguration { col_data: <span class="self">self</span>.col_data }
+		db::v1::ColumnConfiguration {
+			col_dispute_data: <span class="self">self</span>.col_dispute_data,
+			col_session_data: <span class="self">self</span>.col_session_data,
+		}
 	}
 }
 
@@ -597,17 +614,21 @@
 		</span>B: Backend + <span class="lifetime">&#39;static</span>,
 	{
 		<span class="kw">loop </span>{
-			<span class="kw">let </span>(first_leaf, rolling_session_window) = <span class="kw">match </span>get_rolling_session_window(ctx).<span class="kw">await </span>{
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(update)) =&gt; update,
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-					<span class="macro">gum::info!</span>(target: LOG_TARGET, <span class="string">&quot;received `Conclude` signal, exiting&quot;</span>);
-					<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-				},
-				<span class="prelude-val">Err</span>(e) =&gt; {
-					e.split()<span class="question-mark">?</span>.log();
-					<span class="kw">continue
-				</span>},
-			};
+			<span class="kw">let </span>db_params =
+				DatabaseParams { db: <span class="self">self</span>.store.clone(), db_column: <span class="self">self</span>.config.col_session_data };
+
+			<span class="kw">let </span>(first_leaf, rolling_session_window) =
+				<span class="kw">match </span>get_rolling_session_window(ctx, db_params).<span class="kw">await </span>{
+					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(update)) =&gt; update,
+					<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
+						<span class="macro">gum::info!</span>(target: LOG_TARGET, <span class="string">&quot;received `Conclude` signal, exiting&quot;</span>);
+						<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+					},
+					<span class="prelude-val">Err</span>(e) =&gt; {
+						e.split()<span class="question-mark">?</span>.log();
+						<span class="kw">continue
+					</span>},
+				};
 
 			<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;mut </span>backend);
 			<span class="kw">let </span>(participations, votes, spam_slots, ordering_provider) = <span class="kw">match </span><span class="self">self
@@ -750,12 +771,13 @@
 </span><span class="attribute">#[overseer::contextbounds(DisputeCoordinator, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>get_rolling_session_window&lt;Context&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
+	db_params: DatabaseParams,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(ActivatedLeaf, RollingSessionWindow)&gt;&gt; {
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(leaf) = { wait_for_first_leaf(ctx) }.<span class="kw">await</span><span class="question-mark">? </span>{
 		<span class="kw">let </span>sender = ctx.sender().clone();
 		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((
 			leaf.clone(),
-			RollingSessionWindow::new(sender, DISPUTE_WINDOW, leaf.hash)
+			RollingSessionWindow::new(sender, leaf.hash, db_params)
 				.<span class="kw">await
 				</span>.map_err(JfyiError::RollingSessionWindow)<span class="question-mark">?</span>,
 		)))

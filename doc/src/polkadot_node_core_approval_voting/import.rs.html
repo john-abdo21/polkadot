@@ -1355,45 +1355,6 @@
 <span id="1355">1355</span>
 <span id="1356">1356</span>
 <span id="1357">1357</span>
-<span id="1358">1358</span>
-<span id="1359">1359</span>
-<span id="1360">1360</span>
-<span id="1361">1361</span>
-<span id="1362">1362</span>
-<span id="1363">1363</span>
-<span id="1364">1364</span>
-<span id="1365">1365</span>
-<span id="1366">1366</span>
-<span id="1367">1367</span>
-<span id="1368">1368</span>
-<span id="1369">1369</span>
-<span id="1370">1370</span>
-<span id="1371">1371</span>
-<span id="1372">1372</span>
-<span id="1373">1373</span>
-<span id="1374">1374</span>
-<span id="1375">1375</span>
-<span id="1376">1376</span>
-<span id="1377">1377</span>
-<span id="1378">1378</span>
-<span id="1379">1379</span>
-<span id="1380">1380</span>
-<span id="1381">1381</span>
-<span id="1382">1382</span>
-<span id="1383">1383</span>
-<span id="1384">1384</span>
-<span id="1385">1385</span>
-<span id="1386">1386</span>
-<span id="1387">1387</span>
-<span id="1388">1388</span>
-<span id="1389">1389</span>
-<span id="1390">1390</span>
-<span id="1391">1391</span>
-<span id="1392">1392</span>
-<span id="1393">1393</span>
-<span id="1394">1394</span>
-<span id="1395">1395</span>
-<span id="1396">1396</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2028,14 +1989,15 @@
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>sp_runtime::{Digest, DigestItem};
 	<span class="kw">use </span>std::{pin::Pin, sync::Arc};
 
-	<span class="kw">use crate</span>::{
-		approval_db::v1::Config <span class="kw">as </span>DatabaseConfig, criteria, BlockEntry, APPROVAL_SESSIONS,
-	};
+	<span class="kw">use crate</span>::{approval_db::v1::Config <span class="kw">as </span>DatabaseConfig, criteria, BlockEntry};
 
 	<span class="kw">const </span>DATA_COL: u32 = <span class="number">0</span>;
-	<span class="kw">const </span>NUM_COLUMNS: u32 = <span class="number">1</span>;
+	<span class="kw">const </span>SESSION_DATA_COL: u32 = <span class="number">1</span>;
 
-	<span class="kw">const </span>TEST_CONFIG: DatabaseConfig = DatabaseConfig { col_data: DATA_COL };
+	<span class="kw">const </span>NUM_COLUMNS: u32 = <span class="number">2</span>;
+
+	<span class="kw">const </span>TEST_CONFIG: DatabaseConfig =
+		DatabaseConfig { col_approval_data: DATA_COL, col_session_data: SESSION_DATA_COL };
 	<span class="attribute">#[derive(Default)]
 	</span><span class="kw">struct </span>MockClock;
 
@@ -2050,22 +2012,23 @@
 	}
 
 	<span class="kw">fn </span>blank_state() -&gt; State {
+		<span class="kw">let </span>db = kvdb_memorydb::create(NUM_COLUMNS);
+		<span class="kw">let </span>db = polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new(db, <span class="kw-2">&amp;</span>[]);
+		<span class="kw">let </span>db: Arc&lt;<span class="kw">dyn </span>Database&gt; = Arc::new(db);
 		State {
 			session_window: <span class="prelude-val">None</span>,
 			keystore: Arc::new(LocalKeystore::in_memory()),
 			slot_duration_millis: <span class="number">6_000</span>,
 			clock: Box::new(MockClock::default()),
 			assignment_criteria: Box::new(MockAssignmentCriteria),
+			db,
+			db_config: TEST_CONFIG,
 		}
 	}
 
 	<span class="kw">fn </span>single_session_state(index: SessionIndex, info: SessionInfo) -&gt; State {
 		State {
-			session_window: <span class="prelude-val">Some</span>(RollingSessionWindow::with_session_info(
-				APPROVAL_SESSIONS,
-				index,
-				<span class="macro">vec!</span>[info],
-			)),
+			session_window: <span class="prelude-val">Some</span>(RollingSessionWindow::with_session_info(index, <span class="macro">vec!</span>[info])),
 			..blank_state()
 		}
 	}
@@ -2178,11 +2141,8 @@
 				.map(|(r, c, g)| (r.hash(), r.clone(), <span class="kw-2">*</span>c, <span class="kw-2">*</span>g))
 				.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-			<span class="kw">let </span>session_window = RollingSessionWindow::with_session_info(
-				APPROVAL_SESSIONS,
-				session,
-				<span class="macro">vec!</span>[session_info],
-			);
+			<span class="kw">let </span>session_window =
+				RollingSessionWindow::with_session_info(session, <span class="macro">vec!</span>[session_info]);
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
@@ -2287,11 +2247,8 @@
 			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
 		<span class="kw">let </span>test_fut = {
-			<span class="kw">let </span>session_window = RollingSessionWindow::with_session_info(
-				APPROVAL_SESSIONS,
-				session,
-				<span class="macro">vec!</span>[session_info],
-			);
+			<span class="kw">let </span>session_window =
+				RollingSessionWindow::with_session_info(session, <span class="macro">vec!</span>[session_info]);
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
@@ -2485,11 +2442,8 @@
 				.map(|(r, c, g)| (r.hash(), r.clone(), <span class="kw-2">*</span>c, <span class="kw-2">*</span>g))
 				.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-			<span class="kw">let </span>session_window = <span class="prelude-val">Some</span>(RollingSessionWindow::with_session_info(
-				APPROVAL_SESSIONS,
-				session,
-				<span class="macro">vec!</span>[session_info],
-			));
+			<span class="kw">let </span>session_window =
+				<span class="prelude-val">Some</span>(RollingSessionWindow::with_session_info(session, <span class="macro">vec!</span>[session_info]));
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
@@ -2697,38 +2651,6 @@
 				)) =&gt; {
 					<span class="macro">assert_eq!</span>(h, hash);
 					<span class="kw">let _ </span>= c_tx.send(<span class="prelude-val">Ok</span>(session));
-				}
-			);
-
-			<span class="comment">// Caching of sesssions needs sessoion of first unfinalied block.
-			</span><span class="macro">assert_matches!</span>(
-				handle.recv().<span class="kw">await</span>,
-				AllMessages::ChainApi(ChainApiMessage::FinalizedBlockNumber(
-					s_tx,
-				)) =&gt; {
-					<span class="kw">let _ </span>= s_tx.send(<span class="prelude-val">Ok</span>(header.number));
-				}
-			);
-
-			<span class="macro">assert_matches!</span>(
-				handle.recv().<span class="kw">await</span>,
-				AllMessages::ChainApi(ChainApiMessage::FinalizedBlockHash(
-					block_number,
-					s_tx,
-				)) =&gt; {
-					<span class="macro">assert_eq!</span>(block_number, header.number);
-					<span class="kw">let _ </span>= s_tx.send(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(header.hash())));
-				}
-			);
-
-			<span class="macro">assert_matches!</span>(
-				handle.recv().<span class="kw">await</span>,
-				AllMessages::RuntimeApi(RuntimeApiMessage::Request(
-					h,
-					RuntimeApiRequest::SessionIndexForChild(s_tx),
-				)) =&gt; {
-					<span class="macro">assert_eq!</span>(h, header.hash());
-					<span class="kw">let _ </span>= s_tx.send(<span class="prelude-val">Ok</span>(session));
 				}
 			);
 
