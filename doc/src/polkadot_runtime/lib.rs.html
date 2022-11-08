@@ -2428,6 +2428,36 @@
 <span id="2428">2428</span>
 <span id="2429">2429</span>
 <span id="2430">2430</span>
+<span id="2431">2431</span>
+<span id="2432">2432</span>
+<span id="2433">2433</span>
+<span id="2434">2434</span>
+<span id="2435">2435</span>
+<span id="2436">2436</span>
+<span id="2437">2437</span>
+<span id="2438">2438</span>
+<span id="2439">2439</span>
+<span id="2440">2440</span>
+<span id="2441">2441</span>
+<span id="2442">2442</span>
+<span id="2443">2443</span>
+<span id="2444">2444</span>
+<span id="2445">2445</span>
+<span id="2446">2446</span>
+<span id="2447">2447</span>
+<span id="2448">2448</span>
+<span id="2449">2449</span>
+<span id="2450">2450</span>
+<span id="2451">2451</span>
+<span id="2452">2452</span>
+<span id="2453">2453</span>
+<span id="2454">2454</span>
+<span id="2455">2455</span>
+<span id="2456">2456</span>
+<span id="2457">2457</span>
+<span id="2458">2458</span>
+<span id="2459">2459</span>
+<span id="2460">2460</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2488,6 +2518,7 @@
 	CoreState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage,
 	Moment, Nonce, OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
 	SessionInfo, Signature, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
+	LOWEST_PUBLIC_ID,
 };
 <span class="kw">use </span>sp_core::OpaqueMetadata;
 <span class="kw">use </span>sp_mmr_primitives <span class="kw">as </span>mmr;
@@ -2955,7 +2986,7 @@
 	</span><span class="kw">pub const </span>BondingDuration: sp_staking::EraIndex = <span class="number">28</span>;
 	<span class="kw">pub const </span>SlashDeferDuration: sp_staking::EraIndex = <span class="number">27</span>;
 	<span class="kw">pub const </span>RewardCurve: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>PiecewiseLinear&lt;<span class="lifetime">&#39;static</span>&gt; = <span class="kw-2">&amp;</span>REWARD_CURVE;
-	<span class="kw">pub const </span>MaxNominatorRewardedPerValidator: u32 = <span class="number">256</span>;
+	<span class="kw">pub const </span>MaxNominatorRewardedPerValidator: u32 = <span class="number">512</span>;
 	<span class="kw">pub const </span>OffendingValidatorsThreshold: Perbill = Perbill::from_percent(<span class="number">17</span>);
 	<span class="comment">// 16
 	</span><span class="kw">pub const </span>MaxNominations: u32 = &lt;NposCompactSolution16 <span class="kw">as </span>frame_election_provider_support::NposSolution&gt;::LIMIT <span class="kw">as </span>u32;
@@ -2965,6 +2996,35 @@
 	EnsureRoot&lt;AccountId&gt;,
 	pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilCollective, <span class="number">3</span>, <span class="number">4</span>&gt;,
 &gt;;
+
+<span class="kw">pub struct </span>EraPayout;
+<span class="kw">impl </span>pallet_staking::EraPayout&lt;Balance&gt; <span class="kw">for </span>EraPayout {
+	<span class="kw">fn </span>era_payout(
+		total_staked: Balance,
+		total_issuance: Balance,
+		era_duration_millis: u64,
+	) -&gt; (Balance, Balance) {
+		<span class="comment">// all para-ids that are not active.
+		</span><span class="kw">let </span>auctioned_slots = Paras::parachains()
+			.into_iter()
+			<span class="comment">// all active para-ids that do not belong to a system or common good chain is the number
+			// of parachains that we should take into account for inflation.
+			</span>.filter(|i| <span class="kw-2">*</span>i &gt;= LOWEST_PUBLIC_ID)
+			.count() <span class="kw">as </span>u64;
+
+		<span class="kw">const </span>MAX_ANNUAL_INFLATION: Perquintill = Perquintill::from_percent(<span class="number">10</span>);
+		<span class="kw">const </span>MILLISECONDS_PER_YEAR: u64 = <span class="number">1000 </span>* <span class="number">3600 </span>* <span class="number">24 </span>* <span class="number">36525 </span>/ <span class="number">100</span>;
+
+		runtime_common::impls::era_payout(
+			total_staked,
+			<span class="comment">// Polkadot has no notion of gilts, the entire issuance is non-guilt.
+			</span>total_issuance,
+			MAX_ANNUAL_INFLATION,
+			Perquintill::from_rational(era_duration_millis, MILLISECONDS_PER_YEAR),
+			auctioned_slots,
+		)
+	}
+}
 
 <span class="kw">impl </span>pallet_staking::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>MaxNominations = MaxNominations;
@@ -2982,7 +3042,7 @@
 	<span class="comment">// A super-majority of the council can cancel the slash.
 	</span><span class="kw">type </span>SlashCancelOrigin = SlashCancelOrigin;
 	<span class="kw">type </span>SessionInterface = <span class="self">Self</span>;
-	<span class="kw">type </span>EraPayout = pallet_staking::ConvertCurve&lt;RewardCurve&gt;;
+	<span class="kw">type </span>EraPayout = EraPayout;
 	<span class="kw">type </span>MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	<span class="kw">type </span>OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	<span class="kw">type </span>NextNewSession = Session;

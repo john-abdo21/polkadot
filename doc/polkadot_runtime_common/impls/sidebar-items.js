@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DealWithFees",""],["ToAuthor","Logic for the author to get a portion of fees."]]};
+window.SIDEBAR_ITEMS = {"fn":[["era_payout",""]],"struct":[["DealWithFees",""],["ToAuthor","Logic for the author to get a portion of fees."]]};

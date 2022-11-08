@@ -2205,39 +2205,6 @@
 <span id="2205">2205</span>
 <span id="2206">2206</span>
 <span id="2207">2207</span>
-<span id="2208">2208</span>
-<span id="2209">2209</span>
-<span id="2210">2210</span>
-<span id="2211">2211</span>
-<span id="2212">2212</span>
-<span id="2213">2213</span>
-<span id="2214">2214</span>
-<span id="2215">2215</span>
-<span id="2216">2216</span>
-<span id="2217">2217</span>
-<span id="2218">2218</span>
-<span id="2219">2219</span>
-<span id="2220">2220</span>
-<span id="2221">2221</span>
-<span id="2222">2222</span>
-<span id="2223">2223</span>
-<span id="2224">2224</span>
-<span id="2225">2225</span>
-<span id="2226">2226</span>
-<span id="2227">2227</span>
-<span id="2228">2228</span>
-<span id="2229">2229</span>
-<span id="2230">2230</span>
-<span id="2231">2231</span>
-<span id="2232">2232</span>
-<span id="2233">2233</span>
-<span id="2234">2234</span>
-<span id="2235">2235</span>
-<span id="2236">2236</span>
-<span id="2237">2237</span>
-<span id="2238">2238</span>
-<span id="2239">2239</span>
-<span id="2240">2240</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2266,6 +2233,7 @@
 	CoreState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage,
 	Moment, Nonce, OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
 	SessionInfo, Signature, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
+	LOWEST_PUBLIC_ID,
 };
 <span class="kw">use </span>runtime_common::{
 	auctions, claims, crowdloan, impl_runtime_weights, impls::DealWithFees, paras_registrar,
@@ -2744,45 +2712,6 @@
 	<span class="kw">type </span>Score = sp_npos_elections::VoteWeight;
 }
 
-<span class="kw">fn </span>era_payout(
-	total_staked: Balance,
-	non_gilt_issuance: Balance,
-	max_annual_inflation: Perquintill,
-	period_fraction: Perquintill,
-	auctioned_slots: u64,
-) -&gt; (Balance, Balance) {
-	<span class="kw">use </span>pallet_staking_reward_fn::compute_inflation;
-	<span class="kw">use </span>sp_arithmetic::traits::Saturating;
-
-	<span class="kw">let </span>min_annual_inflation = Perquintill::from_rational(<span class="number">25u64</span>, <span class="number">1000u64</span>);
-	<span class="kw">let </span>delta_annual_inflation = max_annual_inflation.saturating_sub(min_annual_inflation);
-
-	<span class="comment">// 30% reserved for up to 60 slots.
-	</span><span class="kw">let </span>auction_proportion = Perquintill::from_rational(auctioned_slots.min(<span class="number">60</span>), <span class="number">200u64</span>);
-
-	<span class="comment">// Therefore the ideal amount at stake (as a percentage of total issuance) is 75% less the amount that we expect
-	// to be taken up with auctions.
-	</span><span class="kw">let </span>ideal_stake = Perquintill::from_percent(<span class="number">75</span>).saturating_sub(auction_proportion);
-
-	<span class="kw">let </span>stake = Perquintill::from_rational(total_staked, non_gilt_issuance);
-	<span class="kw">let </span>falloff = Perquintill::from_percent(<span class="number">5</span>);
-	<span class="kw">let </span>adjustment = compute_inflation(stake, ideal_stake, falloff);
-	<span class="kw">let </span>staking_inflation =
-		min_annual_inflation.saturating_add(delta_annual_inflation * adjustment);
-
-	<span class="kw">let </span>max_payout = period_fraction * max_annual_inflation * non_gilt_issuance;
-	<span class="kw">let </span>staking_payout = (period_fraction * staking_inflation) * non_gilt_issuance;
-	<span class="kw">let </span>rest = max_payout.saturating_sub(staking_payout);
-
-	<span class="kw">let </span>other_issuance = non_gilt_issuance.saturating_sub(total_staked);
-	<span class="kw">if </span>total_staked &gt; other_issuance {
-		<span class="kw">let </span>_cap_rest = Perquintill::from_rational(other_issuance, total_staked) * staking_payout;
-		<span class="comment">// We don&#39;t do anything with this, but if we wanted to, we could introduce a cap on the treasury amount
-		// with: `rest = rest.min(cap_rest);`
-	</span>}
-	(staking_payout, rest)
-}
-
 <span class="kw">pub struct </span>EraPayout;
 <span class="kw">impl </span>pallet_staking::EraPayout&lt;Balance&gt; <span class="kw">for </span>EraPayout {
 	<span class="kw">fn </span>era_payout(
@@ -2790,13 +2719,18 @@
 		_total_issuance: Balance,
 		era_duration_millis: u64,
 	) -&gt; (Balance, Balance) {
-		<span class="comment">// TODO: #3011 Update with proper auctioned slots tracking.
-		// This should be fine for the first year of parachains.
-		</span><span class="kw">let </span>auctioned_slots: u64 = auctions::Pallet::&lt;Runtime&gt;::auction_counter().into();
+		<span class="comment">// all para-ids that are currently active.
+		</span><span class="kw">let </span>auctioned_slots = Paras::parachains()
+			.into_iter()
+			<span class="comment">// all active para-ids that do not belong to a system or common good chain is the number
+			// of parachains that we should take into account for inflation.
+			</span>.filter(|i| <span class="kw-2">*</span>i &gt;= LOWEST_PUBLIC_ID)
+			.count() <span class="kw">as </span>u64;
+
 		<span class="kw">const </span>MAX_ANNUAL_INFLATION: Perquintill = Perquintill::from_percent(<span class="number">10</span>);
 		<span class="kw">const </span>MILLISECONDS_PER_YEAR: u64 = <span class="number">1000 </span>* <span class="number">3600 </span>* <span class="number">24 </span>* <span class="number">36525 </span>/ <span class="number">100</span>;
 
-		era_payout(
+		runtime_common::impls::era_payout(
 			total_staked,
 			Gilt::issuance().non_gilt,
 			MAX_ANNUAL_INFLATION,
@@ -2813,7 +2747,7 @@
 	</span><span class="kw">pub const </span>BondingDuration: sp_staking::EraIndex = <span class="number">28</span>;
 	<span class="comment">// 27 eras in which slashes can be cancelled (slightly less than 7 days).
 	</span><span class="kw">pub const </span>SlashDeferDuration: sp_staking::EraIndex = <span class="number">27</span>;
-	<span class="kw">pub const </span>MaxNominatorRewardedPerValidator: u32 = <span class="number">256</span>;
+	<span class="kw">pub const </span>MaxNominatorRewardedPerValidator: u32 = <span class="number">512</span>;
 	<span class="kw">pub const </span>OffendingValidatorsThreshold: Perbill = Perbill::from_percent(<span class="number">17</span>);
 	<span class="comment">// 24
 	</span><span class="kw">pub const </span>MaxNominations: u32 = &lt;NposCompactSolution24 <span class="kw">as </span>NposSolution&gt;::LIMIT <span class="kw">as </span>u32;
