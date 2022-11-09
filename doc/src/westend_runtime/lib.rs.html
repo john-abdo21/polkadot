@@ -1836,35 +1836,6 @@
 <span id="1836">1836</span>
 <span id="1837">1837</span>
 <span id="1838">1838</span>
-<span id="1839">1839</span>
-<span id="1840">1840</span>
-<span id="1841">1841</span>
-<span id="1842">1842</span>
-<span id="1843">1843</span>
-<span id="1844">1844</span>
-<span id="1845">1845</span>
-<span id="1846">1846</span>
-<span id="1847">1847</span>
-<span id="1848">1848</span>
-<span id="1849">1849</span>
-<span id="1850">1850</span>
-<span id="1851">1851</span>
-<span id="1852">1852</span>
-<span id="1853">1853</span>
-<span id="1854">1854</span>
-<span id="1855">1855</span>
-<span id="1856">1856</span>
-<span id="1857">1857</span>
-<span id="1858">1858</span>
-<span id="1859">1859</span>
-<span id="1860">1860</span>
-<span id="1861">1861</span>
-<span id="1862">1862</span>
-<span id="1863">1863</span>
-<span id="1864">1864</span>
-<span id="1865">1865</span>
-<span id="1866">1866</span>
-<span id="1867">1867</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3325,14 +3296,19 @@
 	}
 
 	<span class="kw">impl </span>mmr::MmrApi&lt;Block, Hash, BlockNumber&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>generate_proof(_block_number: BlockNumber)
-			-&gt; <span class="prelude-ty">Result</span>&lt;(mmr::EncodableOpaqueLeaf, mmr::Proof&lt;Hash&gt;), mmr::Error&gt;
-		{
+		<span class="kw">fn </span>mmr_root() -&gt; <span class="prelude-ty">Result</span>&lt;Hash, mmr::Error&gt; {
 
 			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
 		}
 
-		<span class="kw">fn </span>verify_proof(_leaf: mmr::EncodableOpaqueLeaf, _proof: mmr::Proof&lt;Hash&gt;)
+		<span class="kw">fn </span>generate_proof(
+			_block_numbers: Vec&lt;BlockNumber&gt;,
+			_best_known_block_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;mmr::EncodableOpaqueLeaf&gt;, mmr::Proof&lt;Hash&gt;), mmr::Error&gt; {
+			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
+		}
+
+		<span class="kw">fn </span>verify_proof(_leaves: Vec&lt;mmr::EncodableOpaqueLeaf&gt;, _proof: mmr::Proof&lt;Hash&gt;)
 			-&gt; <span class="prelude-ty">Result</span>&lt;(), mmr::Error&gt;
 		{
 
@@ -3341,42 +3317,8 @@
 
 		<span class="kw">fn </span>verify_proof_stateless(
 			_root: Hash,
-			_leaf: mmr::EncodableOpaqueLeaf,
-			_proof: mmr::Proof&lt;Hash&gt;
-		) -&gt; <span class="prelude-ty">Result</span>&lt;(), mmr::Error&gt; {
-
-			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
-		}
-
-		<span class="kw">fn </span>mmr_root() -&gt; <span class="prelude-ty">Result</span>&lt;Hash, mmr::Error&gt; {
-
-			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
-		}
-
-		<span class="kw">fn </span>generate_batch_proof(_block_numbers: Vec&lt;BlockNumber&gt;)
-			-&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;mmr::EncodableOpaqueLeaf&gt;, mmr::BatchProof&lt;Hash&gt;), mmr::Error&gt;
-		{
-			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
-		}
-
-		<span class="kw">fn </span>generate_historical_batch_proof(
-			_block_numbers: Vec&lt;BlockNumber&gt;,
-			_best_known_block_number: BlockNumber,
-		) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;mmr::EncodableOpaqueLeaf&gt;, mmr::BatchProof&lt;Hash&gt;), mmr::Error&gt; {
-			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
-		}
-
-		<span class="kw">fn </span>verify_batch_proof(_leaves: Vec&lt;mmr::EncodableOpaqueLeaf&gt;, _proof: mmr::BatchProof&lt;Hash&gt;)
-			-&gt; <span class="prelude-ty">Result</span>&lt;(), mmr::Error&gt;
-		{
-
-			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
-		}
-
-		<span class="kw">fn </span>verify_batch_proof_stateless(
-			_root: Hash,
 			_leaves: Vec&lt;mmr::EncodableOpaqueLeaf&gt;,
-			_proof: mmr::BatchProof&lt;Hash&gt;
+			_proof: mmr::Proof&lt;Hash&gt;
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), mmr::Error&gt; {
 
 			<span class="prelude-val">Err</span>(mmr::Error::PalletNotIncluded)
