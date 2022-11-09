@@ -2207,6 +2207,18 @@
 <span id="2207">2207</span>
 <span id="2208">2208</span>
 <span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2620,6 +2632,9 @@
 	</span><span class="kw">pub const </span>MaxElectableTargets: u16 = u16::MAX;
 	<span class="kw">pub </span>NposSolutionPriority: TransactionPriority =
 		Perbill::from_percent(<span class="number">90</span>) * TransactionPriority::max_value();
+	<span class="doccomment">/// Setup election pallet to support maximum winners upto 2000. This will mean Staking Pallet
+	/// cannot have active validators higher than this count.
+	</span><span class="kw">pub const </span>MaxActiveValidators: u32 = <span class="number">2000</span>;
 }
 
 <span class="macro">generate_solution_type!</span>(
@@ -2638,6 +2653,9 @@
 	<span class="kw">type </span>Solver = SequentialPhragmen&lt;AccountId, runtime_common::elections::OnChainAccuracy&gt;;
 	<span class="kw">type </span>DataProvider = Staking;
 	<span class="kw">type </span>WeightInfo = weights::frame_election_provider_support::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>MaxWinners = MaxActiveValidators;
+	<span class="kw">type </span>VotersBound = MaxElectingVoters;
+	<span class="kw">type </span>TargetsBound = MaxElectableTargets;
 }
 
 <span class="kw">impl </span>pallet_election_provider_multi_phase::MinerConfig <span class="kw">for </span>Runtime {
@@ -2685,10 +2703,15 @@
 	<span class="kw">type </span>MinerTxPriority = NposSolutionPriority;
 	<span class="kw">type </span>DataProvider = Staking;
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;fast-runtime&quot;</span>)]
-	</span><span class="kw">type </span>Fallback = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	</span><span class="kw">type </span>Fallback = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="attribute">#[cfg(not(feature = <span class="string">&quot;fast-runtime&quot;</span>))]
-	</span><span class="kw">type </span>Fallback = pallet_election_provider_multi_phase::NoFallback&lt;<span class="self">Self</span>&gt;;
-	<span class="kw">type </span>GovernanceFallback = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	</span><span class="kw">type </span>Fallback = frame_election_provider_support::NoElection&lt;(
+		AccountId,
+		BlockNumber,
+		Staking,
+		MaxActiveValidators,
+	)&gt;;
+	<span class="kw">type </span>GovernanceFallback = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="kw">type </span>Solver = SequentialPhragmen&lt;
 		AccountId,
 		pallet_election_provider_multi_phase::SolutionAccuracyOf&lt;<span class="self">Self</span>&gt;,
@@ -2699,6 +2722,7 @@
 	<span class="kw">type </span>WeightInfo = weights::pallet_election_provider_multi_phase::WeightInfo&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>MaxElectingVoters = MaxElectingVoters;
 	<span class="kw">type </span>MaxElectableTargets = MaxElectableTargets;
+	<span class="kw">type </span>MaxWinners = MaxActiveValidators;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2762,7 +2786,7 @@
 	<span class="kw">type </span>UnixTime = Timestamp;
 	<span class="kw">type </span>CurrencyToVote = CurrencyToVote;
 	<span class="kw">type </span>ElectionProvider = ElectionProviderMultiPhase;
-	<span class="kw">type </span>GenesisElectionProvider = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	<span class="kw">type </span>GenesisElectionProvider = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="kw">type </span>RewardRemainder = Treasury;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Slash = Treasury;

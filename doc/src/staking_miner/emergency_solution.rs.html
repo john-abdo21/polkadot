@@ -61,6 +61,8 @@
 <span id="61">61</span>
 <span id="62">62</span>
 <span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -99,21 +101,23 @@
 
 			<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;mined solution with {:?}&quot;</span>, <span class="kw-2">&amp;</span>raw_solution.score);
 
-			<span class="kw">let </span><span class="kw-2">mut </span>ready_solution = EPM::Pallet::&lt;Runtime&gt;::feasibility_check(raw_solution, EPM::ElectionCompute::Signed)<span class="question-mark">?</span>;
-
+			<span class="kw">let </span>ready_solution = EPM::Pallet::&lt;Runtime&gt;::feasibility_check(raw_solution, EPM::ElectionCompute::Signed)<span class="question-mark">?</span>;
+			<span class="kw">let </span>encoded_size = ready_solution.encoded_size();
+			<span class="kw">let </span>score = ready_solution.score;
+			<span class="kw">let </span><span class="kw-2">mut </span>supports = ready_solution.supports.into_inner();
 			<span class="comment">// maybe truncate.
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(take) = config.take {
-				<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;truncating {} winners to {}&quot;</span>, ready_solution.supports.len(), take);
-				ready_solution.supports.sort_unstable_by_key(|(<span class="kw">_</span>, s)| s.total);
-				ready_solution.supports.truncate(take);
+				<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;truncating {} winners to {}&quot;</span>, supports.len(), take);
+				supports.sort_unstable_by_key(|(<span class="kw">_</span>, s)| s.total);
+				supports.truncate(take);
 			}
 
 			<span class="comment">// write to file and stdout.
-			</span><span class="kw">let </span>encoded_support = ready_solution.supports.encode();
+			</span><span class="kw">let </span>encoded_support = supports.encode();
 			<span class="kw">let </span><span class="kw-2">mut </span>supports_file = std::fs::File::create(<span class="string">&quot;solution.supports.bin&quot;</span>)<span class="question-mark">?</span>;
 			supports_file.write_all(<span class="kw-2">&amp;</span>encoded_support)<span class="question-mark">?</span>;
 
-			<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;ReadySolution: size {:?} / score = {:?}&quot;</span>, ready_solution.encoded_size(), ready_solution.score);
+			<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;ReadySolution: size {:?} / score = {:?}&quot;</span>, encoded_size, score);
 			<span class="macro">log::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Supports: {}&quot;</span>, sp_core::hexdisplay::HexDisplay::from(<span class="kw-2">&amp;</span>encoded_support));
 
 			<span class="prelude-val">Ok</span>(())

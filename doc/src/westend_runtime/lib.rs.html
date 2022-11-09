@@ -1853,6 +1853,18 @@
 <span id="1853">1853</span>
 <span id="1854">1854</span>
 <span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2221,6 +2233,9 @@
 	<span class="doccomment">/// ... and all of the validators as electable targets. Whilst this is the case, we cannot and
 	/// shall not increase the size of the validator intentions.
 	</span><span class="kw">pub const </span>MaxElectableTargets: u16 = u16::MAX;
+	<span class="comment">// Maximum winners that can be chosen as active validators
+	</span><span class="kw">pub const </span>MaxActiveValidators: u32 = <span class="number">1000</span>;
+
 }
 
 <span class="macro">frame_election_provider_support::generate_solution_type!</span>(
@@ -2239,6 +2254,9 @@
 	<span class="kw">type </span>Solver = SequentialPhragmen&lt;AccountId, OnChainAccuracy&gt;;
 	<span class="kw">type </span>DataProvider = Staking;
 	<span class="kw">type </span>WeightInfo = weights::frame_election_provider_support::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>MaxWinners = MaxActiveValidators;
+	<span class="kw">type </span>VotersBound = MaxElectingVoters;
+	<span class="kw">type </span>TargetsBound = MaxElectableTargets;
 }
 
 <span class="kw">impl </span>pallet_election_provider_multi_phase::MinerConfig <span class="kw">for </span>Runtime {
@@ -2286,10 +2304,15 @@
 	<span class="kw">type </span>MinerTxPriority = NposSolutionPriority;
 	<span class="kw">type </span>DataProvider = Staking;
 	<span class="attribute">#[cfg(any(feature = <span class="string">&quot;fast-runtime&quot;</span>, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
-	</span><span class="kw">type </span>Fallback = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	</span><span class="kw">type </span>Fallback = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="attribute">#[cfg(not(any(feature = <span class="string">&quot;fast-runtime&quot;</span>, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)))]
-	</span><span class="kw">type </span>Fallback = pallet_election_provider_multi_phase::NoFallback&lt;<span class="self">Self</span>&gt;;
-	<span class="kw">type </span>GovernanceFallback = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	</span><span class="kw">type </span>Fallback = frame_election_provider_support::NoElection&lt;(
+		AccountId,
+		BlockNumber,
+		Staking,
+		MaxActiveValidators,
+	)&gt;;
+	<span class="kw">type </span>GovernanceFallback = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="kw">type </span>Solver = SequentialPhragmen&lt;
 		AccountId,
 		pallet_election_provider_multi_phase::SolutionAccuracyOf&lt;<span class="self">Self</span>&gt;,
@@ -2300,6 +2323,7 @@
 	<span class="kw">type </span>WeightInfo = weights::pallet_election_provider_multi_phase::WeightInfo&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>MaxElectingVoters = MaxElectingVoters;
 	<span class="kw">type </span>MaxElectableTargets = MaxElectableTargets;
+	<span class="kw">type </span>MaxWinners = MaxActiveValidators;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2360,7 +2384,7 @@
 	<span class="kw">type </span>OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	<span class="kw">type </span>NextNewSession = Session;
 	<span class="kw">type </span>ElectionProvider = ElectionProviderMultiPhase;
-	<span class="kw">type </span>GenesisElectionProvider = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	<span class="kw">type </span>GenesisElectionProvider = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="kw">type </span>VoterList = VoterList;
 	<span class="kw">type </span>TargetList = UseValidatorsMap&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>MaxUnlockingChunks = frame_support::traits::ConstU32&lt;<span class="number">32</span>&gt;;

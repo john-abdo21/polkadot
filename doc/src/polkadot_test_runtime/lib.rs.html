@@ -1086,6 +1086,12 @@
 <span id="1086">1086</span>
 <span id="1087">1087</span>
 <span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1407,6 +1413,9 @@
 	<span class="kw">pub </span>storage MaxNominatorRewardedPerValidator: u32 = <span class="number">64</span>;
 	<span class="kw">pub </span>storage OffendingValidatorsThreshold: Perbill = Perbill::from_percent(<span class="number">17</span>);
 	<span class="kw">pub const </span>MaxAuthorities: u32 = <span class="number">100_000</span>;
+	<span class="kw">pub const </span>OnChainMaxWinners: u32 = u32::MAX;
+	<span class="kw">pub const </span>MaxElectingVoters: u32 = u32::MAX;
+	<span class="kw">pub const </span>MaxElectableTargets: u16 = u16::MAX;
 }
 
 <span class="kw">pub struct </span>OnChainSeqPhragmen;
@@ -1415,6 +1424,9 @@
 	<span class="kw">type </span>Solver = SequentialPhragmen&lt;AccountId, runtime_common::elections::OnChainAccuracy&gt;;
 	<span class="kw">type </span>DataProvider = Staking;
 	<span class="kw">type </span>WeightInfo = ();
+	<span class="kw">type </span>MaxWinners = OnChainMaxWinners;
+	<span class="kw">type </span>VotersBound = MaxElectingVoters;
+	<span class="kw">type </span>TargetsBound = MaxElectableTargets;
 }
 
 <span class="kw">impl </span>pallet_staking::Config <span class="kw">for </span>Runtime {
@@ -1437,8 +1449,8 @@
 	<span class="kw">type </span>MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	<span class="kw">type </span>OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	<span class="kw">type </span>NextNewSession = Session;
-	<span class="kw">type </span>ElectionProvider = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
-	<span class="kw">type </span>GenesisElectionProvider = onchain::UnboundedExecution&lt;OnChainSeqPhragmen&gt;;
+	<span class="kw">type </span>ElectionProvider = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
+	<span class="kw">type </span>GenesisElectionProvider = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="comment">// Use the nominator map to iter voter AND no-ops for all SortedListProvider hooks. The migration
 	// to bags-list is a no-op, but the storage version will be updated.
 	</span><span class="kw">type </span>VoterList = pallet_staking::UseNominatorsAndValidatorsMap&lt;Runtime&gt;;
