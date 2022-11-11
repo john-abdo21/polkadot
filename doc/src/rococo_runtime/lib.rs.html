@@ -1985,6 +1985,34 @@
 <span id="1985">1985</span>
 <span id="1986">1986</span>
 <span id="1987">1987</span>
+<span id="1988">1988</span>
+<span id="1989">1989</span>
+<span id="1990">1990</span>
+<span id="1991">1991</span>
+<span id="1992">1992</span>
+<span id="1993">1993</span>
+<span id="1994">1994</span>
+<span id="1995">1995</span>
+<span id="1996">1996</span>
+<span id="1997">1997</span>
+<span id="1998">1998</span>
+<span id="1999">1999</span>
+<span id="2000">2000</span>
+<span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
+<span id="2014">2014</span>
+<span id="2015">2015</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2102,7 +2130,7 @@
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;disable-runtime-api&quot;</span>)]
 	</span>apis: <span class="macro">sp_version::create_apis_vec!</span>[[]],
 	transaction_version: <span class="number">15</span>,
-	state_version: <span class="number">0</span>,
+	state_version: <span class="number">1</span>,
 };
 
 <span class="doccomment">/// The BABE epoch configuration at genesis.
@@ -3403,6 +3431,9 @@
 		<span class="comment">// Validator Manager pallet.
 		</span>ValidatorManager: validator_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">252</span>,
 
+		<span class="comment">// State trie migration pallet, only temporary.
+		</span>StateTrieMigration: pallet_state_trie_migration = <span class="number">254</span>,
+
 		<span class="comment">// Sudo.
 		</span>Sudo: pallet_sudo::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">255</span>,
 	}
@@ -3452,6 +3483,31 @@
 &gt;;
 <span class="doccomment">/// The payload being signed in transactions.
 </span><span class="kw">pub type </span>SignedPayload = generic::SignedPayload&lt;RuntimeCall, SignedExtra&gt;;
+
+<span class="macro">parameter_types! </span>{
+	<span class="comment">// The deposit configuration for the singed migration. Specially if you want to allow any signed account to do the migration (see `SignedFilter`, these deposits should be high)
+	</span><span class="kw">pub const </span>MigrationSignedDepositPerItem: Balance = <span class="number">1 </span>* CENTS;
+	<span class="kw">pub const </span>MigrationSignedDepositBase: Balance = <span class="number">20 </span>* CENTS * <span class="number">100</span>;
+	<span class="kw">pub const </span>MigrationMaxKeyLen: u32 = <span class="number">512</span>;
+}
+
+<span class="kw">impl </span>pallet_state_trie_migration::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>SignedDepositPerItem = MigrationSignedDepositPerItem;
+	<span class="kw">type </span>SignedDepositBase = MigrationSignedDepositBase;
+	<span class="kw">type </span>ControlOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="comment">// specific account for the migration, can trigger the signed migrations.
+	</span><span class="kw">type </span>SignedFilter = frame_system::EnsureSignedBy&lt;MigController, AccountId&gt;;
+
+	<span class="comment">// Use same weights as substrate ones.
+	</span><span class="kw">type </span>WeightInfo = pallet_state_trie_migration::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>MaxKeyLen = MigrationMaxKeyLen;
+}
+
+<span class="macro">frame_support::ord_parameter_types! </span>{
+	<span class="kw">pub const </span>MigController: AccountId = AccountId::from(<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;52bc71c1eca5353749542dfdf0af97bf764f9c2f44e860cd485f1cd86400f649&quot;</span>));
+}
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 #[macro_use]
