@@ -1315,6 +1315,32 @@
 <span id="1315">1315</span>
 <span id="1316">1316</span>
 <span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2186,12 +2212,21 @@
 			}
 		}
 
+		<span class="kw">let </span>has_own_vote = new_state.has_own_vote();
+		<span class="kw">let </span>is_disputed = new_state.is_disputed();
+		<span class="kw">let </span>has_controlled_indices = !env.controlled_indices().is_empty();
+		<span class="kw">let </span>is_backed = <span class="self">self</span>.scraper.is_candidate_backed(<span class="kw-2">&amp;</span>candidate_hash);
+		<span class="kw">let </span>is_confirmed = new_state.is_confirmed();
+		<span class="comment">// We participate only in disputes which are included, backed or confirmed
+		</span><span class="kw">let </span>allow_participation = is_included || is_backed || is_confirmed;
+
 		<span class="comment">// Participate in dispute if we did not cast a vote before and actually have keys to cast a
-		// local vote:
-		</span><span class="kw">if </span>!new_state.has_own_vote() &amp;&amp;
-			new_state.is_disputed() &amp;&amp;
-			!env.controlled_indices().is_empty()
-		{
+		// local vote. Disputes should fall in one of the categories below, otherwise we will refrain
+		// from participation:
+		// - `is_included` lands in prioritised queue
+		// - `is_confirmed` | `is_backed` lands in best effort queue
+		// We don&#39;t participate in disputes on finalized candidates.
+		</span><span class="kw">if </span>!has_own_vote &amp;&amp; is_disputed &amp;&amp; has_controlled_indices &amp;&amp; allow_participation {
 			<span class="kw">let </span>priority = ParticipationPriority::with_priority_if(is_included);
 			<span class="macro">gum::trace!</span>(
 				target: LOG_TARGET,
@@ -2213,6 +2248,23 @@
 				)
 				.<span class="kw">await</span>;
 			log_error(r)<span class="question-mark">?</span>;
+		} <span class="kw">else </span>{
+			<span class="macro">gum::trace!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>candidate_hash,
+				<span class="question-mark">?</span>is_confirmed,
+				<span class="question-mark">?</span>has_own_vote,
+				<span class="question-mark">?</span>is_disputed,
+				<span class="question-mark">?</span>has_controlled_indices,
+				<span class="question-mark">?</span>allow_participation,
+				<span class="question-mark">?</span>is_included,
+				<span class="question-mark">?</span>is_backed,
+				<span class="string">&quot;Will not queue participation for candidate&quot;
+			</span>);
+
+			<span class="kw">if </span>!allow_participation {
+				<span class="self">self</span>.metrics.on_refrained_participation();
+			}
 		}
 
 		<span class="comment">// Also send any already existing approval vote on new disputes:

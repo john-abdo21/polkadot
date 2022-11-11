@@ -151,6 +151,22 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -183,6 +199,8 @@
 	</span>queued_participations: prometheus::CounterVec&lt;prometheus::U64&gt;,
 	<span class="doccomment">/// How long vote cleanup batches take.
 	</span>vote_cleanup_time: prometheus::Histogram,
+	<span class="doccomment">/// Number of refrained participations.
+	</span>refrained_participations: prometheus::Counter&lt;prometheus::U64&gt;,
 }
 
 <span class="doccomment">/// Candidate validation metrics.
@@ -241,6 +259,12 @@
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_vote_cleanup(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;prometheus::prometheus::HistogramTimer&gt; {
 		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| metrics.vote_cleanup_time.start_timer())
 	}
+
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_refrained_participation(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			metrics.refrained_participations.inc();
+		}
+	}
 }
 
 <span class="kw">impl </span>metrics::Metrics <span class="kw">for </span>Metrics {
@@ -298,6 +322,14 @@
 					)
 					.buckets([<span class="number">0.01</span>, <span class="number">0.1</span>, <span class="number">0.5</span>, <span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">4.0</span>, <span class="number">8.0</span>, <span class="number">16.0</span>, <span class="number">32.0</span>, <span class="number">64.0</span>].into()),
 				)<span class="question-mark">?</span>,
+				registry,
+			)<span class="question-mark">?</span>,
+			refrained_participations: prometheus::register(
+			prometheus::Counter::with_opts(
+				prometheus::Opts::new(
+					<span class="string">&quot;polkadot_parachain_dispute_refrained_participations&quot;</span>,
+					<span class="string">&quot;Number of refrained participations. We refrain from participation if all of the following conditions are met: disputed candidate is not included, not backed and not confirmed.&quot;</span>,
+				))<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
 		};

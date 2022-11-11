@@ -320,6 +320,34 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -336,10 +364,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>std::{
-	collections::{BTreeMap, HashSet},
-	num::NonZeroUsize,
-};
+</span><span class="kw">use </span>std::num::NonZeroUsize;
 
 <span class="kw">use </span>futures::channel::oneshot;
 <span class="kw">use </span>lru::LruCache;
@@ -362,6 +387,8 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">mod </span>candidates;
+
 <span class="doccomment">/// Number of hashes to keep in the LRU.
 ///
 ///
@@ -380,18 +407,21 @@
 ///
 /// Concretely:
 ///
-/// - Monitors for inclusion events to keep track of candidates that have been included on chains.
+/// - Monitors for `CandidateIncluded` events to keep track of candidates that have been
+///   included on chains.
+/// - Monitors for `CandidateBacked` events to keep track of all backed candidates.
 /// - Calls `FetchOnChainVotes` for each block to gather potentially missed votes from chain.
 ///
 /// With this information it provides a `CandidateComparator` and as a return value of
 /// `process_active_leaves_update` any scraped votes.
+///
+/// Scraped candidates are available `CANDIDATE_LIFETIME_AFTER_FINALIZATION` more blocks
+/// after finalization as a precaution not to prune them prematurely.
 </span><span class="kw">pub struct </span>ChainScraper {
 	<span class="doccomment">/// All candidates we have seen included, which not yet have been finalized.
-	</span>included_candidates: HashSet&lt;CandidateHash&gt;,
-	<span class="doccomment">/// including block -&gt; `CandidateHash`
-	///
-	/// We need this to clean up `included_candidates` on finalization.
-	</span>candidates_by_block_number: BTreeMap&lt;BlockNumber, HashSet&lt;CandidateHash&gt;&gt;,
+	</span>included_candidates: candidates::ScrapedCandidates,
+	<span class="doccomment">/// All candidates we have seen backed
+	</span>backed_candidates: candidates::ScrapedCandidates,
 	<span class="doccomment">/// Latest relay blocks observed by the provider.
 	///
 	/// We assume that ancestors of cached blocks are already processed, i.e. we have saved
@@ -407,6 +437,16 @@
 	/// As long as we have `MAX_FINALITY_LAG` this makes sense as a value.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ANCESTRY_SIZE_LIMIT: u32 = MAX_FINALITY_LAG;
 
+	<span class="doccomment">/// How many blocks after finalization a backed/included candidate should be kept.
+	/// We don&#39;t want to remove scraped candidates on finalization because we want to
+	/// be sure that disputes will conclude on abandoned forks.
+	/// Removing the candidate on finalization creates a possibility for an attacker to
+	/// avoid slashing. If a bad fork is abandoned too quickly because in the same another
+	/// better one gets finalized the entries for the bad fork will be pruned and we
+	/// will never participate in a dispute for it. We want such disputes to conclude
+	/// in a timely manner so that the offenders are slashed.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>CANDIDATE_LIFETIME_AFTER_FINALIZATION: BlockNumber = <span class="number">2</span>;
+
 	<span class="doccomment">/// Create a properly initialized `OrderingProvider`.
 	///
 	/// Returns: `Self` and any scraped votes.
@@ -418,8 +458,8 @@
 		</span>Sender: overseer::DisputeCoordinatorSenderTrait,
 	{
 		<span class="kw">let </span><span class="kw-2">mut </span>s = <span class="self">Self </span>{
-			included_candidates: HashSet::new(),
-			candidates_by_block_number: BTreeMap::new(),
+			included_candidates: candidates::ScrapedCandidates::new(),
+			backed_candidates: candidates::ScrapedCandidates::new(),
 			last_observed_blocks: LruCache::new(LRU_OBSERVED_BLOCKS_CAPACITY),
 		};
 		<span class="kw">let </span>update =
@@ -429,8 +469,13 @@
 	}
 
 	<span class="doccomment">/// Check whether we have seen a candidate included on any chain.
-	</span><span class="kw">pub fn </span>is_candidate_included(<span class="kw-2">&amp;mut </span><span class="self">self</span>, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) -&gt; bool {
+	</span><span class="kw">pub fn </span>is_candidate_included(<span class="kw-2">&amp;</span><span class="self">self</span>, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) -&gt; bool {
 		<span class="self">self</span>.included_candidates.contains(candidate_hash)
+	}
+
+	<span class="doccomment">/// Check whether the candidate is backed
+	</span><span class="kw">pub fn </span>is_candidate_backed(<span class="kw-2">&amp;</span><span class="self">self</span>, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) -&gt; bool {
+		<span class="self">self</span>.backed_candidates.contains(candidate_hash)
 	}
 
 	<span class="doccomment">/// Query active leaves for any candidate `CandidateEvent::CandidateIncluded` events.
@@ -442,7 +487,7 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		sender: <span class="kw-2">&amp;mut </span>Sender,
 		update: <span class="kw-2">&amp;</span>ActiveLeavesUpdate,
-	) -&gt; <span class="kw">crate</span>::error::Result&lt;Vec&lt;ScrapedOnChainVotes&gt;&gt;
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ScrapedOnChainVotes&gt;&gt;
 	<span class="kw">where
 		</span>Sender: overseer::DisputeCoordinatorSenderTrait,
 	{
@@ -480,21 +525,27 @@
 
 	<span class="doccomment">/// Prune finalized candidates.
 	///
-	/// Once a candidate lives in a relay chain block that&#39;s behind the finalized chain/got
-	/// finalized, we can treat it as low priority.
-	</span><span class="kw">pub fn </span>process_finalized_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, finalized: <span class="kw-2">&amp;</span>BlockNumber) {
-		<span class="kw">let </span>not_finalized = <span class="self">self</span>.candidates_by_block_number.split_off(finalized);
-		<span class="kw">let </span>finalized = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.candidates_by_block_number);
-		<span class="self">self</span>.candidates_by_block_number = not_finalized;
-		<span class="comment">// Clean up finalized:
-		</span><span class="kw">for </span>finalized_candidate <span class="kw">in </span>finalized.into_values().flatten() {
-			<span class="self">self</span>.included_candidates.remove(<span class="kw-2">&amp;</span>finalized_candidate);
+	/// We keep each candidate for `CANDIDATE_LIFETIME_AFTER_FINALIZATION` blocks after finalization.
+	/// After that we treat it as low priority.
+	</span><span class="kw">pub fn </span>process_finalized_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, finalized_block_number: <span class="kw-2">&amp;</span>BlockNumber) {
+		<span class="comment">// `CANDIDATE_LIFETIME_AFTER_FINALIZATION - 1` because `finalized_block_number`counts to the
+		// candidate lifetime.
+		</span><span class="kw">match </span>finalized_block_number.checked_sub(<span class="self">Self</span>::CANDIDATE_LIFETIME_AFTER_FINALIZATION - <span class="number">1</span>) {
+			<span class="prelude-val">Some</span>(key_to_prune) =&gt; {
+				<span class="self">self</span>.backed_candidates.remove_up_to_height(<span class="kw-2">&amp;</span>key_to_prune);
+				<span class="self">self</span>.included_candidates.remove_up_to_height(<span class="kw-2">&amp;</span>key_to_prune);
+			},
+			<span class="prelude-val">None </span>=&gt; {
+				<span class="comment">// Nothing to prune. We are still in the beginning of the chain and there are not
+				// enough finalized blocks yet.
+			</span>},
 		}
+		{}
 	}
 
 	<span class="doccomment">/// Process candidate events of a block.
 	///
-	/// Keep track of all included candidates.
+	/// Keep track of all included and backed candidates.
 	</span><span class="kw">async fn </span>process_candidate_events&lt;Sender&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		sender: <span class="kw-2">&amp;mut </span>Sender,
@@ -504,28 +555,33 @@
 	<span class="kw">where
 		</span>Sender: overseer::DisputeCoordinatorSenderTrait,
 	{
-		<span class="comment">// Get included events:
-		</span><span class="kw">let </span>included =
-			get_candidate_events(sender, block_hash)
-				.<span class="kw">await</span><span class="question-mark">?
-				</span>.into_iter()
-				.filter_map(|ev| <span class="kw">match </span>ev {
-					CandidateEvent::CandidateIncluded(receipt, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(receipt),
-					<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-				});
-		<span class="kw">for </span>receipt <span class="kw">in </span>included {
-			<span class="kw">let </span>candidate_hash = receipt.hash();
-			<span class="macro">gum::trace!</span>(
-				target: LOG_TARGET,
-				<span class="question-mark">?</span>candidate_hash,
-				<span class="question-mark">?</span>block_number,
-				<span class="string">&quot;Processing included event&quot;
-			</span>);
-			<span class="self">self</span>.included_candidates.insert(candidate_hash);
-			<span class="self">self</span>.candidates_by_block_number
-				.entry(block_number)
-				.or_default()
-				.insert(candidate_hash);
+		<span class="comment">// Get included and backed events:
+		</span><span class="kw">for </span>ev <span class="kw">in </span>get_candidate_events(sender, block_hash).<span class="kw">await</span><span class="question-mark">? </span>{
+			<span class="kw">match </span>ev {
+				CandidateEvent::CandidateIncluded(receipt, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+					<span class="kw">let </span>candidate_hash = receipt.hash();
+					<span class="macro">gum::trace!</span>(
+						target: LOG_TARGET,
+						<span class="question-mark">?</span>candidate_hash,
+						<span class="question-mark">?</span>block_number,
+						<span class="string">&quot;Processing included event&quot;
+					</span>);
+					<span class="self">self</span>.included_candidates.insert(block_number, candidate_hash);
+				},
+				CandidateEvent::CandidateBacked(receipt, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+					<span class="kw">let </span>candidate_hash = receipt.hash();
+					<span class="macro">gum::trace!</span>(
+						target: LOG_TARGET,
+						<span class="question-mark">?</span>candidate_hash,
+						<span class="question-mark">?</span>block_number,
+						<span class="string">&quot;Processing backed event&quot;
+					</span>);
+					<span class="self">self</span>.backed_candidates.insert(block_number, candidate_hash);
+				},
+				<span class="kw">_ </span>=&gt; {
+					<span class="comment">// skip the rest
+				</span>},
+			}
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
