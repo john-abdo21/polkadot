@@ -2193,15 +2193,6 @@
 <span id="2193">2193</span>
 <span id="2194">2194</span>
 <span id="2195">2195</span>
-<span id="2196">2196</span>
-<span id="2197">2197</span>
-<span id="2198">2198</span>
-<span id="2199">2199</span>
-<span id="2200">2200</span>
-<span id="2201">2201</span>
-<span id="2202">2202</span>
-<span id="2203">2203</span>
-<span id="2204">2204</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -4250,7 +4241,7 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>multiplier_tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span>frame_support::{dispatch::GetDispatchInfo, traits::OnFinalize};
+	<span class="kw">use </span>frame_support::{dispatch::DispatchInfo, traits::OnFinalize};
 	<span class="kw">use </span>runtime_common::{MinimumMultiplier, TargetBlockFullness};
 	<span class="kw">use </span>separator::Separatable;
 	<span class="kw">use </span>sp_runtime::traits::Convert;
@@ -4292,17 +4283,8 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>blocks = <span class="number">0</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>fees_paid = <span class="number">0</span>;
 
-		<span class="kw">let </span>call = frame_system::Call::&lt;Runtime&gt;::fill_block {
-			ratio: Perbill::from_rational(
-				block_weight.ref_time(),
-				BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap().ref_time(),
-			),
-		};
-		<span class="macro">println!</span>(<span class="string">&quot;calling {:?}&quot;</span>, call);
-		<span class="kw">let </span>info = call.get_dispatch_info();
-		<span class="comment">// convert to outer call.
-		</span><span class="kw">let </span>call = RuntimeCall::System(call);
-		<span class="kw">let </span>len = call.using_encoded(|e| e.len()) <span class="kw">as </span>u32;
+		frame_system::Pallet::&lt;Runtime&gt;::set_block_consumed_resources(Weight::MAX, <span class="number">0</span>);
+		<span class="kw">let </span>info = DispatchInfo { weight: Weight::MAX, ..Default::default() };
 
 		<span class="kw">let </span><span class="kw-2">mut </span>t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 			.build_storage::&lt;Runtime&gt;()
@@ -4316,7 +4298,7 @@
 		<span class="kw">while </span>multiplier &lt;= Multiplier::from_u32(<span class="number">1</span>) {
 			t.execute_with(|| {
 				<span class="comment">// imagine this tx was called.
-				</span><span class="kw">let </span>fee = TransactionPayment::compute_fee(len, <span class="kw-2">&amp;</span>info, <span class="number">0</span>);
+				</span><span class="kw">let </span>fee = TransactionPayment::compute_fee(<span class="number">0</span>, <span class="kw-2">&amp;</span>info, <span class="number">0</span>);
 				fees_paid += fee;
 
 				<span class="comment">// this will update the multiplier.
