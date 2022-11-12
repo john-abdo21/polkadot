@@ -2634,20 +2634,6 @@
 <span id="2634">2634</span>
 <span id="2635">2635</span>
 <span id="2636">2636</span>
-<span id="2637">2637</span>
-<span id="2638">2638</span>
-<span id="2639">2639</span>
-<span id="2640">2640</span>
-<span id="2641">2641</span>
-<span id="2642">2642</span>
-<span id="2643">2643</span>
-<span id="2644">2644</span>
-<span id="2645">2645</span>
-<span id="2646">2646</span>
-<span id="2647">2647</span>
-<span id="2648">2648</span>
-<span id="2649">2649</span>
-<span id="2650">2650</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -5054,28 +5040,14 @@
 
 		<span class="kw">match </span>val_rx.<span class="kw">await </span>{
 			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>ApprovalState::failed(validator_index, candidate_hash),
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(ValidationResult::Valid(commitments, <span class="kw">_</span>))) =&gt; {
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(ValidationResult::Valid(<span class="kw">_</span>, <span class="kw">_</span>))) =&gt; {
 				<span class="comment">// Validation checked out. Issue an approval command. If the underlying service is unreachable,
 				// then there isn&#39;t anything we can do.
 
 				</span><span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>candidate_hash, <span class="question-mark">?</span>para_id, <span class="string">&quot;Candidate Valid&quot;</span>);
 
-				<span class="kw">let </span>expected_commitments_hash = candidate.commitments_hash;
-				<span class="kw">if </span>commitments.hash() == expected_commitments_hash {
-					<span class="kw">let _ </span>= metrics_guard.take();
-					<span class="kw">return </span>ApprovalState::approved(validator_index, candidate_hash)
-				} <span class="kw">else </span>{
-					<span class="comment">// Commitments mismatch - issue a dispute.
-					</span>issue_local_invalid_statement(
-						<span class="kw-2">&amp;mut </span>sender,
-						session_index,
-						candidate_hash,
-						candidate.clone(),
-					);
-
-					metrics_guard.take().on_approval_invalid();
-					<span class="kw">return </span>ApprovalState::failed(validator_index, candidate_hash)
-				}
+				<span class="kw">let _ </span>= metrics_guard.take();
+				<span class="kw">return </span>ApprovalState::approved(validator_index, candidate_hash)
 			},
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(ValidationResult::Invalid(reason))) =&gt; {
 				<span class="macro">gum::warn!</span>(
