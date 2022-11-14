@@ -546,22 +546,6 @@
 <span id="546">546</span>
 <span id="547">547</span>
 <span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -592,7 +576,7 @@
 
 </span><span class="kw">use </span>std::collections::{BTreeMap, HashMap, HashSet};
 
-<span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, SignedDisputeStatement};
+<span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, DisputeStatus, SignedDisputeStatement, Timestamp};
 <span class="kw">use </span>polkadot_node_subsystem_util::rolling_session_window::RollingSessionWindow;
 <span class="kw">use </span>polkadot_primitives::v2::{
 	CandidateReceipt, DisputeStatement, IndexedVec, SessionIndex, SessionInfo,
@@ -718,22 +702,8 @@
 	<span class="doccomment">/// Information about own votes:
 	</span>own_vote: OwnVoteState,
 
-	<span class="doccomment">/// Whether or not the dispute concluded invalid.
-	</span>concluded_invalid: bool,
-
-	<span class="doccomment">/// Whether or not the dispute concluded valid.
-	///
-	/// Note: Due to equivocations it is technically possible for a dispute to conclude both valid
-	/// and invalid. In that case the invalid result takes precedence.
-	</span>concluded_valid: bool,
-
-	<span class="doccomment">/// There is an ongoing dispute and we reached f+1 votes -&gt; the dispute is confirmed
-	///
-	/// as at least one honest validator cast a vote for the candidate.
-	</span>is_confirmed: bool,
-
-	<span class="doccomment">/// Whether or not we have an ongoing dispute.
-	</span>is_disputed: bool,
+	<span class="doccomment">/// Current dispute status, if there is any.
+	</span>dispute_status: <span class="prelude-ty">Option</span>&lt;DisputeStatus&gt;,
 }
 
 <span class="kw">impl </span>CandidateVoteState&lt;CandidateVotes&gt; {
@@ -743,18 +713,11 @@
 	</span><span class="kw">pub fn </span>new_from_receipt(candidate_receipt: CandidateReceipt) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>votes =
 			CandidateVotes { candidate_receipt, valid: BTreeMap::new(), invalid: BTreeMap::new() };
-		<span class="self">Self </span>{
-			votes,
-			own_vote: OwnVoteState::NoVote,
-			concluded_invalid: <span class="bool-val">false</span>,
-			concluded_valid: <span class="bool-val">false</span>,
-			is_confirmed: <span class="bool-val">false</span>,
-			is_disputed: <span class="bool-val">false</span>,
-		}
+		<span class="self">Self </span>{ votes, own_vote: OwnVoteState::NoVote, dispute_status: <span class="prelude-val">None </span>}
 	}
 
 	<span class="doccomment">/// Create a new `CandidateVoteState` from already existing votes.
-	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(votes: CandidateVotes, env: <span class="kw-2">&amp;</span>CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(votes: CandidateVotes, env: <span class="kw-2">&amp;</span>CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt;, now: Timestamp) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>own_vote = OwnVoteState::new(<span class="kw-2">&amp;</span>votes, env);
 
 		<span class="kw">let </span>n_validators = env.validators().len();
@@ -762,16 +725,31 @@
 		<span class="kw">let </span>supermajority_threshold =
 			polkadot_primitives::v2::supermajority_threshold(n_validators);
 
-		<span class="kw">let </span>concluded_invalid = votes.invalid.len() &gt;= supermajority_threshold;
-		<span class="kw">let </span>concluded_valid = votes.valid.len() &gt;= supermajority_threshold;
-
 		<span class="comment">// We have a dispute, if we have votes on both sides:
 		</span><span class="kw">let </span>is_disputed = !votes.invalid.is_empty() &amp;&amp; !votes.valid.is_empty();
 
-		<span class="kw">let </span>byzantine_threshold = polkadot_primitives::v2::byzantine_threshold(n_validators);
-		<span class="kw">let </span>is_confirmed = votes.voted_indices().len() &gt; byzantine_threshold &amp;&amp; is_disputed;
+		<span class="kw">let </span>dispute_status = <span class="kw">if </span>is_disputed {
+			<span class="kw">let </span><span class="kw-2">mut </span>status = DisputeStatus::active();
+			<span class="kw">let </span>byzantine_threshold = polkadot_primitives::v2::byzantine_threshold(n_validators);
+			<span class="kw">let </span>is_confirmed = votes.voted_indices().len() &gt; byzantine_threshold;
+			<span class="kw">if </span>is_confirmed {
+				status = status.confirm();
+			};
+			<span class="kw">let </span>concluded_for = votes.valid.len() &gt;= supermajority_threshold;
+			<span class="kw">if </span>concluded_for {
+				status = status.conclude_for(now);
+			};
 
-		<span class="self">Self </span>{ votes, own_vote, concluded_invalid, concluded_valid, is_confirmed, is_disputed }
+			<span class="kw">let </span>concluded_against = votes.invalid.len() &gt;= supermajority_threshold;
+			<span class="kw">if </span>concluded_against {
+				status = status.conclude_against(now);
+			};
+			<span class="prelude-val">Some</span>(status)
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>};
+
+		<span class="self">Self </span>{ votes, own_vote, dispute_status }
 	}
 
 	<span class="doccomment">/// Import fresh statements.
@@ -781,6 +759,7 @@
 		<span class="self">self</span>,
 		env: <span class="kw-2">&amp;</span>CandidateEnvironment,
 		statements: Vec&lt;(SignedDisputeStatement, ValidatorIndex)&gt;,
+		now: Timestamp,
 	) -&gt; ImportResult {
 		<span class="kw">let </span>(<span class="kw-2">mut </span>votes, old_state) = <span class="self">self</span>.into_old_state();
 
@@ -858,7 +837,7 @@
 			}
 		}
 
-		<span class="kw">let </span>new_state = <span class="self">Self</span>::new(votes, env);
+		<span class="kw">let </span>new_state = <span class="self">Self</span>::new(votes, env, now);
 
 		ImportResult {
 			old_state,
@@ -877,32 +856,15 @@
 
 	<span class="doccomment">/// Extract `CandidateVotes` for handling import of new statements.
 	</span><span class="kw">fn </span>into_old_state(<span class="self">self</span>) -&gt; (CandidateVotes, CandidateVoteState&lt;()&gt;) {
-		<span class="kw">let </span>CandidateVoteState {
-			votes,
-			own_vote,
-			concluded_invalid,
-			concluded_valid,
-			is_confirmed,
-			is_disputed,
-		} = <span class="self">self</span>;
-		(
-			votes,
-			CandidateVoteState {
-				votes: (),
-				own_vote,
-				concluded_invalid,
-				concluded_valid,
-				is_confirmed,
-				is_disputed,
-			},
-		)
+		<span class="kw">let </span>CandidateVoteState { votes, own_vote, dispute_status } = <span class="self">self</span>;
+		(votes, CandidateVoteState { votes: (), own_vote, dispute_status })
 	}
 }
 
 <span class="kw">impl</span>&lt;V&gt; CandidateVoteState&lt;V&gt; {
 	<span class="doccomment">/// Whether or not we have an ongoing dispute.
 	</span><span class="kw">pub fn </span>is_disputed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.is_disputed
+		<span class="self">self</span>.dispute_status.is_some()
 	}
 
 	<span class="doccomment">/// Whether there is an ongoing confirmed dispute.
@@ -910,7 +872,7 @@
 	/// This checks whether there is a dispute ongoing and we have more than byzantine threshold
 	/// votes.
 	</span><span class="kw">pub fn </span>is_confirmed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.is_confirmed
+		<span class="self">self</span>.dispute_status.map_or(<span class="bool-val">false</span>, |s| s.is_confirmed_concluded())
 	}
 
 	<span class="doccomment">/// This machine already cast some vote in that dispute/for that candidate.
@@ -923,14 +885,19 @@
 		<span class="self">self</span>.own_vote.approval_votes()
 	}
 
-	<span class="doccomment">/// Whether or not this dispute has already enough valid votes to conclude.
-	</span><span class="kw">pub fn </span>is_concluded_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.concluded_valid
+	<span class="doccomment">/// Whether or not there is a dispute and it has already enough valid votes to conclude.
+	</span><span class="kw">pub fn </span>has_concluded_for(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.dispute_status.map_or(<span class="bool-val">false</span>, |s| s.has_concluded_for())
 	}
 
-	<span class="doccomment">/// Whether or not this dispute has already enough invalid votes to conclude.
-	</span><span class="kw">pub fn </span>is_concluded_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.concluded_invalid
+	<span class="doccomment">/// Whether or not there is a dispute and it has already enough invalid votes to conclude.
+	</span><span class="kw">pub fn </span>has_concluded_against(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.dispute_status.map_or(<span class="bool-val">false</span>, |s| s.has_concluded_against())
+	}
+
+	<span class="doccomment">/// Get access to the dispute status, in case there is one.
+	</span><span class="kw">pub fn </span>dispute_status(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;DisputeStatus&gt; {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.dispute_status
 	}
 
 	<span class="doccomment">/// Access to underlying votes.
@@ -1015,18 +982,18 @@
 	}
 
 	<span class="doccomment">/// Whether or not any dispute just concluded valid due to the import.
-	</span><span class="kw">pub fn </span>is_freshly_concluded_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		!<span class="self">self</span>.old_state().is_concluded_valid() &amp;&amp; <span class="self">self</span>.new_state().is_concluded_valid()
+	</span><span class="kw">pub fn </span>is_freshly_concluded_for(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().has_concluded_for() &amp;&amp; <span class="self">self</span>.new_state().has_concluded_for()
 	}
 
 	<span class="doccomment">/// Whether or not any dispute just concluded invalid due to the import.
-	</span><span class="kw">pub fn </span>is_freshly_concluded_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		!<span class="self">self</span>.old_state().is_concluded_invalid() &amp;&amp; <span class="self">self</span>.new_state().is_concluded_invalid()
+	</span><span class="kw">pub fn </span>is_freshly_concluded_against(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().has_concluded_against() &amp;&amp; <span class="self">self</span>.new_state().has_concluded_against()
 	}
 
 	<span class="doccomment">/// Whether or not any dispute just concluded either invalid or valid due to the import.
 	</span><span class="kw">pub fn </span>is_freshly_concluded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.is_freshly_concluded_invalid() || <span class="self">self</span>.is_freshly_concluded_valid()
+		<span class="self">self</span>.is_freshly_concluded_against() || <span class="self">self</span>.is_freshly_concluded_for()
 	}
 
 	<span class="doccomment">/// Modify this `ImportResult`s, by importing additional approval votes.
@@ -1037,6 +1004,7 @@
 		<span class="self">self</span>,
 		env: <span class="kw-2">&amp;</span>CandidateEnvironment,
 		approval_votes: HashMap&lt;ValidatorIndex, ValidatorSignature&gt;,
+		now: Timestamp,
 	) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span><span class="self">Self </span>{
 			old_state,
@@ -1072,7 +1040,7 @@
 			}
 		}
 
-		<span class="kw">let </span>new_state = CandidateVoteState::new(votes, env);
+		<span class="kw">let </span>new_state = CandidateVoteState::new(votes, env, now);
 
 		<span class="self">Self </span>{
 			old_state,

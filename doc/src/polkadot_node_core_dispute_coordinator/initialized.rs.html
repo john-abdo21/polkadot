@@ -1332,15 +1332,6 @@
 <span id="1332">1332</span>
 <span id="1333">1333</span>
 <span id="1334">1334</span>
-<span id="1335">1335</span>
-<span id="1336">1336</span>
-<span id="1337">1337</span>
-<span id="1338">1338</span>
-<span id="1339">1339</span>
-<span id="1340">1340</span>
-<span id="1341">1341</span>
-<span id="1342">1342</span>
-<span id="1343">1343</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2091,7 +2082,7 @@
 			.load_candidate_votes(session, <span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">?
 			</span>.map(CandidateVotes::from)
 		{
-			<span class="prelude-val">Some</span>(votes) =&gt; CandidateVoteState::new(votes, <span class="kw-2">&amp;</span>env),
+			<span class="prelude-val">Some</span>(votes) =&gt; CandidateVoteState::new(votes, <span class="kw-2">&amp;</span>env, now),
 			<span class="prelude-val">None </span>=&gt;
 				<span class="kw">if let </span>MaybeCandidateReceipt::Provides(candidate_receipt) = candidate_receipt {
 					CandidateVoteState::new_from_receipt(candidate_receipt)
@@ -2109,7 +2100,7 @@
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>candidate_hash, <span class="question-mark">?</span>session, <span class="string">&quot;Loaded votes&quot;</span>);
 
 		<span class="kw">let </span>import_result = {
-			<span class="kw">let </span>intermediate_result = old_state.import_statements(<span class="kw-2">&amp;</span>env, statements);
+			<span class="kw">let </span>intermediate_result = old_state.import_statements(<span class="kw-2">&amp;</span>env, statements, now);
 
 			<span class="comment">// Handle approval vote import:
 			//
@@ -2146,7 +2137,7 @@
 						</span>);
 						intermediate_result
 					},
-					<span class="prelude-val">Ok</span>(votes) =&gt; intermediate_result.import_approval_votes(<span class="kw-2">&amp;</span>env, votes),
+					<span class="prelude-val">Ok</span>(votes) =&gt; intermediate_result.import_approval_votes(<span class="kw-2">&amp;</span>env, votes, now),
 				}
 			} <span class="kw">else </span>{
 				<span class="macro">gum::trace!</span>(
@@ -2320,43 +2311,34 @@
 		}
 
 		<span class="comment">// All good, update recent disputes if state has changed:
-		</span><span class="kw">if </span>import_result.dispute_state_changed() {
-			<span class="kw">let </span><span class="kw-2">mut </span>recent_disputes = overlay_db.load_recent_disputes()<span class="question-mark">?</span>.unwrap_or_default();
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(new_status) = new_state.dispute_status() {
+			<span class="comment">// Only bother with db access, if there was an actual change.
+			</span><span class="kw">if </span>import_result.dispute_state_changed() {
+				<span class="kw">let </span><span class="kw-2">mut </span>recent_disputes = overlay_db.load_recent_disputes()<span class="question-mark">?</span>.unwrap_or_default();
 
-			<span class="kw">let </span>status = recent_disputes.entry((session, candidate_hash)).or_insert_with(|| {
-				<span class="macro">gum::info!</span>(
+				<span class="kw">let </span>status =
+					recent_disputes.entry((session, candidate_hash)).or_insert_with(|| {
+						<span class="macro">gum::info!</span>(
+							target: LOG_TARGET,
+							<span class="question-mark">?</span>candidate_hash,
+							session,
+							<span class="string">&quot;New dispute initiated for candidate.&quot;</span>,
+						);
+						DisputeStatus::active()
+					});
+
+				<span class="kw-2">*</span>status = <span class="kw-2">*</span>new_status;
+
+				<span class="macro">gum::trace!</span>(
 					target: LOG_TARGET,
 					<span class="question-mark">?</span>candidate_hash,
-					session,
-					<span class="string">&quot;New dispute initiated for candidate.&quot;</span>,
-				);
-				DisputeStatus::active()
-			});
-
-			<span class="kw">if </span>new_state.is_confirmed() {
-				<span class="kw-2">*</span>status = status.confirm();
+					<span class="question-mark">?</span>status,
+					has_concluded_for = <span class="question-mark">?</span>new_state.has_concluded_for(),
+					has_concluded_against = <span class="question-mark">?</span>new_state.has_concluded_against(),
+					<span class="string">&quot;Writing recent disputes with updates for candidate&quot;
+				</span>);
+				overlay_db.write_recent_disputes(recent_disputes);
 			}
-
-			<span class="comment">// Note: concluded-invalid overwrites concluded-valid,
-			// so we do this check first. Dispute state machine is
-			// non-commutative.
-			</span><span class="kw">if </span>new_state.is_concluded_valid() {
-				<span class="kw-2">*</span>status = status.concluded_for(now);
-			}
-
-			<span class="kw">if </span>new_state.is_concluded_invalid() {
-				<span class="kw-2">*</span>status = status.concluded_against(now);
-			}
-
-			<span class="macro">gum::trace!</span>(
-				target: LOG_TARGET,
-				<span class="question-mark">?</span>candidate_hash,
-				<span class="question-mark">?</span>status,
-				is_concluded_valid = <span class="question-mark">?</span>new_state.is_concluded_valid(),
-				is_concluded_invalid = <span class="question-mark">?</span>new_state.is_concluded_invalid(),
-				<span class="string">&quot;Writing recent disputes with updates for candidate&quot;
-			</span>);
-			overlay_db.write_recent_disputes(recent_disputes);
 		}
 
 		<span class="comment">// Update metrics:
@@ -2379,7 +2361,7 @@
 		</span>);
 
 		<span class="self">self</span>.metrics.on_approval_votes(import_result.imported_approval_votes());
-		<span class="kw">if </span>import_result.is_freshly_concluded_valid() {
+		<span class="kw">if </span>import_result.is_freshly_concluded_for() {
 			<span class="macro">gum::info!</span>(
 				target: LOG_TARGET,
 				<span class="question-mark">?</span>candidate_hash,
@@ -2388,7 +2370,7 @@
 			);
 			<span class="self">self</span>.metrics.on_concluded_valid();
 		}
-		<span class="kw">if </span>import_result.is_freshly_concluded_invalid() {
+		<span class="kw">if </span>import_result.is_freshly_concluded_against() {
 			<span class="macro">gum::info!</span>(
 				target: LOG_TARGET,
 				<span class="question-mark">?</span>candidate_hash,
