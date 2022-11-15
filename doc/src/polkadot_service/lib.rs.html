@@ -1569,17 +1569,6 @@
 <span id="1569">1569</span>
 <span id="1570">1570</span>
 <span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2803,22 +2792,11 @@
 		}
 	}
 
-	<span class="comment">// Reduce grandpa load on Kusama and test networks. This will slow down finality by
-	// approximately one slot duration, but will reduce load. We would like to see the impact on
-	// Kusama, see: https://github.com/paritytech/polkadot/issues/5464
-	</span><span class="kw">let </span>gossip_duration = <span class="kw">if </span>chain_spec.is_versi() ||
-		chain_spec.is_wococo() ||
-		chain_spec.is_rococo() ||
-		chain_spec.is_kusama()
-	{
-		Duration::from_millis(<span class="number">2000</span>)
-	} <span class="kw">else </span>{
-		Duration::from_millis(<span class="number">1000</span>)
-	};
-
 	<span class="kw">let </span>config = grandpa::Config {
 		<span class="comment">// FIXME substrate#1578 make this available through chainspec
-		</span>gossip_duration,
+		// Grandpa performance can be improved a bit by tuning this parameter, see:
+		// https://github.com/paritytech/polkadot/issues/5464
+		</span>gossip_duration: Duration::from_millis(<span class="number">1000</span>),
 		justification_period: <span class="number">512</span>,
 		name: <span class="prelude-val">Some</span>(name),
 		observer_enabled: <span class="bool-val">false</span>,
