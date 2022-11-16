@@ -462,6 +462,13 @@
 <span id="462">462</span>
 <span id="463">463</span>
 <span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -602,6 +609,13 @@
 		recent_disputes.len(),
 		onchain.len(),
 	);
+
+	<span class="comment">// Filter out unconfirmed disputes. However if the dispute is already onchain - don&#39;t skip it.
+	// In this case we&#39;d better push as much fresh votes as possible to bring it to conclusion faster.
+	</span><span class="kw">let </span>recent_disputes = recent_disputes
+		.into_iter()
+		.filter(|d| d.<span class="number">2</span>.is_confirmed_concluded() || onchain.contains_key(<span class="kw-2">&amp;</span>(d.<span class="number">0</span>, d.<span class="number">1</span>)))
+		.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
 	<span class="kw">let </span>partitioned = partition_recent_disputes(recent_disputes, <span class="kw-2">&amp;</span>onchain);
 	metrics.on_partition_recent_disputes(<span class="kw-2">&amp;</span>partitioned);

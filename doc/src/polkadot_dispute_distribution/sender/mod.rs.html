@@ -450,6 +450,8 @@
 <span id="450">450</span>
 <span id="451">451</span>
 <span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -882,7 +884,9 @@
 
 	<span class="comment">// Caller scope is in `update_leaves` and this is bounded by fork count.
 	</span>ctx.send_unbounded_message(DisputeCoordinatorMessage::ActiveDisputes(tx));
-	rx.<span class="kw">await</span>.map_err(|<span class="kw">_</span>| JfyiError::AskActiveDisputesCanceled)
+	rx.<span class="kw">await
+		</span>.map_err(|<span class="kw">_</span>| JfyiError::AskActiveDisputesCanceled)
+		.map(|disputes| disputes.into_iter().map(|d| (d.<span class="number">0</span>, d.<span class="number">1</span>)).collect())
 }
 
 <span class="doccomment">/// Get all locally available dispute votes for a given dispute.

@@ -176,22 +176,6 @@
 <span id="176">176</span>
 <span id="177">177</span>
 <span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -236,51 +220,35 @@
 }
 
 <span class="doccomment">/// Request open disputes identified by `CandidateHash` and the `SessionIndex`.
-</span><span class="kw">async fn </span>request_disputes(
+/// Returns only confirmed/concluded disputes. The rest are filtered out.
+</span><span class="kw">async fn </span>request_confirmed_disputes(
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::ProvisionerSenderTrait,
 	active_or_recent: RequestType,
 ) -&gt; Vec&lt;(SessionIndex, CandidateHash)&gt; {
-	<span class="kw">let </span>disputes = <span class="kw">match </span>active_or_recent {
-		RequestType::Recent =&gt; {
-			<span class="kw">let </span>(tx, rx) = oneshot::channel();
-			<span class="kw">let </span>msg = DisputeCoordinatorMessage::RecentDisputes(tx);
-			sender.send_unbounded_message(msg);
-			<span class="kw">let </span>recent_disputes = <span class="kw">match </span>rx.<span class="kw">await </span>{
-				<span class="prelude-val">Ok</span>(r) =&gt; r,
-				<span class="prelude-val">Err</span>(oneshot::Canceled) =&gt; {
-					<span class="macro">gum::warn!</span>(
-						target: LOG_TARGET,
-						<span class="string">&quot;Channel closed: unable to gather {:?} disputes&quot;</span>,
-						active_or_recent
-					);
-					Vec::new()
-				},
-			};
-			recent_disputes
-				.into_iter()
-				.map(|(sesion_idx, candodate_hash, <span class="kw">_</span>)| (sesion_idx, candodate_hash))
-				.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
-		},
-		RequestType::Active =&gt; {
-			<span class="kw">let </span>(tx, rx) = oneshot::channel();
-			<span class="kw">let </span>msg = DisputeCoordinatorMessage::ActiveDisputes(tx);
-			sender.send_unbounded_message(msg);
-			<span class="kw">let </span>active_disputes = <span class="kw">match </span>rx.<span class="kw">await </span>{
-				<span class="prelude-val">Ok</span>(r) =&gt; r,
-				<span class="prelude-val">Err</span>(oneshot::Canceled) =&gt; {
-					<span class="macro">gum::warn!</span>(
-						target: LOG_TARGET,
-						<span class="string">&quot;Unable to gather {:?} disputes&quot;</span>,
-						active_or_recent
-					);
-					Vec::new()
-				},
-			};
-			active_disputes
+	<span class="kw">let </span>(tx, rx) = oneshot::channel();
+	<span class="kw">let </span>msg = <span class="kw">match </span>active_or_recent {
+		RequestType::Recent =&gt; DisputeCoordinatorMessage::RecentDisputes(tx),
+		RequestType::Active =&gt; DisputeCoordinatorMessage::ActiveDisputes(tx),
+	};
+
+	sender.send_unbounded_message(msg);
+	<span class="kw">let </span>disputes = <span class="kw">match </span>rx.<span class="kw">await </span>{
+		<span class="prelude-val">Ok</span>(r) =&gt; r,
+		<span class="prelude-val">Err</span>(oneshot::Canceled) =&gt; {
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				<span class="string">&quot;Channel closed: unable to gather {:?} disputes&quot;</span>,
+				active_or_recent
+			);
+			Vec::new()
 		},
 	};
 
 	disputes
+		.into_iter()
+		.filter(|d| d.<span class="number">2</span>.is_confirmed_concluded())
+		.map(|d| (d.<span class="number">0</span>, d.<span class="number">1</span>))
+		.collect()
 }
 
 <span class="doccomment">/// Extend `acc` by `n` random, picks of not-yet-present in `acc` items of `recent` without repetition and additions of recent.
@@ -326,7 +294,7 @@
 	// In case of an overload condition, we limit ourselves to active disputes, and fill up to the
 	// upper bound of disputes to pass to wasm `fn create_inherent_data`.
 	// If the active ones are already exceeding the bounds, randomly select a subset.
-	</span><span class="kw">let </span>recent = request_disputes(sender, RequestType::Recent).<span class="kw">await</span>;
+	</span><span class="kw">let </span>recent = request_confirmed_disputes(sender, RequestType::Recent).<span class="kw">await</span>;
 	<span class="kw">let </span>disputes = <span class="kw">if </span>recent.len() &gt; MAX_DISPUTES_FORWARDED_TO_RUNTIME {
 		<span class="macro">gum::warn!</span>(
 			target: LOG_TARGET,
@@ -334,7 +302,7 @@
 			recent.len(),
 			MAX_DISPUTES_FORWARDED_TO_RUNTIME
 		);
-		<span class="kw">let </span><span class="kw-2">mut </span>active = request_disputes(sender, RequestType::Active).<span class="kw">await</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>active = request_confirmed_disputes(sender, RequestType::Active).<span class="kw">await</span>;
 		<span class="kw">let </span>n_active = active.len();
 		<span class="kw">let </span>active = <span class="kw">if </span>active.len() &gt; MAX_DISPUTES_FORWARDED_TO_RUNTIME {
 			<span class="kw">let </span><span class="kw-2">mut </span>picked = Vec::with_capacity(MAX_DISPUTES_FORWARDED_TO_RUNTIME);
