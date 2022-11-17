@@ -342,15 +342,6 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -367,10 +358,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>std::{
-	cmp::Ordering,
-	collections::{BTreeMap, HashMap},
-};
+</span><span class="kw">use </span>std::{cmp::Ordering, collections::BTreeMap};
 
 <span class="kw">use </span>futures::channel::oneshot;
 <span class="kw">use </span>polkadot_node_subsystem::{messages::ChainApiMessage, overseer};
@@ -403,25 +391,14 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">const </span>PRIORITY_QUEUE_SIZE: usize = <span class="number">2</span>;
 
-<span class="doccomment">/// Type for counting how often a candidate was added to the best effort queue.
-</span><span class="kw">type </span>BestEffortCount = u32;
-
 <span class="doccomment">/// Queues for dispute participation.
+/// In both queues we have a strict ordering of candidates and participation will
+/// happen in that order. Refer to `CandidateComparator` for details on the ordering.
 </span><span class="kw">pub struct </span>Queues {
 	<span class="doccomment">/// Set of best effort participation requests.
-	///
-	/// Note that as size is limited to `BEST_EFFORT_QUEUE_SIZE` we simply do a linear search for
-	/// the entry with the highest `added_count` to determine what dispute to participate next in.
-	///
-	/// This mechanism leads to an amplifying effect - the more validators already participated,
-	/// the more likely it becomes that more validators will participate soon, which should lead to
-	/// a quick resolution of disputes, even in the best effort queue.
-	</span>best_effort: HashMap&lt;CandidateHash, BestEffortEntry&gt;,
+	</span>best_effort: BTreeMap&lt;CandidateComparator, ParticipationRequest&gt;,
 
 	<span class="doccomment">/// Priority queue.
-	///
-	/// In the priority queue, we have a strict ordering of candidates and participation will
-	/// happen in that order.
 	</span>priority: BTreeMap&lt;CandidateComparator, ParticipationRequest&gt;,
 }
 
@@ -496,14 +473,13 @@
 <span class="kw">impl </span>Queues {
 	<span class="doccomment">/// Create new `Queues`.
 	</span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ best_effort: HashMap::new(), priority: BTreeMap::new() }
+		<span class="self">Self </span>{ best_effort: BTreeMap::new(), priority: BTreeMap::new() }
 	}
 
 	<span class="doccomment">/// Will put message in queue, either priority or best effort depending on priority.
 	///
 	/// If the message was already previously present on best effort, it will be moved to priority
-	/// if it considered priority now, otherwise the `added_count` on the best effort queue will be
-	/// bumped.
+	/// if it is considered priority now.
 	///
 	/// Returns error in case a queue was found full already.
 	</span><span class="kw">pub async fn </span>queue(
@@ -512,92 +488,74 @@
 		priority: ParticipationPriority,
 		req: ParticipationRequest,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-		<span class="kw">let </span>comparator = <span class="kw">match </span>priority {
-			ParticipationPriority::BestEffort =&gt; <span class="prelude-val">None</span>,
-			ParticipationPriority::Priority =&gt;
-				CandidateComparator::new(sender, <span class="kw-2">&amp;</span>req.candidate_receipt).<span class="kw">await</span><span class="question-mark">?</span>,
-		};
-		<span class="self">self</span>.queue_with_comparator(comparator, req)<span class="question-mark">?</span>;
+		<span class="kw">let </span>comparator = CandidateComparator::new(sender, <span class="kw-2">&amp;</span>req.candidate_receipt).<span class="kw">await</span><span class="question-mark">?</span>;
+
+		<span class="self">self</span>.queue_with_comparator(comparator, priority, req)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Get the next best request for dispute participation
-	///
-	/// if any.  Priority queue is always considered first, then the best effort queue based on
-	/// `added_count`.
+	<span class="doccomment">/// Get the next best request for dispute participation if any.
+	/// First the priority queue is considered and then the best effort one.
 	</span><span class="kw">pub fn </span>dequeue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ParticipationRequest&gt; {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(req) = <span class="self">self</span>.pop_priority() {
-			<span class="comment">// In case a candidate became best effort over time, we might have it also queued in
-			// the best effort queue - get rid of any such entry:
-			</span><span class="self">self</span>.best_effort.remove(req.candidate_hash());
-			<span class="kw">return </span><span class="prelude-val">Some</span>(req)
+			<span class="kw">return </span><span class="prelude-val">Some</span>(req.<span class="number">1</span>)
 		}
-		<span class="self">self</span>.pop_best_effort()
+		<span class="self">self</span>.pop_best_effort().map(|d| d.<span class="number">1</span>)
 	}
 
 	<span class="kw">fn </span>queue_with_comparator(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		comparator: <span class="prelude-ty">Option</span>&lt;CandidateComparator&gt;,
+		comparator: CandidateComparator,
+		priority: ParticipationPriority,
 		req: ParticipationRequest,
 	) -&gt; std::result::Result&lt;(), QueueError&gt; {
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(comparator) = comparator {
+		<span class="kw">if </span>priority.is_priority() {
 			<span class="kw">if </span><span class="self">self</span>.priority.len() &gt;= PRIORITY_QUEUE_SIZE {
 				<span class="kw">return </span><span class="prelude-val">Err</span>(QueueError::PriorityFull)
 			}
 			<span class="comment">// Remove any best effort entry:
-			</span><span class="self">self</span>.best_effort.remove(<span class="kw-2">&amp;</span>req.candidate_hash);
+			</span><span class="self">self</span>.best_effort.remove(<span class="kw-2">&amp;</span>comparator);
 			<span class="self">self</span>.priority.insert(comparator, req);
 		} <span class="kw">else </span>{
+			<span class="kw">if </span><span class="self">self</span>.priority.contains_key(<span class="kw-2">&amp;</span>comparator) {
+				<span class="comment">// The candidate is already in priority queue - don&#39;t
+				// add in in best effort too.
+				</span><span class="kw">return </span><span class="prelude-val">Ok</span>(())
+			}
 			<span class="kw">if </span><span class="self">self</span>.best_effort.len() &gt;= BEST_EFFORT_QUEUE_SIZE {
 				<span class="kw">return </span><span class="prelude-val">Err</span>(QueueError::BestEffortFull)
 			}
-			<span class="comment">// Note: The request might have been added to priority in a previous call already, we
-			// take care of that case in `dequeue` (more efficient).
-			</span><span class="self">self</span>.best_effort
-				.entry(req.candidate_hash)
-				.or_insert(BestEffortEntry { req, added_count: <span class="number">0 </span>})
-				.added_count += <span class="number">1</span>;
+			<span class="self">self</span>.best_effort.insert(comparator, req);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Get the next best from the best effort queue.
-	///
-	/// If there are multiple best - just pick one.
-	</span><span class="kw">fn </span>pop_best_effort(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ParticipationRequest&gt; {
-		<span class="kw">let </span>best = <span class="self">self</span>.best_effort.iter().reduce(|(hash1, entry1), (hash2, entry2)| {
-			<span class="kw">if </span>entry1.added_count &gt; entry2.added_count {
-				(hash1, entry1)
-			} <span class="kw">else </span>{
-				(hash2, entry2)
-			}
-		});
-		<span class="kw">if let </span><span class="prelude-val">Some</span>((best_hash, <span class="kw">_</span>)) = best {
-			<span class="kw">let </span>best_hash = best_hash.clone();
-			<span class="self">self</span>.best_effort.remove(<span class="kw-2">&amp;</span>best_hash).map(|e| e.req)
-		} <span class="kw">else </span>{
-			<span class="prelude-val">None
-		</span>}
+	<span class="doccomment">/// Get best from the best effort queue.
+	</span><span class="kw">fn </span>pop_best_effort(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(CandidateComparator, ParticipationRequest)&gt; {
+		<span class="kw">return </span><span class="self">Self</span>::pop_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>.best_effort)
 	}
 
 	<span class="doccomment">/// Get best priority queue entry.
-	</span><span class="kw">fn </span>pop_priority(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ParticipationRequest&gt; {
+	</span><span class="kw">fn </span>pop_priority(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(CandidateComparator, ParticipationRequest)&gt; {
+		<span class="kw">return </span><span class="self">Self</span>::pop_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>.priority)
+	}
+
+	<span class="comment">// `pop_best_effort` and `pop_priority` do the same but on different `BTreeMap`s. This function has
+	// the extracted implementation
+	</span><span class="kw">fn </span>pop_impl(
+		target: <span class="kw-2">&amp;mut </span>BTreeMap&lt;CandidateComparator, ParticipationRequest&gt;,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;(CandidateComparator, ParticipationRequest)&gt; {
 		<span class="comment">// Once https://github.com/rust-lang/rust/issues/62924 is there, we can use a simple:
-		// priority.pop_first().
-		</span><span class="kw">if let </span><span class="prelude-val">Some</span>((comparator, <span class="kw">_</span>)) = <span class="self">self</span>.priority.iter().next() {
+		// target.pop_first().
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>((comparator, <span class="kw">_</span>)) = target.iter().next() {
 			<span class="kw">let </span>comparator = comparator.clone();
-			<span class="self">self</span>.priority.remove(<span class="kw-2">&amp;</span>comparator)
+			target
+				.remove(<span class="kw-2">&amp;</span>comparator)
+				.map(|participation_request| (comparator, participation_request))
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>}
 	}
-}
-
-<span class="doccomment">/// Entry for the best effort queue.
-</span><span class="kw">struct </span>BestEffortEntry {
-	req: ParticipationRequest,
-	<span class="doccomment">/// How often was the above request added to the queue.
-	</span>added_count: BestEffortCount,
 }
 
 <span class="doccomment">/// `Comparator` for ordering of disputes for candidates.
@@ -619,9 +577,12 @@
 </span><span class="attribute">#[derive(Copy, Clone)]
 #[cfg_attr(test, derive(Debug))]
 </span><span class="kw">struct </span>CandidateComparator {
-	<span class="doccomment">/// Block number of the relay parent.
+	<span class="doccomment">/// Block number of the relay parent. It&#39;s wrapped in an `Option&lt;&gt;` because there are cases when
+	/// it can&#39;t be obtained. For example when the node is lagging behind and new leaves are received
+	/// with a slight delay. Candidates with unknown relay parent are treated with the lowest priority.
 	///
-	/// Important, so we will be participating in oldest disputes first.
+	/// The order enforced by `CandidateComparator` is important because we want to participate in
+	/// the oldest disputes first.
 	///
 	/// Note: In theory it would make more sense to use the `BlockNumber` of the including
 	/// block, as inclusion time is the actual relevant event when it comes to ordering. The
@@ -630,8 +591,10 @@
 	/// just using the lowest `BlockNumber` of all available including blocks - the problem is,
 	/// that is not stable. If a new fork appears after the fact, we would start ordering the same
 	/// candidate differently, which would result in the same candidate getting queued twice.
-	</span>relay_parent_block_number: BlockNumber,
-	<span class="doccomment">/// By adding the `CandidateHash`, we can guarantee a unique ordering across candidates.
+	</span>relay_parent_block_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
+	<span class="doccomment">/// By adding the `CandidateHash`, we can guarantee a unique ordering across candidates with the
+	/// same relay parent block number. Candidates without `relay_parent_block_number` are ordered by
+	/// the `candidate_hash` (and treated with the lowest priority, as already mentioned).
 	</span>candidate_hash: CandidateHash,
 }
 
@@ -640,33 +603,35 @@
 	///
 	/// Useful for testing.
 	</span><span class="attribute">#[cfg(test)]
-	</span><span class="kw">pub fn </span>new_dummy(block_number: BlockNumber, candidate_hash: CandidateHash) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new_dummy(block_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;, candidate_hash: CandidateHash) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ relay_parent_block_number: block_number, candidate_hash }
 	}
 
 	<span class="doccomment">/// Create a candidate comparator for a given candidate.
 	///
 	/// Returns:
-	///		`Ok(None)` in case we could not lookup the candidate&#39;s relay parent, returns a
-	///		`FatalError` in case the chain API call fails with an unexpected error.
+	///	- `Ok(CandidateComparator{Some(relay_parent_block_number), candidate_hash})` when the
+	/// 	relay parent can be obtained. This is the happy case.
+	/// - `Ok(CandidateComparator{None, candidate_hash})` in case the candidate&#39;s relay parent
+	/// 	can&#39;t be obtained.
+	///	- `FatalError` in case the chain API call fails with an unexpected error.
 	</span><span class="kw">pub async fn </span>new(
 		sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::DisputeCoordinatorSenderTrait,
 		candidate: <span class="kw-2">&amp;</span>CandidateReceipt,
-	) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
+	) -&gt; FatalResult&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">let </span>candidate_hash = candidate.hash();
-		<span class="kw">let </span>n = <span class="kw">match </span>get_block_number(sender, candidate.descriptor().relay_parent).<span class="kw">await</span><span class="question-mark">? </span>{
-			<span class="prelude-val">None </span>=&gt; {
-				<span class="macro">gum::warn!</span>(
-					target: LOG_TARGET,
-					candidate_hash = <span class="question-mark">?</span>candidate_hash,
-					<span class="string">&quot;Candidate&#39;s relay_parent could not be found via chain API - `CandidateComparator could not be provided!&quot;
-				</span>);
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-			},
-			<span class="prelude-val">Some</span>(n) =&gt; n,
-		};
+		<span class="kw">let </span>n = get_block_number(sender, candidate.descriptor().relay_parent).<span class="kw">await</span><span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CandidateComparator { relay_parent_block_number: n, candidate_hash }))
+		<span class="kw">if </span>n.is_none() {
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				candidate_hash = <span class="question-mark">?</span>candidate_hash,
+				<span class="string">&quot;Candidate&#39;s relay_parent could not be found via chain API - `CandidateComparator` \
+				with an empty relay parent block number will be provided!&quot;
+			</span>);
+		}
+
+		<span class="prelude-val">Ok</span>(CandidateComparator { relay_parent_block_number: n, candidate_hash })
 	}
 }
 
@@ -686,11 +651,28 @@
 
 <span class="kw">impl </span>Ord <span class="kw">for </span>CandidateComparator {
 	<span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
-		<span class="kw">match </span><span class="self">self</span>.relay_parent_block_number.cmp(<span class="kw-2">&amp;</span>other.relay_parent_block_number) {
-			Ordering::Equal =&gt; (),
-			o =&gt; <span class="kw">return </span>o,
+		<span class="kw">return match </span>(<span class="self">self</span>.relay_parent_block_number, other.relay_parent_block_number) {
+			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
+				<span class="comment">// No relay parents for both -&gt; compare hashes
+				</span><span class="self">self</span>.candidate_hash.cmp(<span class="kw-2">&amp;</span>other.candidate_hash)
+			},
+			(<span class="prelude-val">Some</span>(self_relay_parent_block_num), <span class="prelude-val">Some</span>(other_relay_parent_block_num)) =&gt; {
+				<span class="kw">match </span>self_relay_parent_block_num.cmp(<span class="kw-2">&amp;</span>other_relay_parent_block_num) {
+					<span class="comment">// if the relay parent is the same for both -&gt; compare hashes
+					</span>Ordering::Equal =&gt; <span class="self">self</span>.candidate_hash.cmp(<span class="kw-2">&amp;</span>other.candidate_hash),
+					<span class="comment">// if not - return the result from comparing the relay parent block numbers
+					</span>o =&gt; <span class="kw">return </span>o,
+				}
+			},
+			(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
+				<span class="comment">// Candidates with known relay parents are always with priority
+				</span>Ordering::Less
+			},
+			(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
+				<span class="comment">// Ditto
+				</span>Ordering::Greater
+			},
 		}
-		<span class="self">self</span>.candidate_hash.cmp(<span class="kw-2">&amp;</span>other.candidate_hash)
 	}
 }
 

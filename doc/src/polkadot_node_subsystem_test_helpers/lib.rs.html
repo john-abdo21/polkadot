@@ -477,6 +477,17 @@
 <span id="477">477</span>
 <span id="478">478</span>
 <span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -656,7 +667,7 @@
 <span class="doccomment">/// A test subsystem context.
 </span><span class="kw">pub struct </span>TestSubsystemContext&lt;M, S&gt; {
 	tx: TestSubsystemSender,
-	rx: SingleItemStream&lt;FromOrchestra&lt;M&gt;&gt;,
+	rx: mpsc::Receiver&lt;FromOrchestra&lt;M&gt;&gt;,
 	spawn: S,
 }
 
@@ -718,7 +729,7 @@
 	///
 	/// Useful for shared ownership situations (one can have multiple senders, but only one
 	/// receiver.
-	</span><span class="kw">pub </span>tx: SingleItemSink&lt;FromOrchestra&lt;M&gt;&gt;,
+	</span><span class="kw">pub </span>tx: mpsc::Sender&lt;FromOrchestra&lt;M&gt;&gt;,
 
 	<span class="doccomment">/// Direct access to the receiver.
 	</span><span class="kw">pub </span>rx: mpsc::UnboundedReceiver&lt;AllMessages&gt;,
@@ -759,11 +770,22 @@
 	}
 }
 
-<span class="doccomment">/// Make a test subsystem context.
+<span class="doccomment">/// Make a test subsystem context with `buffer_size == 0`. This is used by most
+/// of the tests.
 </span><span class="kw">pub fn </span>make_subsystem_context&lt;M, S&gt;(
 	spawner: S,
 ) -&gt; (TestSubsystemContext&lt;M, SpawnGlue&lt;S&gt;&gt;, TestSubsystemContextHandle&lt;M&gt;) {
-	<span class="kw">let </span>(overseer_tx, overseer_rx) = single_item_sink();
+	make_buffered_subsystem_context(spawner, <span class="number">0</span>)
+}
+
+<span class="doccomment">/// Make a test subsystem context with buffered overseer channel. Some tests (e.g.
+/// `dispute-coordinator`) create too many parallel operations and deadlock unless
+/// the channel is buffered. Usually `buffer_size=1` is enough.
+</span><span class="kw">pub fn </span>make_buffered_subsystem_context&lt;M, S&gt;(
+	spawner: S,
+	buffer_size: usize,
+) -&gt; (TestSubsystemContext&lt;M, SpawnGlue&lt;S&gt;&gt;, TestSubsystemContextHandle&lt;M&gt;) {
+	<span class="kw">let </span>(overseer_tx, overseer_rx) = mpsc::channel(buffer_size);
 	<span class="kw">let </span>(all_messages_tx, all_messages_rx) = mpsc::unbounded();
 
 	(
