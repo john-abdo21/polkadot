@@ -1051,6 +1051,58 @@
 <span id="1051">1051</span>
 <span id="1052">1052</span>
 <span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1304,6 +1356,24 @@
 			<span class="kw">return </span><span class="prelude-val">None
 		</span>}
 		<span class="self">self</span>.interior.match_and_split(<span class="kw-2">&amp;</span>prefix.interior)
+	}
+
+	<span class="doccomment">/// Returns whether `self` has the same number of parents as `prefix` and its junctions begins
+	/// with the junctions of `prefix`.
+	///
+	/// # Example
+	/// ```rust
+	/// # use xcm::v1::{Junctions::*, Junction::*, MultiLocation};
+	/// let m = MultiLocation::new(1, X3(PalletInstance(3), OnlyChild, OnlyChild));
+	/// assert!(m.starts_with(&amp;MultiLocation::new(1, X1(PalletInstance(3)))));
+	/// assert!(!m.starts_with(&amp;MultiLocation::new(1, X1(GeneralIndex(99)))));
+	/// assert!(!m.starts_with(&amp;MultiLocation::new(0, X1(PalletInstance(3)))));
+	/// ```
+	</span><span class="kw">pub fn </span>starts_with(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {
+		<span class="kw">if </span><span class="self">self</span>.parents != prefix.parents {
+			<span class="kw">return </span><span class="bool-val">false
+		</span>}
+		<span class="self">self</span>.interior.starts_with(<span class="kw-2">&amp;</span>prefix.interior)
 	}
 
 	<span class="doccomment">/// Mutate `self` so that it is suffixed with `suffix`.
@@ -1854,15 +1924,29 @@
 	/// # }
 	/// ```
 	</span><span class="kw">pub fn </span>match_and_split(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>Junctions) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Junction&gt; {
-		<span class="kw">if </span>prefix.len() + <span class="number">1 </span>!= <span class="self">self</span>.len() {
+		<span class="kw">if </span>prefix.len() + <span class="number">1 </span>!= <span class="self">self</span>.len() || !<span class="self">self</span>.starts_with(prefix) {
 			<span class="kw">return </span><span class="prelude-val">None
 		</span>}
-		<span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..prefix.len() {
-			<span class="kw">if </span>prefix.at(i) != <span class="self">self</span>.at(i) {
-				<span class="kw">return </span><span class="prelude-val">None
-			</span>}
-		}
-		<span class="kw">return </span><span class="self">self</span>.at(prefix.len())
+		<span class="self">self</span>.at(prefix.len())
+	}
+
+	<span class="doccomment">/// Returns whether `self` begins with or is equal to `prefix`.
+	///
+	/// # Example
+	/// ```rust
+	/// # use xcm::v1::{Junctions::*, Junction::*};
+	/// let mut j = X3(Parachain(2), PalletInstance(3), OnlyChild);
+	/// assert!(j.starts_with(&amp;X2(Parachain(2), PalletInstance(3))));
+	/// assert!(j.starts_with(&amp;j));
+	/// assert!(j.starts_with(&amp;X1(Parachain(2))));
+	/// assert!(!j.starts_with(&amp;X1(Parachain(999))));
+	/// assert!(!j.starts_with(&amp;X4(Parachain(2), PalletInstance(3), OnlyChild, OnlyChild)));
+	/// ```
+	</span><span class="kw">pub fn </span>starts_with(<span class="kw-2">&amp;</span><span class="self">self</span>, prefix: <span class="kw-2">&amp;</span>Junctions) -&gt; bool {
+		<span class="kw">if </span><span class="self">self</span>.len() &lt; prefix.len() {
+			<span class="kw">return </span><span class="bool-val">false
+		</span>}
+		prefix.iter().zip(<span class="self">self</span>.iter()).all(|(l, r)| l == r)
 	}
 }
 
@@ -1980,6 +2064,26 @@
 			<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>AccountIndex64 { network: Any, index: <span class="number">23 </span>})
 		);
 		<span class="macro">assert_eq!</span>(m.match_and_split(<span class="kw-2">&amp;</span>m), <span class="prelude-val">None</span>);
+	}
+
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>starts_with_works() {
+		<span class="kw">let </span>full: MultiLocation =
+			(Parent, Parachain(<span class="number">1000</span>), AccountId32 { network: Any, id: [<span class="number">0</span>; <span class="number">32</span>] }).into();
+		<span class="kw">let </span>identity: MultiLocation = full.clone();
+		<span class="kw">let </span>prefix: MultiLocation = (Parent, Parachain(<span class="number">1000</span>)).into();
+		<span class="kw">let </span>wrong_parachain: MultiLocation = (Parent, Parachain(<span class="number">1001</span>)).into();
+		<span class="kw">let </span>wrong_account: MultiLocation =
+			(Parent, Parachain(<span class="number">1000</span>), AccountId32 { network: Any, id: [<span class="number">1</span>; <span class="number">32</span>] }).into();
+		<span class="kw">let </span>no_parents: MultiLocation = (Parachain(<span class="number">1000</span>)).into();
+		<span class="kw">let </span>too_many_parents: MultiLocation = (Parent, Parent, Parachain(<span class="number">1000</span>)).into();
+
+		<span class="macro">assert!</span>(full.starts_with(<span class="kw-2">&amp;</span>identity));
+		<span class="macro">assert!</span>(full.starts_with(<span class="kw-2">&amp;</span>prefix));
+		<span class="macro">assert!</span>(!full.starts_with(<span class="kw-2">&amp;</span>wrong_parachain));
+		<span class="macro">assert!</span>(!full.starts_with(<span class="kw-2">&amp;</span>wrong_account));
+		<span class="macro">assert!</span>(!full.starts_with(<span class="kw-2">&amp;</span>no_parents));
+		<span class="macro">assert!</span>(!full.starts_with(<span class="kw-2">&amp;</span>too_many_parents));
 	}
 
 	<span class="attribute">#[test]
