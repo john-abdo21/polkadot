@@ -452,6 +452,12 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -562,8 +568,6 @@
 		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 		msg: DisputeMessage,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-		<span class="self">self</span>.rate_limit.limit().<span class="kw">await</span>;
-
 		<span class="kw">let </span>req: DisputeRequest = msg.into();
 		<span class="kw">let </span>candidate_hash = req.<span class="number">0</span>.candidate_receipt.hash();
 		<span class="kw">match </span><span class="self">self</span>.disputes.entry(candidate_hash) {
@@ -572,6 +576,8 @@
 				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 			},
 			Entry::Vacant(vacant) =&gt; {
+				<span class="self">self</span>.rate_limit.limit(<span class="string">&quot;in start_sender&quot;</span>, candidate_hash).<span class="kw">await</span>;
+
 				<span class="kw">let </span>send_task = SendTask::new(
 					ctx,
 					runtime,
@@ -623,10 +629,12 @@
 
 		<span class="comment">// Iterates in order of insertion:
 		</span><span class="kw">let </span><span class="kw-2">mut </span>should_rate_limit = <span class="bool-val">true</span>;
-		<span class="kw">for </span>dispute <span class="kw">in </span><span class="self">self</span>.disputes.values_mut() {
+		<span class="kw">for </span>(candidate_hash, dispute) <span class="kw">in </span><span class="self">self</span>.disputes.iter_mut() {
 			<span class="kw">if </span>have_new_sessions || dispute.has_failed_sends() {
 				<span class="kw">if </span>should_rate_limit {
-					<span class="self">self</span>.rate_limit.limit().<span class="kw">await</span>;
+					<span class="self">self</span>.rate_limit
+						.limit(<span class="string">&quot;while going through new sessions/failed sends&quot;</span>, <span class="kw-2">*</span>candidate_hash)
+						.<span class="kw">await</span>;
 				}
 				<span class="kw">let </span>sends_happened = dispute
 					.refresh_sends(ctx, runtime, <span class="kw-2">&amp;</span><span class="self">self</span>.active_sessions, <span class="kw-2">&amp;</span><span class="self">self</span>.metrics)
@@ -647,7 +655,7 @@
 		// recovered at startup will be relatively &quot;old&quot; anyway and we assume that no more than a
 		// third of the validators will go offline at any point in time anyway.
 		</span><span class="kw">for </span>dispute <span class="kw">in </span>unknown_disputes {
-			<span class="self">self</span>.rate_limit.limit().<span class="kw">await</span>;
+			<span class="self">self</span>.rate_limit.limit(<span class="string">&quot;while going through unknown disputes&quot;</span>, dispute.<span class="number">1</span>).<span class="kw">await</span>;
 			<span class="self">self</span>.start_send_for_dispute(ctx, runtime, dispute).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 		<span class="prelude-val">Ok</span>(())
@@ -837,7 +845,9 @@
 	}
 
 	<span class="doccomment">/// Wait until ready and prepare for next call.
-	</span><span class="kw">async fn </span>limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+	///
+	/// String given as occasion and candidate hash are logged in case the rate limit hit.
+	</span><span class="kw">async fn </span>limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, occasion: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, candidate_hash: CandidateHash) {
 		<span class="comment">// Wait for rate limit and add some logging:
 		</span>poll_fn(|cx| {
 			<span class="kw">let </span>old_limit = Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.limit);
@@ -845,6 +855,8 @@
 				Poll::Pending =&gt; {
 					<span class="macro">gum::debug!</span>(
 						target: LOG_TARGET,
+						<span class="question-mark">?</span>occasion,
+						<span class="question-mark">?</span>candidate_hash,
 						<span class="string">&quot;Sending rate limit hit, slowing down requests&quot;
 					</span>);
 					Poll::Pending
