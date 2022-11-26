@@ -323,6 +323,25 @@
 <a href="#323" id="323">323</a>
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -453,16 +472,36 @@
 <span class="kw">impl </span>Protocol {
 	<span class="doccomment">/// Get a configuration for a given Request response protocol.
 	///
+	/// Returns a `ProtocolConfig` for this protocol.
+	/// Use this if you plan only to send requests for this protocol.
+	</span><span class="kw">pub fn </span>get_outbound_only_config(
+		<span class="self">self</span>,
+		req_protocol_names: <span class="kw-2">&amp;</span>ReqProtocolNames,
+	) -&gt; RequestResponseConfig {
+		<span class="self">self</span>.create_config(req_protocol_names, <span class="prelude-val">None</span>)
+	}
+
+	<span class="doccomment">/// Get a configuration for a given Request response protocol.
+	///
 	/// Returns a receiver for messages received on this protocol and the requested
 	/// `ProtocolConfig`.
 	</span><span class="kw">pub fn </span>get_config(
 		<span class="self">self</span>,
 		req_protocol_names: <span class="kw-2">&amp;</span>ReqProtocolNames,
 	) -&gt; (mpsc::Receiver&lt;network::IncomingRequest&gt;, RequestResponseConfig) {
+		<span class="kw">let </span>(tx, rx) = mpsc::channel(<span class="self">self</span>.get_channel_size());
+		<span class="kw">let </span>cfg = <span class="self">self</span>.create_config(req_protocol_names, <span class="prelude-val">Some</span>(tx));
+		(rx, cfg)
+	}
+
+	<span class="kw">fn </span>create_config(
+		<span class="self">self</span>,
+		req_protocol_names: <span class="kw-2">&amp;</span>ReqProtocolNames,
+		tx: <span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;network::IncomingRequest&gt;&gt;,
+	) -&gt; RequestResponseConfig {
 		<span class="kw">let </span>name = req_protocol_names.get_name(<span class="self">self</span>);
 		<span class="kw">let </span>fallback_names = <span class="self">self</span>.get_fallback_names();
-		<span class="kw">let </span>(tx, rx) = mpsc::channel(<span class="self">self</span>.get_channel_size());
-		<span class="kw">let </span>cfg = <span class="kw">match </span><span class="self">self </span>{
+		<span class="kw">match </span><span class="self">self </span>{
 			Protocol::ChunkFetchingV1 =&gt; RequestResponseConfig {
 				name,
 				fallback_names,
@@ -470,7 +509,7 @@
 				max_response_size: POV_RESPONSE_SIZE <span class="kw">as </span>u64 * <span class="number">3</span>,
 				<span class="comment">// We are connected to all validators:
 				</span>request_timeout: CHUNK_REQUEST_TIMEOUT,
-				inbound_queue: <span class="prelude-val">Some</span>(tx),
+				inbound_queue: tx,
 			},
 			Protocol::CollationFetchingV1 =&gt; RequestResponseConfig {
 				name,
@@ -479,7 +518,7 @@
 				max_response_size: POV_RESPONSE_SIZE,
 				<span class="comment">// Taken from initial implementation in collator protocol:
 				</span>request_timeout: POV_REQUEST_TIMEOUT_CONNECTED,
-				inbound_queue: <span class="prelude-val">Some</span>(tx),
+				inbound_queue: tx,
 			},
 			Protocol::PoVFetchingV1 =&gt; RequestResponseConfig {
 				name,
@@ -487,7 +526,7 @@
 				max_request_size: <span class="number">1_000</span>,
 				max_response_size: POV_RESPONSE_SIZE,
 				request_timeout: POV_REQUEST_TIMEOUT_CONNECTED,
-				inbound_queue: <span class="prelude-val">Some</span>(tx),
+				inbound_queue: tx,
 			},
 			Protocol::AvailableDataFetchingV1 =&gt; RequestResponseConfig {
 				name,
@@ -496,7 +535,7 @@
 				<span class="comment">// Available data size is dominated by the PoV size.
 				</span>max_response_size: POV_RESPONSE_SIZE,
 				request_timeout: POV_REQUEST_TIMEOUT_CONNECTED,
-				inbound_queue: <span class="prelude-val">Some</span>(tx),
+				inbound_queue: tx,
 			},
 			Protocol::StatementFetchingV1 =&gt; RequestResponseConfig {
 				name,
@@ -514,7 +553,7 @@
 				// fail, but this is desired, so we can quickly move on to a faster one - we should
 				// also decrease its reputation.
 				</span>request_timeout: Duration::from_secs(<span class="number">1</span>),
-				inbound_queue: <span class="prelude-val">Some</span>(tx),
+				inbound_queue: tx,
 			},
 			Protocol::DisputeSendingV1 =&gt; RequestResponseConfig {
 				name,
@@ -524,10 +563,9 @@
 				/// plenty.
 				</span>max_response_size: <span class="number">100</span>,
 				request_timeout: DISPUTE_REQUEST_TIMEOUT,
-				inbound_queue: <span class="prelude-val">Some</span>(tx),
+				inbound_queue: tx,
 			},
-		};
-		(rx, cfg)
+		}
 	}
 
 	<span class="comment">// Channel sizes for the supported protocols.
