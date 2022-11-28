@@ -1363,7 +1363,7 @@
 
 <span class="kw">use </span>polkadot_node_primitives::{
 	CandidateVotes, DisputeMessage, DisputeMessageCheckError, DisputeStatus,
-	SignedDisputeStatement, Timestamp, DISPUTE_WINDOW,
+	SignedDisputeStatement, Timestamp,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{
 	messages::{
@@ -1635,7 +1635,7 @@
 
 						<span class="self">self</span>.highest_session = session;
 
-						db::v1::note_current_session(overlay_db, session)<span class="question-mark">?</span>;
+						db::v1::note_earliest_session(overlay_db, new_window_start)<span class="question-mark">?</span>;
 						<span class="self">self</span>.spam_slots.prune_old(new_window_start);
 					}
 				},
@@ -2044,8 +2044,8 @@
 		now: Timestamp,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;ImportStatementsResult&gt; {
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>statements, <span class="string">&quot;In handle import statements&quot;</span>);
-		<span class="kw">if </span>session + DISPUTE_WINDOW.get() &lt; <span class="self">self</span>.highest_session {
-			<span class="comment">// It is not valid to participate in an ancient dispute (spam?).
+		<span class="kw">if </span>!<span class="self">self</span>.rolling_session_window.contains(session) {
+			<span class="comment">// It is not valid to participate in an ancient dispute (spam?) or too new.
 			</span><span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
 		}
 

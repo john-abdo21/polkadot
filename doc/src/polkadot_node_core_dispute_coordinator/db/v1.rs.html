@@ -715,7 +715,7 @@
 	backend::{Backend, BackendWriteOp, OverlayedBackend},
 	error::{FatalError, FatalResult},
 	metrics::Metrics,
-	DISPUTE_WINDOW, LOG_TARGET,
+	LOG_TARGET,
 };
 
 <span class="kw">const </span>RECENT_DISPUTES_KEY: <span class="kw-2">&amp;</span>[u8; <span class="number">15</span>] = <span class="string">b&quot;recent-disputes&quot;</span>;
@@ -1001,25 +1001,24 @@
 ///
 /// If one or more ancient sessions are pruned, all metadata on candidates within the ancient
 /// session will be deleted.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>note_current_session(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>note_earliest_session(
 	overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
-	current_session: SessionIndex,
+	new_earliest_session: SessionIndex,
 ) -&gt; SubsystemResult&lt;()&gt; {
-	<span class="kw">let </span>new_earliest = current_session.saturating_sub(DISPUTE_WINDOW.get());
 	<span class="kw">match </span>overlay_db.load_earliest_session()<span class="question-mark">? </span>{
 		<span class="prelude-val">None </span>=&gt; {
 			<span class="comment">// First launch - write new-earliest.
-			</span>overlay_db.write_earliest_session(new_earliest);
+			</span>overlay_db.write_earliest_session(new_earliest_session);
 		},
-		<span class="prelude-val">Some</span>(prev_earliest) <span class="kw">if </span>new_earliest &gt; prev_earliest =&gt; {
+		<span class="prelude-val">Some</span>(prev_earliest) <span class="kw">if </span>new_earliest_session &gt; prev_earliest =&gt; {
 			<span class="comment">// Prune all data in the outdated sessions.
-			</span>overlay_db.write_earliest_session(new_earliest);
+			</span>overlay_db.write_earliest_session(new_earliest_session);
 
 			<span class="comment">// Clear recent disputes metadata.
 			</span>{
 				<span class="kw">let </span><span class="kw-2">mut </span>recent_disputes = overlay_db.load_recent_disputes()<span class="question-mark">?</span>.unwrap_or_default();
 
-				<span class="kw">let </span>lower_bound = (new_earliest, CandidateHash(Hash::repeat_byte(<span class="number">0x00</span>)));
+				<span class="kw">let </span>lower_bound = (new_earliest_session, CandidateHash(Hash::repeat_byte(<span class="number">0x00</span>)));
 
 				<span class="kw">let </span>new_recent_disputes = recent_disputes.split_off(<span class="kw-2">&amp;</span>lower_bound);
 				<span class="comment">// Any remanining disputes are considered ancient and must be pruned.
@@ -1056,6 +1055,7 @@
 
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span>::test_helpers::{dummy_candidate_receipt, dummy_hash};
+	<span class="kw">use </span>polkadot_node_primitives::DISPUTE_WINDOW;
 	<span class="kw">use </span>polkadot_primitives::v2::{Hash, Id <span class="kw">as </span>ParaId};
 
 	<span class="kw">fn </span>make_db() -&gt; DbBackend {
@@ -1105,7 +1105,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>current_session, <span class="string">&quot;Noting current session&quot;</span>);
-		note_current_session(<span class="kw-2">&amp;mut </span>overlay_db, current_session).unwrap();
+		note_earliest_session(<span class="kw-2">&amp;mut </span>overlay_db, earliest_session).unwrap();
 
 		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
 		backend.write(write_ops).unwrap();
@@ -1125,7 +1125,7 @@
 		<span class="kw">let </span>current_session = current_session + <span class="number">1</span>;
 		<span class="kw">let </span>earliest_session = earliest_session + <span class="number">1</span>;
 
-		note_current_session(<span class="kw-2">&amp;mut </span>overlay_db, current_session).unwrap();
+		note_earliest_session(<span class="kw-2">&amp;mut </span>overlay_db, earliest_session).unwrap();
 
 		<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
 		backend.write(write_ops).unwrap();
@@ -1282,7 +1282,7 @@
 	}
 
 	<span class="attr">#[test]
-	</span><span class="kw">fn </span>note_current_session_prunes_old() {
+	</span><span class="kw">fn </span>note_earliest_session_prunes_old() {
 		<span class="kw">let </span><span class="kw-2">mut </span>backend = make_db();
 
 		<span class="kw">let </span>hash_a = CandidateHash(Hash::repeat_byte(<span class="number">0x0a</span>));
@@ -1331,7 +1331,7 @@
 		backend.write(write_ops).unwrap();
 
 		<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
-		note_current_session(<span class="kw-2">&amp;mut </span>overlay_db, current_session).unwrap();
+		note_earliest_session(<span class="kw-2">&amp;mut </span>overlay_db, new_earliest_session).unwrap();
 
 		<span class="macro">assert_eq!</span>(overlay_db.load_earliest_session().unwrap(), <span class="prelude-val">Some</span>(new_earliest_session));
 
