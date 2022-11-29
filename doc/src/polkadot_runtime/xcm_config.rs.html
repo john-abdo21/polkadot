@@ -192,6 +192,8 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -301,10 +303,12 @@
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>Polkadot: MultiAssetFilter = Wild(AllOf { fun: WildFungible, id: Concrete(DotLocation::get()) });
 	<span class="kw">pub const </span>PolkadotForStatemint: (MultiAssetFilter, MultiLocation) = (Polkadot::get(), Parachain(<span class="number">1000</span>).into());
+	<span class="kw">pub const </span>PolkadotForCollectives: (MultiAssetFilter, MultiLocation) = (Polkadot::get(), Parachain(<span class="number">1001</span>).into());
 }
 
-<span class="doccomment">/// Polkadot Relay recognizes/respects the Statemint chain as a teleporter.
-</span><span class="kw">pub type </span>TrustedTeleporters = (xcm_builder::Case&lt;PolkadotForStatemint&gt;,);
+<span class="doccomment">/// Polkadot Relay recognizes/respects System parachains as teleporters.
+</span><span class="kw">pub type </span>TrustedTeleporters =
+	(xcm_builder::Case&lt;PolkadotForStatemint&gt;, xcm_builder::Case&lt;PolkadotForCollectives&gt;);
 
 <span class="macro">match_types! </span>{
 	<span class="kw">pub type </span>OnlyParachains: <span class="kw">impl </span>Contains&lt;MultiLocation&gt; = {
