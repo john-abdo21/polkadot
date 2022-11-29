@@ -1569,6 +1569,20 @@
 <a href="#1569" id="1569">1569</a>
 <a href="#1570" id="1570">1570</a>
 <a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1666,6 +1680,7 @@
 
 <span class="kw">pub use </span>chain_spec::{KusamaChainSpec, PolkadotChainSpec, RococoChainSpec, WestendChainSpec};
 <span class="kw">pub use </span>consensus_common::{block_validation::Chain, Proposal, SelectChain};
+<span class="kw">use </span>mmr_gadget::MmrGadget;
 <span class="attr">#[cfg(feature = <span class="string">&quot;full-node&quot;</span>)]
 </span><span class="kw">pub use </span>polkadot_client::{
 	AbstractClient, Client, ClientHandle, ExecuteWithClient, FullBackend, FullClient,
@@ -2329,6 +2344,7 @@
 {
 	<span class="kw">use </span>polkadot_node_network_protocol::request_response::IncomingRequest;
 
+	<span class="kw">let </span>is_offchain_indexing_enabled = config.offchain_worker.indexing_enabled;
 	<span class="kw">let </span>role = config.role.clone();
 	<span class="kw">let </span>force_authoring = config.force_authoring;
 	<span class="kw">let </span>backoff_authoring_blocks = {
@@ -2789,6 +2805,18 @@
 				.spawn_blocking(<span class="string">&quot;beefy-gadget&quot;</span>, <span class="prelude-val">None</span>, gadget);
 		} <span class="kw">else </span>{
 			task_manager.spawn_handle().spawn_blocking(<span class="string">&quot;beefy-gadget&quot;</span>, <span class="prelude-val">None</span>, gadget);
+		}
+
+		<span class="kw">if </span>is_offchain_indexing_enabled {
+			task_manager.spawn_handle().spawn_blocking(
+				<span class="string">&quot;mmr-gadget&quot;</span>,
+				<span class="prelude-val">None</span>,
+				MmrGadget::start(
+					client.clone(),
+					backend.clone(),
+					sp_mmr_primitives::INDEXING_PREFIX.to_vec(),
+				),
+			);
 		}
 	}
 

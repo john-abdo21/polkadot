@@ -405,66 +405,6 @@
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -481,10 +421,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>std::collections::btree_map::BTreeMap;
+</span><span class="kw">use </span>std::{collections::btree_map::BTreeMap, num::NonZeroUsize};
 
-<span class="kw">use </span>memory_lru::{MemoryLruCache, ResidentSize};
-<span class="kw">use </span>parity_util_mem::{MallocSizeOf, MallocSizeOfExt};
+<span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>sp_consensus_babe::Epoch;
 
 <span class="kw">use </span>polkadot_primitives::v2::{
@@ -495,126 +434,67 @@
 	ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
 };
 
-<span class="kw">const </span>AUTHORITIES_CACHE_SIZE: usize = <span class="number">128 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>VALIDATORS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>VALIDATOR_GROUPS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>AVAILABILITY_CORES_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>PERSISTED_VALIDATION_DATA_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>ASSUMED_VALIDATION_DATA_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>CHECK_VALIDATION_OUTPUTS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>SESSION_INDEX_FOR_CHILD_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>VALIDATION_CODE_CACHE_SIZE: usize = <span class="number">10 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>CANDIDATE_PENDING_AVAILABILITY_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>CANDIDATE_EVENTS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>SESSION_INFO_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>DMQ_CONTENTS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>INBOUND_HRMP_CHANNELS_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>CURRENT_BABE_EPOCH_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>ON_CHAIN_VOTES_CACHE_SIZE: usize = <span class="number">3 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>PVFS_REQUIRE_PRECHECK_SIZE: usize = <span class="number">1024</span>;
-<span class="kw">const </span>VALIDATION_CODE_HASH_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>VERSION_CACHE_SIZE: usize = <span class="number">4 </span>* <span class="number">1024</span>;
-<span class="kw">const </span>DISPUTES_CACHE_SIZE: usize = <span class="number">64 </span>* <span class="number">1024</span>;
-
-<span class="kw">struct </span>ResidentSizeOf&lt;T&gt;(T);
-
-<span class="kw">impl</span>&lt;T: MallocSizeOf&gt; ResidentSize <span class="kw">for </span>ResidentSizeOf&lt;T&gt; {
-	<span class="kw">fn </span>resident_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-		std::mem::size_of::&lt;<span class="self">Self</span>&gt;() + <span class="self">self</span>.<span class="number">0</span>.malloc_size_of()
-	}
-}
-
-<span class="kw">struct </span>DoesNotAllocate&lt;T&gt;(T);
-
-<span class="kw">impl</span>&lt;T&gt; ResidentSize <span class="kw">for </span>DoesNotAllocate&lt;T&gt; {
-	<span class="kw">fn </span>resident_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-		std::mem::size_of::&lt;<span class="self">Self</span>&gt;()
-	}
-}
-
-<span class="comment">// this is an ugly workaround for `AuthorityDiscoveryId`
-// not implementing `MallocSizeOf`
-</span><span class="kw">struct </span>VecOfDoesNotAllocate&lt;T&gt;(Vec&lt;T&gt;);
-
-<span class="kw">impl</span>&lt;T&gt; ResidentSize <span class="kw">for </span>VecOfDoesNotAllocate&lt;T&gt; {
-	<span class="kw">fn </span>resident_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-		std::mem::size_of::&lt;T&gt;() * <span class="self">self</span>.<span class="number">0</span>.capacity()
-	}
-}
+<span class="doccomment">/// For consistency we have the same capacity for all caches. We use 128 as we&#39;ll only need that
+/// much if finality stalls (we only query state for unfinalized blocks + maybe latest finalized).
+/// In any case, a cache is an optimization. We should avoid a situation where having a large cache
+/// leads to OOM or puts pressure on other important stuff like PVF execution/preparation.
+</span><span class="kw">const </span>DEFAULT_CACHE_CAP: NonZeroUsize = <span class="kw">match </span>NonZeroUsize::new(<span class="number">128</span>) {
+	<span class="prelude-val">Some</span>(cap) =&gt; cap,
+	<span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;lru capacity must be non-zero&quot;</span>),
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RequestResultCache {
-	authorities: MemoryLruCache&lt;Hash, VecOfDoesNotAllocate&lt;AuthorityDiscoveryId&gt;&gt;,
-	validators: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;ValidatorId&gt;&gt;&gt;,
-	validator_groups:
-		MemoryLruCache&lt;Hash, ResidentSizeOf&lt;(Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo)&gt;&gt;,
-	availability_cores: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;CoreState&gt;&gt;&gt;,
-	persisted_validation_data: MemoryLruCache&lt;
-		(Hash, ParaId, OccupiedCoreAssumption),
-		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;&gt;,
-	&gt;,
-	assumed_validation_data: MemoryLruCache&lt;
-		(ParaId, Hash),
-		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;&gt;,
-	&gt;,
-	check_validation_outputs:
-		MemoryLruCache&lt;(Hash, ParaId, CandidateCommitments), ResidentSizeOf&lt;bool&gt;&gt;,
-	session_index_for_child: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;SessionIndex&gt;&gt;,
-	validation_code: MemoryLruCache&lt;
-		(Hash, ParaId, OccupiedCoreAssumption),
-		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;,
-	&gt;,
-	validation_code_by_hash:
-		MemoryLruCache&lt;ValidationCodeHash, ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;&gt;,
-	candidate_pending_availability:
-		MemoryLruCache&lt;(Hash, ParaId), ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;&gt;&gt;,
-	candidate_events: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;CandidateEvent&gt;&gt;&gt;,
-	session_info: MemoryLruCache&lt;SessionIndex, ResidentSizeOf&lt;SessionInfo&gt;&gt;,
-	dmq_contents:
-		MemoryLruCache&lt;(Hash, ParaId), ResidentSizeOf&lt;Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;&gt;&gt;,
-	inbound_hrmp_channels_contents: MemoryLruCache&lt;
-		(Hash, ParaId),
-		ResidentSizeOf&lt;BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;&gt;,
-	&gt;,
-	current_babe_epoch: MemoryLruCache&lt;Hash, DoesNotAllocate&lt;Epoch&gt;&gt;,
-	on_chain_votes: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;&gt;&gt;,
-	pvfs_require_precheck: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;Vec&lt;ValidationCodeHash&gt;&gt;&gt;,
-	validation_code_hash: MemoryLruCache&lt;
-		(Hash, ParaId, OccupiedCoreAssumption),
-		ResidentSizeOf&lt;<span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;&gt;,
-	&gt;,
-	version: MemoryLruCache&lt;Hash, ResidentSizeOf&lt;u32&gt;&gt;,
-	disputes: MemoryLruCache&lt;
-		Hash,
-		ResidentSizeOf&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;&gt;,
-	&gt;,
+	authorities: LruCache&lt;Hash, Vec&lt;AuthorityDiscoveryId&gt;&gt;,
+	validators: LruCache&lt;Hash, Vec&lt;ValidatorId&gt;&gt;,
+	validator_groups: LruCache&lt;Hash, (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo)&gt;,
+	availability_cores: LruCache&lt;Hash, Vec&lt;CoreState&gt;&gt;,
+	persisted_validation_data:
+		LruCache&lt;(Hash, ParaId, OccupiedCoreAssumption), <span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;&gt;,
+	assumed_validation_data:
+		LruCache&lt;(ParaId, Hash), <span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;&gt;,
+	check_validation_outputs: LruCache&lt;(Hash, ParaId, CandidateCommitments), bool&gt;,
+	session_index_for_child: LruCache&lt;Hash, SessionIndex&gt;,
+	validation_code: LruCache&lt;(Hash, ParaId, OccupiedCoreAssumption), <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;,
+	validation_code_by_hash: LruCache&lt;ValidationCodeHash, <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;,
+	candidate_pending_availability: LruCache&lt;(Hash, ParaId), <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;&gt;,
+	candidate_events: LruCache&lt;Hash, Vec&lt;CandidateEvent&gt;&gt;,
+	session_info: LruCache&lt;SessionIndex, SessionInfo&gt;,
+	dmq_contents: LruCache&lt;(Hash, ParaId), Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;&gt;,
+	inbound_hrmp_channels_contents:
+		LruCache&lt;(Hash, ParaId), BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;&gt;,
+	current_babe_epoch: LruCache&lt;Hash, Epoch&gt;,
+	on_chain_votes: LruCache&lt;Hash, <span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;&gt;,
+	pvfs_require_precheck: LruCache&lt;Hash, Vec&lt;ValidationCodeHash&gt;&gt;,
+	validation_code_hash:
+		LruCache&lt;(Hash, ParaId, OccupiedCoreAssumption), <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;&gt;,
+	version: LruCache&lt;Hash, u32&gt;,
+	disputes: LruCache&lt;Hash, Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>RequestResultCache {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
-			authorities: MemoryLruCache::new(AUTHORITIES_CACHE_SIZE),
-			validators: MemoryLruCache::new(VALIDATORS_CACHE_SIZE),
-			validator_groups: MemoryLruCache::new(VALIDATOR_GROUPS_CACHE_SIZE),
-			availability_cores: MemoryLruCache::new(AVAILABILITY_CORES_CACHE_SIZE),
-			persisted_validation_data: MemoryLruCache::new(PERSISTED_VALIDATION_DATA_CACHE_SIZE),
-			assumed_validation_data: MemoryLruCache::new(ASSUMED_VALIDATION_DATA_CACHE_SIZE),
-			check_validation_outputs: MemoryLruCache::new(CHECK_VALIDATION_OUTPUTS_CACHE_SIZE),
-			session_index_for_child: MemoryLruCache::new(SESSION_INDEX_FOR_CHILD_CACHE_SIZE),
-			validation_code: MemoryLruCache::new(VALIDATION_CODE_CACHE_SIZE),
-			validation_code_by_hash: MemoryLruCache::new(VALIDATION_CODE_CACHE_SIZE),
-			candidate_pending_availability: MemoryLruCache::new(
-				CANDIDATE_PENDING_AVAILABILITY_CACHE_SIZE,
-			),
-			candidate_events: MemoryLruCache::new(CANDIDATE_EVENTS_CACHE_SIZE),
-			session_info: MemoryLruCache::new(SESSION_INFO_CACHE_SIZE),
-			dmq_contents: MemoryLruCache::new(DMQ_CONTENTS_CACHE_SIZE),
-			inbound_hrmp_channels_contents: MemoryLruCache::new(INBOUND_HRMP_CHANNELS_CACHE_SIZE),
-			current_babe_epoch: MemoryLruCache::new(CURRENT_BABE_EPOCH_CACHE_SIZE),
-			on_chain_votes: MemoryLruCache::new(ON_CHAIN_VOTES_CACHE_SIZE),
-			pvfs_require_precheck: MemoryLruCache::new(PVFS_REQUIRE_PRECHECK_SIZE),
-			validation_code_hash: MemoryLruCache::new(VALIDATION_CODE_HASH_CACHE_SIZE),
-			version: MemoryLruCache::new(VERSION_CACHE_SIZE),
-			disputes: MemoryLruCache::new(DISPUTES_CACHE_SIZE),
+			authorities: LruCache::new(DEFAULT_CACHE_CAP),
+			validators: LruCache::new(DEFAULT_CACHE_CAP),
+			validator_groups: LruCache::new(DEFAULT_CACHE_CAP),
+			availability_cores: LruCache::new(DEFAULT_CACHE_CAP),
+			persisted_validation_data: LruCache::new(DEFAULT_CACHE_CAP),
+			assumed_validation_data: LruCache::new(DEFAULT_CACHE_CAP),
+			check_validation_outputs: LruCache::new(DEFAULT_CACHE_CAP),
+			session_index_for_child: LruCache::new(DEFAULT_CACHE_CAP),
+			validation_code: LruCache::new(DEFAULT_CACHE_CAP),
+			validation_code_by_hash: LruCache::new(DEFAULT_CACHE_CAP),
+			candidate_pending_availability: LruCache::new(DEFAULT_CACHE_CAP),
+			candidate_events: LruCache::new(DEFAULT_CACHE_CAP),
+			session_info: LruCache::new(DEFAULT_CACHE_CAP),
+			dmq_contents: LruCache::new(DEFAULT_CACHE_CAP),
+			inbound_hrmp_channels_contents: LruCache::new(DEFAULT_CACHE_CAP),
+			current_babe_epoch: LruCache::new(DEFAULT_CACHE_CAP),
+			on_chain_votes: LruCache::new(DEFAULT_CACHE_CAP),
+			pvfs_require_precheck: LruCache::new(DEFAULT_CACHE_CAP),
+			validation_code_hash: LruCache::new(DEFAULT_CACHE_CAP),
+			version: LruCache::new(DEFAULT_CACHE_CAP),
+			disputes: LruCache::new(DEFAULT_CACHE_CAP),
 		}
 	}
 }
@@ -624,7 +504,7 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		relay_parent: <span class="kw-2">&amp;</span>Hash,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;AuthorityDiscoveryId&gt;&gt; {
-		<span class="self">self</span>.authorities.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.authorities.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_authorities(
@@ -632,22 +512,22 @@
 		relay_parent: Hash,
 		authorities: Vec&lt;AuthorityDiscoveryId&gt;,
 	) {
-		<span class="self">self</span>.authorities.insert(relay_parent, VecOfDoesNotAllocate(authorities));
+		<span class="self">self</span>.authorities.put(relay_parent, authorities);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validators(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;ValidatorId&gt;&gt; {
-		<span class="self">self</span>.validators.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.validators.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validators(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, validators: Vec&lt;ValidatorId&gt;) {
-		<span class="self">self</span>.validators.insert(relay_parent, ResidentSizeOf(validators));
+		<span class="self">self</span>.validators.put(relay_parent, validators);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validator_groups(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		relay_parent: <span class="kw-2">&amp;</span>Hash,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo)&gt; {
-		<span class="self">self</span>.validator_groups.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.validator_groups.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validator_groups(
@@ -655,22 +535,22 @@
 		relay_parent: Hash,
 		groups: (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo),
 	) {
-		<span class="self">self</span>.validator_groups.insert(relay_parent, ResidentSizeOf(groups));
+		<span class="self">self</span>.validator_groups.put(relay_parent, groups);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>availability_cores(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;CoreState&gt;&gt; {
-		<span class="self">self</span>.availability_cores.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.availability_cores.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_availability_cores(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, cores: Vec&lt;CoreState&gt;) {
-		<span class="self">self</span>.availability_cores.insert(relay_parent, ResidentSizeOf(cores));
+		<span class="self">self</span>.availability_cores.put(relay_parent, cores);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>persisted_validation_data(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId, OccupiedCoreAssumption),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;&gt; {
-		<span class="self">self</span>.persisted_validation_data.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.persisted_validation_data.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_persisted_validation_data(
@@ -678,14 +558,14 @@
 		key: (Hash, ParaId, OccupiedCoreAssumption),
 		data: <span class="prelude-ty">Option</span>&lt;PersistedValidationData&gt;,
 	) {
-		<span class="self">self</span>.persisted_validation_data.insert(key, ResidentSizeOf(data));
+		<span class="self">self</span>.persisted_validation_data.put(key, data);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>assumed_validation_data(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId, Hash),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;&gt; {
-		<span class="self">self</span>.assumed_validation_data.get(<span class="kw-2">&amp;</span>(key.<span class="number">1</span>, key.<span class="number">2</span>)).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.assumed_validation_data.get(<span class="kw-2">&amp;</span>(key.<span class="number">1</span>, key.<span class="number">2</span>))
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_assumed_validation_data(
@@ -693,14 +573,14 @@
 		key: (ParaId, Hash),
 		data: <span class="prelude-ty">Option</span>&lt;(PersistedValidationData, ValidationCodeHash)&gt;,
 	) {
-		<span class="self">self</span>.assumed_validation_data.insert(key, ResidentSizeOf(data));
+		<span class="self">self</span>.assumed_validation_data.put(key, data);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_validation_outputs(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId, CandidateCommitments),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>bool&gt; {
-		<span class="self">self</span>.check_validation_outputs.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.check_validation_outputs.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_check_validation_outputs(
@@ -708,11 +588,11 @@
 		key: (Hash, ParaId, CandidateCommitments),
 		value: bool,
 	) {
-		<span class="self">self</span>.check_validation_outputs.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.check_validation_outputs.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>session_index_for_child(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionIndex&gt; {
-		<span class="self">self</span>.session_index_for_child.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.session_index_for_child.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_session_index_for_child(
@@ -720,14 +600,14 @@
 		relay_parent: Hash,
 		index: SessionIndex,
 	) {
-		<span class="self">self</span>.session_index_for_child.insert(relay_parent, ResidentSizeOf(index));
+		<span class="self">self</span>.session_index_for_child.put(relay_parent, index);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validation_code(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId, OccupiedCoreAssumption),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt; {
-		<span class="self">self</span>.validation_code.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.validation_code.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validation_code(
@@ -735,7 +615,7 @@
 		key: (Hash, ParaId, OccupiedCoreAssumption),
 		value: <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;,
 	) {
-		<span class="self">self</span>.validation_code.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.validation_code.put(key, value);
 	}
 
 	<span class="comment">// the actual key is `ValidationCodeHash` (`Hash` is ignored),
@@ -744,7 +624,7 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ValidationCodeHash),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt; {
-		<span class="self">self</span>.validation_code_by_hash.get(<span class="kw-2">&amp;</span>key.<span class="number">1</span>).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.validation_code_by_hash.get(<span class="kw-2">&amp;</span>key.<span class="number">1</span>)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validation_code_by_hash(
@@ -752,14 +632,14 @@
 		key: ValidationCodeHash,
 		value: <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;,
 	) {
-		<span class="self">self</span>.validation_code_by_hash.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.validation_code_by_hash.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>candidate_pending_availability(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;&gt; {
-		<span class="self">self</span>.candidate_pending_availability.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.candidate_pending_availability.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_candidate_pending_availability(
@@ -767,11 +647,11 @@
 		key: (Hash, ParaId),
 		value: <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;,
 	) {
-		<span class="self">self</span>.candidate_pending_availability.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.candidate_pending_availability.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>candidate_events(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;CandidateEvent&gt;&gt; {
-		<span class="self">self</span>.candidate_events.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.candidate_events.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_candidate_events(
@@ -779,22 +659,22 @@
 		relay_parent: Hash,
 		events: Vec&lt;CandidateEvent&gt;,
 	) {
-		<span class="self">self</span>.candidate_events.insert(relay_parent, ResidentSizeOf(events));
+		<span class="self">self</span>.candidate_events.put(relay_parent, events);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>session_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionInfo&gt; {
-		<span class="self">self</span>.session_info.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.session_info.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_session_info(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: SessionIndex, value: SessionInfo) {
-		<span class="self">self</span>.session_info.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.session_info.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;&gt; {
-		<span class="self">self</span>.dmq_contents.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.dmq_contents.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_dmq_contents(
@@ -802,14 +682,14 @@
 		key: (Hash, ParaId),
 		value: Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;,
 	) {
-		<span class="self">self</span>.dmq_contents.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.dmq_contents.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inbound_hrmp_channels_contents(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;&gt; {
-		<span class="self">self</span>.inbound_hrmp_channels_contents.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.inbound_hrmp_channels_contents.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_inbound_hrmp_channel_contents(
@@ -817,22 +697,22 @@
 		key: (Hash, ParaId),
 		value: BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;,
 	) {
-		<span class="self">self</span>.inbound_hrmp_channels_contents.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.inbound_hrmp_channels_contents.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current_babe_epoch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Epoch&gt; {
-		<span class="self">self</span>.current_babe_epoch.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.current_babe_epoch.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_current_babe_epoch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, epoch: Epoch) {
-		<span class="self">self</span>.current_babe_epoch.insert(relay_parent, DoesNotAllocate(epoch));
+		<span class="self">self</span>.current_babe_epoch.put(relay_parent, epoch);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_chain_votes(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		relay_parent: <span class="kw-2">&amp;</span>Hash,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;&gt; {
-		<span class="self">self</span>.on_chain_votes.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.on_chain_votes.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_on_chain_votes(
@@ -840,14 +720,14 @@
 		relay_parent: Hash,
 		scraped: <span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&gt;,
 	) {
-		<span class="self">self</span>.on_chain_votes.insert(relay_parent, ResidentSizeOf(scraped));
+		<span class="self">self</span>.on_chain_votes.put(relay_parent, scraped);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pvfs_require_precheck(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		relay_parent: <span class="kw-2">&amp;</span>Hash,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;ValidationCodeHash&gt;&gt; {
-		<span class="self">self</span>.pvfs_require_precheck.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.pvfs_require_precheck.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_pvfs_require_precheck(
@@ -855,14 +735,14 @@
 		relay_parent: Hash,
 		pvfs: Vec&lt;ValidationCodeHash&gt;,
 	) {
-		<span class="self">self</span>.pvfs_require_precheck.insert(relay_parent, ResidentSizeOf(pvfs))
+		<span class="self">self</span>.pvfs_require_precheck.put(relay_parent, pvfs);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validation_code_hash(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId, OccupiedCoreAssumption),
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;&gt; {
-		<span class="self">self</span>.validation_code_hash.get(<span class="kw-2">&amp;</span>key).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.validation_code_hash.get(<span class="kw-2">&amp;</span>key)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_validation_code_hash(
@@ -870,22 +750,22 @@
 		key: (Hash, ParaId, OccupiedCoreAssumption),
 		value: <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;,
 	) {
-		<span class="self">self</span>.validation_code_hash.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.validation_code_hash.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>version(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>u32&gt; {
-		<span class="self">self</span>.version.get(<span class="kw-2">&amp;</span>relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.version.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_version(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: Hash, value: u32) {
-		<span class="self">self</span>.version.insert(key, ResidentSizeOf(value));
+		<span class="self">self</span>.version.put(key, value);
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disputes(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		relay_parent: <span class="kw-2">&amp;</span>Hash,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;&gt; {
-		<span class="self">self</span>.disputes.get(relay_parent).map(|v| <span class="kw-2">&amp;</span>v.<span class="number">0</span>)
+		<span class="self">self</span>.disputes.get(relay_parent)
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_disputes(
@@ -893,7 +773,7 @@
 		relay_parent: Hash,
 		value: Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;,
 	) {
-		<span class="self">self</span>.disputes.insert(relay_parent, ResidentSizeOf(value));
+		<span class="self">self</span>.disputes.put(relay_parent, value);
 	}
 }
 
