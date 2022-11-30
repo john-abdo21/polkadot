@@ -227,6 +227,94 @@
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -247,8 +335,9 @@
 	artifacts::ArtifactPathId,
 	executor_intf::Executor,
 	worker_common::{
-		bytes_to_path, framed_recv, framed_send, path_to_bytes, spawn_with_program_path,
-		worker_event_loop, IdleWorker, SpawnErr, WorkerHandle,
+		bytes_to_path, cpu_time_monitor_loop, framed_recv, framed_send, path_to_bytes,
+		spawn_with_program_path, worker_event_loop, IdleWorker, JobKind, SpawnErr, WorkerHandle,
+		JOB_TIMEOUT_WALL_CLOCK_FACTOR,
 	},
 	LOG_TARGET,
 };
@@ -256,12 +345,21 @@
 	io,
 	os::unix::net::UnixStream,
 	path::{Path, PathBuf},
+	task,
 };
+<span class="kw">use </span>cpu_time::ProcessTime;
 <span class="kw">use </span>futures::FutureExt;
 <span class="kw">use </span>futures_timer::Delay;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
-<span class="kw">use </span>std::time::{Duration, Instant};
+<span class="kw">use </span>std::{
+	sync::{
+		atomic::{AtomicBool, Ordering},
+		Arc,
+	},
+	thread,
+	time::Duration,
+};
 
 <span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.
 ///
@@ -277,7 +375,7 @@
 </span><span class="kw">pub enum </span>Outcome {
 	<span class="doccomment">/// PVF execution completed successfully and the result is returned. The worker is ready for
 	/// another job.
-	</span><span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration_ms: u64, idle_worker: IdleWorker },
+	</span><span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration: Duration, idle_worker: IdleWorker },
 	<span class="doccomment">/// The candidate validation failed. It may be for example because the wasm execution triggered a trap.
 	/// Errors related to the preparation process are not expected to be encountered by the execution workers.
 	</span>InvalidCandidate { err: String, idle_worker: IdleWorker },
@@ -309,7 +407,9 @@
 		artifact.path.display(),
 	);
 
-	<span class="kw">if let </span><span class="prelude-val">Err</span>(error) = send_request(<span class="kw-2">&amp;mut </span>stream, <span class="kw-2">&amp;</span>artifact.path, <span class="kw-2">&amp;</span>validation_params).<span class="kw">await </span>{
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(error) =
+		send_request(<span class="kw-2">&amp;mut </span>stream, <span class="kw-2">&amp;</span>artifact.path, <span class="kw-2">&amp;</span>validation_params, execution_timeout).<span class="kw">await
+	</span>{
 		<span class="macro">gum::warn!</span>(
 			target: LOG_TARGET,
 			worker_pid = %pid,
@@ -320,6 +420,12 @@
 		<span class="kw">return </span>Outcome::IoErr
 	}
 
+	<span class="comment">// We use a generous timeout here. This is in addition to the one in the child process, in
+	// case the child stalls. We have a wall clock timeout here in the host, but a CPU timeout
+	// in the child. We want to use CPU time because it varies less than wall clock time under
+	// load, but the CPU resources of the child can only be measured from the parent after the
+	// child process terminates.
+	</span><span class="kw">let </span>timeout = execution_timeout * JOB_TIMEOUT_WALL_CLOCK_FACTOR;
 	<span class="kw">let </span>response = <span class="macro">futures::select! </span>{
 		response = recv_response(<span class="kw-2">&amp;mut </span>stream).fuse() =&gt; {
 			<span class="kw">match </span>response {
@@ -333,25 +439,47 @@
 					);
 					<span class="kw">return </span>Outcome::IoErr
 				},
-				<span class="prelude-val">Ok</span>(response) =&gt; response,
+				<span class="prelude-val">Ok</span>(response) =&gt; {
+					<span class="kw">if let </span>Response::Ok{duration, ..} = response {
+						<span class="kw">if </span>duration &gt; execution_timeout {
+							<span class="comment">// The job didn&#39;t complete within the timeout.
+							</span><span class="macro">gum::warn!</span>(
+								target: LOG_TARGET,
+								worker_pid = %pid,
+								<span class="string">&quot;execute job took {}ms cpu time, exceeded execution timeout {}ms.&quot;</span>,
+								duration.as_millis(),
+								execution_timeout.as_millis(),
+							);
+
+							<span class="comment">// Return a timeout error.
+							</span><span class="kw">return </span>Outcome::HardTimeout;
+						}
+					}
+
+					response
+				},
 			}
 		},
-		<span class="kw">_ </span>= Delay::new(execution_timeout).fuse() =&gt; {
+		<span class="kw">_ </span>= Delay::new(timeout).fuse() =&gt; {
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
 				worker_pid = %pid,
 				validation_code_hash = <span class="question-mark">?</span>artifact.id.code_hash,
 				<span class="string">&quot;execution worker exceeded alloted time for execution&quot;</span>,
 			);
-			<span class="kw">return </span>Outcome::HardTimeout;
+			<span class="comment">// TODO: This case is not really a hard timeout as the timeout here in the host is
+			// lenient. Should fix this as part of
+			// https://github.com/paritytech/polkadot/issues/3754.
+			</span>Response::TimedOut
 		},
 	};
 
 	<span class="kw">match </span>response {
-		Response::Ok { result_descriptor, duration_ms } =&gt;
-			Outcome::Ok { result_descriptor, duration_ms, idle_worker: IdleWorker { stream, pid } },
+		Response::Ok { result_descriptor, duration } =&gt;
+			Outcome::Ok { result_descriptor, duration, idle_worker: IdleWorker { stream, pid } },
 		Response::InvalidCandidate(err) =&gt;
 			Outcome::InvalidCandidate { err, idle_worker: IdleWorker { stream, pid } },
+		Response::TimedOut =&gt; Outcome::HardTimeout,
 		Response::InternalError(err) =&gt;
 			Outcome::InternalError { err, idle_worker: IdleWorker { stream, pid } },
 	}
@@ -361,12 +489,14 @@
 	stream: <span class="kw-2">&amp;mut </span>UnixStream,
 	artifact_path: <span class="kw-2">&amp;</span>Path,
 	validation_params: <span class="kw-2">&amp;</span>[u8],
+	execution_timeout: Duration,
 ) -&gt; io::Result&lt;()&gt; {
 	framed_send(stream, path_to_bytes(artifact_path)).<span class="kw">await</span><span class="question-mark">?</span>;
-	framed_send(stream, validation_params).<span class="kw">await
+	framed_send(stream, validation_params).<span class="kw">await</span><span class="question-mark">?</span>;
+	framed_send(stream, <span class="kw-2">&amp;</span>execution_timeout.encode()).<span class="kw">await
 </span>}
 
-<span class="kw">async fn </span>recv_request(stream: <span class="kw-2">&amp;mut </span>UnixStream) -&gt; io::Result&lt;(PathBuf, Vec&lt;u8&gt;)&gt; {
+<span class="kw">async fn </span>recv_request(stream: <span class="kw-2">&amp;mut </span>UnixStream) -&gt; io::Result&lt;(PathBuf, Vec&lt;u8&gt;, Duration)&gt; {
 	<span class="kw">let </span>artifact_path = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
 	<span class="kw">let </span>artifact_path = bytes_to_path(<span class="kw-2">&amp;</span>artifact_path).ok_or_else(|| {
 		io::Error::new(
@@ -375,7 +505,14 @@
 		)
 	})<span class="question-mark">?</span>;
 	<span class="kw">let </span>params = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
-	<span class="prelude-val">Ok</span>((artifact_path, params))
+	<span class="kw">let </span>execution_timeout = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">let </span>execution_timeout = Duration::decode(<span class="kw-2">&amp;mut &amp;</span>execution_timeout[..]).map_err(|<span class="kw">_</span>| {
+		io::Error::new(
+			io::ErrorKind::Other,
+			<span class="string">&quot;execute pvf recv_request: failed to decode duration&quot;</span>.to_string(),
+		)
+	})<span class="question-mark">?</span>;
+	<span class="prelude-val">Ok</span>((artifact_path, params, execution_timeout))
 }
 
 <span class="kw">async fn </span>send_response(stream: <span class="kw-2">&amp;mut </span>UnixStream, response: Response) -&gt; io::Result&lt;()&gt; {
@@ -393,9 +530,10 @@
 }
 
 <span class="attr">#[derive(Encode, Decode)]
-</span><span class="kw">enum </span>Response {
-	<span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration_ms: u64 },
+</span><span class="kw">pub enum </span>Response {
+	<span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration: Duration },
 	InvalidCandidate(String),
+	TimedOut,
 	InternalError(String),
 }
 
@@ -416,15 +554,53 @@
 		<span class="kw">let </span>executor = Executor::new().map_err(|e| {
 			io::Error::new(io::ErrorKind::Other, <span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, e))
 		})<span class="question-mark">?</span>;
+
 		<span class="kw">loop </span>{
-			<span class="kw">let </span>(artifact_path, params) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let </span>(artifact_path, params, execution_timeout) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
 			<span class="macro">gum::debug!</span>(
 				target: LOG_TARGET,
 				worker_pid = %std::process::id(),
 				<span class="string">&quot;worker: validating artifact {}&quot;</span>,
 				artifact_path.display(),
 			);
-			<span class="kw">let </span>response = validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, <span class="kw-2">&amp;</span>executor).<span class="kw">await</span>;
+
+			<span class="comment">// Create a lock flag. We set it when either thread finishes.
+			</span><span class="kw">let </span>lock = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
+			<span class="kw">let </span>cpu_time_start = ProcessTime::now();
+
+			<span class="comment">// Spawn a new thread that runs the CPU time monitor. Continuously wakes up from
+			// sleeping and then either sleeps for the remaining CPU time, or kills the process if
+			// we exceed the CPU timeout.
+			</span><span class="kw">let </span>(stream_2, cpu_time_start_2, execution_timeout_2, lock_2) =
+				(stream.clone(), cpu_time_start, execution_timeout, lock.clone());
+			<span class="kw">let </span>handle =
+				thread::Builder::new().name(<span class="string">&quot;CPU time monitor&quot;</span>.into()).spawn(<span class="kw">move </span>|| {
+					task::block_on(<span class="kw">async </span>{
+						cpu_time_monitor_loop(
+							JobKind::Execute,
+							stream_2,
+							cpu_time_start_2,
+							execution_timeout_2,
+							lock_2,
+						)
+						.<span class="kw">await</span>;
+					})
+				})<span class="question-mark">?</span>;
+
+			<span class="kw">let </span>response =
+				validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, <span class="kw-2">&amp;</span>executor, cpu_time_start).<span class="kw">await</span>;
+
+			<span class="kw">let </span>lock_result =
+				lock.compare_exchange(<span class="bool-val">false</span>, <span class="bool-val">true</span>, Ordering::Relaxed, Ordering::Relaxed);
+			<span class="kw">if </span>lock_result.is_err() {
+				<span class="comment">// The other thread is still sending an error response over the socket. Wait on it
+				// and return.
+				</span><span class="kw">let _ </span>= handle.join();
+				<span class="comment">// Monitor thread detected timeout and likely already terminated the process,
+				// nothing to do.
+				</span><span class="kw">continue
+			</span>}
+
 			send_response(<span class="kw-2">&amp;mut </span>stream, response).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 	});
@@ -434,19 +610,19 @@
 	artifact_path: <span class="kw-2">&amp;</span>Path,
 	params: <span class="kw-2">&amp;</span>[u8],
 	executor: <span class="kw-2">&amp;</span>Executor,
+	cpu_time_start: ProcessTime,
 ) -&gt; Response {
-	<span class="kw">let </span>validation_started_at = Instant::now();
 	<span class="kw">let </span>descriptor_bytes = <span class="kw">match unsafe </span>{
 		<span class="comment">// SAFETY: this should be safe since the compiled artifact passed here comes from the
 		//         file created by the prepare workers. These files are obtained by calling
 		//         [`executor_intf::prepare`].
 		</span>executor.execute(artifact_path.as_ref(), params)
 	} {
-		<span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Response::format_invalid(<span class="string">&quot;execute&quot;</span>, <span class="kw-2">&amp;</span>err.to_string()),
+		<span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Response::format_invalid(<span class="string">&quot;execute&quot;</span>, <span class="kw-2">&amp;</span>err),
 		<span class="prelude-val">Ok</span>(d) =&gt; d,
 	};
 
-	<span class="kw">let </span>duration_ms = validation_started_at.elapsed().as_millis() <span class="kw">as </span>u64;
+	<span class="kw">let </span>duration = cpu_time_start.elapsed();
 
 	<span class="kw">let </span>result_descriptor = <span class="kw">match </span>ValidationResult::decode(<span class="kw-2">&amp;mut &amp;</span>descriptor_bytes[..]) {
 		<span class="prelude-val">Err</span>(err) =&gt;
@@ -454,7 +630,7 @@
 		<span class="prelude-val">Ok</span>(r) =&gt; r,
 	};
 
-	Response::Ok { result_descriptor, duration_ms }
+	Response::Ok { result_descriptor, duration }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="polkadot_node_core_pvf" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

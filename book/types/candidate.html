@@ -212,7 +212,7 @@ struct CandidateDescriptor {
 	collator: CollatorId,
 	/// The blake2-256 hash of the persisted validation data. These are extra parameters
 	/// derived from relay-chain state that influence the validity of the block which
-	/// must also be kept available for secondary checkers.
+	/// must also be kept available for approval checkers.
 	persisted_validation_data_hash: Hash,
 	/// The blake2-256 hash of the `pov-block`.
 	pov_hash: Hash,
@@ -248,7 +248,7 @@ pub struct ValidationParams {
 <p>The validation data provides information about how to create the inputs for validation of a candidate. This information is derived from the chain state and will vary from para to para, although some of the fields may be the same for every para.</p>
 <p>Since this data is used to form inputs to the validation function, it needs to be persisted by the availability system to avoid dependence on availability of the relay-chain state.</p>
 <p>Furthermore, the validation data acts as a way to authorize the additional data the collator needs to pass to the validation function. For example, the validation function can check whether the incoming messages (e.g. downward messages) were actually sent by using the data provided in the validation data using so called MQC heads.</p>
-<p>Since the commitments of the validation function are checked by the relay-chain, secondary checkers can rely on the invariant that the relay-chain only includes para-blocks for which these checks have already been done. As such, there is no need for the validation data used to inform validators and collators about the checks the relay-chain will perform to be persisted by the availability system.</p>
+<p>Since the commitments of the validation function are checked by the relay-chain, approval checkers can rely on the invariant that the relay-chain only includes para-blocks for which these checks have already been done. As such, there is no need for the validation data used to inform validators and collators about the checks the relay-chain will perform to be persisted by the availability system.</p>
 <p>The <code>PersistedValidationData</code> should be relatively lightweight primarily because it is constructed during inclusion for each candidate and therefore lies on the critical path of inclusion.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -313,7 +313,7 @@ struct CandidateCommitments {
 }
 <span class="boring">}
 </span></code></pre></pre>
-<footer id="last-change">Last change: 2022-11-23, commit: <a href="https://github.com/paritytech/polkadot/commit/cfb10d484b">cfb10d484b</a></footer>
+<footer id="last-change">Last change: 2022-11-30, commit: <a href="https://github.com/paritytech/polkadot/commit/6343ae7774">6343ae7774</a></footer>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

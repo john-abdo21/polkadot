@@ -1520,6 +1520,22 @@
 <a href="#1520" id="1520">1520</a>
 <a href="#1521" id="1521">1521</a>
 <a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1740,7 +1756,7 @@
 	);
 
 	<span class="kw">let </span>(to_execute_queue_tx, run_execute_queue) = execute::start(
-		metrics.clone(),
+		metrics,
 		config.execute_worker_program_path.to_owned(),
 		config.execute_workers_max_num,
 		config.execute_worker_spawn_timeout,
@@ -1965,7 +1981,7 @@
 
 <span class="doccomment">/// Handles PVF prechecking requests.
 ///
-/// This tries to prepare the PVF by compiling the WASM blob within a given timeout ([`PRECHECK_COMPILATION_TIMEOUT`]).
+/// This tries to prepare the PVF by compiling the WASM blob within a given timeout ([`PRECHECK_PREPARATION_TIMEOUT`]).
 ///
 /// If the prepare job failed previously, we may retry it under certain conditions.
 </span><span class="kw">async fn </span>handle_precheck_pvf(
@@ -1978,9 +1994,9 @@
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
 		<span class="kw">match </span>state {
-			ArtifactState::Prepared { last_time_needed } =&gt; {
+			ArtifactState::Prepared { last_time_needed, cpu_time_elapsed } =&gt; {
 				<span class="kw-2">*</span>last_time_needed = SystemTime::now();
-				<span class="kw">let _ </span>= result_sender.send(<span class="prelude-val">Ok</span>(()));
+				<span class="kw">let _ </span>= result_sender.send(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span>cpu_time_elapsed));
 			},
 			ArtifactState::Preparing { waiting_for_response, num_failures: <span class="kw">_ </span>} =&gt;
 				waiting_for_response.push(result_sender),
@@ -2012,7 +2028,7 @@
 ///
 /// If the prepare job failed previously, we may retry it under certain conditions.
 ///
-/// When preparing for execution, we use a more lenient timeout ([`EXECUTE_COMPILATION_TIMEOUT`])
+/// When preparing for execution, we use a more lenient timeout ([`EXECUTE_PREPARATION_TIMEOUT`])
 /// than when prechecking.
 </span><span class="kw">async fn </span>handle_execute_pvf(
 	cache_path: <span class="kw-2">&amp;</span>Path,
@@ -2027,7 +2043,7 @@
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
 		<span class="kw">match </span>state {
-			ArtifactState::Prepared { last_time_needed } =&gt; {
+			ArtifactState::Prepared { last_time_needed, .. } =&gt; {
 				<span class="kw-2">*</span>last_time_needed = SystemTime::now();
 
 				<span class="comment">// This artifact has already been prepared, send it to the execute queue.
@@ -2085,7 +2101,7 @@
 		</span>awaiting_prepare.add(artifact_id, execution_timeout, params, result_tx);
 	}
 
-	<span class="kw">return </span><span class="prelude-val">Ok</span>(())
+	<span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">async fn </span>handle_heads_up(
@@ -2223,11 +2239,12 @@
 	}
 
 	<span class="kw-2">*</span>state = <span class="kw">match </span>result {
-		<span class="prelude-val">Ok</span>(()) =&gt; ArtifactState::Prepared { last_time_needed: SystemTime::now() },
+		<span class="prelude-val">Ok</span>(cpu_time_elapsed) =&gt;
+			ArtifactState::Prepared { last_time_needed: SystemTime::now(), cpu_time_elapsed },
 		<span class="prelude-val">Err</span>(error) =&gt; ArtifactState::FailedToProcess {
 			last_time_failed: SystemTime::now(),
 			num_failures: <span class="kw-2">*</span>num_failures + <span class="number">1</span>,
-			error: error.clone(),
+			error,
 		},
 	};
 
@@ -2302,7 +2319,7 @@
 		<span class="comment">// Gracefully returned an error, so it will probably be reproducible. Don&#39;t retry.
 		</span>Prevalidation(<span class="kw">_</span>) | Preparation(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 		<span class="comment">// Retry if the retry cooldown has elapsed and if we have already retried less than
-		// `NUM_PREPARE_RETRIES` times.
+		// `NUM_PREPARE_RETRIES` times. IO errors may resolve themselves.
 		</span>Panic(<span class="kw">_</span>) | TimedOut | DidNotMakeIt =&gt;
 			SystemTime::now() &gt;= last_time_failed + PREPARE_FAILURE_COOLDOWN &amp;&amp;
 				num_failures &lt;= NUM_PREPARE_RETRIES,
@@ -2538,8 +2555,8 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::default();
 		builder.cleanup_pulse_interval = Duration::from_millis(<span class="number">100</span>);
 		builder.artifact_ttl = Duration::from_millis(<span class="number">500</span>);
-		builder.artifacts.insert_prepared(artifact_id(<span class="number">1</span>), mock_now);
-		builder.artifacts.insert_prepared(artifact_id(<span class="number">2</span>), mock_now);
+		builder.artifacts.insert_prepared(artifact_id(<span class="number">1</span>), mock_now, Duration::default());
+		builder.artifacts.insert_prepared(artifact_id(<span class="number">2</span>), mock_now, Duration::default());
 		<span class="kw">let </span><span class="kw-2">mut </span>test = builder.build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
@@ -2609,7 +2626,10 @@
 		);
 
 		test.from_prepare_queue_tx
-			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">1</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">1</span>),
+				result: <span class="prelude-val">Ok</span>(Duration::default()),
+			})
 			.<span class="kw">await
 			</span>.unwrap();
 		<span class="kw">let </span>result_tx_pvf_1_1 = <span class="macro">assert_matches!</span>(
@@ -2622,7 +2642,10 @@
 		);
 
 		test.from_prepare_queue_tx
-			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">2</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">2</span>),
+				result: <span class="prelude-val">Ok</span>(Duration::default()),
+			})
 			.<span class="kw">await
 			</span>.unwrap();
 		<span class="kw">let </span>result_tx_pvf_2 = <span class="macro">assert_matches!</span>(
@@ -2671,13 +2694,16 @@
 		);
 		<span class="comment">// Send `Ok` right away and poll the host.
 		</span>test.from_prepare_queue_tx
-			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">1</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">1</span>),
+				result: <span class="prelude-val">Ok</span>(Duration::default()),
+			})
 			.<span class="kw">await
 			</span>.unwrap();
 		<span class="comment">// No pending execute requests.
 		</span>test.poll_ensure_to_execute_queue_is_empty().<span class="kw">await</span>;
 		<span class="comment">// Received the precheck result.
-		</span><span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Ok</span>(()));
+		</span><span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Ok</span>(<span class="kw">_</span>));
 
 		<span class="comment">// Send multiple requests for the same PVF.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>precheck_receivers = Vec::new();
@@ -2775,7 +2801,10 @@
 			prepare::ToQueue::Enqueue { .. }
 		);
 		test.from_prepare_queue_tx
-			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">2</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">2</span>),
+				result: <span class="prelude-val">Ok</span>(Duration::default()),
+			})
 			.<span class="kw">await
 			</span>.unwrap();
 		<span class="comment">// The execute queue receives new request, preckecking is finished and we can
@@ -2785,7 +2814,7 @@
 			execute::ToQueue::Enqueue { .. }
 		);
 		<span class="kw">for </span>result_rx <span class="kw">in </span>precheck_receivers {
-			<span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Ok</span>(()));
+			<span class="macro">assert_matches!</span>(result_rx.now_or_never().unwrap().unwrap(), <span class="prelude-val">Ok</span>(<span class="kw">_</span>));
 		}
 	}
 
@@ -3033,7 +3062,10 @@
 		);
 
 		test.from_prepare_queue_tx
-			.send(prepare::FromQueue { artifact_id: artifact_id(<span class="number">1</span>), result: <span class="prelude-val">Ok</span>(()) })
+			.send(prepare::FromQueue {
+				artifact_id: artifact_id(<span class="number">1</span>),
+				result: <span class="prelude-val">Ok</span>(Duration::default()),
+			})
 			.<span class="kw">await
 			</span>.unwrap();
 

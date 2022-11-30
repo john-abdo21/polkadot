@@ -780,6 +780,20 @@
 <a href="#780" id="780">780</a>
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1146,16 +1160,14 @@
 			// the pool up to the hard cap.
 			</span>spawn_extra_worker(queue, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
+	} <span class="kw">else if </span>queue.limits.should_cull(queue.workers.len() + queue.spawn_inflight) {
+		<span class="comment">// We no longer need services of this worker. Kill it.
+		</span>queue.workers.remove(worker);
+		send_pool(<span class="kw-2">&amp;mut </span>queue.to_pool_tx, pool::ToPool::Kill(worker)).<span class="kw">await</span><span class="question-mark">?</span>;
 	} <span class="kw">else </span>{
-		<span class="kw">if </span>queue.limits.should_cull(queue.workers.len() + queue.spawn_inflight) {
-			<span class="comment">// We no longer need services of this worker. Kill it.
-			</span>queue.workers.remove(worker);
-			send_pool(<span class="kw-2">&amp;mut </span>queue.to_pool_tx, pool::ToPool::Kill(worker)).<span class="kw">await</span><span class="question-mark">?</span>;
-		} <span class="kw">else </span>{
-			<span class="comment">// see if there are more work available and schedule it.
-			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(job) = queue.unscheduled.next() {
-				assign(queue, worker, job).<span class="kw">await</span><span class="question-mark">?</span>;
-			}
+		<span class="comment">// see if there are more work available and schedule it.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(job) = queue.unscheduled.next() {
+			assign(queue, worker, job).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 	}
 
@@ -1400,7 +1412,11 @@
 
 		<span class="kw">let </span>w = test.workers.insert(());
 		test.send_from_pool(pool::FromPool::Spawned(w));
-		test.send_from_pool(pool::FromPool::Concluded { worker: w, rip: <span class="bool-val">false</span>, result: <span class="prelude-val">Ok</span>(()) });
+		test.send_from_pool(pool::FromPool::Concluded {
+			worker: w,
+			rip: <span class="bool-val">false</span>,
+			result: <span class="prelude-val">Ok</span>(Duration::default()),
+		});
 
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
 	}
@@ -1429,7 +1445,11 @@
 		</span><span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
-		test.send_from_pool(pool::FromPool::Concluded { worker: w1, rip: <span class="bool-val">false</span>, result: <span class="prelude-val">Ok</span>(()) });
+		test.send_from_pool(pool::FromPool::Concluded {
+			worker: w1,
+			rip: <span class="bool-val">false</span>,
+			result: <span class="prelude-val">Ok</span>(Duration::default()),
+		});
 
 		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
@@ -1475,7 +1495,11 @@
 		// That&#39;s a bit silly in this context, but in production there will be an entire pool up
 		// to the `soft_capacity` of workers and it doesn&#39;t matter which one to cull. Either way,
 		// we just check that edge case of an edge case works.
-		</span>test.send_from_pool(pool::FromPool::Concluded { worker: w1, rip: <span class="bool-val">false</span>, result: <span class="prelude-val">Ok</span>(()) });
+		</span>test.send_from_pool(pool::FromPool::Concluded {
+			worker: w1,
+			rip: <span class="bool-val">false</span>,
+			result: <span class="prelude-val">Ok</span>(Duration::default()),
+		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Kill(w1));
 	}
 
@@ -1501,7 +1525,11 @@
 		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
 
 		<span class="comment">// Conclude worker 1 and rip it.
-		</span>test.send_from_pool(pool::FromPool::Concluded { worker: w1, rip: <span class="bool-val">true</span>, result: <span class="prelude-val">Ok</span>(()) });
+		</span>test.send_from_pool(pool::FromPool::Concluded {
+			worker: w1,
+			rip: <span class="bool-val">true</span>,
+			result: <span class="prelude-val">Ok</span>(Duration::default()),
+		});
 
 		<span class="comment">// Since there is still work, the queue requested one extra worker to spawn to handle the
 		// remaining enqueued work items.
