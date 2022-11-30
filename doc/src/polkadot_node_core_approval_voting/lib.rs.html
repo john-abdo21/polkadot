@@ -2631,9 +2631,6 @@
 <a href="#2631" id="2631">2631</a>
 <a href="#2632" id="2632">2632</a>
 <a href="#2633" id="2633">2633</a>
-<a href="#2634" id="2634">2634</a>
-<a href="#2635" id="2635">2635</a>
-<a href="#2636" id="2636">2636</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3257,10 +3254,7 @@
 					</span>.candidate_hash_map
 					.remove(<span class="kw-2">&amp;</span>approval_state.candidate_hash)
 					.unwrap_or_default();
-				approvals_cache.put(
-					approval_state.candidate_hash.clone(),
-					approval_state.approval_outcome.clone(),
-				);
+				approvals_cache.put(approval_state.candidate_hash, approval_state.approval_outcome);
 				<span class="kw">return </span>(out, approval_state)
 			}
 		}
@@ -3404,7 +3398,7 @@
 <span class="kw">where
 	</span>B: Backend,
 {
-	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = db_sanity_check(subsystem.db.clone(), subsystem.db_config.clone()) {
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = db_sanity_check(subsystem.db.clone(), subsystem.db_config) {
 		<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="string">&quot;Could not run approval vote DB sanity check&quot;</span>);
 	}
 
@@ -3914,7 +3908,7 @@
 		<span class="prelude-val">Some</span>(e) =&gt; e,
 	};
 
-	<span class="kw">let </span>relay_hashes = entry.block_assignments.iter().map(|(relay_hash, <span class="kw">_</span>)| relay_hash);
+	<span class="kw">let </span>relay_hashes = entry.block_assignments.keys();
 
 	<span class="kw">let </span><span class="kw-2">mut </span>candidate_indices = HashSet::new();
 	<span class="comment">// Retrieve `CoreIndices`/`CandidateIndices` as required by approval-distribution:
@@ -5138,7 +5132,7 @@
 	};
 
 	<span class="kw">let </span>candidate_hash = <span class="kw">match </span>block_entry.candidate(candidate_index <span class="kw">as </span>usize) {
-		<span class="prelude-val">Some</span>((<span class="kw">_</span>, h)) =&gt; h.clone(),
+		<span class="prelude-val">Some</span>((<span class="kw">_</span>, h)) =&gt; <span class="kw-2">*</span>h,
 		<span class="prelude-val">None </span>=&gt; {
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,

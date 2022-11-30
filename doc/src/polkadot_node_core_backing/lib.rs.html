@@ -1344,8 +1344,6 @@
 <a href="#1344" id="1344">1344</a>
 <a href="#1345" id="1345">1345</a>
 <a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1830,9 +1828,7 @@
 	}
 
 	<span class="kw">fn </span>is_member_of(<span class="kw-2">&amp;</span><span class="self">self</span>, authority: <span class="kw-2">&amp;</span>ValidatorIndex, group: <span class="kw-2">&amp;</span>ParaId) -&gt; bool {
-		<span class="self">self</span>.groups
-			.get(group)
-			.map_or(<span class="bool-val">false</span>, |g| g.iter().position(|a| a == authority).is_some())
+		<span class="self">self</span>.groups.get(group).map_or(<span class="bool-val">false</span>, |g| g.iter().any(|a| a == authority))
 	}
 
 	<span class="kw">fn </span>requisite_votes(<span class="kw-2">&amp;</span><span class="self">self</span>, group: <span class="kw-2">&amp;</span>ParaId) -&gt; usize {
@@ -1847,7 +1843,7 @@
 </span><span class="kw">fn </span>primitive_statement_to_table(s: <span class="kw-2">&amp;</span>SignedFullStatement) -&gt; TableSignedStatement {
 	<span class="kw">let </span>statement = <span class="kw">match </span>s.payload() {
 		Statement::Seconded(c) =&gt; TableStatement::Seconded(c.clone()),
-		Statement::Valid(h) =&gt; TableStatement::Valid(h.clone()),
+		Statement::Valid(h) =&gt; TableStatement::Valid(<span class="kw-2">*</span>h),
 	};
 
 	TableSignedStatement {

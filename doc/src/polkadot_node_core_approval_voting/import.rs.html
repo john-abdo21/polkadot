@@ -1352,9 +1352,6 @@
 <a href="#1352" id="1352">1352</a>
 <a href="#1353" id="1353">1353</a>
 <a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
-<a href="#1356" id="1356">1356</a>
-<a href="#1357" id="1357">1357</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1772,11 +1769,8 @@
 				<span class="prelude-val">Err</span>(error) =&gt; {
 					<span class="comment">// It&#39;s possible that we&#39;ve lost a race with finality.
 					</span><span class="kw">let </span>(tx, rx) = oneshot::channel();
-					ctx.send_message(ChainApiMessage::FinalizedBlockHash(
-						block_header.number.clone(),
-						tx,
-					))
-					.<span class="kw">await</span>;
+					ctx.send_message(ChainApiMessage::FinalizedBlockHash(block_header.number, tx))
+						.<span class="kw">await</span>;
 
 					<span class="kw">let </span>lost_to_finality = <span class="kw">match </span>rx.<span class="kw">await </span>{
 						<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(h))) <span class="kw">if </span>h != block_hash =&gt; <span class="bool-val">true</span>,

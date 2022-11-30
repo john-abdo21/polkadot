@@ -88,12 +88,6 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -127,19 +121,17 @@
 		<span class="kw">for </span>(para_id, leases) <span class="kw">in </span>Leases::&lt;T&gt;::iter() {
 			<span class="kw">let </span>old_fund_account = old_fund_account_id::&lt;T&gt;(para_id);
 
-			<span class="kw">for </span>maybe_deposit <span class="kw">in </span>leases.iter() {
-				<span class="kw">if let </span><span class="prelude-val">Some</span>((who, _amount)) = maybe_deposit {
-					<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
-						<span class="kw">let </span>crowdloan =
-							crowdloan::Funds::&lt;T&gt;::get(para_id).ok_or(<span class="string">&quot;no crowdloan found&quot;</span>)<span class="question-mark">?</span>;
-						<span class="macro">log::info!</span>(
-							target: <span class="string">&quot;runtime&quot;</span>,
-							<span class="string">&quot;para_id={:?}, old_fund_account={:?}, fund_id={:?}, leases={:?}&quot;</span>,
-							para_id, old_fund_account, crowdloan.fund_index, leases,
-						);
-						<span class="kw">break
-					</span>}
-				}
+			<span class="kw">for </span>(who, _amount) <span class="kw">in </span>leases.iter().flatten() {
+				<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
+					<span class="kw">let </span>crowdloan =
+						crowdloan::Funds::&lt;T&gt;::get(para_id).ok_or(<span class="string">&quot;no crowdloan found&quot;</span>)<span class="question-mark">?</span>;
+					<span class="macro">log::info!</span>(
+						target: <span class="string">&quot;runtime&quot;</span>,
+						<span class="string">&quot;para_id={:?}, old_fund_account={:?}, fund_id={:?}, leases={:?}&quot;</span>,
+						para_id, old_fund_account, crowdloan.fund_index, leases,
+					);
+					<span class="kw">break
+				</span>}
 			}
 		}
 
@@ -157,11 +149,9 @@
 				<span class="kw">let </span>new_fund_account = crowdloan::Pallet::&lt;T&gt;::fund_account_id(fund.fund_index);
 
 				<span class="comment">// look for places the old account is used, and replace with the new account.
-				</span><span class="kw">for </span>maybe_deposit <span class="kw">in </span>leases.iter_mut() {
-					<span class="kw">if let </span><span class="prelude-val">Some</span>((who, _amount)) = maybe_deposit {
-						<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
-							<span class="kw-2">*</span>who = new_fund_account.clone();
-						}
+				</span><span class="kw">for </span>(who, _amount) <span class="kw">in </span>leases.iter_mut().flatten() {
+					<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
+						<span class="kw-2">*</span>who = new_fund_account.clone();
 					}
 				}
 
@@ -179,11 +169,9 @@
 			<span class="kw">let </span>old_fund_account = old_fund_account_id::&lt;T&gt;(para_id);
 			<span class="macro">log::info!</span>(target: <span class="string">&quot;runtime&quot;</span>, <span class="string">&quot;checking para_id: {:?}&quot;</span>, para_id);
 			<span class="comment">// check the old fund account doesn&#39;t exist anywhere.
-			</span><span class="kw">for </span>maybe_deposit <span class="kw">in </span>leases.iter() {
-				<span class="kw">if let </span><span class="prelude-val">Some</span>((who, _amount)) = maybe_deposit {
-					<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
-						<span class="macro">panic!</span>(<span class="string">&quot;old fund account found after migration!&quot;</span>);
-					}
+			</span><span class="kw">for </span>(who, _amount) <span class="kw">in </span>leases.iter().flatten() {
+				<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
+					<span class="macro">panic!</span>(<span class="string">&quot;old fund account found after migration!&quot;</span>);
 				}
 			}
 		}

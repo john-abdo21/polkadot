@@ -1052,9 +1052,6 @@
 <a href="#1052" id="1052">1052</a>
 <a href="#1053" id="1053">1053</a>
 <a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1618,7 +1615,7 @@
 	<span class="kw">let </span>wire_message = protocol_v1::CollatorProtocolMessage::AdvertiseCollation(relay_parent);
 
 	ctx.send_message(NetworkBridgeTxMessage::SendCollationMessage(
-		<span class="macro">vec!</span>[peer.clone()],
+		<span class="macro">vec!</span>[peer],
 		Versioned::V1(protocol_v1::CollationProtocol::CollatorProtocol(wire_message)),
 	))
 	.<span class="kw">await</span>;
@@ -1764,11 +1761,8 @@
 				<span class="string">&quot;AdvertiseCollation message is not expected on the collator side of the protocol&quot;</span>,
 			);
 
-			ctx.send_message(NetworkBridgeTxMessage::ReportPeer(
-				origin.clone(),
-				COST_UNEXPECTED_MESSAGE,
-			))
-			.<span class="kw">await</span>;
+			ctx.send_message(NetworkBridgeTxMessage::ReportPeer(origin, COST_UNEXPECTED_MESSAGE))
+				.<span class="kw">await</span>;
 
 			<span class="comment">// If we are advertised to, this is another collator, and we should disconnect.
 			</span>ctx.send_message(NetworkBridgeTxMessage::DisconnectPeer(origin, PeerSet::Collation))
@@ -1895,14 +1889,14 @@
 	peer_id: PeerId,
 	view: View,
 ) {
-	<span class="kw">let </span>current = state.peer_views.entry(peer_id.clone()).or_default();
+	<span class="kw">let </span>current = state.peer_views.entry(peer_id).or_default();
 
 	<span class="kw">let </span>added: Vec&lt;Hash&gt; = view.difference(<span class="kw-2">&amp;*</span>current).cloned().collect();
 
 	<span class="kw-2">*</span>current = view;
 
 	<span class="kw">for </span>added <span class="kw">in </span>added.into_iter() {
-		advertise_collation(ctx, state, added, peer_id.clone()).<span class="kw">await</span>;
+		advertise_collation(ctx, state, added, peer_id).<span class="kw">await</span>;
 	}
 }
 

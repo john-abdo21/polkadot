@@ -177,12 +177,6 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -252,13 +246,11 @@
 
 			<span class="kw">let </span>leases = Leases::&lt;T&gt;::get(para_id).unwrap_or_default();
 			<span class="kw">let </span><span class="kw-2">mut </span>found_lease_deposit = <span class="bool-val">false</span>;
-			<span class="kw">for </span>maybe_deposit <span class="kw">in </span>leases.iter() {
-				<span class="kw">if let </span><span class="prelude-val">Some</span>((who, _amount)) = maybe_deposit {
-					<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
-						found_lease_deposit = <span class="bool-val">true</span>;
-						<span class="kw">break
-					</span>}
-				}
+			<span class="kw">for </span>(who, _amount) <span class="kw">in </span>leases.iter().flatten() {
+				<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
+					found_lease_deposit = <span class="bool-val">true</span>;
+					<span class="kw">break
+				</span>}
 			}
 			<span class="kw">if </span>found_lease_deposit {
 				<span class="macro">log::info!</span>(
@@ -297,11 +289,9 @@
 			weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">2</span>));
 
 			<span class="kw">let </span><span class="kw-2">mut </span>leases = Leases::&lt;T&gt;::get(para_id).unwrap_or_default();
-			<span class="kw">for </span>maybe_deposit <span class="kw">in </span>leases.iter_mut() {
-				<span class="kw">if let </span><span class="prelude-val">Some</span>((who, _amount)) = maybe_deposit {
-					<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
-						<span class="kw-2">*</span>who = new_fund_account.clone();
-					}
+			<span class="kw">for </span>(who, _amount) <span class="kw">in </span>leases.iter_mut().flatten() {
+				<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
+					<span class="kw-2">*</span>who = new_fund_account.clone();
 				}
 			}
 
@@ -347,13 +337,11 @@
 
 			<span class="kw">let </span>leases = Leases::&lt;T&gt;::get(para_id).unwrap_or_default();
 			<span class="kw">let </span><span class="kw-2">mut </span>new_account_found = <span class="bool-val">false</span>;
-			<span class="kw">for </span>maybe_deposit <span class="kw">in </span>leases.iter() {
-				<span class="kw">if let </span><span class="prelude-val">Some</span>((who, _amount)) = maybe_deposit {
-					<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
-						<span class="macro">panic!</span>(<span class="string">&quot;Old fund account found after migration!&quot;</span>);
-					} <span class="kw">else if </span><span class="kw-2">*</span>who == new_fund_account {
-						new_account_found = <span class="bool-val">true</span>;
-					}
+			<span class="kw">for </span>(who, _amount) <span class="kw">in </span>leases.iter().flatten() {
+				<span class="kw">if </span><span class="kw-2">*</span>who == old_fund_account {
+					<span class="macro">panic!</span>(<span class="string">&quot;Old fund account found after migration!&quot;</span>);
+				} <span class="kw">else if </span><span class="kw-2">*</span>who == new_fund_account {
+					new_account_found = <span class="bool-val">true</span>;
 				}
 			}
 			<span class="kw">if </span>new_account_found {

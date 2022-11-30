@@ -1077,7 +1077,6 @@
 <a href="#1077" id="1077">1077</a>
 <a href="#1078" id="1078">1078</a>
 <a href="#1079" id="1079">1079</a>
-<a href="#1080" id="1080">1080</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1418,8 +1417,7 @@
 					index: validator_index,
 				};
 
-				<span class="kw">let </span>(req, res) =
-					OutgoingRequest::new(Recipient::Authority(validator), raw_request.clone());
+				<span class="kw">let </span>(req, res) = OutgoingRequest::new(Recipient::Authority(validator), raw_request);
 				requests.push(Requests::ChunkFetchingV1(req));
 
 				params.metrics.on_chunk_request_issued();
@@ -2053,7 +2051,7 @@
 	ctx.send_message(AvailabilityStoreMessage::QueryAvailableData(candidate_hash, tx))
 		.<span class="kw">await</span>;
 
-	<span class="prelude-val">Ok</span>(rx.<span class="kw">await</span>.map_err(error::Error::CanceledQueryFullData)<span class="question-mark">?</span>)
+	rx.<span class="kw">await</span>.map_err(error::Error::CanceledQueryFullData)
 }
 
 <span class="attr">#[overseer::contextbounds(AvailabilityRecovery, prefix = <span class="self">self</span>::overseer)]

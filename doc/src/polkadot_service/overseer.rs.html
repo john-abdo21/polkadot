@@ -504,7 +504,7 @@
 
 <span class="doccomment">/// Obtain a prepared `OverseerBuilder`, that is initialized
 /// with all default values.
-</span><span class="kw">pub fn </span>prepared_overseer_builder&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;(
+</span><span class="kw">pub fn </span>prepared_overseer_builder&lt;Spawner, RuntimeClient&gt;(
 	OverseerGenArgs {
 		leaves,
 		keystore,
@@ -530,7 +530,7 @@
 		overseer_message_channel_capacity_override,
 		req_protocol_names,
 		peerset_protocol_names,
-	}: OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;,
+	}: OverseerGenArgs&lt;Spawner, RuntimeClient&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
 	InitializedOverseerBuilder&lt;
 		SpawnGlue&lt;Spawner&gt;,
@@ -632,7 +632,7 @@
 		.collator_protocol({
 			<span class="kw">let </span>side = <span class="kw">match </span>is_collator {
 				IsCollator::Yes(collator_pair) =&gt; ProtocolSide::Collator(
-					network_service.local_peer_id().clone(),
+					network_service.local_peer_id(),
 					collator_pair,
 					collation_req_receiver,
 					Metrics::register(registry)<span class="question-mark">?</span>,
@@ -709,10 +709,10 @@
 /// would do.
 </span><span class="kw">pub trait </span>OverseerGen {
 	<span class="doccomment">/// Overwrite the full generation of the overseer, including the subsystems.
-	</span><span class="kw">fn </span>generate&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;(
+	</span><span class="kw">fn </span>generate&lt;Spawner, RuntimeClient&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		connector: OverseerConnector,
-		args: OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;,
+		args: OverseerGenArgs&lt;Spawner, RuntimeClient&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;RuntimeClient&gt;&gt;, OverseerHandle), Error&gt;
 	<span class="kw">where
 		</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
@@ -733,10 +733,10 @@
 </span><span class="kw">pub struct </span>RealOverseerGen;
 
 <span class="kw">impl </span>OverseerGen <span class="kw">for </span>RealOverseerGen {
-	<span class="kw">fn </span>generate&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;(
+	<span class="kw">fn </span>generate&lt;Spawner, RuntimeClient&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		connector: OverseerConnector,
-		args: OverseerGenArgs&lt;<span class="lifetime">&#39;a</span>, Spawner, RuntimeClient&gt;,
+		args: OverseerGenArgs&lt;Spawner, RuntimeClient&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;RuntimeClient&gt;&gt;, OverseerHandle), Error&gt;
 	<span class="kw">where
 		</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,

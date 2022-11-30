@@ -1837,7 +1837,7 @@
 		METRICS.on_candidates_sanitized(backed_candidates.len() <span class="kw">as </span>u64);
 
 		<span class="comment">// Process backed candidates according to scheduled cores.
-		</span><span class="kw">let </span>parent_storage_root = parent_header.state_root().clone();
+		</span><span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
 		<span class="kw">let </span>inclusion::ProcessedCandidates::&lt;&lt;T::Header <span class="kw">as </span>HeaderT&gt;::Hash&gt; {
 			core_indices: occupied,
 			candidate_receipt_with_backing_validator_indices,
@@ -2035,7 +2035,7 @@
 			<span class="kw">let </span>scheduled = &lt;scheduler::Pallet&lt;T&gt;&gt;::scheduled();
 
 			<span class="kw">let </span>relay_parent_number = now - One::one();
-			<span class="kw">let </span>parent_storage_root = parent_header.state_root().clone();
+			<span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
 
 			<span class="kw">let </span>check_ctx = CandidateCheckContext::&lt;T&gt;::new(now, relay_parent_number);
 			<span class="kw">let </span>backed_candidates = sanitize_backed_candidates::&lt;T, <span class="kw">_</span>&gt;(
@@ -2525,7 +2525,7 @@
 	// known 2 epochs ago. it is marginally better than using the parent block
 	// hash since it&#39;s harder to influence the VRF output than the block hash.
 	</span><span class="kw">let </span>vrf_random = ParentBlockRandomness::&lt;T&gt;::random(<span class="kw-2">&amp;</span>CANDIDATE_SEED_SUBJECT[..]).<span class="number">0</span>;
-	<span class="kw">let </span><span class="kw-2">mut </span>entropy: [u8; <span class="number">32</span>] = CANDIDATE_SEED_SUBJECT.clone();
+	<span class="kw">let </span><span class="kw-2">mut </span>entropy: [u8; <span class="number">32</span>] = CANDIDATE_SEED_SUBJECT;
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(vrf_random) = vrf_random {
 		entropy.as_mut().copy_from_slice(vrf_random.as_ref());
 	} <span class="kw">else </span>{

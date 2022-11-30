@@ -1334,6 +1334,10 @@
 <a href="#1334" id="1334">1334</a>
 <a href="#1335" id="1335">1335</a>
 <a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2049,20 +2053,22 @@
 			</span><span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
 		}
 
-		<span class="kw">let </span>env =
-			<span class="kw">match </span>CandidateEnvironment::new(<span class="kw-2">&amp;*</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;</span><span class="self">self</span>.rolling_session_window, session)
-			{
-				<span class="prelude-val">None </span>=&gt; {
-					<span class="macro">gum::warn!</span>(
-						target: LOG_TARGET,
-						session,
-						<span class="string">&quot;We are lacking a `SessionInfo` for handling import of statements.&quot;
-					</span>);
+		<span class="kw">let </span>env = <span class="kw">match </span>CandidateEnvironment::new(
+			<span class="kw-2">&amp;</span><span class="self">self</span>.keystore,
+			<span class="kw-2">&amp;</span><span class="self">self</span>.rolling_session_window,
+			session,
+		) {
+			<span class="prelude-val">None </span>=&gt; {
+				<span class="macro">gum::warn!</span>(
+					target: LOG_TARGET,
+					session,
+					<span class="string">&quot;We are lacking a `SessionInfo` for handling import of statements.&quot;
+				</span>);
 
-					<span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
-				},
-				<span class="prelude-val">Some</span>(env) =&gt; env,
-			};
+				<span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
+			},
+			<span class="prelude-val">Some</span>(env) =&gt; env,
+		};
 
 		<span class="kw">let </span>candidate_hash = candidate_receipt.hash();
 
@@ -2411,20 +2417,22 @@
 			<span class="string">&quot;Issuing local statement for candidate!&quot;
 		</span>);
 		<span class="comment">// Load environment:
-		</span><span class="kw">let </span>env =
-			<span class="kw">match </span>CandidateEnvironment::new(<span class="kw-2">&amp;*</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;</span><span class="self">self</span>.rolling_session_window, session)
-			{
-				<span class="prelude-val">None </span>=&gt; {
-					<span class="macro">gum::warn!</span>(
-						target: LOG_TARGET,
-						session,
-						<span class="string">&quot;Missing info for session which has an active dispute&quot;</span>,
-					);
+		</span><span class="kw">let </span>env = <span class="kw">match </span>CandidateEnvironment::new(
+			<span class="kw-2">&amp;</span><span class="self">self</span>.keystore,
+			<span class="kw-2">&amp;</span><span class="self">self</span>.rolling_session_window,
+			session,
+		) {
+			<span class="prelude-val">None </span>=&gt; {
+				<span class="macro">gum::warn!</span>(
+					target: LOG_TARGET,
+					session,
+					<span class="string">&quot;Missing info for session which has an active dispute&quot;</span>,
+				);
 
-					<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-				},
-				<span class="prelude-val">Some</span>(env) =&gt; env,
-			};
+				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
+			},
+			<span class="prelude-val">Some</span>(env) =&gt; env,
+		};
 
 		<span class="kw">let </span>votes = overlay_db
 			.load_candidate_votes(session, <span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">?
@@ -2593,7 +2601,7 @@
 				votes.invalid.iter().next().ok_or(DisputeMessageCreationError::NoOppositeVote)<span class="question-mark">?</span>;
 			<span class="kw">let </span>other_vote = SignedDisputeStatement::new_checked(
 				DisputeStatement::Invalid(<span class="kw-2">*</span>statement_kind),
-				our_vote.candidate_hash().clone(),
+				<span class="kw-2">*</span>our_vote.candidate_hash(),
 				our_vote.session_index(),
 				validators
 					.get(<span class="kw-2">*</span>validator_index)
@@ -2608,7 +2616,7 @@
 				votes.valid.iter().next().ok_or(DisputeMessageCreationError::NoOppositeVote)<span class="question-mark">?</span>;
 			<span class="kw">let </span>other_vote = SignedDisputeStatement::new_checked(
 				DisputeStatement::Valid(<span class="kw-2">*</span>statement_kind),
-				our_vote.candidate_hash().clone(),
+				<span class="kw-2">*</span>our_vote.candidate_hash(),
 				our_vote.session_index(),
 				validators
 					.get(<span class="kw-2">*</span>validator_index)

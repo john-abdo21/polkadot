@@ -1501,20 +1501,6 @@
 <a href="#1501" id="1501">1501</a>
 <a href="#1502" id="1502">1502</a>
 <a href="#1503" id="1503">1503</a>
-<a href="#1504" id="1504">1504</a>
-<a href="#1505" id="1505">1505</a>
-<a href="#1506" id="1506">1506</a>
-<a href="#1507" id="1507">1507</a>
-<a href="#1508" id="1508">1508</a>
-<a href="#1509" id="1509">1509</a>
-<a href="#1510" id="1510">1510</a>
-<a href="#1511" id="1511">1511</a>
-<a href="#1512" id="1512">1512</a>
-<a href="#1513" id="1513">1513</a>
-<a href="#1514" id="1514">1514</a>
-<a href="#1515" id="1515">1515</a>
-<a href="#1516" id="1516">1516</a>
-<a href="#1517" id="1517">1517</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1804,7 +1790,7 @@
 			PeerState::Collating(<span class="kw-2">ref mut </span>state) =&gt;
 				<span class="kw">if </span>state.advertisements.insert(on_relay_parent) {
 					state.last_active = Instant::now();
-					<span class="prelude-val">Ok</span>((state.collator_id.clone(), state.para_id.clone()))
+					<span class="prelude-val">Ok</span>((state.collator_id.clone(), state.para_id))
 				} <span class="kw">else </span>{
 					<span class="prelude-val">Err</span>(AdvertisementError::Duplicate)
 				},
@@ -1892,22 +1878,19 @@
 				.<span class="kw">await
 				</span>.<span class="kw">await
 				</span>.ok()
-				.map(|x| x.ok())
-				.flatten();
+				.and_then(|x| x.ok());
 
 			<span class="kw">let </span>mg = polkadot_node_subsystem_util::request_validator_groups(relay_parent, sender)
 				.<span class="kw">await
 				</span>.<span class="kw">await
 				</span>.ok()
-				.map(|x| x.ok())
-				.flatten();
+				.and_then(|x| x.ok());
 
 			<span class="kw">let </span>mc = polkadot_node_subsystem_util::request_availability_cores(relay_parent, sender)
 				.<span class="kw">await
 				</span>.<span class="kw">await
 				</span>.ok()
-				.map(|x| x.ok())
-				.flatten();
+				.and_then(|x| x.ok());
 
 			<span class="kw">let </span>(validators, groups, rotation_info, cores) = <span class="kw">match </span>(mv, mg, mc) {
 				(<span class="prelude-val">Some</span>(v), <span class="prelude-val">Some</span>((g, r)), <span class="prelude-val">Some</span>(c)) =&gt; (v, g, r, c),
@@ -2003,12 +1986,7 @@
 
 <span class="kw">impl </span>PendingCollation {
 	<span class="kw">fn </span>new(relay_parent: Hash, para_id: <span class="kw-2">&amp;</span>ParaId, peer_id: <span class="kw-2">&amp;</span>PeerId) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{
-			relay_parent,
-			para_id: para_id.clone(),
-			peer_id: peer_id.clone(),
-			commitments_hash: <span class="prelude-val">None</span>,
-		}
+		<span class="self">Self </span>{ relay_parent, para_id: <span class="kw-2">*</span>para_id, peer_id: <span class="kw-2">*</span>peer_id, commitments_hash: <span class="prelude-val">None </span>}
 	}
 }
 
@@ -2146,9 +2124,9 @@
 	peer_data: <span class="kw-2">&amp;</span>HashMap&lt;PeerId, PeerData&gt;,
 	collator_id: <span class="kw-2">&amp;</span>CollatorId,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;PeerId&gt; {
-	peer_data.iter().find_map(|(peer, data)| {
-		data.collator_id().filter(|c| c == <span class="kw-2">&amp;</span>collator_id).map(|<span class="kw">_</span>| peer.clone())
-	})
+	peer_data
+		.iter()
+		.find_map(|(peer, data)| data.collator_id().filter(|c| c == <span class="kw-2">&amp;</span>collator_id).map(|<span class="kw">_</span>| <span class="kw-2">*</span>peer))
 }
 
 <span class="kw">async fn </span>disconnect_peer(sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::CollatorProtocolSenderTrait, peer_id: PeerId) {
@@ -2172,9 +2150,7 @@
 		Delay::new(MAX_UNSHARED_DOWNLOAD_TIME).<span class="kw">await</span>;
 		(collator_id, relay_parent)
 	};
-	state
-		.collation_fetch_timeouts
-		.push(timeout(id.clone(), relay_parent.clone()).boxed());
+	state.collation_fetch_timeouts.push(timeout(id.clone(), relay_parent).boxed());
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(peer_data) = state.peer_data.get(<span class="kw-2">&amp;</span>peer_id) {
 		<span class="kw">if </span>peer_data.has_advertised(<span class="kw-2">&amp;</span>relay_parent) {
@@ -2246,7 +2222,7 @@
 ///  - Ongoing collation requests have to be canceled.
 ///  - Advertisements by this peer that are no longer relevant have to be removed.
 </span><span class="kw">async fn </span>handle_peer_view_change(state: <span class="kw-2">&amp;mut </span>State, peer_id: PeerId, view: View) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-	<span class="kw">let </span>peer_data = state.peer_data.entry(peer_id.clone()).or_default();
+	<span class="kw">let </span>peer_data = state.peer_data.entry(peer_id).or_default();
 
 	peer_data.update_view(view);
 	state
@@ -2400,7 +2376,7 @@
 					<span class="string">&quot;Declared as collator for unneeded para&quot;</span>,
 				);
 
-				modify_reputation(ctx.sender(), origin.clone(), COST_UNNEEDED_COLLATOR).<span class="kw">await</span>;
+				modify_reputation(ctx.sender(), origin, COST_UNNEEDED_COLLATOR).<span class="kw">await</span>;
 				<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Disconnecting unneeded collator&quot;</span>);
 				disconnect_peer(ctx.sender(), origin).<span class="kw">await</span>;
 			}
@@ -2530,7 +2506,7 @@
 		.span_per_head()
 		.iter()
 		.filter(|v| !old_view.contains(<span class="kw-2">&amp;</span>v.<span class="number">0</span>))
-		.map(|v| (v.<span class="number">0</span>.clone(), v.<span class="number">1</span>.clone()))
+		.map(|v| (<span class="kw-2">*</span>v.<span class="number">0</span>, v.<span class="number">1</span>.clone()))
 		.collect();
 
 	added.into_iter().for_each(|(h, s)| {
@@ -2563,7 +2539,7 @@
 					<span class="question-mark">?</span>para_id,
 					<span class="string">&quot;Disconnecting peer on view change (not current parachain id)&quot;
 				</span>);
-				disconnect_peer(ctx.sender(), peer_id.clone()).<span class="kw">await</span>;
+				disconnect_peer(ctx.sender(), <span class="kw-2">*</span>peer_id).<span class="kw">await</span>;
 			}
 		}
 	}
@@ -2771,7 +2747,7 @@
 			retained_requested.insert(pending_collation.clone());
 		}
 		<span class="kw">if let </span>CollationFetchResult::Error(<span class="prelude-val">Some</span>(rep)) = result {
-			reputation_changes.push((pending_collation.peer_id.clone(), rep));
+			reputation_changes.push((pending_collation.peer_id, rep));
 		}
 	}
 	requested_collations.retain(|k, <span class="kw">_</span>| retained_requested.contains(k));
@@ -2854,11 +2830,7 @@
 	<span class="kw">if let </span>Entry::Vacant(entry) = state.pending_candidates.entry(relay_parent) {
 		collation_event.<span class="number">1</span>.commitments_hash = <span class="prelude-val">Some</span>(candidate_receipt.commitments_hash);
 		ctx.sender()
-			.send_message(CandidateBackingMessage::Second(
-				relay_parent.clone(),
-				candidate_receipt,
-				pov,
-			))
+			.send_message(CandidateBackingMessage::Second(relay_parent, candidate_receipt, pov))
 			.<span class="kw">await</span>;
 
 		entry.insert(collation_event);
@@ -2883,7 +2855,7 @@
 	<span class="kw">for </span>(peer, peer_data) <span class="kw">in </span>peers {
 		<span class="kw">if </span>peer_data.is_inactive(<span class="kw-2">&amp;</span>eviction_policy) {
 			<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Disconnecting inactive peer&quot;</span>);
-			disconnect_peer(sender, peer.clone()).<span class="kw">await</span>;
+			disconnect_peer(sender, <span class="kw-2">*</span>peer).<span class="kw">await</span>;
 		}
 	}
 }

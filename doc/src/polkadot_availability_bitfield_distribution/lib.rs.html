@@ -781,11 +781,6 @@
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1107,7 +1102,7 @@
 	</span>}
 
 	<span class="kw">let </span>validator_index = signed_availability.validator_index();
-	<span class="kw">let </span>validator = <span class="kw">if let </span><span class="prelude-val">Some</span>(validator) = validator_set.get(<span class="kw-2">*&amp;</span>validator_index.<span class="number">0 </span><span class="kw">as </span>usize) {
+	<span class="kw">let </span>validator = <span class="kw">if let </span><span class="prelude-val">Some</span>(validator) = validator_set.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize) {
 		validator.clone()
 	} <span class="kw">else </span>{
 		<span class="macro">gum::debug!</span>(target: LOG_TARGET, validator_index = <span class="question-mark">?</span>validator_index.<span class="number">0</span>, <span class="string">&quot;Could not find a validator for index&quot;</span>);
@@ -1183,7 +1178,7 @@
 					};
 
 					<span class="kw">if </span>need_routing {
-						<span class="prelude-val">Some</span>(peer.clone())
+						<span class="prelude-val">Some</span>(<span class="kw-2">*</span>peer)
 					} <span class="kw">else </span>{
 						<span class="prelude-val">None
 					</span>}
@@ -1200,7 +1195,7 @@
 		<span class="comment">// track the message as sent for this peer
 		</span>job_data
 			.message_sent_to_peer
-			.entry(peer.clone())
+			.entry(<span class="kw-2">*</span>peer)
 			.or_default()
 			.insert(validator.clone());
 	});
@@ -1285,7 +1280,7 @@
 	<span class="comment">// Check if the peer already sent us a message for the validator denoted in the message earlier.
 	// Must be done after validator index verification, in order to avoid storing an unbounded
 	// number of set entries.
-	</span><span class="kw">let </span>received_set = job_data.message_received_from_peer.entry(origin.clone()).or_default();
+	</span><span class="kw">let </span>received_set = job_data.message_received_from_peer.entry(origin).or_default();
 
 	<span class="kw">if </span>!received_set.contains(<span class="kw-2">&amp;</span>validator) {
 		received_set.insert(validator.clone());
@@ -1444,7 +1439,7 @@
 ) {
 	<span class="kw">let </span>added = state
 		.peer_views
-		.entry(origin.clone())
+		.entry(origin)
 		.or_default()
 		.replace_difference(view)
 		.cloned()
@@ -1469,11 +1464,10 @@
 	</span><span class="kw">let </span>delta_set: Vec&lt;(ValidatorId, BitfieldGossipMessage)&gt; = added
 		.into_iter()
 		.filter_map(|new_relay_parent_interest| {
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(job_data) = (<span class="kw-2">&amp;*</span>state).per_relay_parent.get(<span class="kw-2">&amp;</span>new_relay_parent_interest) {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(job_data) = state.per_relay_parent.get(<span class="kw-2">&amp;</span>new_relay_parent_interest) {
 				<span class="comment">// Send all jointly known messages for a validator (given the current relay parent)
 				// to the peer `origin`...
 				</span><span class="kw">let </span>one_per_validator = job_data.one_per_validator.clone();
-				<span class="kw">let </span>origin = origin.clone();
 				<span class="prelude-val">Some</span>(one_per_validator.into_iter().filter(<span class="kw">move </span>|(validator, _message)| {
 					<span class="comment">// ..except for the ones the peer already has.
 					</span>job_data.message_from_validator_needed_by_peer(<span class="kw-2">&amp;</span>origin, validator)
@@ -1487,7 +1481,7 @@
 		.collect();
 
 	<span class="kw">for </span>(validator, message) <span class="kw">in </span>delta_set.into_iter() {
-		send_tracked_gossip_message(ctx, state, origin.clone(), validator, message).<span class="kw">await</span>;
+		send_tracked_gossip_message(ctx, state, origin, validator, message).<span class="kw">await</span>;
 	}
 }
 
@@ -1515,11 +1509,7 @@
 		<span class="string">&quot;Sending gossip message&quot;
 	</span>);
 
-	job_data
-		.message_sent_to_peer
-		.entry(dest.clone())
-		.or_default()
-		.insert(validator.clone());
+	job_data.message_sent_to_peer.entry(dest).or_default().insert(validator.clone());
 
 	ctx.send_message(NetworkBridgeTxMessage::SendValidationMessage(
 		<span class="macro">vec!</span>[dest],
@@ -1548,14 +1538,14 @@
 
 	<span class="comment">// query validators
 	</span>ctx.send_message(RuntimeApiMessage::Request(
-		relay_parent.clone(),
+		relay_parent,
 		RuntimeApiRequest::Validators(validators_tx),
 	))
 	.<span class="kw">await</span>;
 
 	<span class="comment">// query signing context
 	</span>ctx.send_message(RuntimeApiMessage::Request(
-		relay_parent.clone(),
+		relay_parent,
 		RuntimeApiRequest::SessionIndexForChild(session_tx),
 	))
 	.<span class="kw">await</span>;

@@ -1758,12 +1758,6 @@
 <a href="#1758" id="1758">1758</a>
 <a href="#1759" id="1759">1759</a>
 <a href="#1760" id="1760">1760</a>
-<a href="#1761" id="1761">1761</a>
-<a href="#1762" id="1762">1762</a>
-<a href="#1763" id="1763">1763</a>
-<a href="#1764" id="1764">1764</a>
-<a href="#1765" id="1765">1765</a>
-<a href="#1766" id="1766">1766</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2075,7 +2069,7 @@
 <span class="kw">impl </span>MessageSource {
 	<span class="kw">fn </span>peer_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PeerId&gt; {
 		<span class="kw">match </span><span class="self">self </span>{
-			<span class="self">Self</span>::Peer(id) =&gt; <span class="prelude-val">Some</span>(id.clone()),
+			<span class="self">Self</span>::Peer(id) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>id),
 			<span class="self">Self</span>::Local =&gt; <span class="prelude-val">None</span>,
 		}
 	}
@@ -2155,7 +2149,7 @@
 	) {
 		<span class="kw">let </span><span class="kw-2">mut </span>new_hashes = HashSet::new();
 		<span class="kw">for </span>meta <span class="kw">in </span><span class="kw-2">&amp;</span>metas {
-			<span class="kw">match </span><span class="self">self</span>.blocks.entry(meta.hash.clone()) {
+			<span class="kw">match </span><span class="self">self</span>.blocks.entry(meta.hash) {
 				hash_map::Entry::Vacant(entry) =&gt; {
 					<span class="kw">let </span>candidates_count = meta.candidates.len();
 					<span class="kw">let </span><span class="kw-2">mut </span>candidates = Vec::with_capacity(candidates_count);
@@ -2164,7 +2158,7 @@
 					entry.insert(BlockEntry {
 						known_by: HashMap::new(),
 						number: meta.number,
-						parent_hash: meta.parent_hash.clone(),
+						parent_hash: meta.parent_hash,
 						knowledge: Knowledge::default(),
 						candidates,
 						session: meta.session,
@@ -2172,7 +2166,7 @@
 
 					<span class="self">self</span>.topologies.inc_session_refs(meta.session);
 
-					new_hashes.insert(meta.hash.clone());
+					new_hashes.insert(meta.hash);
 
 					<span class="comment">// In case there are duplicates, we should only set this if the entry
 					// was vacant.
@@ -2199,7 +2193,7 @@
 					<span class="kw-2">&amp;mut </span><span class="self">self</span>.blocks,
 					<span class="kw-2">&amp;</span><span class="self">self</span>.topologies,
 					<span class="self">self</span>.peer_views.len(),
-					peer_id.clone(),
+					<span class="kw-2">*</span>peer_id,
 					view_intersection,
 					rng,
 				)
@@ -2329,10 +2323,8 @@
 							<span class="string">&quot;Pending assignment&quot;</span>,
 						);
 
-						pending.push((
-							peer_id.clone(),
-							PendingMessage::Assignment(assignment, claimed_index),
-						));
+						pending
+							.push((peer_id, PendingMessage::Assignment(assignment, claimed_index)));
 
 						<span class="kw">continue
 					</span>}
@@ -2340,7 +2332,7 @@
 					<span class="self">self</span>.import_and_circulate_assignment(
 						ctx,
 						metrics,
-						MessageSource::Peer(peer_id.clone()),
+						MessageSource::Peer(peer_id),
 						assignment,
 						claimed_index,
 						rng,
@@ -2370,7 +2362,7 @@
 							<span class="string">&quot;Pending approval&quot;</span>,
 						);
 
-						pending.push((peer_id.clone(), PendingMessage::Approval(approval_vote)));
+						pending.push((peer_id, PendingMessage::Approval(approval_vote)));
 
 						<span class="kw">continue
 					</span>}
@@ -2378,7 +2370,7 @@
 					<span class="self">self</span>.import_and_circulate_approval(
 						ctx,
 						metrics,
-						MessageSource::Peer(peer_id.clone()),
+						MessageSource::Peer(peer_id),
 						approval_vote,
 					)
 					.<span class="kw">await</span>;
@@ -2429,7 +2421,7 @@
 			<span class="kw-2">&amp;mut </span><span class="self">self</span>.blocks,
 			<span class="kw-2">&amp;</span><span class="self">self</span>.topologies,
 			<span class="self">self</span>.peer_views.len(),
-			peer_id.clone(),
+			peer_id,
 			view,
 			rng,
 		)
@@ -2475,7 +2467,7 @@
 	) <span class="kw">where
 		</span>R: CryptoRng + Rng,
 	{
-		<span class="kw">let </span>block_hash = assignment.block_hash.clone();
+		<span class="kw">let </span>block_hash = assignment.block_hash;
 		<span class="kw">let </span>validator_index = assignment.validator;
 
 		<span class="kw">let </span>entry = <span class="kw">match </span><span class="self">self</span>.blocks.get_mut(<span class="kw-2">&amp;</span>block_hash) {
@@ -2503,7 +2495,7 @@
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(peer_id) = source.peer_id() {
 			<span class="comment">// check if our knowledge of the peer already contains this assignment
-			</span><span class="kw">match </span>entry.known_by.entry(peer_id.clone()) {
+			</span><span class="kw">match </span>entry.known_by.entry(peer_id) {
 				hash_map::Entry::Occupied(<span class="kw-2">mut </span>peer_knowledge) =&gt; {
 					<span class="kw">let </span>peer_knowledge = peer_knowledge.get_mut();
 					<span class="kw">if </span>peer_knowledge.contains(<span class="kw-2">&amp;</span>message_subject, message_kind) {
@@ -2527,13 +2519,13 @@
 						<span class="question-mark">?</span>message_subject,
 						<span class="string">&quot;Assignment from a peer is out of view&quot;</span>,
 					);
-					modify_reputation(ctx.sender(), peer_id.clone(), COST_UNEXPECTED_MESSAGE).<span class="kw">await</span>;
+					modify_reputation(ctx.sender(), peer_id, COST_UNEXPECTED_MESSAGE).<span class="kw">await</span>;
 				},
 			}
 
 			<span class="comment">// if the assignment is known to be valid, reward the peer
 			</span><span class="kw">if </span>entry.knowledge.contains(<span class="kw-2">&amp;</span>message_subject, message_kind) {
-				modify_reputation(ctx.sender(), peer_id.clone(), BENEFIT_VALID_MESSAGE).<span class="kw">await</span>;
+				modify_reputation(ctx.sender(), peer_id, BENEFIT_VALID_MESSAGE).<span class="kw">await</span>;
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(peer_knowledge) = entry.known_by.get_mut(<span class="kw-2">&amp;</span>peer_id) {
 					<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>peer_id, <span class="question-mark">?</span>message_subject, <span class="string">&quot;Known assignment&quot;</span>);
 					peer_knowledge.received.insert(message_subject, message_kind);
@@ -2569,8 +2561,7 @@
 			);
 			<span class="kw">match </span>result {
 				AssignmentCheckResult::Accepted =&gt; {
-					modify_reputation(ctx.sender(), peer_id.clone(), BENEFIT_VALID_MESSAGE_FIRST)
-						.<span class="kw">await</span>;
+					modify_reputation(ctx.sender(), peer_id, BENEFIT_VALID_MESSAGE_FIRST).<span class="kw">await</span>;
 					entry.knowledge.known_messages.insert(message_subject.clone(), message_kind);
 					<span class="kw">if let </span><span class="prelude-val">Some</span>(peer_knowledge) = entry.known_by.get_mut(<span class="kw-2">&amp;</span>peer_id) {
 						peer_knowledge.received.insert(message_subject.clone(), message_kind);
@@ -2736,7 +2727,7 @@
 		source: MessageSource,
 		vote: IndirectSignedApprovalVote,
 	) {
-		<span class="kw">let </span>block_hash = vote.block_hash.clone();
+		<span class="kw">let </span>block_hash = vote.block_hash;
 		<span class="kw">let </span>validator_index = vote.validator;
 		<span class="kw">let </span>candidate_index = vote.candidate_index;
 
@@ -2769,7 +2760,7 @@
 			</span>}
 
 			<span class="comment">// check if our knowledge of the peer already contains this approval
-			</span><span class="kw">match </span>entry.known_by.entry(peer_id.clone()) {
+			</span><span class="kw">match </span>entry.known_by.entry(peer_id) {
 				hash_map::Entry::Occupied(<span class="kw-2">mut </span>knowledge) =&gt; {
 					<span class="kw">let </span>peer_knowledge = knowledge.get_mut();
 					<span class="kw">if </span>peer_knowledge.contains(<span class="kw-2">&amp;</span>message_subject, message_kind) {
@@ -2793,14 +2784,14 @@
 						<span class="question-mark">?</span>message_subject,
 						<span class="string">&quot;Approval from a peer is out of view&quot;</span>,
 					);
-					modify_reputation(ctx.sender(), peer_id.clone(), COST_UNEXPECTED_MESSAGE).<span class="kw">await</span>;
+					modify_reputation(ctx.sender(), peer_id, COST_UNEXPECTED_MESSAGE).<span class="kw">await</span>;
 				},
 			}
 
 			<span class="comment">// if the approval is known to be valid, reward the peer
 			</span><span class="kw">if </span>entry.knowledge.contains(<span class="kw-2">&amp;</span>message_subject, message_kind) {
 				<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>peer_id, <span class="question-mark">?</span>message_subject, <span class="string">&quot;Known approval&quot;</span>);
-				modify_reputation(ctx.sender(), peer_id.clone(), BENEFIT_VALID_MESSAGE).<span class="kw">await</span>;
+				modify_reputation(ctx.sender(), peer_id, BENEFIT_VALID_MESSAGE).<span class="kw">await</span>;
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(peer_knowledge) = entry.known_by.get_mut(<span class="kw-2">&amp;</span>peer_id) {
 					peer_knowledge.received.insert(message_subject.clone(), message_kind);
 				}
@@ -2831,8 +2822,7 @@
 			);
 			<span class="kw">match </span>result {
 				ApprovalCheckResult::Accepted =&gt; {
-					modify_reputation(ctx.sender(), peer_id.clone(), BENEFIT_VALID_MESSAGE_FIRST)
-						.<span class="kw">await</span>;
+					modify_reputation(ctx.sender(), peer_id, BENEFIT_VALID_MESSAGE_FIRST).<span class="kw">await</span>;
 
 					entry.knowledge.insert(message_subject.clone(), message_kind);
 					<span class="kw">if let </span><span class="prelude-val">Some</span>(peer_knowledge) = entry.known_by.get_mut(<span class="kw-2">&amp;</span>peer_id) {
@@ -3067,7 +3057,7 @@
 					<span class="kw">break
 				</span>}
 
-				<span class="kw">let </span>peer_knowledge = entry.known_by.entry(peer_id.clone()).or_default();
+				<span class="kw">let </span>peer_knowledge = entry.known_by.entry(peer_id).or_default();
 
 				<span class="kw">let </span>topology = topologies.get_topology(entry.session);
 
@@ -3101,13 +3091,12 @@
 						</span>}
 					}
 
-					<span class="kw">let </span>message_subject =
-						MessageSubject(block.clone(), candidate_index, validator.clone());
+					<span class="kw">let </span>message_subject = MessageSubject(block, candidate_index, <span class="kw-2">*</span>validator);
 
 					<span class="kw">let </span>assignment_message = (
 						IndirectAssignmentCert {
-							block_hash: block.clone(),
-							validator: validator.clone(),
+							block_hash: block,
+							validator: <span class="kw-2">*</span>validator,
 							cert: message_state.approval_state.assignment_cert().clone(),
 						},
 						candidate_index,
@@ -3116,8 +3105,8 @@
 					<span class="kw">let </span>approval_message =
 						message_state.approval_state.approval_signature().map(|signature| {
 							IndirectSignedApprovalVote {
-								block_hash: block.clone(),
-								validator: validator.clone(),
+								block_hash: block,
+								validator: <span class="kw-2">*</span>validator,
 								candidate_index,
 								signature,
 							}
@@ -3140,7 +3129,7 @@
 					}
 				}
 
-				block = entry.parent_hash.clone();
+				block = entry.parent_hash;
 			}
 		}
 
@@ -3154,7 +3143,7 @@
 
 			sender
 				.send_message(NetworkBridgeTxMessage::SendValidationMessage(
-					<span class="macro">vec!</span>[peer_id.clone()],
+					<span class="macro">vec!</span>[peer_id],
 					Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
 						protocol_v1::ApprovalDistributionMessage::Assignments(assignments_to_send),
 					)),
@@ -3324,13 +3313,12 @@
 			};
 
 			<span class="comment">// Propagate the message to all peers in the required routing set.
-			</span><span class="kw">let </span>message_subject =
-				MessageSubject(block_hash.clone(), candidate_index, validator.clone());
+			</span><span class="kw">let </span>message_subject = MessageSubject(<span class="kw-2">*</span>block_hash, candidate_index, <span class="kw-2">*</span>validator);
 
 			<span class="kw">let </span>assignment_message = (
 				IndirectAssignmentCert {
-					block_hash: block_hash.clone(),
-					validator: validator.clone(),
+					block_hash: <span class="kw-2">*</span>block_hash,
+					validator: <span class="kw-2">*</span>validator,
 					cert: message_state.approval_state.assignment_cert().clone(),
 				},
 				candidate_index,
@@ -3338,8 +3326,8 @@
 			<span class="kw">let </span>approval_message =
 				message_state.approval_state.approval_signature().map(|signature| {
 					IndirectSignedApprovalVote {
-						block_hash: block_hash.clone(),
-						validator: validator.clone(),
+						block_hash: <span class="kw-2">*</span>block_hash,
+						validator: <span class="kw-2">*</span>validator,
 						candidate_index,
 						signature,
 					}
@@ -3356,7 +3344,7 @@
 				<span class="kw">if </span>!peer_knowledge.contains(<span class="kw-2">&amp;</span>message_subject, MessageKind::Assignment) {
 					peer_knowledge.sent.insert(message_subject.clone(), MessageKind::Assignment);
 					peer_assignments
-						.entry(peer.clone())
+						.entry(<span class="kw-2">*</span>peer)
 						.or_insert_with(Vec::new)
 						.push(assignment_message.clone());
 				}
@@ -3365,7 +3353,7 @@
 					<span class="kw">if </span>!peer_knowledge.contains(<span class="kw-2">&amp;</span>message_subject, MessageKind::Approval) {
 						peer_knowledge.sent.insert(message_subject.clone(), MessageKind::Approval);
 						peer_approvals
-							.entry(peer.clone())
+							.entry(<span class="kw-2">*</span>peer)
 							.or_insert_with(Vec::new)
 							.push(approval_message.clone());
 					}

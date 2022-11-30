@@ -1069,7 +1069,6 @@
 <a href="#1069" id="1069">1069</a>
 <a href="#1070" id="1070">1070</a>
 <a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1174,7 +1173,7 @@
 
 	<span class="doccomment">/// Get the core index.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>core_occupied(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CoreIndex {
-		<span class="self">self</span>.core.clone()
+		<span class="self">self</span>.core
 	}
 
 	<span class="doccomment">/// Get the candidate hash.
@@ -1455,7 +1454,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>freed_cores = Vec::with_capacity(expected_bits);
 		<span class="kw">for </span>(para_id, pending_availability) <span class="kw">in </span>assigned_paras_record
 			.into_iter()
-			.filter_map(|x| x)
+			.flatten()
 			.filter_map(|(id, p)| p.map(|p| (id, p)))
 		{
 			<span class="kw">if </span>pending_availability.availability_votes.count_ones() &gt;= threshold {
@@ -1716,8 +1715,7 @@
 		};
 
 		<span class="comment">// one more sweep for actually writing to storage.
-		</span><span class="kw">let </span>core_indices =
-			core_indices_and_backers.iter().map(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>c, <span class="kw">_</span>, <span class="kw">_</span>)| c.clone()).collect();
+		</span><span class="kw">let </span>core_indices = core_indices_and_backers.iter().map(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>c, <span class="kw">_</span>, <span class="kw">_</span>)| <span class="kw-2">*</span>c).collect();
 		<span class="kw">for </span>(candidate, (core, backers, group)) <span class="kw">in
 			</span>candidates.into_iter().zip(core_indices_and_backers)
 		{

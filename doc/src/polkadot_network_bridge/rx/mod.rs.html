@@ -1136,7 +1136,7 @@
 						PeerSet::Collation =&gt; <span class="kw-2">&amp;mut </span>shared.collation_peers,
 					};
 
-					<span class="kw">match </span>peer_map.entry(peer.clone()) {
+					<span class="kw">match </span>peer_map.entry(peer) {
 						hash_map::Entry::Occupied(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
 						hash_map::Entry::Vacant(vacant) =&gt; {
 							vacant.insert(PeerData { view: View::default(), version });
@@ -1157,12 +1157,12 @@
 						dispatch_validation_events_to_all(
 							<span class="macro">vec!</span>[
 								NetworkBridgeEvent::PeerConnected(
-									peer.clone(),
+									peer,
 									role,
 									version,
 									maybe_authority,
 								),
-								NetworkBridgeEvent::PeerViewChange(peer.clone(), View::default()),
+								NetworkBridgeEvent::PeerViewChange(peer, View::default()),
 							],
 							<span class="kw-2">&amp;mut </span>sender,
 						)
@@ -1182,12 +1182,12 @@
 						dispatch_collation_events_to_all(
 							<span class="macro">vec!</span>[
 								NetworkBridgeEvent::PeerConnected(
-									peer.clone(),
+									peer,
 									role,
 									version,
 									maybe_authority,
 								),
-								NetworkBridgeEvent::PeerViewChange(peer.clone(), View::default()),
+								NetworkBridgeEvent::PeerViewChange(peer, View::default()),
 							],
 							<span class="kw-2">&amp;mut </span>sender,
 						)
@@ -1344,7 +1344,7 @@
 							<span class="prelude-val">Some</span>(ValidationVersion::V1.into())
 						{
 							handle_v1_peer_messages::&lt;protocol_v1::ValidationProtocol, <span class="kw">_</span>&gt;(
-								remote.clone(),
+								remote,
 								PeerSet::Validation,
 								<span class="kw-2">&amp;mut </span>shared.<span class="number">0</span>.lock().validation_peers,
 								v_messages,
@@ -1365,7 +1365,7 @@
 						};
 
 					<span class="kw">for </span>report <span class="kw">in </span>reports {
-						network_service.report_peer(remote.clone(), report);
+						network_service.report_peer(remote, report);
 					}
 
 					dispatch_validation_events_to_all(events, <span class="kw-2">&amp;mut </span>sender).<span class="kw">await</span>;
@@ -1377,7 +1377,7 @@
 							<span class="prelude-val">Some</span>(CollationVersion::V1.into())
 						{
 							handle_v1_peer_messages::&lt;protocol_v1::CollationProtocol, <span class="kw">_</span>&gt;(
-								remote.clone(),
+								remote,
 								PeerSet::Collation,
 								<span class="kw-2">&amp;mut </span>shared.<span class="number">0</span>.lock().collation_peers,
 								c_messages,
@@ -1398,7 +1398,7 @@
 						};
 
 					<span class="kw">for </span>report <span class="kw">in </span>reports {
-						network_service.report_peer(remote.clone(), report);
+						network_service.report_peer(remote, report);
 					}
 
 					dispatch_collation_events_to_all(events, <span class="kw-2">&amp;mut </span>sender).<span class="kw">await</span>;
@@ -1718,11 +1718,11 @@
 				</span>} <span class="kw">else </span>{
 					peer_data.view = new_view;
 
-					NetworkBridgeEvent::PeerViewChange(peer.clone(), peer_data.view.clone())
+					NetworkBridgeEvent::PeerViewChange(peer, peer_data.view.clone())
 				}
 			},
 			WireMessage::ProtocolMessage(message) =&gt;
-				NetworkBridgeEvent::PeerMessage(peer.clone(), message.into()),
+				NetworkBridgeEvent::PeerMessage(peer, message.into()),
 		})
 	}
 

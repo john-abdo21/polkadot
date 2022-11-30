@@ -2332,10 +2332,10 @@
 
 		<span class="kw">let </span>ingress = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::HrmpIngressChannelsIndex::take(outgoing_para)
 			.into_iter()
-			.map(|sender| HrmpChannelId { sender, recipient: outgoing_para.clone() });
+			.map(|sender| HrmpChannelId { sender, recipient: <span class="kw-2">*</span>outgoing_para });
 		<span class="kw">let </span>egress = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::HrmpEgressChannelsIndex::take(outgoing_para)
 			.into_iter()
-			.map(|recipient| HrmpChannelId { sender: outgoing_para.clone(), recipient });
+			.map(|recipient| HrmpChannelId { sender: <span class="kw-2">*</span>outgoing_para, recipient });
 		<span class="kw">let </span><span class="kw-2">mut </span>to_close = ingress.chain(egress).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 		to_close.sort();
 		to_close.dedup();
@@ -2656,7 +2656,7 @@
 			channel.total_size += inbound.data.len() <span class="kw">as </span>u32;
 
 			<span class="comment">// compute the new MQC head of the channel
-			</span><span class="kw">let </span>prev_head = channel.mqc_head.clone().unwrap_or(Default::default());
+			</span><span class="kw">let </span>prev_head = channel.mqc_head.unwrap_or(Default::default());
 			<span class="kw">let </span>new_head = BlakeTwo256::hash_of(<span class="kw-2">&amp;</span>(
 				prev_head,
 				inbound.sent_at,

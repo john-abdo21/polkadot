@@ -104,11 +104,6 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -197,24 +192,19 @@
 	{
 		<span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
 			NetworkBridgeEvent::PeerMessage(<span class="kw-2">ref </span>peer, <span class="kw-2">ref </span>msg) =&gt;
-				NetworkBridgeEvent::PeerMessage(peer.clone(), T::try_from(msg)<span class="question-mark">?</span>),
+				NetworkBridgeEvent::PeerMessage(<span class="kw-2">*</span>peer, T::try_from(msg)<span class="question-mark">?</span>),
 			NetworkBridgeEvent::PeerConnected(
 				<span class="kw-2">ref </span>peer,
 				<span class="kw-2">ref </span>role,
 				<span class="kw-2">ref </span>version,
 				<span class="kw-2">ref </span>authority_id,
-			) =&gt; NetworkBridgeEvent::PeerConnected(
-				peer.clone(),
-				role.clone(),
-				<span class="kw-2">*</span>version,
-				authority_id.clone(),
-			),
+			) =&gt; NetworkBridgeEvent::PeerConnected(<span class="kw-2">*</span>peer, <span class="kw-2">*</span>role, <span class="kw-2">*</span>version, authority_id.clone()),
 			NetworkBridgeEvent::PeerDisconnected(<span class="kw-2">ref </span>peer) =&gt;
-				NetworkBridgeEvent::PeerDisconnected(peer.clone()),
+				NetworkBridgeEvent::PeerDisconnected(<span class="kw-2">*</span>peer),
 			NetworkBridgeEvent::NewGossipTopology(<span class="kw-2">ref </span>topology) =&gt;
 				NetworkBridgeEvent::NewGossipTopology(topology.clone()),
 			NetworkBridgeEvent::PeerViewChange(<span class="kw-2">ref </span>peer, <span class="kw-2">ref </span>view) =&gt;
-				NetworkBridgeEvent::PeerViewChange(peer.clone(), view.clone()),
+				NetworkBridgeEvent::PeerViewChange(<span class="kw-2">*</span>peer, view.clone()),
 			NetworkBridgeEvent::OurViewChange(<span class="kw-2">ref </span>view) =&gt;
 				NetworkBridgeEvent::OurViewChange(view.clone()),
 		})
