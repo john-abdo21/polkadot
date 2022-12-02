@@ -388,7 +388,6 @@
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
 <a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -750,7 +749,7 @@
 	<span class="comment">// Assume that all runtimes have the `timestamp` pallet.
 	</span><span class="kw">let </span>d = std::time::Duration::from_millis(<span class="number">0</span>);
 	<span class="kw">let </span>timestamp = sp_timestamp::InherentDataProvider::new(d.into());
-	timestamp.provide_inherent_data(<span class="kw-2">&amp;mut </span>inherent_data)<span class="question-mark">?</span>;
+	futures::executor::block_on(timestamp.provide_inherent_data(<span class="kw-2">&amp;mut </span>inherent_data))<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>para_data = polkadot_primitives::v2::InherentData {
 		bitfields: Vec::new(),
@@ -759,8 +758,7 @@
 		parent_header: header,
 	};
 
-	polkadot_node_core_parachains_inherent::ParachainsInherentDataProvider::from_data(para_data)
-		.provide_inherent_data(<span class="kw-2">&amp;mut </span>inherent_data)<span class="question-mark">?</span>;
+	inherent_data.put_data(polkadot_primitives::v2::PARACHAINS_INHERENT_IDENTIFIER, <span class="kw-2">&amp;</span>para_data)<span class="question-mark">?</span>;
 
 	<span class="prelude-val">Ok</span>(inherent_data)
 }

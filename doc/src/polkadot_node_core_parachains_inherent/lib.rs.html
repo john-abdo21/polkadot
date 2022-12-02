@@ -158,6 +158,17 @@
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -189,9 +200,8 @@
 	errors::SubsystemError, messages::ProvisionerMessage, overseer::Handle,
 };
 <span class="kw">use </span>polkadot_primitives::v2::{Block, Hash, InherentData <span class="kw">as </span>ParachainsInherentData};
-<span class="kw">use </span>sp_blockchain::HeaderBackend;
 <span class="kw">use </span>sp_runtime::generic::BlockId;
-<span class="kw">use </span>std::time;
+<span class="kw">use </span>std::{sync::Arc, time};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;parachain::parachains-inherent&quot;</span>;
 
@@ -199,22 +209,24 @@
 </span><span class="kw">const </span>PROVISIONER_TIMEOUT: time::Duration = core::time::Duration::from_millis(<span class="number">2500</span>);
 
 <span class="doccomment">/// Provides the parachains inherent data.
-</span><span class="kw">pub struct </span>ParachainsInherentDataProvider {
-	inherent_data: ParachainsInherentData,
+</span><span class="kw">pub struct </span>ParachainsInherentDataProvider&lt;C: sp_blockchain::HeaderBackend&lt;Block&gt;&gt; {
+	<span class="kw">pub </span>client: Arc&lt;C&gt;,
+	<span class="kw">pub </span>overseer: polkadot_overseer::Handle,
+	<span class="kw">pub </span>parent: Hash,
 }
 
-<span class="kw">impl </span>ParachainsInherentDataProvider {
-	<span class="doccomment">/// Create a [`Self`] directly from some [`ParachainsInherentData`].
-	</span><span class="kw">pub fn </span>from_data(inherent_data: ParachainsInherentData) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ inherent_data }
+<span class="kw">impl</span>&lt;C: sp_blockchain::HeaderBackend&lt;Block&gt;&gt; ParachainsInherentDataProvider&lt;C&gt; {
+	<span class="doccomment">/// Create a new [`Self`].
+	</span><span class="kw">pub fn </span>new(client: Arc&lt;C&gt;, overseer: polkadot_overseer::Handle, parent: Hash) -&gt; <span class="self">Self </span>{
+		ParachainsInherentDataProvider { client, overseer, parent }
 	}
 
 	<span class="doccomment">/// Create a new instance of the [`ParachainsInherentDataProvider`].
-	</span><span class="kw">pub async fn </span>create&lt;C: HeaderBackend&lt;Block&gt;&gt;(
-		client: <span class="kw-2">&amp;</span>C,
+	</span><span class="kw">pub async fn </span>create(
+		client: Arc&lt;C&gt;,
 		<span class="kw-2">mut </span>overseer: Handle,
 		parent: Hash,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+	) -&gt; <span class="prelude-ty">Result</span>&lt;ParachainsInherentData, Error&gt; {
 		<span class="kw">let </span>pid = <span class="kw">async </span>{
 			<span class="kw">let </span>(sender, receiver) = futures::channel::oneshot::channel();
 			<span class="macro">gum::trace!</span>(
@@ -279,18 +291,28 @@
 			},
 		};
 
-		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inherent_data })
+		<span class="prelude-val">Ok</span>(inherent_data)
 	}
 }
 
 <span class="attr">#[async_trait::async_trait]
-</span><span class="kw">impl </span>sp_inherents::InherentDataProvider <span class="kw">for </span>ParachainsInherentDataProvider {
-	<span class="kw">fn </span>provide_inherent_data(
+</span><span class="kw">impl</span>&lt;C: sp_blockchain::HeaderBackend&lt;Block&gt;&gt; sp_inherents::InherentDataProvider
+	<span class="kw">for </span>ParachainsInherentDataProvider&lt;C&gt;
+{
+	<span class="kw">async fn </span>provide_inherent_data(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		dst_inherent_data: <span class="kw-2">&amp;mut </span>sp_inherents::InherentData,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_inherents::Error&gt; {
+		<span class="kw">let </span>inherent_data = ParachainsInherentDataProvider::create(
+			<span class="self">self</span>.client.clone(),
+			<span class="self">self</span>.overseer.clone(),
+			<span class="self">self</span>.parent,
+		)
+		.<span class="kw">await
+		</span>.map_err(|e| sp_inherents::Error::Application(Box::new(e)))<span class="question-mark">?</span>;
+
 		dst_inherent_data
-			.put_data(polkadot_primitives::v2::PARACHAINS_INHERENT_IDENTIFIER, <span class="kw-2">&amp;</span><span class="self">self</span>.inherent_data)
+			.put_data(polkadot_primitives::v2::PARACHAINS_INHERENT_IDENTIFIER, <span class="kw-2">&amp;</span>inherent_data)
 	}
 
 	<span class="kw">async fn </span>try_handle_error(
