@@ -2197,6 +2197,40 @@
 <a href="#2197" id="2197">2197</a>
 <a href="#2198" id="2198">2198</a>
 <a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2219,7 +2253,8 @@
 </span><span class="comment">// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 </span><span class="attr">#![recursion_limit = <span class="string">&quot;256&quot;</span>]
 
-</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+</span><span class="kw">use </span>pallet_nis::WithMaximumOf;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>primitives::v2::{
 	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CommittedCandidateReceipt,
 	CoreState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage,
@@ -2252,7 +2287,7 @@
 	construct_runtime, parameter_types,
 	traits::{
 		ConstU32, Contains, EitherOf, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem,
-		LockIdentifier, PrivilegeCmp, WithdrawReasons,
+		LockIdentifier, PrivilegeCmp, StorageMapShim, WithdrawReasons,
 	},
 	weights::ConstantMultiplier,
 	PalletId, RuntimeDebug,
@@ -2262,7 +2297,7 @@
 <span class="kw">use </span>pallet_im_online::sr25519::AuthorityId <span class="kw">as </span>ImOnlineId;
 <span class="kw">use </span>pallet_session::historical <span class="kw">as </span>session_historical;
 <span class="kw">use </span>pallet_transaction_payment::{CurrencyAdapter, FeeDetails, RuntimeDispatchInfo};
-<span class="kw">use </span>sp_core::OpaqueMetadata;
+<span class="kw">use </span>sp_core::{ConstU128, OpaqueMetadata};
 <span class="kw">use </span>sp_mmr_primitives <span class="kw">as </span>mmr;
 <span class="kw">use </span>sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -2307,6 +2342,7 @@
 	old::CouncilCollective, pallet_custom_origins, AuctionAdmin, GeneralAdmin, LeaseAdmin,
 	StakingAdmin, Treasurer, TreasurySpender,
 };
+<span class="kw">use </span>xcm_config::CheckAccount;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -2736,7 +2772,7 @@
 
 		runtime_common::impls::era_payout(
 			total_staked,
-			Gilt::issuance().non_gilt,
+			Nis::issuance().other,
 			MAX_ANNUAL_INFLATION,
 			Perquintill::from_rational(era_duration_millis, MILLISECONDS_PER_YEAR),
 			auctioned_slots,
@@ -3226,7 +3262,7 @@
 				</span>RuntimeCall::Scheduler(..) |
 				RuntimeCall::Proxy(..) |
 				RuntimeCall::Multisig(..) |
-				RuntimeCall::Gilt(..) |
+				RuntimeCall::Nis(..) |
 				RuntimeCall::Registrar(paras_registrar::Call::register {..}) |
 				RuntimeCall::Registrar(paras_registrar::Call::deregister {..}) |
 				<span class="comment">// Specifically omitting Registrar `swap`
@@ -3445,33 +3481,57 @@
 	<span class="kw">type </span>WeightInfo = weights::runtime_common_auctions::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>IgnoredIssuance: Balance = Treasury::pot();
-	<span class="kw">pub const </span>QueueCount: u32 = <span class="number">300</span>;
-	<span class="kw">pub const </span>MaxQueueLen: u32 = <span class="number">1000</span>;
-	<span class="kw">pub const </span>FifoQueueLen: u32 = <span class="number">250</span>;
-	<span class="kw">pub const </span>GiltPeriod: BlockNumber = <span class="number">30 </span>* DAYS;
-	<span class="kw">pub const </span>MinFreeze: Balance = <span class="number">10_000 </span>* CENTS;
-	<span class="kw">pub const </span>IntakePeriod: BlockNumber = <span class="number">5 </span>* MINUTES;
-	<span class="kw">pub const </span>MaxIntakeBids: u32 = <span class="number">100</span>;
+<span class="kw">type </span>NisCounterpartInstance = pallet_balances::Instance2;
+<span class="kw">impl </span>pallet_balances::Config&lt;NisCounterpartInstance&gt; <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>DustRemoval = ();
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">10_000_000_000</span>&gt;; <span class="comment">// One KTC cent
+	</span><span class="kw">type </span>AccountStore = StorageMapShim&lt;
+		pallet_balances::Account&lt;Runtime, NisCounterpartInstance&gt;,
+		frame_system::Provider&lt;Runtime&gt;,
+		AccountId,
+		pallet_balances::AccountData&lt;u128&gt;,
+	&gt;;
+	<span class="kw">type </span>MaxLocks = ConstU32&lt;<span class="number">4</span>&gt;;
+	<span class="kw">type </span>MaxReserves = ConstU32&lt;<span class="number">4</span>&gt;;
+	<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">8</span>];
+	<span class="kw">type </span>WeightInfo = weights::pallet_balances_nis_counterpart_balances::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_gilt::Config <span class="kw">for </span>Runtime {
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>IgnoredIssuance: Balance = Treasury::pot();
+	<span class="kw">pub const </span>NisBasePeriod: BlockNumber = <span class="number">30 </span>* DAYS;
+	<span class="kw">pub const </span>MinBid: Balance = <span class="number">100 </span>* QUID;
+	<span class="kw">pub </span>MinReceipt: Perquintill = Perquintill::from_rational(<span class="number">1u64</span>, <span class="number">10_000_000u64</span>);
+	<span class="kw">pub const </span>IntakePeriod: BlockNumber = <span class="number">5 </span>* MINUTES;
+	<span class="kw">pub </span>MaxIntakeWeight: Weight = MAXIMUM_BLOCK_WEIGHT / <span class="number">10</span>;
+	<span class="kw">pub const </span>ThawThrottle: (Perquintill, BlockNumber) = (Perquintill::from_percent(<span class="number">25</span>), <span class="number">5</span>);
+	<span class="kw">pub </span>storage NisTarget: Perquintill = Perquintill::zero();
+	<span class="kw">pub const </span>NisPalletId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;py/nis  &quot;</span>);
+}
+
+<span class="kw">impl </span>pallet_nis::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>WeightInfo = weights::pallet_nis::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>CurrencyBalance = Balance;
-	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>FundOrigin = frame_system::EnsureSigned&lt;AccountId&gt;;
+	<span class="kw">type </span>Counterpart = NisCounterpartBalances;
+	<span class="kw">type </span>CounterpartAmount = WithMaximumOf&lt;ConstU128&lt;<span class="number">21_000_000_000_000_000_000u128</span>&gt;&gt;;
 	<span class="kw">type </span>Deficit = (); <span class="comment">// Mint
-	</span><span class="kw">type </span>Surplus = (); <span class="comment">// Burn
 	</span><span class="kw">type </span>IgnoredIssuance = IgnoredIssuance;
-	<span class="kw">type </span>QueueCount = QueueCount;
-	<span class="kw">type </span>MaxQueueLen = MaxQueueLen;
-	<span class="kw">type </span>FifoQueueLen = FifoQueueLen;
-	<span class="kw">type </span>Period = GiltPeriod;
-	<span class="kw">type </span>MinFreeze = MinFreeze;
+	<span class="kw">type </span>Target = NisTarget;
+	<span class="kw">type </span>PalletId = NisPalletId;
+	<span class="kw">type </span>QueueCount = ConstU32&lt;<span class="number">300</span>&gt;;
+	<span class="kw">type </span>MaxQueueLen = ConstU32&lt;<span class="number">1000</span>&gt;;
+	<span class="kw">type </span>FifoQueueLen = ConstU32&lt;<span class="number">250</span>&gt;;
+	<span class="kw">type </span>BasePeriod = NisBasePeriod;
+	<span class="kw">type </span>MinBid = MinBid;
+	<span class="kw">type </span>MinReceipt = MinReceipt;
 	<span class="kw">type </span>IntakePeriod = IntakePeriod;
-	<span class="kw">type </span>MaxIntakeBids = MaxIntakeBids;
-	<span class="kw">type </span>WeightInfo = weights::pallet_gilt::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>MaxIntakeWeight = MaxIntakeWeight;
+	<span class="kw">type </span>ThawThrottle = ThawThrottle;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -3585,8 +3645,10 @@
 		<span class="comment">// Election pallet. Only works with staking, but placed here to maintain indices.
 		</span>ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event&lt;T&gt;, ValidateUnsigned} = <span class="number">37</span>,
 
-		<span class="comment">// Gilts pallet.
-		</span>Gilt: pallet_gilt::{Pallet, Call, Storage, Event&lt;T&gt;, Config} = <span class="number">38</span>,
+		<span class="comment">// NIS pallet.
+		</span>Nis: pallet_nis::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">38</span>,
+<span class="comment">//		pub type NisCounterpartInstance = pallet_balances::Instance2;
+		</span>NisCounterpartBalances: pallet_balances::&lt;Instance2&gt; = <span class="number">45</span>,
 
 		<span class="comment">// Provides a semi-sorted list of nominators for staking.
 		</span>VoterList: pallet_bags_list::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">39</span>,
@@ -3652,6 +3714,11 @@
 	</span>}
 }
 
+<span class="kw">pub type </span>Migrations = (
+	pallet_balances::migration::MigrateToTrackInactive&lt;Runtime, CheckAccount&gt;,
+	crowdloan::migration::MigrateToTrackInactive&lt;Runtime&gt;,
+);
+
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
 	generic::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, SignedExtra&gt;;
@@ -3662,7 +3729,7 @@
 	frame_system::ChainContext&lt;Runtime&gt;,
 	Runtime,
 	AllPalletsWithSystem,
-	(),
+	Migrations,
 &gt;;
 <span class="doccomment">/// The payload being signed in the transactions.
 </span><span class="kw">pub type </span>SignedPayload = generic::SignedPayload&lt;RuntimeCall, SignedExtra&gt;;
@@ -3676,7 +3743,7 @@
 	<span class="macro">define_benchmarks!</span>(
 		<span class="comment">// Polkadot
 		// NOTE: Make sure to prefix these with `runtime_common::` so
-		// the that path resolves correctly in the generated file.
+		// that the path resolves correctly in the generated file.
 		</span>[runtime_common::auctions, Auctions]
 		[runtime_common::crowdloan, Crowdloan]
 		[runtime_common::claims, Claims]
@@ -3691,6 +3758,7 @@
 		[runtime_parachains::ump, Ump]
 		<span class="comment">// Substrate
 		</span>[pallet_balances, Balances]
+		[pallet_balances, NisCounterpartBalances]
 		[pallet_bags_list, VoterList]
 		[frame_benchmarking::baseline, Baseline::&lt;Runtime&gt;]
 		[pallet_bounties, Bounties]
@@ -3703,7 +3771,7 @@
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[frame_election_provider_support, ElectionProviderBench::&lt;Runtime&gt;]
 		[pallet_fast_unstake, FastUnstake]
-		[pallet_gilt, Gilt]
+		[pallet_nis, Nis]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_indices, Indices]
@@ -4242,7 +4310,7 @@
 		<span class="comment">// ensure this number does not change, or that it is checked after each change.
 		// a 1 MB solution should need around 0.16 KSM deposit
 		</span><span class="kw">let </span>deposit = SignedDepositBase::get() + (SignedDepositByte::get() * <span class="number">1024 </span>* <span class="number">1024</span>);
-		<span class="macro">assert_eq_error_rate!</span>(deposit, UNITS * <span class="number">16 </span>/ <span class="number">100</span>, UNITS / <span class="number">100</span>);
+		<span class="macro">assert_eq_error_rate!</span>(deposit, UNITS * <span class="number">167 </span>/ <span class="number">100</span>, UNITS / <span class="number">100</span>);
 	}
 }
 

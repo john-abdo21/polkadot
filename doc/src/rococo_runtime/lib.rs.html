@@ -2009,6 +2009,40 @@
 <a href="#2009" id="2009">2009</a>
 <a href="#2010" id="2010">2010</a>
 <a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
+<a href="#2020" id="2020">2020</a>
+<a href="#2021" id="2021">2021</a>
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2031,7 +2065,8 @@
 </span><span class="comment">// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 </span><span class="attr">#![recursion_limit = <span class="string">&quot;256&quot;</span>]
 
-</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+</span><span class="kw">use </span>pallet_nis::WithMaximumOf;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>primitives::v2::{
 	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
 	CommittedCandidateReceipt, CoreState, DisputeState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId,
@@ -2066,7 +2101,7 @@
 	construct_runtime, parameter_types,
 	traits::{
 		Contains, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem, LockIdentifier,
-		PrivilegeCmp, WithdrawReasons,
+		PrivilegeCmp, StorageMapShim, WithdrawReasons,
 	},
 	weights::ConstantMultiplier,
 	PalletId, RuntimeDebug,
@@ -2076,7 +2111,7 @@
 <span class="kw">use </span>pallet_im_online::sr25519::AuthorityId <span class="kw">as </span>ImOnlineId;
 <span class="kw">use </span>pallet_session::historical <span class="kw">as </span>session_historical;
 <span class="kw">use </span>pallet_transaction_payment::{CurrencyAdapter, FeeDetails, RuntimeDispatchInfo};
-<span class="kw">use </span>sp_core::{OpaqueMetadata, H256};
+<span class="kw">use </span>sp_core::{ConstU128, OpaqueMetadata, H256};
 <span class="kw">use </span>sp_mmr_primitives <span class="kw">as </span>mmr;
 <span class="kw">use </span>sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -2965,7 +3000,7 @@
 				</span>RuntimeCall::Scheduler(..) |
 				RuntimeCall::Proxy(..) |
 				RuntimeCall::Multisig(..) |
-				RuntimeCall::Gilt(..) |
+				RuntimeCall::Nis(..) |
 				RuntimeCall::Registrar(paras_registrar::Call::register {..}) |
 				RuntimeCall::Registrar(paras_registrar::Call::deregister {..}) |
 				<span class="comment">// Specifically omitting Registrar `swap`
@@ -3197,33 +3232,57 @@
 	<span class="kw">type </span>WeightInfo = weights::runtime_common_auctions::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>IgnoredIssuance: Balance = Treasury::pot();
-	<span class="kw">pub const </span>QueueCount: u32 = <span class="number">300</span>;
-	<span class="kw">pub const </span>MaxQueueLen: u32 = <span class="number">1000</span>;
-	<span class="kw">pub const </span>FifoQueueLen: u32 = <span class="number">250</span>;
-	<span class="kw">pub const </span>GiltPeriod: BlockNumber = <span class="number">30 </span>* DAYS;
-	<span class="kw">pub const </span>MinFreeze: Balance = <span class="number">10_000 </span>* CENTS;
-	<span class="kw">pub const </span>IntakePeriod: BlockNumber = <span class="number">5 </span>* MINUTES;
-	<span class="kw">pub const </span>MaxIntakeBids: u32 = <span class="number">100</span>;
+<span class="kw">type </span>NisCounterpartInstance = pallet_balances::Instance2;
+<span class="kw">impl </span>pallet_balances::Config&lt;NisCounterpartInstance&gt; <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>DustRemoval = ();
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">10_000_000_000</span>&gt;; <span class="comment">// One RTC cent
+	</span><span class="kw">type </span>AccountStore = StorageMapShim&lt;
+		pallet_balances::Account&lt;Runtime, NisCounterpartInstance&gt;,
+		frame_system::Provider&lt;Runtime&gt;,
+		AccountId,
+		pallet_balances::AccountData&lt;u128&gt;,
+	&gt;;
+	<span class="kw">type </span>MaxLocks = ConstU32&lt;<span class="number">4</span>&gt;;
+	<span class="kw">type </span>MaxReserves = ConstU32&lt;<span class="number">4</span>&gt;;
+	<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">8</span>];
+	<span class="kw">type </span>WeightInfo = weights::pallet_balances_nis_counterpart_balances::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_gilt::Config <span class="kw">for </span>Runtime {
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>IgnoredIssuance: Balance = Treasury::pot();
+	<span class="kw">pub const </span>NisBasePeriod: BlockNumber = <span class="number">30 </span>* DAYS;
+	<span class="kw">pub const </span>MinBid: Balance = <span class="number">100 </span>* UNITS;
+	<span class="kw">pub </span>MinReceipt: Perquintill = Perquintill::from_rational(<span class="number">1u64</span>, <span class="number">10_000_000u64</span>);
+	<span class="kw">pub const </span>IntakePeriod: BlockNumber = <span class="number">5 </span>* MINUTES;
+	<span class="kw">pub </span>MaxIntakeWeight: Weight = MAXIMUM_BLOCK_WEIGHT / <span class="number">10</span>;
+	<span class="kw">pub const </span>ThawThrottle: (Perquintill, BlockNumber) = (Perquintill::from_percent(<span class="number">25</span>), <span class="number">5</span>);
+	<span class="kw">pub </span>storage NisTarget: Perquintill = Perquintill::zero();
+	<span class="kw">pub const </span>NisPalletId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;py/nis  &quot;</span>);
+}
+
+<span class="kw">impl </span>pallet_nis::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>WeightInfo = weights::pallet_nis::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>CurrencyBalance = Balance;
-	<span class="kw">type </span>AdminOrigin = MoreThanHalfCouncil;
+	<span class="kw">type </span>FundOrigin = frame_system::EnsureSigned&lt;AccountId&gt;;
+	<span class="kw">type </span>Counterpart = NisCounterpartBalances;
+	<span class="kw">type </span>CounterpartAmount = WithMaximumOf&lt;ConstU128&lt;<span class="number">21_000_000_000_000_000_000u128</span>&gt;&gt;;
 	<span class="kw">type </span>Deficit = (); <span class="comment">// Mint
-	</span><span class="kw">type </span>Surplus = (); <span class="comment">// Burn
 	</span><span class="kw">type </span>IgnoredIssuance = IgnoredIssuance;
-	<span class="kw">type </span>QueueCount = QueueCount;
-	<span class="kw">type </span>MaxQueueLen = MaxQueueLen;
-	<span class="kw">type </span>FifoQueueLen = FifoQueueLen;
-	<span class="kw">type </span>Period = GiltPeriod;
-	<span class="kw">type </span>MinFreeze = MinFreeze;
+	<span class="kw">type </span>Target = NisTarget;
+	<span class="kw">type </span>PalletId = NisPalletId;
+	<span class="kw">type </span>QueueCount = ConstU32&lt;<span class="number">300</span>&gt;;
+	<span class="kw">type </span>MaxQueueLen = ConstU32&lt;<span class="number">1000</span>&gt;;
+	<span class="kw">type </span>FifoQueueLen = ConstU32&lt;<span class="number">250</span>&gt;;
+	<span class="kw">type </span>BasePeriod = NisBasePeriod;
+	<span class="kw">type </span>MinBid = MinBid;
+	<span class="kw">type </span>MinReceipt = MinReceipt;
 	<span class="kw">type </span>IntakePeriod = IntakePeriod;
-	<span class="kw">type </span>MaxIntakeBids = MaxIntakeBids;
-	<span class="kw">type </span>WeightInfo = weights::pallet_gilt::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>MaxIntakeWeight = MaxIntakeWeight;
+	<span class="kw">type </span>ThawThrottle = ThawThrottle;
 }
 
 <span class="kw">impl </span>pallet_beefy::Config <span class="kw">for </span>Runtime {
@@ -3386,8 +3445,10 @@
 		<span class="comment">// Tips module.
 		</span>Tips: pallet_tips::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">36</span>,
 
-		<span class="comment">// Gilts pallet.
-		</span>Gilt: pallet_gilt::{Pallet, Call, Storage, Event&lt;T&gt;, Config} = <span class="number">38</span>,
+		<span class="comment">// NIS pallet.
+		</span>Nis: pallet_nis::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">38</span>,
+<span class="comment">//		pub type NisCounterpartInstance = pallet_balances::Instance2;
+		</span>NisCounterpartBalances: pallet_balances::&lt;Instance2&gt; = <span class="number">45</span>,
 
 		<span class="comment">// Parachains pallets. Start indices at 50 to leave room.
 		</span>ParachainsOrigin: parachains_origin::{Pallet, Origin} = <span class="number">50</span>,
@@ -3460,6 +3521,12 @@
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
 	generic::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, SignedExtra&gt;;
+
+<span class="kw">pub type </span>Migrations = (
+	pallet_balances::migration::MigrateToTrackInactive&lt;Runtime, xcm_config::CheckAccount&gt;,
+	crowdloan::migration::MigrateToTrackInactive&lt;Runtime&gt;,
+);
+
 <span class="doccomment">/// Executive: handles dispatch to the various modules.
 </span><span class="kw">pub type </span>Executive = frame_executive::Executive&lt;
 	Runtime,
@@ -3467,7 +3534,7 @@
 	frame_system::ChainContext&lt;Runtime&gt;,
 	Runtime,
 	AllPalletsWithSystem,
-	(),
+	Migrations,
 &gt;;
 <span class="doccomment">/// The payload being signed in transactions.
 </span><span class="kw">pub type </span>SignedPayload = generic::SignedPayload&lt;RuntimeCall, SignedExtra&gt;;
@@ -3521,6 +3588,7 @@
 		[runtime_parachains::ump, Ump]
 		<span class="comment">// Substrate
 		</span>[pallet_balances, Balances]
+		[pallet_balances, NisCounterpartBalances]
 		[frame_benchmarking::baseline, Baseline::&lt;Runtime&gt;]
 		[pallet_bounties, Bounties]
 		[pallet_child_bounties, ChildBounties]
@@ -3528,7 +3596,7 @@
 		[pallet_collective, TechnicalCommittee]
 		[pallet_democracy, Democracy]
 		[pallet_elections_phragmen, PhragmenElection]
-		[pallet_gilt, Gilt]
+		[pallet_nis, Nis]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_indices, Indices]

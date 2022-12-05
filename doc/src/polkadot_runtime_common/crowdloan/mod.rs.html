@@ -2190,6 +2190,11 @@
 <a href="#2190" id="2190">2190</a>
 <a href="#2191" id="2191">2191</a>
 <a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2243,7 +2248,9 @@
 
 </span><span class="kw">pub mod </span>migration;
 
-<span class="kw">use crate</span>::{
+<span class="comment">// TODO: Expose the total amount held.
+
+</span><span class="kw">use crate</span>::{
 	slot_range::SlotRange,
 	traits::{Auctioneer, Registrar},
 };
@@ -2680,6 +2687,7 @@
 			<span class="macro">ensure!</span>(balance &gt; Zero::zero(), Error::&lt;T&gt;::NoContributions);
 
 			CurrencyOf::&lt;T&gt;::transfer(<span class="kw-2">&amp;</span>fund_account, <span class="kw-2">&amp;</span>who, balance, AllowDeath)<span class="question-mark">?</span>;
+			CurrencyOf::&lt;T&gt;::reactivate(balance);
 
 			<span class="self">Self</span>::contribution_kill(fund.fund_index, <span class="kw-2">&amp;</span>who);
 			fund.raised = fund.raised.saturating_sub(balance);
@@ -2719,6 +2727,7 @@
 					<span class="kw">break
 				</span>}
 				CurrencyOf::&lt;T&gt;::transfer(<span class="kw-2">&amp;</span>fund_account, <span class="kw-2">&amp;</span>who, balance, AllowDeath)<span class="question-mark">?</span>;
+				CurrencyOf::&lt;T&gt;::reactivate(balance);
 				<span class="self">Self</span>::contribution_kill(fund.fund_index, <span class="kw-2">&amp;</span>who);
 				fund.raised = fund.raised.saturating_sub(balance);
 				refund_count += <span class="number">1</span>;
@@ -2969,6 +2978,7 @@
 		}
 
 		CurrencyOf::&lt;T&gt;::transfer(<span class="kw-2">&amp;</span>who, <span class="kw-2">&amp;</span>fund_account, value, existence)<span class="question-mark">?</span>;
+		CurrencyOf::&lt;T&gt;::deactivate(value);
 
 		<span class="kw">let </span>balance = old_balance.saturating_add(value);
 		<span class="self">Self</span>::contribution_put(fund.fund_index, <span class="kw-2">&amp;</span>who, <span class="kw-2">&amp;</span>balance, <span class="kw-2">&amp;</span>memo);
