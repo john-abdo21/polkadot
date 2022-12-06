@@ -422,6 +422,7 @@
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -623,10 +624,8 @@
 }
 
 <span class="doccomment">/// Loop that runs in the CPU time monitor thread on prepare and execute jobs. Continuously wakes up
-/// from sleeping and then either sleeps for the remaining CPU time, or kills the process if we
-/// exceed the CPU timeout.
-///
-/// NOTE: Killed processes are detected and cleaned up in `purge_dead`.
+/// from sleeping and then either sleeps for the remaining CPU time, or sends back a timeout error
+/// if we exceed the CPU timeout.
 ///
 /// NOTE: If the job completes and this thread is still sleeping, it will continue sleeping in the
 /// background. When it wakes, it will see that the flag has been set and return.
@@ -657,7 +656,11 @@
 				timeout.as_millis(),
 			);
 
-			<span class="comment">// Send back a TimedOut error on timeout.
+			<span class="comment">// Send back a `TimedOut` error.
+			//
+			// NOTE: This will cause the worker, whether preparation or execution, to be killed by
+			// the host. We do not kill the process here because it would interfere with the proper
+			// handling of this error.
 			</span><span class="kw">let </span>encoded_result = <span class="kw">match </span>job_kind {
 				JobKind::Prepare =&gt; {
 					<span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;(), PrepareError&gt; = <span class="prelude-val">Err</span>(PrepareError::TimedOut);
@@ -668,8 +671,8 @@
 					result.encode()
 				},
 			};
-			<span class="comment">// If we error there is nothing else we can do here, and we are killing the process,
-			// anyway. The receiving side will just have to time out.
+			<span class="comment">// If we error here there is nothing we can do apart from log it. The receiving side
+			// will just have to time out.
 			</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = framed_send(<span class="kw-2">&amp;mut </span>stream, encoded_result.as_slice()).<span class="kw">await </span>{
 				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
@@ -679,9 +682,8 @@
 				);
 			}
 
-			<span class="comment">// Kill the process.
-			</span>std::process::exit(<span class="number">1</span>);
-		}
+			<span class="kw">return
+		</span>}
 
 		<span class="comment">// Sleep for the remaining CPU time, plus a bit to account for overhead. Note that the sleep
 		// is wall clock time. The CPU clock may be slower than the wall clock.

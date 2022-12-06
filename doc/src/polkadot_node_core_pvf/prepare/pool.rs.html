@@ -400,6 +400,9 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -696,12 +699,15 @@
 			<span class="prelude-val">Ok</span>(())
 		},
 		PoolEvent::StartWork(worker, outcome) =&gt; {
-			<span class="kw">match </span>outcome {
+			<span class="comment">// If we receive any outcome other than `Concluded`, we attempt to kill the worker
+			// process.
+			</span><span class="kw">match </span>outcome {
 				Outcome::Concluded { worker: idle, result } =&gt; {
 					<span class="kw">let </span>data = <span class="kw">match </span>spawned.get_mut(worker) {
 						<span class="prelude-val">None </span>=&gt; {
 							<span class="comment">// Perhaps the worker was killed meanwhile and the result is no longer
-							// relevant.
+							// relevant. We already send `Rip` when purging if we detect that the
+							// worker is dead.
 							</span><span class="kw">return </span><span class="prelude-val">Ok</span>(())
 						},
 						<span class="prelude-val">Some</span>(data) =&gt; data,
