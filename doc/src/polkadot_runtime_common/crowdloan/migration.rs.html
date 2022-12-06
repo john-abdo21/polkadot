@@ -220,6 +220,9 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -238,24 +241,27 @@
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::{
-	dispatch::GetStorageVersion, storage_alias, traits::OnRuntimeUpgrade, Twox64Concat,
+	dispatch::GetStorageVersion,
+	storage_alias,
+	traits::{OnRuntimeUpgrade, StorageVersion},
+	Twox64Concat,
 };
 
 <span class="kw">pub struct </span>MigrateToTrackInactive&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateToTrackInactive&lt;T&gt; {
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-		<span class="kw">let </span>current_version = Pallet::&lt;T&gt;::current_storage_version();
 		<span class="kw">let </span>onchain_version = Pallet::&lt;T&gt;::on_chain_storage_version();
 
-		<span class="kw">if </span>onchain_version == <span class="number">0 </span>&amp;&amp; current_version == <span class="number">1 </span>{
+		<span class="kw">if </span>onchain_version == <span class="number">0 </span>{
 			<span class="kw">let </span><span class="kw-2">mut </span>translated = <span class="number">0u64</span>;
 			<span class="kw">for </span>index <span class="kw">in </span>Funds::&lt;T&gt;::iter_keys() {
 				<span class="kw">let </span>b = CurrencyOf::&lt;T&gt;::total_balance(<span class="kw-2">&amp;</span>Pallet::&lt;T&gt;::fund_account_id(index.into()));
 				CurrencyOf::&lt;T&gt;::deactivate(b);
 				translated.saturating_inc();
 			}
-			current_version.put::&lt;Pallet&lt;T&gt;&gt;();
-			<span class="macro">log::info!</span>(target: <span class="string">&quot;runtime::crowdloan&quot;</span>, <span class="string">&quot;Summed {} funds, storage to version {:?}&quot;</span>, translated, current_version);
+
+			StorageVersion::new(<span class="number">1</span>).put::&lt;Pallet&lt;T&gt;&gt;();
+			<span class="macro">log::info!</span>(target: <span class="string">&quot;runtime::crowdloan&quot;</span>, <span class="string">&quot;Summed {} funds, storage to version 1&quot;</span>, translated);
 			T::DbWeight::get().reads_writes(translated * <span class="number">2 </span>+ <span class="number">1</span>, translated * <span class="number">2 </span>+ <span class="number">1</span>)
 		} <span class="kw">else </span>{
 			<span class="macro">log::info!</span>(target: <span class="string">&quot;runtime::crowdloan&quot;</span>,  <span class="string">&quot;Migration did not execute. This probably should be removed&quot;</span>);
