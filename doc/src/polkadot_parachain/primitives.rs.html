@@ -381,13 +381,6 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -421,9 +414,6 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>sp_core::bytes;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span>parity_util_mem::MallocSizeOf;
-
 <span class="kw">use </span>polkadot_core_primitives::{Hash, OutboundHrmpMessage};
 
 <span class="doccomment">/// Block number type used by the relay chain.
@@ -433,7 +423,7 @@
 </span><span class="attr">#[derive(
 	PartialEq, Eq, Clone, PartialOrd, Ord, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo,
 )]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash, MallocSizeOf, Default))]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash, Default))]
 </span><span class="kw">pub struct </span>HeadData(<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, serde(with = <span class="string">&quot;bytes&quot;</span>))] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
 
 <span class="kw">impl </span>HeadData {
@@ -445,7 +435,7 @@
 
 <span class="doccomment">/// Parachain validation code.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo)]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash, MallocSizeOf))]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash))]
 </span><span class="kw">pub struct </span>ValidationCode(<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, serde(with = <span class="string">&quot;bytes&quot;</span>))] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
 
 <span class="kw">impl </span>ValidationCode {
@@ -461,7 +451,6 @@
 ///
 /// This type makes it easy to enforce that a hash is a validation code hash on the type level.
 </span><span class="attr">#[derive(Clone, Copy, Encode, Decode, Hash, Eq, PartialEq, PartialOrd, Ord, TypeInfo)]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(MallocSizeOf))]
 </span><span class="kw">pub struct </span>ValidationCodeHash(Hash);
 
 <span class="kw">impl </span>sp_std::fmt::Display <span class="kw">for </span>ValidationCodeHash {
@@ -504,7 +493,7 @@
 ///
 /// Contains everything required to validate para-block, may contain block and witness data.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, derive_more::From, TypeInfo, RuntimeDebug)]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, MallocSizeOf))]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize))]
 </span><span class="kw">pub struct </span>BlockData(<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, serde(with = <span class="string">&quot;bytes&quot;</span>))] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
 
 <span class="doccomment">/// Unique identifier of a parachain.
@@ -524,10 +513,7 @@
 	RuntimeDebug,
 	TypeInfo,
 )]
-#[cfg_attr(
-	feature = <span class="string">&quot;std&quot;</span>,
-	derive(serde::Serialize, serde::Deserialize, derive_more::Display, MallocSizeOf)
-)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(serde::Serialize, serde::Deserialize, derive_more::Display))]
 </span><span class="kw">pub struct </span>Id(u32);
 
 <span class="kw">impl </span>TypeId <span class="kw">for </span>Id {

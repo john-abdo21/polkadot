@@ -308,20 +308,6 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -353,7 +339,6 @@
 </span><span class="kw">pub mod </span>kvdb_impl {
 	<span class="kw">use super</span>::{DBKeyValue, DBTransaction, DBValue, Database, KeyValueDB};
 	<span class="kw">use </span>kvdb::{DBOp, IoStats, IoStatsKind};
-	<span class="kw">use </span>parity_util_mem::{MallocSizeOf, MallocSizeOfOps};
 	<span class="kw">use </span>std::{collections::BTreeSet, io::Result};
 
 	<span class="doccomment">/// Adapter implementing subsystem database
@@ -447,13 +432,6 @@
 			<span class="self">self</span>.db.has_prefix(col, prefix)
 		}
 	}
-
-	<span class="kw">impl</span>&lt;D: KeyValueDB&gt; MallocSizeOf <span class="kw">for </span>DbAdapter&lt;D&gt; {
-		<span class="kw">fn </span>size_of(<span class="kw-2">&amp;</span><span class="self">self</span>, ops: <span class="kw-2">&amp;mut </span>MallocSizeOfOps) -&gt; usize {
-			<span class="comment">// ignore filter set
-			</span><span class="self">self</span>.db.size_of(ops)
-		}
-	}
 }
 
 <span class="doccomment">/// Utilities for using parity-db database.
@@ -482,12 +460,6 @@
 		db: Db,
 		indexed_columns: BTreeSet&lt;u32&gt;,
 		write_lock: Arc&lt;Mutex&lt;()&gt;&gt;,
-	}
-
-	<span class="kw">impl </span>parity_util_mem::MallocSizeOf <span class="kw">for </span>DbAdapter {
-		<span class="kw">fn </span>size_of(<span class="kw-2">&amp;</span><span class="self">self</span>, _ops: <span class="kw-2">&amp;mut </span>parity_util_mem::MallocSizeOfOps) -&gt; usize {
-			<span class="macro">unimplemented!</span>(<span class="string">&quot;size_of is not supported for parity_db&quot;</span>)
-		}
 	}
 
 	<span class="kw">impl </span>KeyValueDB <span class="kw">for </span>DbAdapter {

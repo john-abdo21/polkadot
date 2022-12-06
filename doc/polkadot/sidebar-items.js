@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["main",""]],"static":[["ALLOC","Global allocator. Changing it to another allocator will require changing `memory_stats::MemoryAllocationTracker`."]]};
