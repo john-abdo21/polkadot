@@ -1338,6 +1338,10 @@
 <a href="#1338" id="1338">1338</a>
 <a href="#1339" id="1339">1339</a>
 <a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1366,8 +1370,8 @@
 <span class="kw">use </span>sc_keystore::LocalKeystore;
 
 <span class="kw">use </span>polkadot_node_primitives::{
-	CandidateVotes, DisputeMessage, DisputeMessageCheckError, DisputeStatus,
-	SignedDisputeStatement, Timestamp,
+	disputes::ValidCandidateVotes, CandidateVotes, DisputeMessage, DisputeMessageCheckError,
+	DisputeStatus, SignedDisputeStatement, Timestamp,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{
 	messages::{
@@ -2364,7 +2368,7 @@
 			imported_approval_votes = <span class="question-mark">?</span>import_result.imported_approval_votes(),
 			imported_valid_votes = <span class="question-mark">?</span>import_result.imported_valid_votes(),
 			imported_invalid_votes = <span class="question-mark">?</span>import_result.imported_invalid_votes(),
-			total_valid_votes = <span class="question-mark">?</span>import_result.new_state().votes().valid.len(),
+			total_valid_votes = <span class="question-mark">?</span>import_result.new_state().votes().valid.raw().len(),
 			total_invalid_votes = <span class="question-mark">?</span>import_result.new_state().votes().invalid.len(),
 			confirmed = <span class="question-mark">?</span>import_result.new_state().is_confirmed(),
 			<span class="string">&quot;Import summary&quot;
@@ -2439,7 +2443,7 @@
 			</span>.map(CandidateVotes::from)
 			.unwrap_or_else(|| CandidateVotes {
 				candidate_receipt: candidate_receipt.clone(),
-				valid: BTreeMap::new(),
+				valid: ValidCandidateVotes::new(),
 				invalid: BTreeMap::new(),
 			});
 
@@ -2612,8 +2616,12 @@
 			.map_err(|()| DisputeMessageCreationError::InvalidStoredStatement)<span class="question-mark">?</span>;
 			(our_vote, our_index, other_vote, <span class="kw-2">*</span>validator_index)
 		} <span class="kw">else </span>{
-			<span class="kw">let </span>(validator_index, (statement_kind, validator_signature)) =
-				votes.valid.iter().next().ok_or(DisputeMessageCreationError::NoOppositeVote)<span class="question-mark">?</span>;
+			<span class="kw">let </span>(validator_index, (statement_kind, validator_signature)) = votes
+				.valid
+				.raw()
+				.iter()
+				.next()
+				.ok_or(DisputeMessageCreationError::NoOppositeVote)<span class="question-mark">?</span>;
 			<span class="kw">let </span>other_vote = SignedDisputeStatement::new_checked(
 				DisputeStatement::Valid(<span class="kw-2">*</span>statement_kind),
 				<span class="kw-2">*</span>our_vote.candidate_hash(),

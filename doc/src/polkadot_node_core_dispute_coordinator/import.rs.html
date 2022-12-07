@@ -530,22 +530,6 @@
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -576,7 +560,9 @@
 
 </span><span class="kw">use </span>std::collections::{BTreeMap, HashMap, HashSet};
 
-<span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, DisputeStatus, SignedDisputeStatement, Timestamp};
+<span class="kw">use </span>polkadot_node_primitives::{
+	disputes::ValidCandidateVotes, CandidateVotes, DisputeStatus, SignedDisputeStatement, Timestamp,
+};
 <span class="kw">use </span>polkadot_node_subsystem_util::rolling_session_window::RollingSessionWindow;
 <span class="kw">use </span>polkadot_primitives::v2::{
 	CandidateReceipt, DisputeStatement, IndexedVec, SessionIndex, SessionInfo,
@@ -649,7 +635,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>our_valid_votes = env
 			.controlled_indices()
 			.iter()
-			.filter_map(|i| votes.valid.get_key_value(i))
+			.filter_map(|i| votes.valid.raw().get_key_value(i))
 			.peekable();
 		<span class="kw">let </span><span class="kw-2">mut </span>our_invalid_votes =
 			env.controlled_indices.iter().filter_map(|i| votes.invalid.get_key_value(i));
@@ -711,8 +697,11 @@
 	///
 	/// in case there have not been any previous votes.
 	</span><span class="kw">pub fn </span>new_from_receipt(candidate_receipt: CandidateReceipt) -&gt; <span class="self">Self </span>{
-		<span class="kw">let </span>votes =
-			CandidateVotes { candidate_receipt, valid: BTreeMap::new(), invalid: BTreeMap::new() };
+		<span class="kw">let </span>votes = CandidateVotes {
+			candidate_receipt,
+			valid: ValidCandidateVotes::new(),
+			invalid: BTreeMap::new(),
+		};
 		<span class="self">Self </span>{ votes, own_vote: OwnVoteState::NoVote, dispute_status: <span class="prelude-val">None </span>}
 	}
 
@@ -726,7 +715,7 @@
 			polkadot_primitives::v2::supermajority_threshold(n_validators);
 
 		<span class="comment">// We have a dispute, if we have votes on both sides:
-		</span><span class="kw">let </span>is_disputed = !votes.invalid.is_empty() &amp;&amp; !votes.valid.is_empty();
+		</span><span class="kw">let </span>is_disputed = !votes.invalid.is_empty() &amp;&amp; !votes.valid.raw().is_empty();
 
 		<span class="kw">let </span>dispute_status = <span class="kw">if </span>is_disputed {
 			<span class="kw">let </span><span class="kw-2">mut </span>status = DisputeStatus::active();
@@ -735,7 +724,7 @@
 			<span class="kw">if </span>is_confirmed {
 				status = status.confirm();
 			};
-			<span class="kw">let </span>concluded_for = votes.valid.len() &gt;= supermajority_threshold;
+			<span class="kw">let </span>concluded_for = votes.valid.raw().len() &gt;= supermajority_threshold;
 			<span class="kw">if </span>concluded_for {
 				status = status.conclude_for(now);
 			};
@@ -810,25 +799,20 @@
 
 			<span class="kw">match </span>statement.statement() {
 				DisputeStatement::Valid(valid_kind) =&gt; {
-					<span class="kw">let </span>fresh = insert_into_statements(
-						<span class="kw-2">&amp;mut </span>votes.valid,
-						<span class="kw-2">*</span>valid_kind,
+					<span class="kw">let </span>fresh = votes.valid.insert_vote(
 						val_index,
+						<span class="kw-2">*</span>valid_kind,
 						statement.into_validator_signature(),
 					);
-
 					<span class="kw">if </span>fresh {
 						imported_valid_votes += <span class="number">1</span>;
 					}
 				},
 				DisputeStatement::Invalid(invalid_kind) =&gt; {
-					<span class="kw">let </span>fresh = insert_into_statements(
-						<span class="kw-2">&amp;mut </span>votes.invalid,
-						<span class="kw-2">*</span>invalid_kind,
-						val_index,
-						statement.into_validator_signature(),
-					);
-
+					<span class="kw">let </span>fresh = votes
+						.invalid
+						.insert(val_index, (<span class="kw-2">*</span>invalid_kind, statement.into_validator_signature()))
+						.is_none();
 					<span class="kw">if </span>fresh {
 						new_invalid_voters.push(val_index);
 						imported_invalid_votes += <span class="number">1</span>;
@@ -1029,12 +1013,7 @@
 				},
 				<span class="string">&quot;Signature check for imported approval votes failed! This is a serious bug. Session: {:?}, candidate hash: {:?}, validator index: {:?}&quot;</span>, env.session_index(), votes.candidate_receipt.hash(), index
 			);
-			<span class="kw">if </span>insert_into_statements(
-				<span class="kw-2">&amp;mut </span>votes.valid,
-				ValidDisputeStatementKind::ApprovalChecking,
-				index,
-				sig,
-			) {
+			<span class="kw">if </span>votes.valid.insert_vote(index, ValidDisputeStatementKind::ApprovalChecking, sig) {
 				imported_valid_votes += <span class="number">1</span>;
 				imported_approval_votes += <span class="number">1</span>;
 			}
@@ -1082,17 +1061,6 @@
 	}
 
 	controlled
-}
-
-<span class="comment">// Returns &#39;true&#39; if no other vote by that validator was already
-// present and &#39;false&#39; otherwise. Same semantics as `HashSet`.
-</span><span class="kw">fn </span>insert_into_statements&lt;T&gt;(
-	m: <span class="kw-2">&amp;mut </span>BTreeMap&lt;ValidatorIndex, (T, ValidatorSignature)&gt;,
-	tag: T,
-	val_index: ValidatorIndex,
-	val_signature: ValidatorSignature,
-) -&gt; bool {
-	m.insert(val_index, (tag, val_signature)).is_none()
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polkadot_node_core_dispute_coordinator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
