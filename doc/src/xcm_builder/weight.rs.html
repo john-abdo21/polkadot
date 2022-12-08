@@ -322,7 +322,7 @@
 </span><span class="kw">use </span>frame_support::{
 	dispatch::GetDispatchInfo,
 	traits::{tokens::currency::Currency <span class="kw">as </span>CurrencyT, Get, OnUnbalanced <span class="kw">as </span>OnUnbalancedT},
-	weights::{constants::WEIGHT_PER_SECOND, WeightToFee <span class="kw">as </span>WeightToFeeT},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, WeightToFee <span class="kw">as </span>WeightToFeeT},
 };
 <span class="kw">use </span>parity_scale_codec::Decode;
 <span class="kw">use </span>sp_runtime::traits::{SaturatedConversion, Saturating, Zero};
@@ -458,7 +458,7 @@
 			weight, payment,
 		);
 		<span class="kw">let </span>(id, units_per_second) = T::get();
-		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128);
+		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
 		<span class="kw">let </span>unused =
 			payment.checked_sub((id, amount).into()).map_err(|<span class="kw">_</span>| XcmError::TooExpensive)<span class="question-mark">?</span>;
 		<span class="self">self</span>.<span class="number">0 </span>= <span class="self">self</span>.<span class="number">0</span>.saturating_add(weight);
@@ -470,7 +470,7 @@
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;FixedRateOfConcreteFungible::refund_weight weight: {:?}&quot;</span>, weight);
 		<span class="kw">let </span>(id, units_per_second) = T::get();
 		<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
-		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128);
+		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
 		<span class="self">self</span>.<span class="number">0 </span>-= weight;
 		<span class="self">self</span>.<span class="number">1 </span>= <span class="self">self</span>.<span class="number">1</span>.saturating_sub(amount);
 		<span class="kw">if </span>amount &gt; <span class="number">0 </span>{
@@ -510,7 +510,7 @@
 			weight, payment,
 		);
 		<span class="kw">let </span>(id, units_per_second) = T::get();
-		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128);
+		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
 		<span class="kw">if </span>amount == <span class="number">0 </span>{
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(payment)
 		}
@@ -525,7 +525,7 @@
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;FixedRateOfFungible::refund_weight weight: {:?}&quot;</span>, weight);
 		<span class="kw">let </span>(id, units_per_second) = T::get();
 		<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
-		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128);
+		<span class="kw">let </span>amount = units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128);
 		<span class="self">self</span>.<span class="number">0 </span>-= weight;
 		<span class="self">self</span>.<span class="number">1 </span>= <span class="self">self</span>.<span class="number">1</span>.saturating_sub(amount);
 		<span class="kw">if </span>amount &gt; <span class="number">0 </span>{

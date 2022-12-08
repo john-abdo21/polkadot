@@ -1302,6 +1302,8 @@
 <a href="#1302" id="1302">1302</a>
 <a href="#1303" id="1303">1303</a>
 <a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1323,7 +1325,7 @@
 //! Configuration can change only at session boundaries and is buffered until then.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::shared;
-<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, weights::constants::WEIGHT_PER_MILLIS};
+<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, weights::constants::WEIGHT_REF_TIME_PER_MILLIS};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>primitives::v2::{Balance, SessionIndex, MAX_CODE_SIZE, MAX_HEAD_DATA_SIZE, MAX_POV_SIZE};
@@ -1589,8 +1591,10 @@
 			hrmp_max_parachain_outbound_channels: Default::default(),
 			hrmp_max_parathread_outbound_channels: Default::default(),
 			hrmp_max_message_num_per_candidate: Default::default(),
-			ump_max_individual_weight: (<span class="number">20u64 </span>* WEIGHT_PER_MILLIS)
-				.set_proof_size(MAX_POV_SIZE <span class="kw">as </span>u64),
+			ump_max_individual_weight: Weight::from_parts(
+				<span class="number">20u64 </span>* WEIGHT_REF_TIME_PER_MILLIS,
+				MAX_POV_SIZE <span class="kw">as </span>u64,
+			),
 			pvf_checking_enabled: <span class="bool-val">false</span>,
 			pvf_voting_ttl: <span class="number">2u32</span>.into(),
 			minimum_validation_upgrade_delay: <span class="number">2</span>.into(),

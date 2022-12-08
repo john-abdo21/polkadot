@@ -77,6 +77,7 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -114,7 +115,7 @@
 //   --header=./file_header.txt
 
 </span><span class="kw">use </span>sp_core::parameter_types;
-<span class="kw">use </span>sp_weights::{constants::WEIGHT_PER_NANOS, Weight};
+<span class="kw">use </span>sp_weights::{constants::WEIGHT_REF_TIME_PER_NANOS, Weight};
 
 <span class="macro">parameter_types! </span>{
 	<span class="doccomment">/// Time to execute a NO-OP extrinsic, for example `System::remark`.
@@ -130,7 +131,8 @@
 	///   99th: 87_916
 	///   95th: 87_727
 	///   75th: 87_112
-	</span><span class="kw">pub const </span>ExtrinsicBaseWeight: Weight = WEIGHT_PER_NANOS.saturating_mul(<span class="number">87_092</span>);
+	</span><span class="kw">pub const </span>ExtrinsicBaseWeight: Weight =
+		Weight::from_ref_time(WEIGHT_REF_TIME_PER_NANOS.saturating_mul(<span class="number">87_092</span>));
 }
 
 <span class="attr">#[cfg(test)]
@@ -146,12 +148,12 @@
 
 		<span class="comment">// At least 10 µs.
 		</span><span class="macro">assert!</span>(
-			w.ref_time() &gt;= <span class="number">10u64 </span>* constants::WEIGHT_PER_MICROS.ref_time(),
+			w.ref_time() &gt;= <span class="number">10u64 </span>* constants::WEIGHT_REF_TIME_PER_MICROS,
 			<span class="string">&quot;Weight should be at least 10 µs.&quot;
 		</span>);
 		<span class="comment">// At most 1 ms.
 		</span><span class="macro">assert!</span>(
-			w.ref_time() &lt;= constants::WEIGHT_PER_MILLIS.ref_time(),
+			w.ref_time() &lt;= constants::WEIGHT_REF_TIME_PER_MILLIS,
 			<span class="string">&quot;Weight should be at most 1 ms.&quot;
 		</span>);
 	}

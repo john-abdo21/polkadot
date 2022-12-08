@@ -312,7 +312,7 @@
 <span class="kw">use </span>frame_support::{
 	parameter_types,
 	traits::{ConstU32, Currency, OneSessionHandler},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
 <span class="kw">use </span>frame_system::limits;
 <span class="kw">use </span>primitives::v2::{AssignmentId, Balance, BlockNumber, ValidatorId, MAX_POV_SIZE};
@@ -343,7 +343,7 @@
 </span><span class="kw">pub const </span>NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(<span class="number">75</span>);
 <span class="doccomment">/// The storage proof size is not limited so far.
 </span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight =
-	WEIGHT_PER_SECOND.saturating_mul(<span class="number">2</span>).set_proof_size(MAX_POV_SIZE <span class="kw">as </span>u64);
+	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(<span class="number">2</span>), MAX_POV_SIZE <span class="kw">as </span>u64);
 
 <span class="macro">const_assert!</span>(NORMAL_DISPATCH_RATIO.deconstruct() &gt;= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
