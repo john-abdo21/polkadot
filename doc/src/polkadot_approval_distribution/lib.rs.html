@@ -1758,6 +1758,53 @@
 <a href="#1758" id="1758">1758</a>
 <a href="#1759" id="1759">1759</a>
 <a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
+<a href="#1797" id="1797">1797</a>
+<a href="#1798" id="1798">1798</a>
+<a href="#1799" id="1799">1799</a>
+<a href="#1800" id="1800">1800</a>
+<a href="#1801" id="1801">1801</a>
+<a href="#1802" id="1802">1802</a>
+<a href="#1803" id="1803">1803</a>
+<a href="#1804" id="1804">1804</a>
+<a href="#1805" id="1805">1805</a>
+<a href="#1806" id="1806">1806</a>
+<a href="#1807" id="1807">1807</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1784,6 +1831,7 @@
 <span class="kw">use </span>polkadot_node_network_protocol::{
 	<span class="self">self </span><span class="kw">as </span>net_protocol,
 	grid_topology::{RandomRouting, RequiredRouting, SessionGridTopologies, SessionGridTopology},
+	peer_set::MAX_NOTIFICATION_SIZE,
 	v1 <span class="kw">as </span>protocol_v1, PeerId, UnifiedReputationChange <span class="kw">as </span>Rep, Versioned, View,
 };
 <span class="kw">use </span>polkadot_node_primitives::approval::{
@@ -3141,14 +3189,7 @@
 				<span class="string">&quot;Sending assignments to unified peer&quot;</span>,
 			);
 
-			sender
-				.send_message(NetworkBridgeTxMessage::SendValidationMessage(
-					<span class="macro">vec!</span>[peer_id],
-					Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
-						protocol_v1::ApprovalDistributionMessage::Assignments(assignments_to_send),
-					)),
-				))
-				.<span class="kw">await</span>;
+			send_assignments_batched(sender, assignments_to_send, peer_id).<span class="kw">await</span>;
 		}
 
 		<span class="kw">if </span>!approvals_to_send.is_empty() {
@@ -3159,14 +3200,7 @@
 				<span class="string">&quot;Sending approvals to unified peer&quot;</span>,
 			);
 
-			sender
-				.send_message(NetworkBridgeTxMessage::SendValidationMessage(
-					<span class="macro">vec!</span>[peer_id],
-					Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
-						protocol_v1::ApprovalDistributionMessage::Approvals(approvals_to_send),
-					)),
-				))
-				.<span class="kw">await</span>;
+			send_approvals_batched(sender, approvals_to_send, peer_id).<span class="kw">await</span>;
 		}
 	}
 
@@ -3365,23 +3399,11 @@
 	<span class="comment">// Send messages in accumulated packets, assignments preceding approvals.
 
 	</span><span class="kw">for </span>(peer, assignments_packet) <span class="kw">in </span>peer_assignments {
-		ctx.send_message(NetworkBridgeTxMessage::SendValidationMessage(
-			<span class="macro">vec!</span>[peer],
-			Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
-				protocol_v1::ApprovalDistributionMessage::Assignments(assignments_packet),
-			)),
-		))
-		.<span class="kw">await</span>;
+		send_assignments_batched(ctx.sender(), assignments_packet, peer).<span class="kw">await</span>;
 	}
 
 	<span class="kw">for </span>(peer, approvals_packet) <span class="kw">in </span>peer_approvals {
-		ctx.send_message(NetworkBridgeTxMessage::SendValidationMessage(
-			<span class="macro">vec!</span>[peer],
-			Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
-				protocol_v1::ApprovalDistributionMessage::Approvals(approvals_packet),
-			)),
-		))
-		.<span class="kw">await</span>;
+		send_approvals_batched(ctx.sender(), approvals_packet, peer).<span class="kw">await</span>;
 	}
 }
 
@@ -3516,6 +3538,78 @@
 		<span class="kw">let </span>future = <span class="self">self</span>.run(ctx).map(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(())).boxed();
 
 		SpawnedSubsystem { name: <span class="string">&quot;approval-distribution-subsystem&quot;</span>, future }
+	}
+}
+
+<span class="doccomment">/// Ensures the batch size is always at least 1 element.
+</span><span class="kw">const fn </span>ensure_size_not_zero(size: usize) -&gt; usize {
+	<span class="kw">if </span><span class="number">0 </span>== size {
+		<span class="macro">panic!</span>(<span class="string">&quot;Batch size must be at least 1 (MAX_NOTIFICATION_SIZE constant is too low)&quot;</span>,);
+	}
+
+	size
+}
+
+<span class="doccomment">/// The maximum amount of assignments per batch is 33% of maximum allowed by protocol.
+/// This is an arbitrary value. Bumping this up increases the maximum amount of approvals or assignments
+/// we send in a single message to peers. Exceeding `MAX_NOTIFICATION_SIZE` will violate the protocol
+/// configuration.
+</span><span class="kw">pub const </span>MAX_ASSIGNMENT_BATCH_SIZE: usize = ensure_size_not_zero(
+	MAX_NOTIFICATION_SIZE <span class="kw">as </span>usize /
+		std::mem::size_of::&lt;(IndirectAssignmentCert, CandidateIndex)&gt;() /
+		<span class="number">3</span>,
+);
+
+<span class="doccomment">/// The maximum amount of approvals per batch is 33% of maximum allowed by protocol.
+</span><span class="kw">pub const </span>MAX_APPROVAL_BATCH_SIZE: usize = ensure_size_not_zero(
+	MAX_NOTIFICATION_SIZE <span class="kw">as </span>usize / std::mem::size_of::&lt;IndirectSignedApprovalVote&gt;() / <span class="number">3</span>,
+);
+
+<span class="doccomment">/// Send assignments while honoring the `max_notification_size` of the protocol.
+///
+/// Splitting the messages into multiple notifications allows more granular processing at the
+/// destination, such that the subsystem doesn&#39;t get stuck for long processing a batch
+/// of assignments and can `select!` other tasks.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>send_assignments_batched(
+	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::ApprovalDistributionSenderTrait,
+	assignments: Vec&lt;(IndirectAssignmentCert, CandidateIndex)&gt;,
+	peer: PeerId,
+) {
+	<span class="kw">let </span><span class="kw-2">mut </span>batches = assignments.into_iter().peekable();
+
+	<span class="kw">while </span>batches.peek().is_some() {
+		<span class="kw">let </span>batch: Vec&lt;<span class="kw">_</span>&gt; = batches.by_ref().take(MAX_ASSIGNMENT_BATCH_SIZE).collect();
+
+		sender
+			.send_message(NetworkBridgeTxMessage::SendValidationMessage(
+				<span class="macro">vec!</span>[peer],
+				Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
+					protocol_v1::ApprovalDistributionMessage::Assignments(batch),
+				)),
+			))
+			.<span class="kw">await</span>;
+	}
+}
+
+<span class="doccomment">/// Send approvals while honoring the `max_notification_size` of the protocol.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>send_approvals_batched(
+	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::ApprovalDistributionSenderTrait,
+	approvals: Vec&lt;IndirectSignedApprovalVote&gt;,
+	peer: PeerId,
+) {
+	<span class="kw">let </span><span class="kw-2">mut </span>batches = approvals.into_iter().peekable();
+
+	<span class="kw">while </span>batches.peek().is_some() {
+		<span class="kw">let </span>batch: Vec&lt;<span class="kw">_</span>&gt; = batches.by_ref().take(MAX_APPROVAL_BATCH_SIZE).collect();
+
+		sender
+			.send_message(NetworkBridgeTxMessage::SendValidationMessage(
+				<span class="macro">vec!</span>[peer],
+				Versioned::V1(protocol_v1::ValidationProtocol::ApprovalDistribution(
+					protocol_v1::ApprovalDistributionMessage::Approvals(batch),
+				)),
+			))
+			.<span class="kw">await</span>;
 	}
 }
 </code></pre></div>
