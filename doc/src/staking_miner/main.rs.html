@@ -665,6 +665,7 @@
 <a href="#665" id="665">665</a>
 <a href="#666" id="666">666</a>
 <a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -969,7 +970,7 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Ext, Error&lt;T&gt;&gt;
 <span class="kw">where
 	</span>T: EPM::Config,
-	B: BlockT,
+	B: BlockT + DeserializeOwned,
 	B::Header: DeserializeOwned,
 {
 	<span class="kw">use </span>frame_support::{storage::generator::StorageMap, traits::PalletInfo};
@@ -984,13 +985,14 @@
 			transport: client.into_inner().into(),
 			at,
 			pallets,
+			hashed_prefixes: <span class="macro">vec!</span>[&lt;frame_system::BlockHash&lt;T&gt;&gt;::prefix_hash()],
+			hashed_keys: <span class="macro">vec!</span>[[twox_128(<span class="string">b&quot;System&quot;</span>), twox_128(<span class="string">b&quot;Number&quot;</span>)].concat()],
 			..Default::default()
 		}))
-		.inject_hashed_prefix(<span class="kw-2">&amp;</span>&lt;frame_system::BlockHash&lt;T&gt;&gt;::prefix_hash())
-		.inject_hashed_key(<span class="kw-2">&amp;</span>[twox_128(<span class="string">b&quot;System&quot;</span>), twox_128(<span class="string">b&quot;Number&quot;</span>)].concat())
 		.build()
 		.<span class="kw">await
 		</span>.map_err(|why| Error::RemoteExternalities(why))
+		.map(|rx| rx.inner_ext)
 }
 
 <span class="doccomment">/// Compute the election. It expects to NOT be `Phase::Off`. In other words, the snapshot must
