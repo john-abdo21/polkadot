@@ -458,6 +458,9 @@
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -655,8 +658,8 @@
 		// recovered at startup will be relatively &quot;old&quot; anyway and we assume that no more than a
 		// third of the validators will go offline at any point in time anyway.
 		</span><span class="kw">for </span>dispute <span class="kw">in </span>unknown_disputes {
-			<span class="self">self</span>.rate_limit.limit(<span class="string">&quot;while going through unknown disputes&quot;</span>, dispute.<span class="number">1</span>).<span class="kw">await</span>;
-			<span class="self">self</span>.start_send_for_dispute(ctx, runtime, dispute).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="comment">// Rate limiting handled inside `start_send_for_dispute` (calls `start_sender`).
+			</span><span class="self">self</span>.start_send_for_dispute(ctx, runtime, dispute).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -849,7 +852,8 @@
 	/// String given as occasion and candidate hash are logged in case the rate limit hit.
 	</span><span class="kw">async fn </span>limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, occasion: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, candidate_hash: CandidateHash) {
 		<span class="comment">// Wait for rate limit and add some logging:
-		</span>poll_fn(|cx| {
+		</span><span class="kw">let </span><span class="kw-2">mut </span>num_wakes: u32 = <span class="number">0</span>;
+		poll_fn(|cx| {
 			<span class="kw">let </span>old_limit = Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.limit);
 			<span class="kw">match </span>old_limit.poll(cx) {
 				Poll::Pending =&gt; {
@@ -857,8 +861,10 @@
 						target: LOG_TARGET,
 						<span class="question-mark">?</span>occasion,
 						<span class="question-mark">?</span>candidate_hash,
+						<span class="question-mark">?</span>num_wakes,
 						<span class="string">&quot;Sending rate limit hit, slowing down requests&quot;
 					</span>);
+					num_wakes += <span class="number">1</span>;
 					Poll::Pending
 				},
 				Poll::Ready(()) =&gt; Poll::Ready(()),

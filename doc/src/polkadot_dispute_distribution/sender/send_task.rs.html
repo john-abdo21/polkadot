@@ -311,6 +311,23 @@
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -453,21 +470,38 @@
 		<span class="kw">let </span>new_authorities = <span class="self">self</span>.get_relevant_validators(ctx, runtime, active_sessions).<span class="kw">await</span><span class="question-mark">?</span>;
 
 		<span class="comment">// Note this will also contain all authorities for which sending failed previously:
-		</span><span class="kw">let </span>add_authorities = new_authorities
+		</span><span class="kw">let </span>add_authorities: Vec&lt;<span class="kw">_</span>&gt; = new_authorities
 			.iter()
 			.filter(|a| !<span class="self">self</span>.deliveries.contains_key(a))
 			.map(Clone::clone)
 			.collect();
 
 		<span class="comment">// Get rid of dead/irrelevant tasks/statuses:
-		</span><span class="self">self</span>.deliveries.retain(|k, <span class="kw">_</span>| new_authorities.contains(k));
+		</span><span class="macro">gum::trace!</span>(
+			target: LOG_TARGET,
+			already_running_deliveries = <span class="question-mark">?</span><span class="self">self</span>.deliveries.len(),
+			<span class="string">&quot;Cleaning up deliveries&quot;
+		</span>);
+		<span class="self">self</span>.deliveries.retain(|k, <span class="kw">_</span>| new_authorities.contains(k));
 
 		<span class="comment">// Start any new tasks that are needed:
-		</span><span class="kw">let </span>new_statuses =
+		</span><span class="macro">gum::trace!</span>(
+			target: LOG_TARGET,
+			new_and_failed_authorities = <span class="question-mark">?</span>add_authorities.len(),
+			overall_authority_set_size = <span class="question-mark">?</span>new_authorities.len(),
+			already_running_deliveries = <span class="question-mark">?</span><span class="self">self</span>.deliveries.len(),
+			<span class="string">&quot;Starting new send requests for authorities.&quot;
+		</span>);
+		<span class="kw">let </span>new_statuses =
 			send_requests(ctx, <span class="self">self</span>.tx.clone(), add_authorities, <span class="self">self</span>.request.clone(), metrics)
 				.<span class="kw">await</span><span class="question-mark">?</span>;
 
 		<span class="kw">let </span>was_empty = new_statuses.is_empty();
+		<span class="macro">gum::trace!</span>(
+			target: LOG_TARGET,
+			sent_requests = <span class="question-mark">?</span>new_statuses.len(),
+			<span class="string">&quot;Requests dispatched.&quot;
+		</span>);
 
 		<span class="self">self</span>.has_failed_sends = <span class="bool-val">false</span>;
 		<span class="self">self</span>.deliveries.extend(new_statuses.into_iter());
