@@ -935,6 +935,14 @@
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1648,7 +1656,15 @@
 	}
 
 	<span class="doccomment">/// Run the `Overseer`.
-	</span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; SubsystemResult&lt;()&gt; {
+	///
+	/// Logging any errors.
+	</span><span class="kw">pub async fn </span>run(<span class="self">self</span>) {
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.run_inner().<span class="kw">await </span>{
+			<span class="macro">gum::error!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="string">&quot;Overseer exited with error&quot;</span>);
+		}
+	}
+
+	<span class="kw">async fn </span>run_inner(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; SubsystemResult&lt;()&gt; {
 		<span class="kw">let </span>metrics = <span class="self">self</span>.metrics.clone();
 		spawn_metronome_metrics(<span class="kw-2">&amp;mut </span><span class="self">self</span>, metrics)<span class="question-mark">?</span>;
 
