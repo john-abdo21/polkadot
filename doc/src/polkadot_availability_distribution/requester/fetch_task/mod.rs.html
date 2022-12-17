@@ -460,6 +460,17 @@
 <a href="#460" id="460">460</a>
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -788,6 +799,17 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		validator: <span class="kw-2">&amp;</span>AuthorityDiscoveryId,
 	) -&gt; std::result::Result&lt;ChunkFetchingResponse, TaskError&gt; {
+		<span class="macro">gum::trace!</span>(
+			target: LOG_TARGET,
+			origin = <span class="question-mark">?</span>validator,
+			relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
+			group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
+			session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
+			chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
+			candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
+			<span class="string">&quot;Starting chunk request&quot;</span>,
+		);
+
 		<span class="kw">let </span>(full_request, response_recv) =
 			OutgoingRequest::new(Recipient::Authority(validator.clone()), <span class="self">self</span>.request);
 		<span class="kw">let </span>requests = Requests::ChunkFetchingV1(full_request);
@@ -808,13 +830,13 @@
 			<span class="prelude-val">Err</span>(RequestError::InvalidResponse(err)) =&gt; {
 				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
-					origin= <span class="question-mark">?</span>validator,
+					origin = <span class="question-mark">?</span>validator,
 					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
 					group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
 					session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
 					chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
 					candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
-					err= <span class="question-mark">?</span>err,
+					err = <span class="question-mark">?</span>err,
 					<span class="string">&quot;Peer sent us invalid erasure chunk data&quot;
 				</span>);
 				<span class="prelude-val">Err</span>(TaskError::PeerError)
@@ -822,13 +844,13 @@
 			<span class="prelude-val">Err</span>(RequestError::NetworkError(err)) =&gt; {
 				<span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
-					origin= <span class="question-mark">?</span>validator,
+					origin = <span class="question-mark">?</span>validator,
 					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
 					group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
 					session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
 					chunk_index = <span class="question-mark">?</span><span class="self">self</span>.request.index,
 					candidate_hash = <span class="question-mark">?</span><span class="self">self</span>.request.candidate_hash,
-					err= <span class="question-mark">?</span>err,
+					err = <span class="question-mark">?</span>err,
 					<span class="string">&quot;Some network error occurred when fetching erasure chunk&quot;
 				</span>);
 				<span class="prelude-val">Err</span>(TaskError::PeerError)
@@ -836,7 +858,7 @@
 			<span class="prelude-val">Err</span>(RequestError::Canceled(oneshot::Canceled)) =&gt; {
 				<span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
-					origin= <span class="question-mark">?</span>validator,
+					origin = <span class="question-mark">?</span>validator,
 					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
 					group_index = <span class="question-mark">?</span><span class="self">self</span>.group_index,
 					session_index = <span class="question-mark">?</span><span class="self">self</span>.session_index,
