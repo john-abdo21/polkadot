@@ -1198,6 +1198,13 @@
 <a href="#1198" id="1198">1198</a>
 <a href="#1199" id="1199">1199</a>
 <a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1395,7 +1402,8 @@
 		/// We check that the account does not exist at this stage.
 		///
 		/// Origin must match the `ValidityOrigin`.
-		</span><span class="attr">#[pallet::weight(Weight::from_ref_time(<span class="number">200_000_000</span>) + T::DbWeight::get().reads_writes(<span class="number">4</span>, <span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
+		#[pallet::weight(Weight::from_ref_time(<span class="number">200_000_000</span>) + T::DbWeight::get().reads_writes(<span class="number">4</span>, <span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>create_account(
 			origin: OriginFor&lt;T&gt;,
 			who: T::AccountId,
@@ -1432,7 +1440,8 @@
 		/// We check that the account exists at this stage, but has not completed the process.
 		///
 		/// Origin must match the `ValidityOrigin`.
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
+		#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>update_validity_status(
 			origin: OriginFor&lt;T&gt;,
 			who: T::AccountId,
@@ -1460,7 +1469,8 @@
 		/// We check that the account is valid for a balance transfer at this point.
 		///
 		/// Origin must match the `ValidityOrigin`.
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>update_balance(
 			origin: OriginFor&lt;T&gt;,
 			who: T::AccountId,
@@ -1497,7 +1507,8 @@
 		///
 		/// Origin must match the configured `PaymentAccount` (if it is not configured then this
 		/// will always fail with `BadOrigin`).
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">4</span>, <span class="number">2</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
+		#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">4</span>, <span class="number">2</span>))]
 		</span><span class="kw">pub fn </span>payout(origin: OriginFor&lt;T&gt;, who: T::AccountId) -&gt; DispatchResult {
 			<span class="comment">// Payments must be made directly by the `PaymentAccount`.
 			</span><span class="kw">let </span>payment_account = ensure_signed(origin)<span class="question-mark">?</span>;
@@ -1566,7 +1577,8 @@
 		</span><span class="doccomment">/// Set the account that will be used to payout users in the DOT purchase process.
 		///
 		/// Origin must match the `ConfigurationOrigin`
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().writes(<span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
+		#[pallet::weight(T::DbWeight::get().writes(<span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>set_payment_account(origin: OriginFor&lt;T&gt;, who: T::AccountId) -&gt; DispatchResult {
 			T::ConfigurationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="comment">// Possibly this is worse than having the caller account be the payment account?
@@ -1578,7 +1590,8 @@
 		<span class="doccomment">/// Set the statement that must be signed for a user to participate on the DOT sale.
 		///
 		/// Origin must match the `ConfigurationOrigin`
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().writes(<span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
+		#[pallet::weight(T::DbWeight::get().writes(<span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>set_statement(origin: OriginFor&lt;T&gt;, statement: Vec&lt;u8&gt;) -&gt; DispatchResult {
 			T::ConfigurationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(
@@ -1594,7 +1607,8 @@
 		<span class="doccomment">/// Set the block where locked DOTs will become unlocked.
 		///
 		/// Origin must match the `ConfigurationOrigin`
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().writes(<span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
+		#[pallet::weight(T::DbWeight::get().writes(<span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>set_unlock_block(
 			origin: OriginFor&lt;T&gt;,
 			unlock_block: T::BlockNumber,

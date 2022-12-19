@@ -1584,6 +1584,16 @@
 <a href="#1584" id="1584">1584</a>
 <a href="#1585" id="1585">1585</a>
 <a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2044,7 +2054,8 @@
 
 	<span class="attr">#[pallet::call]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-		<span class="attr">#[pallet::weight(<span class="number">100_000_000</span>)]
+		<span class="attr">#[pallet::call_index(<span class="number">0</span>)]
+		#[pallet::weight(<span class="number">100_000_000</span>)]
 		</span><span class="kw">pub fn </span>send(
 			origin: OriginFor&lt;T&gt;,
 			dest: Box&lt;VersionedMultiLocation&gt;,
@@ -2079,7 +2090,8 @@
 		///   `dest` side. May not be empty.
 		/// - `fee_asset_item`: The index into `assets` of the item which should be used to pay
 		///   fees.
-		</span><span class="attr">#[pallet::weight({
+		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
+		#[pallet::weight({
 			<span class="kw">let </span>maybe_assets: <span class="prelude-ty">Result</span>&lt;MultiAssets, ()&gt; = (<span class="kw-2">*</span>assets.clone()).try_into();
 			<span class="kw">let </span>maybe_dest: <span class="prelude-ty">Result</span>&lt;MultiLocation, ()&gt; = (<span class="kw-2">*</span>dest.clone()).try_into();
 			<span class="kw">match </span>(maybe_assets, maybe_dest) {
@@ -2120,7 +2132,8 @@
 		///   `dest` side.
 		/// - `fee_asset_item`: The index into `assets` of the item which should be used to pay
 		///   fees.
-		</span><span class="attr">#[pallet::weight({
+		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight({
 			<span class="kw">match </span>((<span class="kw-2">*</span>assets.clone()).try_into(), (<span class="kw-2">*</span>dest.clone()).try_into()) {
 				(<span class="prelude-val">Ok</span>(assets), <span class="prelude-val">Ok</span>(dest)) =&gt; {
 					<span class="kw">use </span>sp_std::vec;
@@ -2160,7 +2173,8 @@
 		///
 		/// NOTE: A successful return to this does *not* imply that the `msg` was executed successfully
 		/// to completion; only that *some* of it was executed.
-		</span><span class="attr">#[pallet::weight(Weight::from_ref_time(max_weight.saturating_add(<span class="number">100_000_000u64</span>)))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
+		#[pallet::weight(Weight::from_ref_time(max_weight.saturating_add(<span class="number">100_000_000u64</span>)))]
 		</span><span class="kw">pub fn </span>execute(
 			origin: OriginFor&lt;T&gt;,
 			message: Box&lt;VersionedXcm&lt;&lt;T <span class="kw">as </span>SysConfig&gt;::RuntimeCall&gt;&gt;,
@@ -2188,7 +2202,8 @@
 		/// - `origin`: Must be Root.
 		/// - `location`: The destination that is being described.
 		/// - `xcm_version`: The latest version of XCM that `location` supports.
-		</span><span class="attr">#[pallet::weight(<span class="number">100_000_000u64</span>)]
+		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
+		#[pallet::weight(<span class="number">100_000_000u64</span>)]
 		</span><span class="kw">pub fn </span>force_xcm_version(
 			origin: OriginFor&lt;T&gt;,
 			location: Box&lt;MultiLocation&gt;,
@@ -2210,7 +2225,8 @@
 		///
 		/// - `origin`: Must be Root.
 		/// - `maybe_xcm_version`: The default XCM encoding version, or `None` to disable.
-		</span><span class="attr">#[pallet::weight(<span class="number">100_000_000u64</span>)]
+		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
+		#[pallet::weight(<span class="number">100_000_000u64</span>)]
 		</span><span class="kw">pub fn </span>force_default_xcm_version(
 			origin: OriginFor&lt;T&gt;,
 			maybe_xcm_version: <span class="prelude-ty">Option</span>&lt;XcmVersion&gt;,
@@ -2224,7 +2240,8 @@
 		///
 		/// - `origin`: Must be Root.
 		/// - `location`: The location to which we should subscribe for XCM version notifications.
-		</span><span class="attr">#[pallet::weight(<span class="number">100_000_000u64</span>)]
+		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
+		#[pallet::weight(<span class="number">100_000_000u64</span>)]
 		</span><span class="kw">pub fn </span>force_subscribe_version_notify(
 			origin: OriginFor&lt;T&gt;,
 			location: Box&lt;VersionedMultiLocation&gt;,
@@ -2247,7 +2264,8 @@
 		/// - `origin`: Must be Root.
 		/// - `location`: The location to which we are currently subscribed for XCM version
 		///   notifications which we no longer desire.
-		</span><span class="attr">#[pallet::weight(<span class="number">100_000_000u64</span>)]
+		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
+		#[pallet::weight(<span class="number">100_000_000u64</span>)]
 		</span><span class="kw">pub fn </span>force_unsubscribe_version_notify(
 			origin: OriginFor&lt;T&gt;,
 			location: Box&lt;VersionedMultiLocation&gt;,
@@ -2282,7 +2300,8 @@
 		/// - `fee_asset_item`: The index into `assets` of the item which should be used to pay
 		///   fees.
 		/// - `weight_limit`: The remote-side weight limit, if any, for the XCM fee purchase.
-		</span><span class="attr">#[pallet::weight({
+		</span><span class="attr">#[pallet::call_index(<span class="number">8</span>)]
+		#[pallet::weight({
 			<span class="kw">match </span>((<span class="kw-2">*</span>assets.clone()).try_into(), (<span class="kw-2">*</span>dest.clone()).try_into()) {
 				(<span class="prelude-val">Ok</span>(assets), <span class="prelude-val">Ok</span>(dest)) =&gt; {
 					<span class="kw">use </span>sp_std::vec;
@@ -2329,7 +2348,8 @@
 		/// - `fee_asset_item`: The index into `assets` of the item which should be used to pay
 		///   fees.
 		/// - `weight_limit`: The remote-side weight limit, if any, for the XCM fee purchase.
-		</span><span class="attr">#[pallet::weight({
+		</span><span class="attr">#[pallet::call_index(<span class="number">9</span>)]
+		#[pallet::weight({
 			<span class="kw">let </span>maybe_assets: <span class="prelude-ty">Result</span>&lt;MultiAssets, ()&gt; = (<span class="kw-2">*</span>assets.clone()).try_into();
 			<span class="kw">let </span>maybe_dest: <span class="prelude-ty">Result</span>&lt;MultiLocation, ()&gt; = (<span class="kw-2">*</span>dest.clone()).try_into();
 			<span class="kw">match </span>(maybe_assets, maybe_dest) {

@@ -1146,6 +1146,9 @@
 <a href="#1146" id="1146">1146</a>
 <a href="#1147" id="1147">1147</a>
 <a href="#1148" id="1148">1148</a>
+<a href="#1149" id="1149">1149</a>
+<a href="#1150" id="1150">1150</a>
+<a href="#1151" id="1151">1151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1313,7 +1316,8 @@
 		/// independently of any other on-chain mechanism to use it.
 		///
 		/// The dispatch origin for this call must match `T::ForceOrigin`.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::force_lease())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
+		#[pallet::weight(T::WeightInfo::force_lease())]
 		</span><span class="kw">pub fn </span>force_lease(
 			origin: OriginFor&lt;T&gt;,
 			para: ParaId,
@@ -1331,7 +1335,8 @@
 		<span class="doccomment">/// Clear all leases for a Para Id, refunding any deposits back to the original owners.
 		///
 		/// The dispatch origin for this call must match `T::ForceOrigin`.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::clear_all_leases())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
+		#[pallet::weight(T::WeightInfo::clear_all_leases())]
 		</span><span class="kw">pub fn </span>clear_all_leases(origin: OriginFor&lt;T&gt;, para: ParaId) -&gt; DispatchResult {
 			T::ForceOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>deposits = <span class="self">Self</span>::all_deposits_held(para);
@@ -1353,7 +1358,8 @@
 		/// let them onboard from here.
 		///
 		/// Origin must be signed, but can be called by anyone.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::trigger_onboard())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight(T::WeightInfo::trigger_onboard())]
 		</span><span class="kw">pub fn </span>trigger_onboard(origin: OriginFor&lt;T&gt;, para: ParaId) -&gt; DispatchResult {
 			<span class="kw">let _ </span>= ensure_signed(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>leases = Leases::&lt;T&gt;::get(para);

@@ -2199,6 +2199,15 @@
 <a href="#2199" id="2199">2199</a>
 <a href="#2200" id="2200">2200</a>
 <a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2573,7 +2582,8 @@
 		///
 		/// This applies a lock to your parachain configuration, ensuring that it cannot be changed
 		/// by the parachain manager.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::create())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
+		#[pallet::weight(T::WeightInfo::create())]
 		</span><span class="kw">pub fn </span>create(
 			origin: OriginFor&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>index: ParaId,
@@ -2650,7 +2660,8 @@
 
 		<span class="doccomment">/// Contribute to a crowd sale. This will transfer some balance over to fund a parachain
 		/// slot. It will be withdrawable when the crowdloan has ended and the funds are unused.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::contribute())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
+		#[pallet::weight(T::WeightInfo::contribute())]
 		</span><span class="kw">pub fn </span>contribute(
 			origin: OriginFor&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>index: ParaId,
@@ -2678,7 +2689,8 @@
 		///
 		/// - `who`: The account whose contribution should be withdrawn.
 		/// - `index`: The parachain to whose crowdloan the contribution was made.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::withdraw())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight(T::WeightInfo::withdraw())]
 		</span><span class="kw">pub fn </span>withdraw(
 			origin: OriginFor&lt;T&gt;,
 			who: T::AccountId,
@@ -2711,7 +2723,8 @@
 		/// times to fully refund all users. We will refund `RemoveKeysLimit` users at a time.
 		///
 		/// Origin must be signed, but can come from anyone.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::refund(T::RemoveKeysLimit::get()))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
+		#[pallet::weight(T::WeightInfo::refund(T::RemoveKeysLimit::get()))]
 		</span><span class="kw">pub fn </span>refund(
 			origin: OriginFor&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>index: ParaId,
@@ -2756,7 +2769,8 @@
 		}
 
 		<span class="doccomment">/// Remove a fund after the retirement period has ended and all funds have been returned.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::dissolve())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
+		#[pallet::weight(T::WeightInfo::dissolve())]
 		</span><span class="kw">pub fn </span>dissolve(origin: OriginFor&lt;T&gt;, <span class="attr">#[pallet::compact] </span>index: ParaId) -&gt; DispatchResult {
 			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
@@ -2783,7 +2797,8 @@
 		<span class="doccomment">/// Edit the configuration for an in-progress crowdloan.
 		///
 		/// Can only be called by Root origin.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::edit())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
+		#[pallet::weight(T::WeightInfo::edit())]
 		</span><span class="kw">pub fn </span>edit(
 			origin: OriginFor&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>index: ParaId,
@@ -2820,7 +2835,8 @@
 		<span class="doccomment">/// Add an optional memo to an existing crowdloan contribution.
 		///
 		/// Origin must be Signed, and the user must have contributed to the crowdloan.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::add_memo())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
+		#[pallet::weight(T::WeightInfo::add_memo())]
 		</span><span class="kw">pub fn </span>add_memo(origin: OriginFor&lt;T&gt;, index: ParaId, memo: Vec&lt;u8&gt;) -&gt; DispatchResult {
 			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
@@ -2838,7 +2854,8 @@
 		<span class="doccomment">/// Poke the fund into `NewRaise`
 		///
 		/// Origin must be Signed, and the fund has non-zero raise.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::poke())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
+		#[pallet::weight(T::WeightInfo::poke())]
 		</span><span class="kw">pub fn </span>poke(origin: OriginFor&lt;T&gt;, index: ParaId) -&gt; DispatchResult {
 			ensure_signed(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>fund = <span class="self">Self</span>::funds(index).ok_or(Error::&lt;T&gt;::InvalidParaId)<span class="question-mark">?</span>;
@@ -2851,7 +2868,8 @@
 
 		<span class="doccomment">/// Contribute your entire balance to a crowd sale. This will transfer the entire balance of a user over to fund a parachain
 		/// slot. It will be withdrawable when the crowdloan has ended and the funds are unused.
-		</span><span class="attr">#[pallet::weight(T::WeightInfo::contribute())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">8</span>)]
+		#[pallet::weight(T::WeightInfo::contribute())]
 		</span><span class="kw">pub fn </span>contribute_all(
 			origin: OriginFor&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>index: ParaId,

@@ -1416,6 +1416,15 @@
 <a href="#1416" id="1416">1416</a>
 <a href="#1417" id="1417">1417</a>
 <a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1646,7 +1655,8 @@
 		///
 		/// ## Events
 		/// The `Registered` event is emitted in case of success.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::register())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::register())]
 		</span><span class="kw">pub fn </span>register(
 			origin: OriginFor&lt;T&gt;,
 			id: ParaId,
@@ -1664,7 +1674,8 @@
 		///
 		/// The deposit taken can be specified for this registration. Any `ParaId`
 		/// can be registered, including sub-1000 IDs which are System Parachains.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_register())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_register())]
 		</span><span class="kw">pub fn </span>force_register(
 			origin: OriginFor&lt;T&gt;,
 			who: T::AccountId,
@@ -1680,7 +1691,8 @@
 		<span class="doccomment">/// Deregister a Para Id, freeing all data and returning any deposit.
 		///
 		/// The caller must be Root, the `para` owner, or the `para` itself. The para must be a parathread.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::deregister())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::deregister())]
 		</span><span class="kw">pub fn </span>deregister(origin: OriginFor&lt;T&gt;, id: ParaId) -&gt; DispatchResult {
 			<span class="self">Self</span>::ensure_root_para_or_owner(origin, id)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::do_deregister(id)
@@ -1697,7 +1709,8 @@
 		/// `ParaId` to be a long-term identifier of a notional &quot;parachain&quot;. However, their
 		/// scheduling info (i.e. whether they&#39;re a parathread or parachain), auction information
 		/// and the auction deposit are switched.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::swap())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::swap())]
 		</span><span class="kw">pub fn </span>swap(origin: OriginFor&lt;T&gt;, id: ParaId, other: ParaId) -&gt; DispatchResult {
 			<span class="self">Self</span>::ensure_root_para_or_owner(origin, id)<span class="question-mark">?</span>;
 
@@ -1746,7 +1759,8 @@
 		/// previously locked para to deregister or swap a para without using governance.
 		///
 		/// Can only be called by the Root origin or the parachain.
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
+		#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>remove_lock(origin: OriginFor&lt;T&gt;, para: ParaId) -&gt; DispatchResult {
 			<span class="self">Self</span>::ensure_root_or_para(origin, para)<span class="question-mark">?</span>;
 			&lt;<span class="self">Self </span><span class="kw">as </span>Registrar&gt;::remove_lock(para);
@@ -1767,7 +1781,8 @@
 		///
 		/// ## Events
 		/// The `Reserved` event is emitted in case of success, which provides the ID reserved for use.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::reserve())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::reserve())]
 		</span><span class="kw">pub fn </span>reserve(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
 			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>id = NextFreeParaId::&lt;T&gt;::get().max(LOWEST_PUBLIC_ID);
@@ -1780,7 +1795,8 @@
 		/// para to deregister or swap a para.
 		///
 		/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.
-		</span><span class="attr">#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
+		#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>add_lock(origin: OriginFor&lt;T&gt;, para: ParaId) -&gt; DispatchResult {
 			<span class="self">Self</span>::ensure_root_para_or_owner(origin, para)<span class="question-mark">?</span>;
 			&lt;<span class="self">Self </span><span class="kw">as </span>Registrar&gt;::apply_lock(para);
@@ -1790,7 +1806,8 @@
 		<span class="doccomment">/// Schedule a parachain upgrade.
 		///
 		/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_code_upgrade(new_code.<span class="number">0</span>.len() <span class="kw">as </span>u32))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_code_upgrade(new_code.<span class="number">0</span>.len() <span class="kw">as </span>u32))]
 		</span><span class="kw">pub fn </span>schedule_code_upgrade(
 			origin: OriginFor&lt;T&gt;,
 			para: ParaId,
@@ -1804,7 +1821,8 @@
 		<span class="doccomment">/// Set the parachain&#39;s current head.
 		///
 		/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_current_head(new_head.<span class="number">0</span>.len() <span class="kw">as </span>u32))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">8</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_current_head(new_head.<span class="number">0</span>.len() <span class="kw">as </span>u32))]
 		</span><span class="kw">pub fn </span>set_current_head(
 			origin: OriginFor&lt;T&gt;,
 			para: ParaId,

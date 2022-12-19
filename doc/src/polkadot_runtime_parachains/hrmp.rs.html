@@ -1579,6 +1579,14 @@
 <a href="#1579" id="1579">1579</a>
 <a href="#1580" id="1580">1580</a>
 <a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2046,7 +2054,8 @@
 		///
 		/// The channel can be opened only after the recipient confirms it and only on a session
 		/// change.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_init_open_channel())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_init_open_channel())]
 		</span><span class="kw">pub fn </span>hrmp_init_open_channel(
 			origin: OriginFor&lt;T&gt;,
 			recipient: ParaId,
@@ -2072,7 +2081,8 @@
 		<span class="doccomment">/// Accept a pending open channel request from the given sender.
 		///
 		/// The channel will be opened only on the next session boundary.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_accept_open_channel())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">1</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_accept_open_channel())]
 		</span><span class="kw">pub fn </span>hrmp_accept_open_channel(origin: OriginFor&lt;T&gt;, sender: ParaId) -&gt; DispatchResult {
 			<span class="kw">let </span>origin = ensure_parachain(&lt;T <span class="kw">as </span>Config&gt;::RuntimeOrigin::from(origin))<span class="question-mark">?</span>;
 			<span class="self">Self</span>::accept_open_channel(origin, sender)<span class="question-mark">?</span>;
@@ -2084,7 +2094,8 @@
 		/// recipient in the channel being closed.
 		///
 		/// The closure can only happen on a session change.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_close_channel())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_close_channel())]
 		</span><span class="kw">pub fn </span>hrmp_close_channel(
 			origin: OriginFor&lt;T&gt;,
 			channel_id: HrmpChannelId,
@@ -2102,7 +2113,8 @@
 		/// Origin must be Root.
 		///
 		/// Number of inbound and outbound channels for `para` must be provided as witness data of weighing.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_clean_hrmp(<span class="kw-2">*</span>_inbound, <span class="kw-2">*</span>_outbound))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_clean_hrmp(<span class="kw-2">*</span>_inbound, <span class="kw-2">*</span>_outbound))]
 		</span><span class="kw">pub fn </span>force_clean_hrmp(
 			origin: OriginFor&lt;T&gt;,
 			para: ParaId,
@@ -2120,7 +2132,8 @@
 		/// function process all of those requests immediately.
 		///
 		/// Total number of opening channels must be provided as witness data of weighing.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_process_hrmp_open(<span class="kw-2">*</span>_channels))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_process_hrmp_open(<span class="kw-2">*</span>_channels))]
 		</span><span class="kw">pub fn </span>force_process_hrmp_open(origin: OriginFor&lt;T&gt;, _channels: u32) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>host_config = configuration::Pallet::&lt;T&gt;::config();
@@ -2134,7 +2147,8 @@
 		/// function process all of those requests immediately.
 		///
 		/// Total number of closing channels must be provided as witness data of weighing.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_process_hrmp_close(<span class="kw-2">*</span>_channels))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_process_hrmp_close(<span class="kw-2">*</span>_channels))]
 		</span><span class="kw">pub fn </span>force_process_hrmp_close(origin: OriginFor&lt;T&gt;, _channels: u32) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::process_hrmp_close_channel_requests();
@@ -2149,7 +2163,8 @@
 		///
 		/// Total number of open requests (i.e. `HrmpOpenChannelRequestsList`) must be provided as
 		/// witness data.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_cancel_open_request(<span class="kw-2">*</span>open_requests))]
+		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::hrmp_cancel_open_request(<span class="kw-2">*</span>open_requests))]
 		</span><span class="kw">pub fn </span>hrmp_cancel_open_request(
 			origin: OriginFor&lt;T&gt;,
 			channel_id: HrmpChannelId,
@@ -2172,7 +2187,8 @@
 		///
 		/// Expected use is when one of the `ParaId`s involved in the channel is governed by the
 		/// Relay Chain, e.g. a common good parachain.
-		</span><span class="attr">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_open_hrmp_channel())]
+		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_open_hrmp_channel())]
 		</span><span class="kw">pub fn </span>force_open_hrmp_channel(
 			origin: OriginFor&lt;T&gt;,
 			sender: ParaId,
