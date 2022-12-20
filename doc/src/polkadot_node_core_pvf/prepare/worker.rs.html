@@ -405,8 +405,6 @@
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -468,28 +466,26 @@
 	<span class="doccomment">/// The host tried to reach the worker but failed. This is most likely because the worked was
 	/// killed by the system.
 	</span>Unreachable,
+	<span class="doccomment">/// The temporary file for the artifact could not be created at the given cache path.
+	</span>CreateTmpFileErr { worker: IdleWorker, err: String },
+	<span class="doccomment">/// The response from the worker is received, but the file cannot be renamed (moved) to the
+	/// final destination location.
+	</span>RenameTmpFileErr { worker: IdleWorker, result: PrepareResult, err: String },
 	<span class="doccomment">/// The worker failed to finish the job until the given deadline.
 	///
 	/// The worker is no longer usable and should be killed.
 	</span>TimedOut,
-	<span class="doccomment">/// The execution was interrupted abruptly and the worker is not available anymore.
+	<span class="doccomment">/// An IO error occurred while receiving the result from the worker process.
 	///
 	/// This doesn&#39;t return an idle worker instance, thus this worker is no longer usable.
-	</span>DidNotMakeIt,
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">enum </span>Selected {
-	Done(PrepareResult),
-	IoErr,
-	Deadline,
+	</span>IoErr,
 }
 
 <span class="doccomment">/// Given the idle token of a worker and parameters of work, communicates with the worker and
 /// returns the outcome.
 ///
-/// NOTE: Returning the `TimedOut` or `DidNotMakeIt` errors will trigger the child process being
-/// killed.
+/// NOTE: Returning the `TimedOut`, `IoErr` or `Unreachable` outcomes will trigger the child process
+/// being killed.
 </span><span class="kw">pub async fn </span>start_work(
 	worker: IdleWorker,
 	code: Arc&lt;Vec&lt;u8&gt;&gt;,
@@ -506,7 +502,7 @@
 		artifact_path.display(),
 	);
 
-	with_tmp_file(pid, cache_path, |tmp_file| <span class="kw">async move </span>{
+	with_tmp_file(stream.clone(), pid, cache_path, |tmp_file| <span class="kw">async move </span>{
 		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = send_request(<span class="kw-2">&amp;mut </span>stream, code, <span class="kw-2">&amp;</span>tmp_file, preparation_timeout).<span class="kw">await </span>{
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
@@ -529,10 +525,11 @@
 		</span><span class="kw">let </span>timeout = preparation_timeout * JOB_TIMEOUT_WALL_CLOCK_FACTOR;
 		<span class="kw">let </span>result = async_std::future::timeout(timeout, framed_recv(<span class="kw-2">&amp;mut </span>stream)).<span class="kw">await</span>;
 
-		<span class="kw">let </span>selected = <span class="kw">match </span>result {
+		<span class="kw">match </span>result {
 			<span class="comment">// Received bytes from worker within the time limit.
 			</span><span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(response_bytes)) =&gt;
 				handle_response_bytes(
+					IdleWorker { stream, pid },
 					response_bytes,
 					pid,
 					tmp_file,
@@ -548,7 +545,7 @@
 					<span class="string">&quot;failed to recv a prepare response: {:?}&quot;</span>,
 					err,
 				);
-				Selected::IoErr
+				Outcome::IoErr
 			},
 			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
 				<span class="comment">// Timed out here on the host.
@@ -557,18 +554,8 @@
 					worker_pid = %pid,
 					<span class="string">&quot;did not recv a prepare response within the time limit&quot;</span>,
 				);
-				Selected::Deadline
+				Outcome::TimedOut
 			},
-		};
-
-		<span class="comment">// NOTE: A `TimedOut` or `DidNotMakeIt` error triggers the child process being killed.
-		</span><span class="kw">match </span>selected {
-			<span class="comment">// Timed out on the child. This should already be logged by the child.
-			</span>Selected::Done(<span class="prelude-val">Err</span>(PrepareError::TimedOut)) =&gt; Outcome::TimedOut,
-			Selected::Done(result) =&gt;
-				Outcome::Concluded { worker: IdleWorker { stream, pid }, result },
-			Selected::Deadline =&gt; Outcome::TimedOut,
-			Selected::IoErr =&gt; Outcome::DidNotMakeIt,
 		}
 	})
 	.<span class="kw">await
@@ -579,12 +566,13 @@
 /// NOTE: Here we know the artifact exists, but is still located in a temporary file which will be
 /// cleared by `with_tmp_file`.
 </span><span class="kw">async fn </span>handle_response_bytes(
+	worker: IdleWorker,
 	response_bytes: Vec&lt;u8&gt;,
 	pid: u32,
 	tmp_file: PathBuf,
 	artifact_path: PathBuf,
 	preparation_timeout: Duration,
-) -&gt; Selected {
+) -&gt; Outcome {
 	<span class="comment">// By convention we expect encoded `PrepareResult`.
 	</span><span class="kw">let </span>result = <span class="kw">match </span>PrepareResult::decode(<span class="kw-2">&amp;mut </span>response_bytes.as_slice()) {
 		<span class="prelude-val">Ok</span>(result) =&gt; result,
@@ -597,12 +585,14 @@
 				<span class="string">&quot;received unexpected response from the prepare worker: {}&quot;</span>,
 				HexDisplay::from(<span class="kw-2">&amp;</span>bound_bytes),
 			);
-			<span class="kw">return </span>Selected::IoErr
+			<span class="kw">return </span>Outcome::IoErr
 		},
 	};
 	<span class="kw">let </span>cpu_time_elapsed = <span class="kw">match </span>result {
 		<span class="prelude-val">Ok</span>(result) =&gt; result,
-		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Selected::Done(result),
+		<span class="comment">// Timed out on the child. This should already be logged by the child.
+		</span><span class="prelude-val">Err</span>(PrepareError::TimedOut) =&gt; <span class="kw">return </span>Outcome::TimedOut,
+		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>Outcome::Concluded { worker, result },
 	};
 
 	<span class="kw">if </span>cpu_time_elapsed &gt; preparation_timeout {
@@ -617,7 +607,10 @@
 		);
 
 		<span class="comment">// Return a timeout error.
-		</span><span class="kw">return </span>Selected::Deadline
+		//
+		// NOTE: The artifact exists, but is located in a temporary file which
+		// will be cleared by `with_tmp_file`.
+		</span><span class="kw">return </span>Outcome::TimedOut
 	}
 
 	<span class="macro">gum::debug!</span>(
@@ -628,10 +621,9 @@
 		artifact_path.display(),
 	);
 
-	async_std::fs::rename(<span class="kw-2">&amp;</span>tmp_file, <span class="kw-2">&amp;</span>artifact_path)
-		.<span class="kw">await
-		</span>.map(|<span class="kw">_</span>| Selected::Done(result))
-		.unwrap_or_else(|err| {
+	<span class="kw">match </span>async_std::fs::rename(<span class="kw-2">&amp;</span>tmp_file, <span class="kw-2">&amp;</span>artifact_path).<span class="kw">await </span>{
+		<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; Outcome::Concluded { worker, result },
+		<span class="prelude-val">Err</span>(err) =&gt; {
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
 				worker_pid = %pid,
@@ -640,15 +632,16 @@
 				artifact_path.display(),
 				err,
 			);
-			Selected::IoErr
-		})
+			Outcome::RenameTmpFileErr { worker, result, err: <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err) }
+		},
+	}
 }
 
 <span class="doccomment">/// Create a temporary file for an artifact at the given cache path and execute the given
 /// future/closure passing the file path in.
 ///
 /// The function will try best effort to not leave behind the temporary file.
-</span><span class="kw">async fn </span>with_tmp_file&lt;F, Fut&gt;(pid: u32, cache_path: <span class="kw-2">&amp;</span>Path, f: F) -&gt; Outcome
+</span><span class="kw">async fn </span>with_tmp_file&lt;F, Fut&gt;(stream: UnixStream, pid: u32, cache_path: <span class="kw-2">&amp;</span>Path, f: F) -&gt; Outcome
 <span class="kw">where
 	</span>Fut: futures::Future&lt;Output = Outcome&gt;,
 	F: FnOnce(PathBuf) -&gt; Fut,
@@ -662,7 +655,10 @@
 				<span class="string">&quot;failed to create a temp file for the artifact: {:?}&quot;</span>,
 				err,
 			);
-			<span class="kw">return </span>Outcome::DidNotMakeIt
+			<span class="kw">return </span>Outcome::CreateTmpFileErr {
+				worker: IdleWorker { stream, pid },
+				err: <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err),
+			}
 		},
 	};
 

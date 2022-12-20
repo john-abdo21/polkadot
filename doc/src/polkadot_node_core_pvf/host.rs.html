@@ -1535,7 +1535,6 @@
 <a href="#1535" id="1535">1535</a>
 <a href="#1536" id="1536">1536</a>
 <a href="#1537" id="1537">1537</a>
-<a href="#1538" id="1538">1538</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2314,16 +2313,15 @@
 	num_failures: u32,
 	error: <span class="kw-2">&amp;</span>PrepareError,
 ) -&gt; bool {
-	<span class="kw">use </span>PrepareError::<span class="kw-2">*</span>;
-	<span class="kw">match </span>error {
-		<span class="comment">// Gracefully returned an error, so it will probably be reproducible. Don&#39;t retry.
-		</span>Prevalidation(<span class="kw">_</span>) | Preparation(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-		<span class="comment">// Retry if the retry cooldown has elapsed and if we have already retried less than
-		// `NUM_PREPARE_RETRIES` times. IO errors may resolve themselves.
-		</span>Panic(<span class="kw">_</span>) | TimedOut | DidNotMakeIt =&gt;
-			SystemTime::now() &gt;= last_time_failed + PREPARE_FAILURE_COOLDOWN &amp;&amp;
-				num_failures &lt;= NUM_PREPARE_RETRIES,
-	}
+	<span class="kw">if </span>error.is_deterministic() {
+		<span class="comment">// This error is considered deterministic, so it will probably be reproducible. Don&#39;t retry.
+		</span><span class="kw">return </span><span class="bool-val">false
+	</span>}
+
+	<span class="comment">// Retry if the retry cooldown has elapsed and if we have already retried less than `NUM_PREPARE_RETRIES` times. IO
+	// errors may resolve themselves.
+	</span>SystemTime::now() &gt;= last_time_failed + PREPARE_FAILURE_COOLDOWN &amp;&amp;
+		num_failures &lt;= NUM_PREPARE_RETRIES
 }
 
 <span class="doccomment">/// A stream that yields a pulse continuously at a given interval.

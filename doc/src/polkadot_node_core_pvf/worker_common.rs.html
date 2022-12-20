@@ -423,6 +423,19 @@
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -444,6 +457,7 @@
 </span><span class="kw">use crate</span>::{execute::ExecuteResponse, PrepareError, LOG_TARGET};
 <span class="kw">use </span>async_std::{
 	io,
+	net::Shutdown,
 	os::unix::net::{UnixListener, UnixStream},
 	path::{Path, PathBuf},
 };
@@ -610,8 +624,20 @@
 		<span class="kw">let </span>stream = UnixStream::connect(socket_path).<span class="kw">await</span><span class="question-mark">?</span>;
 		<span class="kw">let _ </span>= async_std::fs::remove_file(socket_path).<span class="kw">await</span>;
 
-		event_loop(stream).<span class="kw">await
-	</span>})
+		<span class="kw">let </span>result = event_loop(stream.clone()).<span class="kw">await</span>;
+
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = stream.shutdown(Shutdown::Both) {
+			<span class="comment">// Log, but don&#39;t return error here, as it may shadow any error from `event_loop`.
+			</span><span class="macro">gum::debug!</span>(
+				target: LOG_TARGET,
+				<span class="string">&quot;error shutting down stream at path {}: {}&quot;</span>,
+				socket_path,
+				err
+			);
+		}
+
+		result
+	})
 	.unwrap_err(); <span class="comment">// it&#39;s never `Ok` because it&#39;s `Ok(Never)`
 
 	</span><span class="macro">gum::debug!</span>(

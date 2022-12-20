@@ -403,6 +403,38 @@
 <a href="#403" id="403">403</a>
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -427,7 +459,6 @@
 	LOG_TARGET,
 };
 <span class="kw">use </span>always_assert::never;
-<span class="kw">use </span>assert_matches::assert_matches;
 <span class="kw">use </span>async_std::path::{Path, PathBuf};
 <span class="kw">use </span>futures::{
 	channel::mpsc, future::BoxFuture, stream::FuturesUnordered, Future, FutureExt, StreamExt,
@@ -637,7 +668,7 @@
 					// items concluded;
 					// thus idle token is Some;
 					// qed.
-					</span><span class="macro">never!</span>(<span class="string">&quot;unexpected abscence of the idle token in prepare pool&quot;</span>);
+					</span><span class="macro">never!</span>(<span class="string">&quot;unexpected absence of the idle token in prepare pool&quot;</span>);
 				}
 			} <span class="kw">else </span>{
 				<span class="comment">// That&#39;s a relatively normal situation since the queue may send `start_work` and
@@ -699,29 +730,28 @@
 			<span class="prelude-val">Ok</span>(())
 		},
 		PoolEvent::StartWork(worker, outcome) =&gt; {
-			<span class="comment">// If we receive any outcome other than `Concluded`, we attempt to kill the worker
-			// process.
+			<span class="comment">// If we receive an outcome that the worker is unreachable or that an error occurred on
+			// the worker, we attempt to kill the worker process.
 			</span><span class="kw">match </span>outcome {
-				Outcome::Concluded { worker: idle, result } =&gt; {
-					<span class="kw">let </span>data = <span class="kw">match </span>spawned.get_mut(worker) {
-						<span class="prelude-val">None </span>=&gt; {
-							<span class="comment">// Perhaps the worker was killed meanwhile and the result is no longer
-							// relevant. We already send `Rip` when purging if we detect that the
-							// worker is dead.
-							</span><span class="kw">return </span><span class="prelude-val">Ok</span>(())
-						},
-						<span class="prelude-val">Some</span>(data) =&gt; data,
-					};
-
-					<span class="comment">// We just replace the idle worker that was loaned from this option during
-					// the work starting.
-					</span><span class="kw">let </span>old = data.idle.replace(idle);
-					<span class="macro">assert_matches!</span>(old, <span class="prelude-val">None</span>, <span class="string">&quot;attempt to overwrite an idle worker&quot;</span>);
-
-					reply(from_pool, FromPool::Concluded { worker, rip: <span class="bool-val">false</span>, result })<span class="question-mark">?</span>;
-
-					<span class="prelude-val">Ok</span>(())
-				},
+				Outcome::Concluded { worker: idle, result } =&gt;
+					handle_concluded_no_rip(from_pool, spawned, worker, idle, result),
+				<span class="comment">// Return `Concluded`, but do not kill the worker since the error was on the host side.
+				</span>Outcome::CreateTmpFileErr { worker: idle, err } =&gt; handle_concluded_no_rip(
+					from_pool,
+					spawned,
+					worker,
+					idle,
+					<span class="prelude-val">Err</span>(PrepareError::CreateTmpFileErr(err)),
+				),
+				<span class="comment">// Return `Concluded`, but do not kill the worker since the error was on the host side.
+				</span>Outcome::RenameTmpFileErr { worker: idle, result: <span class="kw">_</span>, err } =&gt;
+					handle_concluded_no_rip(
+						from_pool,
+						spawned,
+						worker,
+						idle,
+						<span class="prelude-val">Err</span>(PrepareError::RenameTmpFileErr(err)),
+					),
 				Outcome::Unreachable =&gt; {
 					<span class="kw">if </span>attempt_retire(metrics, spawned, worker) {
 						reply(from_pool, FromPool::Rip(worker))<span class="question-mark">?</span>;
@@ -729,14 +759,14 @@
 
 					<span class="prelude-val">Ok</span>(())
 				},
-				Outcome::DidNotMakeIt =&gt; {
+				Outcome::IoErr =&gt; {
 					<span class="kw">if </span>attempt_retire(metrics, spawned, worker) {
 						reply(
 							from_pool,
 							FromPool::Concluded {
 								worker,
 								rip: <span class="bool-val">true</span>,
-								result: <span class="prelude-val">Err</span>(PrepareError::DidNotMakeIt),
+								result: <span class="prelude-val">Err</span>(PrepareError::IoErr),
 							},
 						)<span class="question-mark">?</span>;
 					}
@@ -783,6 +813,40 @@
 	</span>} <span class="kw">else </span>{
 		<span class="bool-val">false
 	</span>}
+}
+
+<span class="doccomment">/// Handles the case where we received a response. There potentially was an error, but not the fault
+/// of the worker as far as we know, so the worker should not be killed.
+///
+/// This function tries to put the idle worker back into the pool and then replies with
+/// `FromPool::Concluded` with `rip: false`.
+</span><span class="kw">fn </span>handle_concluded_no_rip(
+	from_pool: <span class="kw-2">&amp;mut </span>mpsc::UnboundedSender&lt;FromPool&gt;,
+	spawned: <span class="kw-2">&amp;mut </span>HopSlotMap&lt;Worker, WorkerData&gt;,
+	worker: Worker,
+	idle: IdleWorker,
+	result: PrepareResult,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	<span class="kw">let </span>data = <span class="kw">match </span>spawned.get_mut(worker) {
+		<span class="prelude-val">None </span>=&gt; {
+			<span class="comment">// Perhaps the worker was killed meanwhile and the result is no longer relevant. We
+			// already send `Rip` when purging if we detect that the worker is dead.
+			</span><span class="kw">return </span><span class="prelude-val">Ok</span>(())
+		},
+		<span class="prelude-val">Some</span>(data) =&gt; data,
+	};
+
+	<span class="comment">// We just replace the idle worker that was loaned from this option during
+	// the work starting.
+	</span><span class="kw">let </span>old = data.idle.replace(idle);
+	<span class="macro">never!</span>(
+		old.is_some(),
+		<span class="string">&quot;old idle worker was taken out when starting work; we only replace it here; qed&quot;
+	</span>);
+
+	reply(from_pool, FromPool::Concluded { worker, rip: <span class="bool-val">false</span>, result })<span class="question-mark">?</span>;
+
+	<span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Spins up the pool and returns the future that should be polled to make the pool functional.
