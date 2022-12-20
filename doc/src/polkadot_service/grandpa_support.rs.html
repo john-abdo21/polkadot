@@ -338,6 +338,9 @@
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -564,7 +567,7 @@
 		TestClientBuilder, TestClientBuilderExt,
 	};
 	<span class="kw">use </span>sp_blockchain::HeaderBackend;
-	<span class="kw">use </span>sp_runtime::{generic::BlockId, traits::Header};
+	<span class="kw">use </span>sp_runtime::traits::Header;
 	<span class="kw">use </span>std::sync::Arc;
 
 	<span class="attr">#[test]
@@ -572,13 +575,16 @@
 		<span class="kw">let _ </span>= env_logger::try_init();
 
 		<span class="kw">let </span>client = Arc::new(TestClientBuilder::new().build());
+		<span class="kw">let </span><span class="kw-2">mut </span>hashes = <span class="macro">vec!</span>[];
+		hashes.push(client.info().genesis_hash);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>push_blocks = {
 			<span class="kw">let </span><span class="kw-2">mut </span>client = client.clone();
 
-			<span class="kw">move </span>|n| {
+			<span class="kw">move </span>|hashes: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="kw">_</span>&gt;, n| {
 				<span class="kw">for _ in </span><span class="number">0</span>..n {
 					<span class="kw">let </span>block = client.init_polkadot_block_builder().build().unwrap().block;
+					hashes.push(block.header.hash());
 					futures::executor::block_on(client.import(BlockOrigin::Own, block)).unwrap();
 				}
 			}
@@ -586,7 +592,7 @@
 
 		<span class="kw">let </span>get_header = {
 			<span class="kw">let </span>client = client.clone();
-			<span class="kw">move </span>|n| client.header(<span class="kw-2">&amp;</span>BlockId::Number(n)).unwrap().unwrap()
+			<span class="kw">move </span>|n| client.expect_header(n).unwrap()
 		};
 
 		<span class="comment">// the rule should filter all votes after block #20
@@ -594,7 +600,7 @@
 		</span><span class="kw">let </span>voting_rule = <span class="kw">super</span>::PauseAfterBlockFor(<span class="number">20</span>, <span class="number">30</span>);
 
 		<span class="comment">// add 10 blocks
-		</span>push_blocks(<span class="number">10</span>);
+		</span>push_blocks(<span class="kw-2">&amp;mut </span>hashes, <span class="number">10</span>);
 		<span class="macro">assert_eq!</span>(client.info().best_number, <span class="number">10</span>);
 
 		<span class="comment">// we have not reached the pause block
@@ -602,38 +608,38 @@
 		</span><span class="macro">assert_eq!</span>(
 			futures::executor::block_on(voting_rule.restrict_vote(
 				client.clone(),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">0</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">10</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">10</span>)
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">0</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">10</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">10</span>])
 			)),
 			<span class="prelude-val">None</span>,
 		);
 
 		<span class="comment">// add 15 more blocks
 		// best block: #25
-		</span>push_blocks(<span class="number">15</span>);
+		</span>push_blocks(<span class="kw-2">&amp;mut </span>hashes, <span class="number">15</span>);
 
 		<span class="comment">// we are targeting the pause block,
 		// the vote should not be restricted
 		</span><span class="macro">assert_eq!</span>(
 			futures::executor::block_on(voting_rule.restrict_vote(
 				client.clone(),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">10</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">20</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">20</span>)
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">10</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">20</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">20</span>])
 			)),
 			<span class="prelude-val">None</span>,
 		);
 
 		<span class="comment">// we are past the pause block, votes should
 		// be limited to the pause block.
-		</span><span class="kw">let </span>pause_block = get_header(<span class="number">20</span>);
+		</span><span class="kw">let </span>pause_block = get_header(hashes[<span class="number">20</span>]);
 		<span class="macro">assert_eq!</span>(
 			futures::executor::block_on(voting_rule.restrict_vote(
 				client.clone(),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">10</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">21</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">21</span>)
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">10</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">21</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">21</span>])
 			)),
 			<span class="prelude-val">Some</span>((pause_block.hash(), <span class="kw-2">*</span>pause_block.number())),
 		);
@@ -644,15 +650,15 @@
 			futures::executor::block_on(voting_rule.restrict_vote(
 				client.clone(),
 				<span class="kw-2">&amp;</span>pause_block, <span class="comment">// #20
-				</span><span class="kw-2">&amp;</span>get_header(<span class="number">21</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">21</span>),
+				</span><span class="kw-2">&amp;</span>get_header(hashes[<span class="number">21</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">21</span>]),
 			)),
 			<span class="prelude-val">Some</span>((pause_block.hash(), <span class="kw-2">*</span>pause_block.number())),
 		);
 
 		<span class="comment">// add 30 more blocks
 		// best block: #55
-		</span>push_blocks(<span class="number">30</span>);
+		</span>push_blocks(<span class="kw-2">&amp;mut </span>hashes, <span class="number">30</span>);
 
 		<span class="comment">// we&#39;re at the last block of the pause, this block
 		// should still be considered in the pause period
@@ -660,8 +666,8 @@
 			futures::executor::block_on(voting_rule.restrict_vote(
 				client.clone(),
 				<span class="kw-2">&amp;</span>pause_block, <span class="comment">// #20
-				</span><span class="kw-2">&amp;</span>get_header(<span class="number">50</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">50</span>),
+				</span><span class="kw-2">&amp;</span>get_header(hashes[<span class="number">50</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">50</span>]),
 			)),
 			<span class="prelude-val">Some</span>((pause_block.hash(), <span class="kw-2">*</span>pause_block.number())),
 		);
@@ -671,8 +677,8 @@
 			futures::executor::block_on(voting_rule.restrict_vote(
 				client.clone(),
 				<span class="kw-2">&amp;</span>pause_block, <span class="comment">// #20
-				</span><span class="kw-2">&amp;</span>get_header(<span class="number">51</span>),
-				<span class="kw-2">&amp;</span>get_header(<span class="number">51</span>),
+				</span><span class="kw-2">&amp;</span>get_header(hashes[<span class="number">51</span>]),
+				<span class="kw-2">&amp;</span>get_header(hashes[<span class="number">51</span>]),
 			)),
 			<span class="prelude-val">None</span>,
 		);
