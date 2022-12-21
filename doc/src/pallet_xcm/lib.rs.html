@@ -1594,6 +1594,19 @@
 <a href="#1594" id="1594">1594</a>
 <a href="#1595" id="1595">1595</a>
 <a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3120,6 +3133,19 @@
 	<span class="kw">fn </span>contains(l: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {
 		<span class="kw">let </span>maybe_suffix = l.match_and_split(<span class="kw-2">&amp;</span>Prefix::get());
 		<span class="macro">matches!</span>(maybe_suffix, <span class="prelude-val">Some</span>(Plurality { id, part }) <span class="kw">if </span>id == <span class="kw-2">&amp;</span>Body::get() &amp;&amp; part.is_majority())
+	}
+}
+
+<span class="doccomment">/// Filter for `MultiLocation` to find those which represent a voice of an identified plurality.
+///
+/// May reasonably be used with `EnsureXcm`.
+</span><span class="kw">pub struct </span>IsVoiceOfBody&lt;Prefix, Body&gt;(PhantomData&lt;(Prefix, Body)&gt;);
+<span class="kw">impl</span>&lt;Prefix: Get&lt;MultiLocation&gt;, Body: Get&lt;BodyId&gt;&gt; Contains&lt;MultiLocation&gt;
+	<span class="kw">for </span>IsVoiceOfBody&lt;Prefix, Body&gt;
+{
+	<span class="kw">fn </span>contains(l: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {
+		<span class="kw">let </span>maybe_suffix = l.match_and_split(<span class="kw-2">&amp;</span>Prefix::get());
+		<span class="macro">matches!</span>(maybe_suffix, <span class="prelude-val">Some</span>(Plurality { id, part }) <span class="kw">if </span>id == <span class="kw-2">&amp;</span>Body::get() &amp;&amp; part == <span class="kw-2">&amp;</span>BodyPart::Voice)
 	}
 }
 
