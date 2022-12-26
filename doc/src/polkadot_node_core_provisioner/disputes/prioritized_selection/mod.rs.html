@@ -469,6 +469,8 @@
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -689,7 +691,9 @@
 		</span><span class="kw">for </span>(session_index, candidate_hash, selected_votes) <span class="kw">in </span>votes {
 			<span class="kw">let </span>votes_len = selected_votes.valid.raw().len() + selected_votes.invalid.len();
 			<span class="kw">if </span>votes_len + total_votes_len &gt; MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME {
-				<span class="comment">// we are done - no more votes can be added
+				<span class="comment">// we are done - no more votes can be added. Importantly, we don&#39;t add any votes for a dispute here
+				// if we can&#39;t fit them all. This gives us an important invariant, that backing votes for
+				// disputes make it into the provisioned vote set.
 				</span><span class="kw">return </span>result
 			}
 			result.insert((session_index, candidate_hash), selected_votes);
