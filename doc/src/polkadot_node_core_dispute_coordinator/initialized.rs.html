@@ -1349,6 +1349,15 @@
 <a href="#1349" id="1349">1349</a>
 <a href="#1350" id="1350">1350</a>
 <a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1620,8 +1629,13 @@
 		update: ActiveLeavesUpdate,
 		now: u64,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-		<span class="kw">let </span>on_chain_votes =
+		<span class="kw">let </span>scraped_updates =
 			<span class="self">self</span>.scraper.process_active_leaves_update(ctx.sender(), <span class="kw-2">&amp;</span>update).<span class="kw">await</span><span class="question-mark">?</span>;
+		log_error(
+			<span class="self">self</span>.participation
+				.bump_to_priority_for_candidates(ctx, <span class="kw-2">&amp;</span>scraped_updates.included_receipts)
+				.<span class="kw">await</span>,
+		)<span class="question-mark">?</span>;
 		<span class="self">self</span>.participation.process_active_leaves_update(ctx, <span class="kw-2">&amp;</span>update).<span class="kw">await</span><span class="question-mark">?</span>;
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(new_leaf) = update.activated {
@@ -1659,7 +1673,7 @@
 
 			<span class="comment">// The `runtime-api` subsystem has an internal queue which serializes the execution,
 			// so there is no point in running these in parallel.
-			</span><span class="kw">for </span>votes <span class="kw">in </span>on_chain_votes {
+			</span><span class="kw">for </span>votes <span class="kw">in </span>scraped_updates.on_chain_votes {
 				<span class="kw">let _ </span>= <span class="self">self</span>.process_on_chain_votes(ctx, overlay_db, votes, now).<span class="kw">await</span>.map_err(
 					|error| {
 						<span class="macro">gum::warn!</span>(
@@ -1767,7 +1781,9 @@
 				})
 				.collect();
 
-			<span class="kw">let </span>import_result = <span class="self">self
+			<span class="comment">// Importantly, handling import statements for backing votes also
+			// clears spam slots for any newly backed candidates
+			</span><span class="kw">let </span>import_result = <span class="self">self
 				</span>.handle_import_statements(
 					ctx,
 					overlay_db,
@@ -2188,8 +2204,15 @@
 		<span class="kw">let </span>new_state = import_result.new_state();
 
 		<span class="kw">let </span>is_included = <span class="self">self</span>.scraper.is_candidate_included(<span class="kw-2">&amp;</span>candidate_hash);
-
-		<span class="kw">let </span>potential_spam = !is_included &amp;&amp; !new_state.is_confirmed() &amp;&amp; !new_state.has_own_vote();
+		<span class="kw">let </span>is_backed = <span class="self">self</span>.scraper.is_candidate_backed(<span class="kw-2">&amp;</span>candidate_hash);
+		<span class="kw">let </span>has_own_vote = new_state.has_own_vote();
+		<span class="kw">let </span>is_disputed = new_state.is_disputed();
+		<span class="kw">let </span>has_controlled_indices = !env.controlled_indices().is_empty();
+		<span class="kw">let </span>is_confirmed = new_state.is_confirmed();
+		<span class="kw">let </span>potential_spam =
+			!is_included &amp;&amp; !is_backed &amp;&amp; !new_state.is_confirmed() &amp;&amp; !new_state.has_own_vote();
+		<span class="comment">// We participate only in disputes which are included, backed or confirmed
+		</span><span class="kw">let </span>allow_participation = is_included || is_backed || is_confirmed;
 
 		<span class="macro">gum::trace!</span>(
 			target: LOG_TARGET,
@@ -2202,9 +2225,12 @@
 			<span class="string">&quot;Is spam?&quot;
 		</span>);
 
-		<span class="kw">if </span>!potential_spam {
-			<span class="comment">// Former spammers have not been spammers after all:
-			</span><span class="self">self</span>.spam_slots.clear(<span class="kw-2">&amp;</span>(session, candidate_hash));
+		<span class="comment">// This check is responsible for all clearing of spam slots. It runs
+		// whenever a vote is imported from on or off chain, and decrements
+		// slots whenever a candidate is newly backed, confirmed, or has our
+		// own vote.
+		</span><span class="kw">if </span>!potential_spam {
+			<span class="self">self</span>.spam_slots.clear(<span class="kw-2">&amp;</span>(session, candidate_hash));
 
 		<span class="comment">// Potential spam:
 		</span>} <span class="kw">else if </span>!import_result.new_invalid_voters().is_empty() {
@@ -2230,14 +2256,6 @@
 				<span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
 			}
 		}
-
-		<span class="kw">let </span>has_own_vote = new_state.has_own_vote();
-		<span class="kw">let </span>is_disputed = new_state.is_disputed();
-		<span class="kw">let </span>has_controlled_indices = !env.controlled_indices().is_empty();
-		<span class="kw">let </span>is_backed = <span class="self">self</span>.scraper.is_candidate_backed(<span class="kw-2">&amp;</span>candidate_hash);
-		<span class="kw">let </span>is_confirmed = new_state.is_confirmed();
-		<span class="comment">// We participate only in disputes which are included, backed or confirmed
-		</span><span class="kw">let </span>allow_participation = is_included || is_backed || is_confirmed;
 
 		<span class="comment">// Participate in dispute if we did not cast a vote before and actually have keys to cast a
 		// local vote. Disputes should fall in one of the categories below, otherwise we will refrain

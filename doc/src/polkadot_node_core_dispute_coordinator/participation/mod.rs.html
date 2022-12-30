@@ -390,6 +390,22 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -443,7 +459,10 @@
 /// This should be a relatively low value, while we might have a speedup once we fetched the data,
 /// due to multi-core architectures, but the fetching itself can not be improved by parallel
 /// requests. This means that higher numbers make it harder for a single dispute to resolve fast.
+</span><span class="attr">#[cfg(not(test))]
 </span><span class="kw">const </span>MAX_PARALLEL_PARTICIPATIONS: usize = <span class="number">3</span>;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_PARALLEL_PARTICIPATIONS: usize = <span class="number">1</span>;
 
 <span class="doccomment">/// Keep track of disputes we need to participate in.
 ///
@@ -600,6 +619,19 @@
 				},
 				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {},
 			}
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="doccomment">/// Moving any request concerning the given candidates from best-effort to
+	/// priority, ignoring any candidates that don&#39;t have any queued participation requests.
+	</span><span class="kw">pub async fn </span>bump_to_priority_for_candidates&lt;Context&gt;(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		ctx: <span class="kw-2">&amp;mut </span>Context,
+		included_receipts: <span class="kw-2">&amp;</span>Vec&lt;CandidateReceipt&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+		<span class="kw">for </span>receipt <span class="kw">in </span>included_receipts {
+			<span class="self">self</span>.queue.prioritize_if_present(ctx.sender(), receipt).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 		<span class="prelude-val">Ok</span>(())
 	}

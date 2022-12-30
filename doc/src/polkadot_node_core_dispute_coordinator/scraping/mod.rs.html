@@ -339,6 +339,32 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -367,7 +393,7 @@
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::runtime::{get_candidate_events, get_on_chain_votes};
 <span class="kw">use </span>polkadot_primitives::v2::{
-	BlockNumber, CandidateEvent, CandidateHash, Hash, ScrapedOnChainVotes,
+	BlockNumber, CandidateEvent, CandidateHash, CandidateReceipt, Hash, ScrapedOnChainVotes,
 };
 
 <span class="kw">use crate</span>::{
@@ -391,6 +417,24 @@
 	<span class="prelude-val">Some</span>(cap) =&gt; cap,
 	<span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Observed blocks cache size must be non-zero&quot;</span>),
 };
+
+<span class="doccomment">/// ScrapedUpdates
+///
+/// Updates to on_chain_votes and included receipts for new active leaf and its unprocessed
+/// ancestors.
+///
+/// on_chain_votes: New votes as seen on chain
+/// included_receipts: Newly included parachain block candidate receipts as seen on chain
+</span><span class="kw">pub struct </span>ScrapedUpdates {
+	<span class="kw">pub </span>on_chain_votes: Vec&lt;ScrapedOnChainVotes&gt;,
+	<span class="kw">pub </span>included_receipts: Vec&lt;CandidateReceipt&gt;,
+}
+
+<span class="kw">impl </span>ScrapedUpdates {
+	<span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ on_chain_votes: Vec::new(), included_receipts: Vec::new() }
+	}
+}
 
 <span class="doccomment">/// Chain scraper
 ///
@@ -445,8 +489,8 @@
 		};
 		<span class="kw">let </span>update =
 			ActiveLeavesUpdate { activated: <span class="prelude-val">Some</span>(initial_head), deactivated: Default::default() };
-		<span class="kw">let </span>votes = s.process_active_leaves_update(sender, <span class="kw-2">&amp;</span>update).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>((s, votes))
+		<span class="kw">let </span>updates = s.process_active_leaves_update(sender, <span class="kw-2">&amp;</span>update).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>((s, updates.on_chain_votes))
 	}
 
 	<span class="doccomment">/// Check whether we have seen a candidate included on any chain.
@@ -463,18 +507,19 @@
 	///
 	/// and updates current heads, so we can query candidates for all non finalized blocks.
 	///
-	/// Returns: On chain vote for the leaf and any ancestors we might not yet have seen.
+	/// Returns: On chain votes and included candidate receipts for the leaf and any
+	/// ancestors we might not yet have seen.
 	</span><span class="kw">pub async fn </span>process_active_leaves_update&lt;Sender&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		sender: <span class="kw-2">&amp;mut </span>Sender,
 		update: <span class="kw-2">&amp;</span>ActiveLeavesUpdate,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ScrapedOnChainVotes&gt;&gt;
+	) -&gt; <span class="prelude-ty">Result</span>&lt;ScrapedUpdates&gt;
 	<span class="kw">where
 		</span>Sender: overseer::DisputeCoordinatorSenderTrait,
 	{
 		<span class="kw">let </span>activated = <span class="kw">match </span>update.activated.as_ref() {
 			<span class="prelude-val">Some</span>(activated) =&gt; activated,
-			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new()),
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(ScrapedUpdates::new()),
 		};
 
 		<span class="comment">// Fetch ancestry up to last finalized block.
@@ -488,20 +533,22 @@
 
 		<span class="kw">let </span>block_hashes = std::iter::once(activated.hash).chain(ancestors);
 
-		<span class="kw">let </span><span class="kw-2">mut </span>on_chain_votes = Vec::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>scraped_updates = ScrapedUpdates::new();
 		<span class="kw">for </span>(block_number, block_hash) <span class="kw">in </span>block_numbers.zip(block_hashes) {
 			<span class="macro">gum::trace!</span>(<span class="question-mark">?</span>block_number, <span class="question-mark">?</span>block_hash, <span class="string">&quot;In ancestor processing.&quot;</span>);
 
-			<span class="self">self</span>.process_candidate_events(sender, block_number, block_hash).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let </span>receipts_for_block =
+				<span class="self">self</span>.process_candidate_events(sender, block_number, block_hash).<span class="kw">await</span><span class="question-mark">?</span>;
+			scraped_updates.included_receipts.extend(receipts_for_block);
 
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(votes) = get_on_chain_votes(sender, block_hash).<span class="kw">await</span><span class="question-mark">? </span>{
-				on_chain_votes.push(votes);
+				scraped_updates.on_chain_votes.push(votes);
 			}
 		}
 
 		<span class="self">self</span>.last_observed_blocks.put(activated.hash, ());
 
-		<span class="prelude-val">Ok</span>(on_chain_votes)
+		<span class="prelude-val">Ok</span>(scraped_updates)
 	}
 
 	<span class="doccomment">/// Prune finalized candidates.
@@ -528,17 +575,21 @@
 	<span class="doccomment">/// Process candidate events of a block.
 	///
 	/// Keep track of all included and backed candidates.
+	///
+	/// Returns freshly included candidate receipts
 	</span><span class="kw">async fn </span>process_candidate_events&lt;Sender&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		sender: <span class="kw-2">&amp;mut </span>Sender,
 		block_number: BlockNumber,
 		block_hash: Hash,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;CandidateReceipt&gt;&gt;
 	<span class="kw">where
 		</span>Sender: overseer::DisputeCoordinatorSenderTrait,
 	{
+		<span class="kw">let </span>events = get_candidate_events(sender, block_hash).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>included_receipts: Vec&lt;CandidateReceipt&gt; = Vec::new();
 		<span class="comment">// Get included and backed events:
-		</span><span class="kw">for </span>ev <span class="kw">in </span>get_candidate_events(sender, block_hash).<span class="kw">await</span><span class="question-mark">? </span>{
+		</span><span class="kw">for </span>ev <span class="kw">in </span>events {
 			<span class="kw">match </span>ev {
 				CandidateEvent::CandidateIncluded(receipt, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
 					<span class="kw">let </span>candidate_hash = receipt.hash();
@@ -549,6 +600,7 @@
 						<span class="string">&quot;Processing included event&quot;
 					</span>);
 					<span class="self">self</span>.included_candidates.insert(block_number, candidate_hash);
+					included_receipts.push(receipt);
 				},
 				CandidateEvent::CandidateBacked(receipt, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
 					<span class="kw">let </span>candidate_hash = receipt.hash();
@@ -565,7 +617,7 @@
 				</span>},
 			}
 		}
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(included_receipts)
 	}
 
 	<span class="doccomment">/// Returns ancestors of `head` in the descending order, stopping
