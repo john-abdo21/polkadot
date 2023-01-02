@@ -610,6 +610,9 @@
 <a href="#610" id="610">610</a>
 <a href="#611" id="611">611</a>
 <a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -641,7 +644,7 @@
 <span class="kw">use </span>sp_blockchain::{HeaderBackend, HeaderMetadata};
 <span class="kw">use </span>sp_consensus::BlockStatus;
 <span class="kw">use </span>sp_runtime::{
-	generic::{BlockId, SignedBlock},
+	generic::SignedBlock,
 	traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT},
 	Justifications,
 };
@@ -950,22 +953,25 @@
 		}
 	}
 
-	<span class="kw">fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;SignedBlock&lt;Block&gt;&gt;&gt; {
+	<span class="kw">fn </span>block(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;SignedBlock&lt;Block&gt;&gt;&gt; {
 		<span class="macro">with_client! </span>{
 			<span class="self">self</span>,
 			client,
 			{
-				client.block(id)
+				client.block(hash)
 			}
 		}
 	}
 
-	<span class="kw">fn </span>block_status(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;) -&gt; sp_blockchain::Result&lt;BlockStatus&gt; {
+	<span class="kw">fn </span>block_status(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash) -&gt; sp_blockchain::Result&lt;BlockStatus&gt; {
 		<span class="macro">with_client! </span>{
 			<span class="self">self</span>,
 			client,
 			{
-				client.block_status(id)
+				client.block_status(hash)
 			}
 		}
 	}
