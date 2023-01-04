@@ -706,6 +706,16 @@
 <a href="#706" id="706">706</a>
 <a href="#707" id="707">707</a>
 <a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1312,14 +1322,17 @@
 
 <span class="attr">#[async_trait]
 </span><span class="kw">trait </span>ValidationBackend {
-	<span class="kw">async fn </span>validate_candidate(
+	<span class="doccomment">/// Tries executing a PVF a single time (no retries).
+	</span><span class="kw">async fn </span>validate_candidate(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		pvf: Pvf,
 		timeout: Duration,
 		encoded_params: Vec&lt;u8&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt;;
 
-	<span class="kw">async fn </span>validate_candidate_with_retry(
+	<span class="doccomment">/// Tries executing a PVF. Will retry once if an error is encountered that may have been
+	/// transient.
+	</span><span class="kw">async fn </span>validate_candidate_with_retry(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		raw_validation_code: Vec&lt;u8&gt;,
 		timeout: Duration,
@@ -1328,7 +1341,7 @@
 		<span class="comment">// Construct the PVF a single time, since it is an expensive operation. Cloning it is cheap.
 		</span><span class="kw">let </span>pvf = Pvf::from_code(raw_validation_code);
 
-		<span class="kw">let </span>validation_result =
+		<span class="kw">let </span><span class="kw-2">mut </span>validation_result =
 			<span class="self">self</span>.validate_candidate(pvf.clone(), timeout, params.encode()).<span class="kw">await</span>;
 
 		<span class="comment">// If we get an AmbiguousWorkerDeath error, retry once after a brief delay, on the
@@ -1338,12 +1351,19 @@
 		{
 			<span class="comment">// Wait a brief delay before retrying.
 			</span>futures_timer::Delay::new(PVF_EXECUTION_RETRY_DELAY).<span class="kw">await</span>;
+
+			<span class="macro">gum::debug!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>pvf,
+				<span class="string">&quot;Re-trying failed candidate validation due to AmbiguousWorkerDeath.&quot;
+			</span>);
+
 			<span class="comment">// Encode the params again when re-trying. We expect the retry case to be relatively
 			// rare, and we want to avoid unconditionally cloning data.
-			</span><span class="self">self</span>.validate_candidate(pvf, timeout, params.encode()).<span class="kw">await
-		</span>} <span class="kw">else </span>{
-			validation_result
+			</span>validation_result = <span class="self">self</span>.validate_candidate(pvf, timeout, params.encode()).<span class="kw">await</span>;
 		}
+
+		validation_result
 	}
 
 	<span class="kw">async fn </span>precheck_pvf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pvf: Pvf) -&gt; <span class="prelude-ty">Result</span>&lt;Duration, PrepareError&gt;;
