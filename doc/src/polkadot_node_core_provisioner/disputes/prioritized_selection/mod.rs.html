@@ -471,6 +471,16 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -501,7 +511,7 @@
 };
 <span class="kw">use </span>polkadot_primitives::v2::{
 	supermajority_threshold, CandidateHash, DisputeState, DisputeStatement, DisputeStatementSet,
-	Hash, MultiDisputeStatementSet, SessionIndex, ValidatorIndex,
+	Hash, MultiDisputeStatementSet, SessionIndex, ValidDisputeStatementKind, ValidatorIndex,
 };
 <span class="kw">use </span>std::{
 	collections::{BTreeMap, HashMap},
@@ -837,10 +847,20 @@
 	dispute_statement: DisputeStatement,
 	onchain_state: <span class="kw-2">&amp;</span>DisputeState,
 ) -&gt; bool {
-	<span class="kw">let </span>offchain_vote = <span class="kw">match </span>dispute_statement {
-		DisputeStatement::Valid(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-		DisputeStatement::Invalid(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+	<span class="kw">let </span>(offchain_vote, valid_kind) = <span class="kw">match </span>dispute_statement {
+		DisputeStatement::Valid(kind) =&gt; (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(kind)),
+		DisputeStatement::Invalid(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="prelude-val">None</span>),
 	};
+	<span class="comment">// We want to keep all backing votes. This maximizes the number of backers
+	// punished when misbehaving.
+	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(kind) = valid_kind {
+		<span class="kw">match </span>kind {
+			ValidDisputeStatementKind::BackingValid(<span class="kw">_</span>) |
+			ValidDisputeStatementKind::BackingSeconded(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">true</span>,
+			<span class="kw">_ </span>=&gt; (),
+		}
+	}
+
 	<span class="kw">let </span>in_validators_for = onchain_state
 		.validators_for
 		.get(validator_index.<span class="number">0 </span><span class="kw">as </span>usize)
