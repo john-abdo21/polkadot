@@ -1261,6 +1261,14 @@
 <a href="#1261" id="1261">1261</a>
 <a href="#1262" id="1262">1262</a>
 <a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1833,6 +1841,14 @@
 				FromOrchestra::Signal(OverseerSignal::BlockFinalized(hash, number)) =&gt; {
 					<span class="kw">let </span>_timer = subsystem.metrics.time_process_block_finalized();
 
+					<span class="kw">if </span>!subsystem.known_blocks.is_known(<span class="kw-2">&amp;</span>hash) {
+						<span class="comment">// If we haven&#39;t processed this block yet,
+						// make sure we write the metadata about the
+						// candidates backed in this finalized block.
+						// Otherwise, we won&#39;t be able to store our chunk
+						// for these candidates.
+						</span>process_block_activated(ctx, subsystem, hash).<span class="kw">await</span><span class="question-mark">?</span>;
+					}
 					subsystem.finalized_number = <span class="prelude-val">Some</span>(number);
 					subsystem.known_blocks.prune_finalized(number);
 					process_block_finalized(
