@@ -270,6 +270,7 @@
 <a href="#270" id="270">270</a>
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -315,7 +316,7 @@
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
 <span class="kw">use </span>frame_system::limits;
-<span class="kw">use </span>primitives::v2::{AssignmentId, Balance, BlockNumber, ValidatorId, MAX_POV_SIZE};
+<span class="kw">use </span>primitives::v2::{AssignmentId, Balance, BlockNumber, ValidatorId};
 <span class="kw">use </span>sp_runtime::{FixedPointNumber, Perbill, Perquintill};
 <span class="kw">use </span>static_assertions::const_assert;
 
@@ -341,9 +342,10 @@
 <span class="doccomment">/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 </span><span class="kw">pub const </span>NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(<span class="number">75</span>);
-<span class="doccomment">/// The storage proof size is not limited so far.
+<span class="doccomment">/// We allow for 2 seconds of compute with a 6 second average block time.
+/// The storage proof size is not limited so far.
 </span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight =
-	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(<span class="number">2</span>), MAX_POV_SIZE <span class="kw">as </span>u64);
+	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(<span class="number">2</span>), u64::MAX);
 
 <span class="macro">const_assert!</span>(NORMAL_DISPATCH_RATIO.deconstruct() &gt;= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
