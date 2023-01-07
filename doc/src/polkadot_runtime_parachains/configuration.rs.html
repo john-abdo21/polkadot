@@ -1333,22 +1333,6 @@
 <a href="#1333" id="1333">1333</a>
 <a href="#1334" id="1334">1334</a>
 <a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1543,8 +1527,6 @@
 	</span><span class="kw">pub </span>dispute_period: SessionIndex,
 	<span class="doccomment">/// How long after dispute conclusion to accept statements.
 	</span><span class="kw">pub </span>dispute_post_conclusion_acceptance_period: BlockNumber,
-	<span class="doccomment">/// The maximum number of dispute spam slots
-	</span><span class="kw">pub </span>dispute_max_spam_slots: u32,
 	<span class="doccomment">/// How long it takes for a dispute to conclude by time-out, if no supermajority is reached.
 	</span><span class="kw">pub </span>dispute_conclusion_by_time_out_period: BlockNumber,
 	<span class="doccomment">/// The amount of consensus slots that must pass between submitting an assignment and
@@ -1614,7 +1596,6 @@
 			max_validators: <span class="prelude-val">None</span>,
 			dispute_period: <span class="number">6</span>,
 			dispute_post_conclusion_acceptance_period: <span class="number">100</span>.into(),
-			dispute_max_spam_slots: <span class="number">2</span>,
 			dispute_conclusion_by_time_out_period: <span class="number">200</span>.into(),
 			n_delay_tranches: Default::default(),
 			zeroth_delay_tranche_width: Default::default(),
@@ -2100,19 +2081,6 @@
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
 				config.dispute_post_conclusion_acceptance_period = new;
-			})
-		}
-
-		<span class="doccomment">/// Set the maximum number of dispute spam slots.
-		</span><span class="attr">#[pallet::call_index(<span class="number">16</span>)]
-		#[pallet::weight((
-			T::WeightInfo::set_config_with_u32(),
-			DispatchClass::Operational,
-		))]
-		</span><span class="kw">pub fn </span>set_dispute_max_spam_slots(origin: OriginFor&lt;T&gt;, new: u32) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.dispute_max_spam_slots = new;
 			})
 		}
 

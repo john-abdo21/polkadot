@@ -897,12 +897,6 @@ Disputes: double_map (SessionIndex, CandidateHash) -&gt; Option&lt;DisputeState&
 // All included blocks on the chain, as well as the block number in this chain that
 // should be reverted back to if the candidate is disputed and determined to be invalid.
 Included: double_map (SessionIndex, CandidateHash) -&gt; Option&lt;BlockNumber&gt;,
-// Maps session indices to a vector indicating the number of potentially-spam disputes 
-// each validator is participating in. Potentially-spam disputes are remote disputes which have
-// fewer than `byzantine_threshold + 1` validators.
-//
-// The i'th entry of the vector corresponds to the i'th validator in the session.
-SpamSlots: map SessionIndex -&gt; Option&lt;Vec&lt;u32&gt;&gt;,
 // Whether the chain is frozen or not. Starts as `None`. When this is `Some`,
 // the chain will not accept any new parachain blocks for backing or inclusion,
 // and its value indicates the last valid block number in the chain.
@@ -916,14 +910,14 @@ Frozen: Option&lt;BlockNumber&gt;,
 <h2 id="session-change-3"><a class="header" href="#session-change-3">Session Change</a></h2>
 <ol>
 <li>If the current session is not greater than <code>config.dispute_period + 1</code>, nothing to do here.</li>
-<li>Set <code>pruning_target = current_session - config.dispute_period - 1</code>. We add the extra <code>1</code> because we want to keep things for <code>config.dispute_period</code> <em>full</em> sessions. 
+<li>Set <code>pruning_target = current_session - config.dispute_period - 1</code>. We add the extra <code>1</code> because we want to keep things for <code>config.dispute_period</code> <em>full</em> sessions.
 The stuff at the end of the most recent session has been around for a little over 0 sessions, not a little over 1.</li>
 <li>If <code>LastPrunedSession</code> is <code>None</code>, then set <code>LastPrunedSession</code> to <code>Some(pruning_target)</code> and return.</li>
-<li>Otherwise, clear out all disputes, included candidates, and <code>SpamSlots</code> entries in the range <code>last_pruned..=pruning_target</code> and set <code>LastPrunedSession</code> to <code>Some(pruning_target)</code>.</li>
+<li>Otherwise, clear out all disputes and included candidates entries in the range <code>last_pruned..=pruning_target</code> and set <code>LastPrunedSession</code> to <code>Some(pruning_target)</code>.</li>
 </ol>
 <h2 id="block-initialization"><a class="header" href="#block-initialization">Block Initialization</a></h2>
 <ol>
-<li>Iterate through all disputes. If any have not concluded and started more than <code>config.dispute_conclusion_by_timeout_period</code> blocks ago, set them to <code>Concluded</code> and mildly punish all validators associated, as they have failed to distribute available data. If the <code>Included</code> map does not contain the candidate and there are fewer than <code>byzantine_threshold + 1</code> participating validators, reduce <code>SpamSlots</code> for all participating validators.</li>
+<li>Iterate through all disputes. If any have not concluded and started more than <code>config.dispute_conclusion_by_timeout_period</code> blocks ago, set them to <code>Concluded</code> and mildly punish all validators associated, as they have failed to distribute available data.</li>
 </ol>
 <h2 id="routines-1"><a class="header" href="#routines-1">Routines</a></h2>
 <ul>
@@ -932,8 +926,8 @@ The stuff at the end of the most recent session has been around for a little ove
 <ol>
 <li>Takes a <code>MultiDisputeStatementSet</code> and filters it down to a <code>MultiDisputeStatementSet</code>
 that satisfies all the criteria of <code>provide_multi_dispute_data</code>. That is, eliminating
-ancient votes, votes which overwhelm the maximum amount of spam slots, and duplicates. 
-This can be used by block authors to create the final submission in a block which is 
+ancient votes, duplicates and unconfirmed disputes.
+This can be used by block authors to create the final submission in a block which is
 guaranteed to pass the <code>provide_multi_dispute_data</code> checks.</li>
 </ol>
 </li>
@@ -947,17 +941,10 @@ guaranteed to pass the <code>provide_multi_dispute_data</code> checks.</li>
 <li>
 <p><code>provide_dispute_data(DisputeStatementSet) -&gt; bool</code>: Provide data to an ongoing dispute or initiate a dispute.</p>
 <ol>
-<li>All statements must be issued under the correct session for the correct candidate. </li>
+<li>All statements must be issued under the correct session for the correct candidate.</li>
 <li><code>SessionInfo</code> is used to check statement signatures and this function should fail if any signatures are invalid.</li>
 <li>If there is no dispute under <code>Disputes</code>, create a new <code>DisputeState</code> with blank bitfields.</li>
 <li>If <code>concluded_at</code> is <code>Some</code>, and is <code>concluded_at + config.post_conclusion_acceptance_period &lt; now</code>, return false.</li>
-<li>If the overlap of the validators in the <code>DisputeStatementSet</code> and those already present in the <code>DisputeState</code> is fewer in number than <code>byzantine_threshold + 1</code> and the candidate is not present in the <code>Included</code> map
-<ol>
-<li>increment <code>SpamSlots</code> for each validator in the <code>DisputeStatementSet</code> which is not already in the <code>DisputeState</code>. Initialize the <code>SpamSlots</code> to a zeroed vector first, if necessary. do not increment <code>SpamSlots</code> if the candidate is local.</li>
-<li>If the value for any spam slot exceeds <code>config.dispute_max_spam_slots</code>, return false.</li>
-</ol>
-</li>
-<li>If the overlap of the validators in the <code>DisputeStatementSet</code> and those already present in the <code>DisputeState</code> is at least <code>byzantine_threshold + 1</code>, the <code>DisputeState</code> has fewer than <code>byzantine_threshold + 1</code> validators, and the candidate is not present in the <code>Included</code> map, then decrease <code>SpamSlots</code> by 1 for each validator in the <code>DisputeState</code>.</li>
 <li>Import all statements into the dispute. This should fail if any statements are duplicate or if the corresponding bit for the corresponding validator is set in the dispute already.</li>
 <li>If <code>concluded_at</code> is <code>None</code>, reward all statements.</li>
 <li>If <code>concluded_at</code> is <code>Some</code>, reward all statements slightly less.</li>
@@ -976,7 +963,6 @@ guaranteed to pass the <code>provide_multi_dispute_data</code> checks.</li>
 <p><code>note_included(SessionIndex, CandidateHash, included_in: BlockNumber)</code>:</p>
 <ol>
 <li>Add <code>(SessionIndex, CandidateHash)</code> to the <code>Included</code> map with <code>included_in - 1</code> as the value.</li>
-<li>If there is a dispute under <code>(Sessionindex, CandidateHash)</code> with fewer than <code>byzantine_threshold + 1</code> participating validators, decrease <code>SpamSlots</code> by 1 for each validator in the <code>DisputeState</code>.</li>
 <li>If there is a dispute under <code>(SessionIndex, CandidateHash)</code> that has concluded against the candidate, invoke <code>revert_and_freeze</code> with the stored block number.</li>
 </ol>
 </li>
@@ -998,7 +984,31 @@ guaranteed to pass the <code>provide_multi_dispute_data</code> checks.</li>
 </ol>
 </li>
 </ul>
-<footer id="last-change">Last change: 2021-10-01, commit: <a href="https://github.com/paritytech/polkadot/commit/fae4bfa29e">fae4bfa29e</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="paras-module"><a class="header" href="#paras-module">Paras Module</a></h1>
+<h1 id="disputes-filtering"><a class="header" href="#disputes-filtering">Disputes filtering</a></h1>
+<p>All disputes delivered to the runtime by the client are filtered before the actual import. In this context actual import
+means persisted in the runtime storage. The filtering has got two purposes:</p>
+<ul>
+<li>Limit the amount of data saved onchain.</li>
+<li>Prevent persisting malicious dispute data onchain.</li>
+</ul>
+<p><em>Implementation note</em>: Filtering is performed in function <code>filter_dispute_data</code> from <code>Disputes</code> pallet.</p>
+<p>The filtering is performed on the whole statement set which is about to be imported onchain. The following filters are
+applied:</p>
+<ol>
+<li>Remove ancient disputes - if a dispute is concluded before the block number indicated in <code>OLDEST_ACCEPTED</code> parameter
+it is removed from the set. <code>OLDEST_ACCEPTED</code> is a runtime configuration option.
+<em>Implementation note</em>: <code>dispute_post_conclusion_acceptance_period</code> from
+<code>HostConfiguration</code> is used in the current Polkadot/Kusama implementation.</li>
+<li>Remove votes from unknown validators. If there is a vote from a validator which wasn't an authority in the session
+where the dispute was raised - they are removed. Please note that this step removes only single votes instead of
+removing the whole dispute.</li>
+<li>Remove one sided disputes - if a dispute doesn't contain two opposing votes it is not imported onchain. This serves
+as a measure not to import one sided disputes. A dispute is raised only if there are two opposing votes so if the
+client is not sending them the dispute is a potential spam.</li>
+<li>Remove unconfirmed disputes - if a dispute contains less votes than the byzantine threshold it is removed. This is
+also a spam precaution. A legitimate client will send only confirmed disputes to the runtime.</li>
+</ol>
+<footer id="last-change">Last change: 2023-01-07, commit: <a href="https://github.com/paritytech/polkadot/commit/3c15496a8f">3c15496a8f</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="paras-module"><a class="header" href="#paras-module">Paras Module</a></h1>
 <p>The Paras module is responsible for storing information on parachains and parathreads. Registered
 parachains and parathreads cannot change except at session boundaries and after at least a full
 session has passed. This is primarily to ensure that the number and meaning of bits required for the
