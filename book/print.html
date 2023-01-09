@@ -3027,28 +3027,15 @@ pub struct CollationGenerationConfig {
 <li>If there is no collation generation config, ignore.</li>
 <li>Otherwise, for each <code>activated</code> head in the update:
 <ul>
-<li>
-<p>Determine if the para is scheduled on any core by fetching the <code>availability_cores</code> Runtime API.</p>
-<blockquote>
-<p>TODO: figure out what to do in the case of occupied cores; see <a href="https://github.com/paritytech/polkadot/issues/1573">this issue</a>.</p>
-</blockquote>
-</li>
-<li>
-<p>Determine an occupied core assumption to make about the para. Scheduled cores can make <code>OccupiedCoreAssumption::Free</code>.</p>
-</li>
-<li>
-<p>Use the Runtime API subsystem to fetch the full validation data.</p>
-</li>
-<li>
-<p>Invoke the <code>collator</code>, and use its outputs to produce a <code>CandidateReceipt</code>, signed with the configuration's <code>key</code>.</p>
-</li>
-<li>
-<p>Dispatch a <a href="node/collators/../../types/overseer-protocol.html#collatorprotocolmessage"><code>CollatorProtocolMessage</code></a><code>::DistributeCollation(receipt, pov)</code>.</p>
-</li>
+<li>Determine if the para is scheduled on any core by fetching the <code>availability_cores</code> Runtime API.</li>
+<li>Determine an occupied core assumption to make about the para. Scheduled cores can make <code>OccupiedCoreAssumption::Free</code>.</li>
+<li>Use the Runtime API subsystem to fetch the full validation data.</li>
+<li>Invoke the <code>collator</code>, and use its outputs to produce a <code>CandidateReceipt</code>, signed with the configuration's <code>key</code>.</li>
+<li>Dispatch a <a href="node/collators/../../types/overseer-protocol.html#collatorprotocolmessage"><code>CollatorProtocolMessage</code></a><code>::DistributeCollation(receipt, pov)</code>.</li>
 </ul>
 </li>
 </ul>
-<footer id="last-change">Last change: 2021-10-15, commit: <a href="https://github.com/paritytech/polkadot/commit/43dccfb3a4">43dccfb3a4</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="collator-protocol"><a class="header" href="#collator-protocol">Collator Protocol</a></h1>
+<footer id="last-change">Last change: 2023-01-09, commit: <a href="https://github.com/paritytech/polkadot/commit/7b3eb681b3">7b3eb681b3</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="collator-protocol"><a class="header" href="#collator-protocol">Collator Protocol</a></h1>
 <p>The Collator Protocol implements the network protocol by which collators and validators communicate. It is used by collators to distribute collations to validators and used by validators to accept collations by collators.</p>
 <p>Collator-to-Validator networking is more difficult than Validator-to-Validator networking because the set of possible collators for any given para is unbounded, unlike the validator set. Validator-to-Validator networking protocols can easily be implemented as gossip because the data can be bounded, and validators can authenticate each other by their <code>PeerId</code>s for the purposes of instantiating and accepting connections.</p>
 <p>Since, at least at the level of the para abstraction, the collator-set for any given para is unbounded, validators need to make sure that they are receiving connections from capable and honest collators and that their bandwidth and time are not being wasted by attackers. Communicating across this trust-boundary is the most difficult part of this subsystem.</p>
@@ -5847,12 +5834,13 @@ and handle view updates.</p>
 <p>Delete data for all orphaned chains and update all metadata descending from the new finalized block accordingly, along with the set of viable leaves. Note that finalizing a <strong>reverted</strong> or <strong>stagnant</strong> block means that the descendants of those blocks may lose that status because the definitions of those properties don't include the finalized chain. Update the set of viable leaves accordingly.</p>
 <h3 id="chainselectionmessageapproved"><a class="header" href="#chainselectionmessageapproved"><code>ChainSelectionMessage::Approved</code></a></h3>
 <p>Update the approval status of the referenced block. If the block was stagnant and thus non-viable and is now viable, then the metadata of all of its descendants needs to be updated as well, as they may no longer be stagnant either. Update the set of viable leaves accordingly.</p>
+<h3 id="chainselectionmessageleaves"><a class="header" href="#chainselectionmessageleaves"><code>ChainSelectionMessage::Leaves</code></a></h3>
+<p>Gets all leaves of the chain, i.e. block hashes that are suitable to build upon and have no suitable children. Supplies the leaves in descending order by score.</p>
 <h3 id="chainselectionmessagebestleafcontaining"><a class="header" href="#chainselectionmessagebestleafcontaining"><code>ChainSelectionMessage::BestLeafContaining</code></a></h3>
-<p>If the required block is unknown or not viable, then return <code>None</code>.
-Iterate over all leaves, returning the first leaf containing the required block in its chain, and <code>None</code> otherwise.</p>
+<p>If the required block is unknown or not viable, then return <code>None</code>. Iterate over all leaves in order of descending weight, returning the first leaf containing the required block in its chain, and <code>None</code> otherwise.</p>
 <h3 id="periodically"><a class="header" href="#periodically">Periodically</a></h3>
 <p>Detect stagnant blocks and apply the stagnant definition to all descendants. Update the set of viable leaves accordingly.</p>
-<footer id="last-change">Last change: 2021-08-02, commit: <a href="https://github.com/paritytech/polkadot/commit/d5f651c18b">d5f651c18b</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="pvf-pre-checker"><a class="header" href="#pvf-pre-checker">PVF Pre-checker</a></h1>
+<footer id="last-change">Last change: 2023-01-09, commit: <a href="https://github.com/paritytech/polkadot/commit/7b3eb681b3">7b3eb681b3</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="pvf-pre-checker"><a class="header" href="#pvf-pre-checker">PVF Pre-checker</a></h1>
 <p>The PVF pre-checker is a subsystem that is responsible for watching the relay chain for new PVFs that require pre-checking. Head over to <a href="node/utility/../../pvf-prechecking.html">overview</a> for the PVF pre-checking process overview.</p>
 <h2 id="protocol-19"><a class="header" href="#protocol-19">Protocol</a></h2>
 <p>There is no dedicated input mechanism for PVF pre-checker. Instead, PVF pre-checker looks on the <code>ActiveLeavesUpdate</code> event stream for work.</p>
