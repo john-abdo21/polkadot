@@ -815,10 +815,10 @@
 </span><span class="kw">use </span><span class="kw">super</span>::pool::{<span class="self">self</span>, Worker};
 <span class="kw">use crate</span>::{artifacts::ArtifactId, metrics::Metrics, PrepareResult, Priority, Pvf, LOG_TARGET};
 <span class="kw">use </span>always_assert::{always, never};
-<span class="kw">use </span>async_std::path::PathBuf;
 <span class="kw">use </span>futures::{channel::mpsc, stream::StreamExt <span class="kw">as _</span>, Future, SinkExt};
 <span class="kw">use </span>std::{
 	collections::{HashMap, VecDeque},
+	path::PathBuf,
 	time::Duration,
 };
 
@@ -1399,7 +1399,7 @@
 		</span>}
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>properly_concludes() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
@@ -1421,7 +1421,7 @@
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>dont_spawn_over_soft_limit_unless_critical() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">3</span>);
 		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
@@ -1465,7 +1465,7 @@
 		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>cull_unwanted() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">1</span>, <span class="number">2</span>);
 		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
@@ -1503,7 +1503,7 @@
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Kill(w1));
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>worker_mass_die_out_doesnt_stall_queue() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
@@ -1537,7 +1537,7 @@
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>doesnt_resurrect_ripped_worker_if_no_work() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
@@ -1557,12 +1557,12 @@
 		test.send_from_pool(pool::FromPool::Concluded {
 			worker: w1,
 			rip: <span class="bool-val">true</span>,
-			result: <span class="prelude-val">Err</span>(PrepareError::IoErr),
+			result: <span class="prelude-val">Err</span>(PrepareError::IoErr(<span class="string">&quot;test&quot;</span>.into())),
 		});
 		test.poll_ensure_to_pool_is_empty().<span class="kw">await</span>;
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>rip_for_start_work() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 

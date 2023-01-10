@@ -435,6 +435,11 @@
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -459,12 +464,17 @@
 	LOG_TARGET,
 };
 <span class="kw">use </span>always_assert::never;
-<span class="kw">use </span>async_std::path::{Path, PathBuf};
 <span class="kw">use </span>futures::{
 	channel::mpsc, future::BoxFuture, stream::FuturesUnordered, Future, FutureExt, StreamExt,
 };
 <span class="kw">use </span>slotmap::HopSlotMap;
-<span class="kw">use </span>std::{fmt, sync::Arc, task::Poll, time::Duration};
+<span class="kw">use </span>std::{
+	fmt,
+	path::{Path, PathBuf},
+	sync::Arc,
+	task::Poll,
+	time::Duration,
+};
 
 <span class="macro">slotmap::new_key_type! </span>{ <span class="kw">pub struct </span>Worker; }
 
@@ -759,14 +769,14 @@
 
 					<span class="prelude-val">Ok</span>(())
 				},
-				Outcome::IoErr =&gt; {
+				Outcome::IoErr(err) =&gt; {
 					<span class="kw">if </span>attempt_retire(metrics, spawned, worker) {
 						reply(
 							from_pool,
 							FromPool::Concluded {
 								worker,
 								rip: <span class="bool-val">true</span>,
-								result: <span class="prelude-val">Err</span>(PrepareError::IoErr),
+								result: <span class="prelude-val">Err</span>(PrepareError::IoErr(err)),
 							},
 						)<span class="question-mark">?</span>;
 					}

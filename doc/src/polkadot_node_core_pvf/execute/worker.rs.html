@@ -317,6 +317,7 @@
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -338,30 +339,22 @@
 	executor_intf::Executor,
 	worker_common::{
 		bytes_to_path, cpu_time_monitor_loop, framed_recv, framed_send, path_to_bytes,
-		spawn_with_program_path, worker_event_loop, IdleWorker, JobKind, SpawnErr, WorkerHandle,
+		spawn_with_program_path, worker_event_loop, IdleWorker, SpawnErr, WorkerHandle,
 		JOB_TIMEOUT_WALL_CLOCK_FACTOR,
 	},
 	LOG_TARGET,
 };
-<span class="kw">use </span>async_std::{
-	io,
-	os::unix::net::UnixStream,
-	path::{Path, PathBuf},
-	task,
-};
 <span class="kw">use </span>cpu_time::ProcessTime;
-<span class="kw">use </span>futures::FutureExt;
+<span class="kw">use </span>futures::{pin_mut, select_biased, FutureExt};
 <span class="kw">use </span>futures_timer::Delay;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
 <span class="kw">use </span>std::{
-	sync::{
-		atomic::{AtomicBool, Ordering},
-		Arc,
-	},
-	thread,
+	path::{Path, PathBuf},
+	sync::{mpsc::channel, Arc},
 	time::Duration,
 };
+<span class="kw">use </span>tokio::{io, net::UnixStream};
 
 <span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.
 ///
@@ -554,10 +547,10 @@
 <span class="doccomment">/// The entrypoint that the spawned execute worker should start with. The `socket_path` specifies
 /// the path to the socket used to communicate with the host.
 </span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str) {
-	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, |<span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
-		<span class="kw">let </span>executor = Executor::new().map_err(|e| {
+	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
+		<span class="kw">let </span>executor = Arc::new(Executor::new().map_err(|e| {
 			io::Error::new(io::ErrorKind::Other, <span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, e))
-		})<span class="question-mark">?</span>;
+		})<span class="question-mark">?</span>);
 
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>(artifact_path, params, execution_timeout) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -568,52 +561,61 @@
 				artifact_path.display(),
 			);
 
-			<span class="comment">// Create a lock flag. We set it when either thread finishes.
-			</span><span class="kw">let </span>lock = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
+			<span class="comment">// Used to signal to the cpu time monitor thread that it can finish.
+			</span><span class="kw">let </span>(finished_tx, finished_rx) = channel::&lt;()&gt;();
 			<span class="kw">let </span>cpu_time_start = ProcessTime::now();
 
-			<span class="comment">// Spawn a new thread that runs the CPU time monitor. Continuously wakes up from
-			// sleeping and then either sleeps for the remaining CPU time, or kills the process if
-			// we exceed the CPU timeout.
-			</span><span class="kw">let </span>(stream_2, cpu_time_start_2, execution_timeout_2, lock_2) =
-				(stream.clone(), cpu_time_start, execution_timeout, lock.clone());
-			<span class="kw">let </span>handle =
-				thread::Builder::new().name(<span class="string">&quot;CPU time monitor&quot;</span>.into()).spawn(<span class="kw">move </span>|| {
-					task::block_on(<span class="kw">async </span>{
-						cpu_time_monitor_loop(
-							JobKind::Execute,
-							stream_2,
-							cpu_time_start_2,
-							execution_timeout_2,
-							lock_2,
-						)
-						.<span class="kw">await</span>;
-					})
-				})<span class="question-mark">?</span>;
+			<span class="comment">// Spawn a new thread that runs the CPU time monitor.
+			</span><span class="kw">let </span>thread_fut = rt_handle
+				.spawn_blocking(<span class="kw">move </span>|| {
+					cpu_time_monitor_loop(cpu_time_start, execution_timeout, finished_rx)
+				})
+				.fuse();
+			<span class="kw">let </span>executor_2 = executor.clone();
+			<span class="kw">let </span>execute_fut = rt_handle
+				.spawn_blocking(<span class="kw">move </span>|| {
+					validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, executor_2, cpu_time_start)
+				})
+				.fuse();
 
-			<span class="kw">let </span>response =
-				validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, <span class="kw-2">&amp;</span>executor, cpu_time_start).<span class="kw">await</span>;
+			<span class="macro">pin_mut!</span>(thread_fut);
+			<span class="macro">pin_mut!</span>(execute_fut);
 
-			<span class="kw">let </span>lock_result =
-				lock.compare_exchange(<span class="bool-val">false</span>, <span class="bool-val">true</span>, Ordering::Relaxed, Ordering::Relaxed);
-			<span class="kw">if </span>lock_result.is_err() {
-				<span class="comment">// The other thread is still sending an error response over the socket. Wait on it
-				// and return.
-				</span><span class="kw">let _ </span>= handle.join();
-				<span class="comment">// Monitor thread detected timeout and likely already terminated the process,
-				// nothing to do.
-				</span><span class="kw">continue
-			</span>}
+			<span class="kw">let </span>response = <span class="macro">select_biased! </span>{
+				<span class="comment">// If this future is not selected, the join handle is dropped and the thread will
+				// finish in the background.
+				</span>join_res = thread_fut =&gt; {
+					<span class="kw">match </span>join_res {
+						<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(cpu_time_elapsed)) =&gt; {
+							<span class="comment">// Log if we exceed the timeout and the other thread hasn&#39;t finished.
+							</span><span class="macro">gum::warn!</span>(
+								target: LOG_TARGET,
+								worker_pid = %std::process::id(),
+								<span class="string">&quot;execute job took {}ms cpu time, exceeded execute timeout {}ms&quot;</span>,
+								cpu_time_elapsed.as_millis(),
+								execution_timeout.as_millis(),
+							);
+							Response::TimedOut
+						},
+						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Response::InternalError(<span class="string">&quot;error communicating over finished channel&quot;</span>.into()),
+						<span class="prelude-val">Err</span>(e) =&gt; Response::InternalError(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, e)),
+					}
+				},
+				execute_res = execute_fut =&gt; {
+					<span class="kw">let _ </span>= finished_tx.send(());
+					execute_res.unwrap_or_else(|e| Response::InternalError(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, e)))
+				},
+			};
 
 			send_response(<span class="kw-2">&amp;mut </span>stream, response).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 	});
 }
 
-<span class="kw">async fn </span>validate_using_artifact(
+<span class="kw">fn </span>validate_using_artifact(
 	artifact_path: <span class="kw-2">&amp;</span>Path,
 	params: <span class="kw-2">&amp;</span>[u8],
-	executor: <span class="kw-2">&amp;</span>Executor,
+	executor: Arc&lt;Executor&gt;,
 	cpu_time_start: ProcessTime,
 ) -&gt; Response {
 	<span class="kw">let </span>descriptor_bytes = <span class="kw">match unsafe </span>{

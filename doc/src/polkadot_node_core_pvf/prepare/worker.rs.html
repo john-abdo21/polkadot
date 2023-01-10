@@ -397,14 +397,6 @@
 <a href="#397" id="397">397</a>
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -426,29 +418,22 @@
 	error::{PrepareError, PrepareResult},
 	worker_common::{
 		bytes_to_path, cpu_time_monitor_loop, framed_recv, framed_send, path_to_bytes,
-		spawn_with_program_path, tmpfile_in, worker_event_loop, IdleWorker, JobKind, SpawnErr,
-		WorkerHandle, JOB_TIMEOUT_WALL_CLOCK_FACTOR,
+		spawn_with_program_path, tmpfile_in, worker_event_loop, IdleWorker, SpawnErr, WorkerHandle,
+		JOB_TIMEOUT_WALL_CLOCK_FACTOR,
 	},
 	LOG_TARGET,
 };
-<span class="kw">use </span>async_std::{
-	io,
-	os::unix::net::UnixStream,
-	path::{Path, PathBuf},
-	task,
-};
 <span class="kw">use </span>cpu_time::ProcessTime;
+<span class="kw">use </span>futures::{pin_mut, select_biased, FutureExt};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
 <span class="kw">use </span>std::{
 	panic,
-	sync::{
-		atomic::{AtomicBool, Ordering},
-		Arc,
-	},
-	thread,
+	path::{Path, PathBuf},
+	sync::{mpsc::channel, Arc},
 	time::Duration,
 };
+<span class="kw">use </span>tokio::{io, net::UnixStream};
 
 <span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.
 ///
@@ -478,7 +463,7 @@
 	<span class="doccomment">/// An IO error occurred while receiving the result from the worker process.
 	///
 	/// This doesn&#39;t return an idle worker instance, thus this worker is no longer usable.
-	</span>IoErr,
+	</span>IoErr(String),
 }
 
 <span class="doccomment">/// Given the idle token of a worker and parameters of work, communicates with the worker and
@@ -493,7 +478,7 @@
 	artifact_path: PathBuf,
 	preparation_timeout: Duration,
 ) -&gt; Outcome {
-	<span class="kw">let </span>IdleWorker { <span class="kw-2">mut </span>stream, pid } = worker;
+	<span class="kw">let </span>IdleWorker { stream, pid } = worker;
 
 	<span class="macro">gum::debug!</span>(
 		target: LOG_TARGET,
@@ -502,7 +487,7 @@
 		artifact_path.display(),
 	);
 
-	with_tmp_file(stream.clone(), pid, cache_path, |tmp_file| <span class="kw">async move </span>{
+	with_tmp_file(stream, pid, cache_path, |tmp_file, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = send_request(<span class="kw-2">&amp;mut </span>stream, code, <span class="kw-2">&amp;</span>tmp_file, preparation_timeout).<span class="kw">await </span>{
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
@@ -523,7 +508,7 @@
 		// load, but the CPU resources of the child can only be measured from the parent after the
 		// child process terminates.
 		</span><span class="kw">let </span>timeout = preparation_timeout * JOB_TIMEOUT_WALL_CLOCK_FACTOR;
-		<span class="kw">let </span>result = async_std::future::timeout(timeout, framed_recv(<span class="kw-2">&amp;mut </span>stream)).<span class="kw">await</span>;
+		<span class="kw">let </span>result = tokio::time::timeout(timeout, framed_recv(<span class="kw-2">&amp;mut </span>stream)).<span class="kw">await</span>;
 
 		<span class="kw">match </span>result {
 			<span class="comment">// Received bytes from worker within the time limit.
@@ -545,7 +530,7 @@
 					<span class="string">&quot;failed to recv a prepare response: {:?}&quot;</span>,
 					err,
 				);
-				Outcome::IoErr
+				Outcome::IoErr(err.to_string())
 			},
 			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
 				<span class="comment">// Timed out here on the host.
@@ -576,7 +561,7 @@
 	<span class="comment">// By convention we expect encoded `PrepareResult`.
 	</span><span class="kw">let </span>result = <span class="kw">match </span>PrepareResult::decode(<span class="kw-2">&amp;mut </span>response_bytes.as_slice()) {
 		<span class="prelude-val">Ok</span>(result) =&gt; result,
-		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+		<span class="prelude-val">Err</span>(err) =&gt; {
 			<span class="comment">// We received invalid bytes from the worker.
 			</span><span class="kw">let </span>bound_bytes = <span class="kw-2">&amp;</span>response_bytes[..response_bytes.len().min(<span class="number">4</span>)];
 			<span class="macro">gum::warn!</span>(
@@ -585,7 +570,7 @@
 				<span class="string">&quot;received unexpected response from the prepare worker: {}&quot;</span>,
 				HexDisplay::from(<span class="kw-2">&amp;</span>bound_bytes),
 			);
-			<span class="kw">return </span>Outcome::IoErr
+			<span class="kw">return </span>Outcome::IoErr(err.to_string())
 		},
 	};
 	<span class="kw">let </span>cpu_time_elapsed = <span class="kw">match </span>result {
@@ -605,12 +590,7 @@
 			preparation_timeout.as_millis(),
 			tmp_file.display(),
 		);
-
-		<span class="comment">// Return a timeout error.
-		//
-		// NOTE: The artifact exists, but is located in a temporary file which
-		// will be cleared by `with_tmp_file`.
-		</span><span class="kw">return </span>Outcome::TimedOut
+		<span class="kw">return </span>Outcome::TimedOut
 	}
 
 	<span class="macro">gum::debug!</span>(
@@ -621,8 +601,8 @@
 		artifact_path.display(),
 	);
 
-	<span class="kw">match </span>async_std::fs::rename(<span class="kw-2">&amp;</span>tmp_file, <span class="kw-2">&amp;</span>artifact_path).<span class="kw">await </span>{
-		<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; Outcome::Concluded { worker, result },
+	<span class="kw">match </span>tokio::fs::rename(<span class="kw-2">&amp;</span>tmp_file, <span class="kw-2">&amp;</span>artifact_path).<span class="kw">await </span>{
+		<span class="prelude-val">Ok</span>(()) =&gt; Outcome::Concluded { worker, result },
 		<span class="prelude-val">Err</span>(err) =&gt; {
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
@@ -644,7 +624,7 @@
 </span><span class="kw">async fn </span>with_tmp_file&lt;F, Fut&gt;(stream: UnixStream, pid: u32, cache_path: <span class="kw-2">&amp;</span>Path, f: F) -&gt; Outcome
 <span class="kw">where
 	</span>Fut: futures::Future&lt;Output = Outcome&gt;,
-	F: FnOnce(PathBuf) -&gt; Fut,
+	F: FnOnce(PathBuf, UnixStream) -&gt; Fut,
 {
 	<span class="kw">let </span>tmp_file = <span class="kw">match </span>tmpfile_in(<span class="string">&quot;prepare-artifact-&quot;</span>, cache_path).<span class="kw">await </span>{
 		<span class="prelude-val">Ok</span>(f) =&gt; f,
@@ -662,14 +642,14 @@
 		},
 	};
 
-	<span class="kw">let </span>outcome = f(tmp_file.clone()).<span class="kw">await</span>;
+	<span class="kw">let </span>outcome = f(tmp_file.clone(), stream).<span class="kw">await</span>;
 
 	<span class="comment">// The function called above is expected to move `tmp_file` to a new location upon success. However,
 	// the function may as well fail and in that case we should remove the tmp file here.
 	//
 	// In any case, we try to remove the file here so that there are no leftovers. We only report
 	// errors that are different from the `NotFound`.
-	</span><span class="kw">match </span>async_std::fs::remove_file(tmp_file).<span class="kw">await </span>{
+	</span><span class="kw">match </span>tokio::fs::remove_file(tmp_file).<span class="kw">await </span>{
 		<span class="prelude-val">Ok</span>(()) =&gt; (),
 		<span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == std::io::ErrorKind::NotFound =&gt; (),
 		<span class="prelude-val">Err</span>(err) =&gt; {
@@ -719,74 +699,78 @@
 <span class="doccomment">/// The entrypoint that the spawned prepare worker should start with. The `socket_path` specifies
 /// the path to the socket used to communicate with the host.
 </span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str) {
-	worker_event_loop(<span class="string">&quot;prepare&quot;</span>, socket_path, |<span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
+	worker_event_loop(<span class="string">&quot;prepare&quot;</span>, socket_path, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>(code, dest, preparation_timeout) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
-
 			<span class="macro">gum::debug!</span>(
 				target: LOG_TARGET,
 				worker_pid = %std::process::id(),
 				<span class="string">&quot;worker: preparing artifact&quot;</span>,
 			);
 
-			<span class="comment">// Create a lock flag. We set it when either thread finishes.
-			</span><span class="kw">let </span>lock = Arc::new(AtomicBool::new(<span class="bool-val">false</span>));
+			<span class="comment">// Used to signal to the cpu time monitor thread that it can finish.
+			</span><span class="kw">let </span>(finished_tx, finished_rx) = channel::&lt;()&gt;();
 			<span class="kw">let </span>cpu_time_start = ProcessTime::now();
 
-			<span class="comment">// Spawn a new thread that runs the CPU time monitor. Continuously wakes up from
-			// sleeping and then either sleeps for the remaining CPU time, or kills the process if
-			// we exceed the CPU timeout.
-			</span><span class="kw">let </span>(stream_2, cpu_time_start_2, preparation_timeout_2, lock_2) =
-				(stream.clone(), cpu_time_start, preparation_timeout, lock.clone());
-			<span class="kw">let </span>handle =
-				thread::Builder::new().name(<span class="string">&quot;CPU time monitor&quot;</span>.into()).spawn(<span class="kw">move </span>|| {
-					task::block_on(<span class="kw">async </span>{
-						cpu_time_monitor_loop(
-							JobKind::Prepare,
-							stream_2,
-							cpu_time_start_2,
-							preparation_timeout_2,
-							lock_2,
-						)
-						.<span class="kw">await</span>;
-					})
-				})<span class="question-mark">?</span>;
+			<span class="comment">// Spawn a new thread that runs the CPU time monitor.
+			</span><span class="kw">let </span>thread_fut = rt_handle
+				.spawn_blocking(<span class="kw">move </span>|| {
+					cpu_time_monitor_loop(cpu_time_start, preparation_timeout, finished_rx)
+				})
+				.fuse();
+			<span class="kw">let </span>prepare_fut = rt_handle.spawn_blocking(<span class="kw">move </span>|| prepare_artifact(<span class="kw-2">&amp;</span>code)).fuse();
 
-			<span class="comment">// Prepares the artifact in a separate thread.
-			</span><span class="kw">let </span>result = <span class="kw">match </span>prepare_artifact(<span class="kw-2">&amp;</span>code).<span class="kw">await </span>{
-				<span class="prelude-val">Err</span>(err) =&gt; {
-					<span class="comment">// Serialized error will be written into the socket.
-					</span><span class="prelude-val">Err</span>(err)
+			<span class="macro">pin_mut!</span>(thread_fut);
+			<span class="macro">pin_mut!</span>(prepare_fut);
+
+			<span class="kw">let </span>result = <span class="macro">select_biased! </span>{
+				<span class="comment">// If this future is not selected, the join handle is dropped and the thread will
+				// finish in the background.
+				</span>join_res = thread_fut =&gt; {
+					<span class="kw">match </span>join_res {
+						<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(cpu_time_elapsed)) =&gt; {
+							<span class="comment">// Log if we exceed the timeout and the other thread hasn&#39;t finished.
+							</span><span class="macro">gum::warn!</span>(
+								target: LOG_TARGET,
+								worker_pid = %std::process::id(),
+								<span class="string">&quot;prepare job took {}ms cpu time, exceeded prepare timeout {}ms&quot;</span>,
+								cpu_time_elapsed.as_millis(),
+								preparation_timeout.as_millis(),
+							);
+							<span class="prelude-val">Err</span>(PrepareError::TimedOut)
+						},
+						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(PrepareError::IoErr(<span class="string">&quot;error communicating over finished channel&quot;</span>.into())),
+						<span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(PrepareError::IoErr(err.to_string())),
+					}
 				},
-				<span class="prelude-val">Ok</span>(compiled_artifact) =&gt; {
+				compilation_res = prepare_fut =&gt; {
 					<span class="kw">let </span>cpu_time_elapsed = cpu_time_start.elapsed();
+					<span class="kw">let _ </span>= finished_tx.send(());
 
-					<span class="kw">let </span>lock_result =
-						lock.compare_exchange(<span class="bool-val">false</span>, <span class="bool-val">true</span>, Ordering::Relaxed, Ordering::Relaxed);
-					<span class="kw">if </span>lock_result.is_err() {
-						<span class="comment">// The other thread is still sending an error response over the socket. Wait on it and
-						// return.
-						</span><span class="kw">let _ </span>= handle.join();
-						<span class="comment">// Monitor thread detected timeout and likely already terminated the
-						// process, nothing to do.
-						</span><span class="kw">continue
-					</span>}
+					<span class="kw">match </span>compilation_res.unwrap_or_else(|err| <span class="prelude-val">Err</span>(PrepareError::IoErr(err.to_string()))) {
+						<span class="prelude-val">Err</span>(err) =&gt; {
+							<span class="comment">// Serialized error will be written into the socket.
+							</span><span class="prelude-val">Err</span>(err)
+						},
+						<span class="prelude-val">Ok</span>(compiled_artifact) =&gt; {
+							<span class="comment">// Write the serialized artifact into a temp file.
+							//
+							// PVF host only keeps artifacts statuses in its memory, successfully
+							// compiled code gets stored on the disk (and consequently deserialized
+							// by execute-workers). The prepare worker is only required to send `Ok`
+							// to the pool to indicate the success.
 
-					<span class="comment">// Write the serialized artifact into a temp file.
-					//
-					// PVF host only keeps artifacts statuses in its memory, successfully compiled code gets stored
-					// on the disk (and consequently deserialized by execute-workers). The prepare worker is only
-					// required to send `Ok` to the pool to indicate the success.
+							</span><span class="macro">gum::debug!</span>(
+								target: LOG_TARGET,
+								worker_pid = %std::process::id(),
+								<span class="string">&quot;worker: writing artifact to {}&quot;</span>,
+								dest.display(),
+							);
+							tokio::fs::write(<span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;</span>compiled_artifact).<span class="kw">await</span><span class="question-mark">?</span>;
 
-					</span><span class="macro">gum::debug!</span>(
-						target: LOG_TARGET,
-						worker_pid = %std::process::id(),
-						<span class="string">&quot;worker: writing artifact to {}&quot;</span>,
-						dest.display(),
-					);
-					async_std::fs::write(<span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;</span>compiled_artifact).<span class="kw">await</span><span class="question-mark">?</span>;
-
-					<span class="prelude-val">Ok</span>(cpu_time_elapsed)
+							<span class="prelude-val">Ok</span>(cpu_time_elapsed)
+						},
+					}
 				},
 			};
 
@@ -795,7 +779,7 @@
 	});
 }
 
-<span class="kw">async fn </span>prepare_artifact(code: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;CompiledArtifact, PrepareError&gt; {
+<span class="kw">fn </span>prepare_artifact(code: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;CompiledArtifact, PrepareError&gt; {
 	panic::catch_unwind(|| {
 		<span class="kw">let </span>blob = <span class="kw">match </span><span class="kw">crate</span>::executor_intf::prevalidate(code) {
 			<span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(PrepareError::Prevalidation(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err))),

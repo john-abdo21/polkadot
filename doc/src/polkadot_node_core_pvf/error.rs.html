@@ -182,7 +182,7 @@
 	</span>TimedOut,
 	<span class="doccomment">/// An IO error occurred while receiving the result from the worker process. This state is reported by the
 	/// validation host (not by the worker).
-	</span>IoErr,
+	</span>IoErr(String),
 	<span class="doccomment">/// The temporary file for the artifact could not be created at the given cache path. This state is reported by the
 	/// validation host (not by the worker).
 	</span>CreateTmpFileErr(String),
@@ -202,7 +202,7 @@
 		<span class="kw">use </span>PrepareError::<span class="kw-2">*</span>;
 		<span class="kw">match </span><span class="self">self </span>{
 			Prevalidation(<span class="kw">_</span>) | Preparation(<span class="kw">_</span>) | Panic(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-			TimedOut | IoErr | CreateTmpFileErr(<span class="kw">_</span>) | RenameTmpFileErr(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			TimedOut | IoErr(<span class="kw">_</span>) | CreateTmpFileErr(<span class="kw">_</span>) | RenameTmpFileErr(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 		}
 	}
 }
@@ -215,7 +215,7 @@
 			Preparation(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;preparation: {}&quot;</span>, err),
 			Panic(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;panic: {}&quot;</span>, err),
 			TimedOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: timeout&quot;</span>),
-			IoErr =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: io error while receiving response&quot;</span>),
+			IoErr(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: io error while receiving response: {}&quot;</span>, err),
 			CreateTmpFileErr(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: error creating tmp file: {}&quot;</span>, err),
 			RenameTmpFileErr(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: error renaming tmp file: {}&quot;</span>, err),
 		}

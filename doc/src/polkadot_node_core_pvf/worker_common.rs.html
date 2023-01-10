@@ -391,51 +391,6 @@
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
 <a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -454,30 +409,25 @@
 
 </span><span class="doccomment">//! Common logic for implementation of worker processes.
 
-</span><span class="kw">use crate</span>::{execute::ExecuteResponse, PrepareError, LOG_TARGET};
-<span class="kw">use </span>async_std::{
-	io,
-	net::Shutdown,
-	os::unix::net::{UnixListener, UnixStream},
-	path::{Path, PathBuf},
-};
+</span><span class="kw">use </span><span class="kw">crate</span>::LOG_TARGET;
 <span class="kw">use </span>cpu_time::ProcessTime;
-<span class="kw">use </span>futures::{
-	never::Never, AsyncRead, AsyncReadExt <span class="kw">as _</span>, AsyncWrite, AsyncWriteExt <span class="kw">as _</span>, FutureExt <span class="kw">as _</span>,
-};
+<span class="kw">use </span>futures::{never::Never, FutureExt <span class="kw">as _</span>};
 <span class="kw">use </span>futures_timer::Delay;
-<span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>pin_project::pin_project;
 <span class="kw">use </span>rand::Rng;
 <span class="kw">use </span>std::{
 	fmt, mem,
+	path::{Path, PathBuf},
 	pin::Pin,
-	sync::{
-		atomic::{AtomicBool, Ordering},
-		Arc,
-	},
+	sync::mpsc::{Receiver, RecvTimeoutError},
 	task::{Context, Poll},
 	time::Duration,
+};
+<span class="kw">use </span>tokio::{
+	io::{<span class="self">self</span>, AsyncRead, AsyncReadExt <span class="kw">as _</span>, AsyncWrite, AsyncWriteExt <span class="kw">as _</span>, ReadBuf},
+	net::{UnixListener, UnixStream},
+	process,
+	runtime::{Handle, Runtime},
 };
 
 <span class="doccomment">/// A multiple of the job timeout (in CPU time) for which we are willing to wait on the host (in
@@ -487,21 +437,6 @@
 <span class="doccomment">/// Some allowed overhead that we account for in the &quot;CPU time monitor&quot; thread&#39;s sleeps, on the
 /// child process.
 </span><span class="kw">pub const </span>JOB_TIMEOUT_OVERHEAD: Duration = Duration::from_millis(<span class="number">50</span>);
-
-<span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub enum </span>JobKind {
-	Prepare,
-	Execute,
-}
-
-<span class="kw">impl </span>fmt::Display <span class="kw">for </span>JobKind {
-	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-		<span class="kw">match </span><span class="self">self </span>{
-			<span class="self">Self</span>::Prepare =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare&quot;</span>),
-			<span class="self">Self</span>::Execute =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;execute&quot;</span>),
-		}
-	}
-}
 
 <span class="doccomment">/// This is publicly exposed only for integration tests.
 </span><span class="attr">#[doc(hidden)]
@@ -515,7 +450,7 @@
 	with_transient_socket_path(debug_id, |socket_path| {
 		<span class="kw">let </span>socket_path = socket_path.to_owned();
 		<span class="kw">async move </span>{
-			<span class="kw">let </span>listener = UnixListener::bind(<span class="kw-2">&amp;</span>socket_path).<span class="kw">await</span>.map_err(|err| {
+			<span class="kw">let </span>listener = UnixListener::bind(<span class="kw-2">&amp;</span>socket_path).map_err(|err| {
 				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
 					%debug_id,
@@ -570,7 +505,7 @@
 
 	<span class="comment">// Best effort to remove the socket file. Under normal circumstances the socket will be removed
 	// by the worker. We make sure that it is removed here, just in case a failed rendezvous.
-	</span><span class="kw">let _ </span>= async_std::fs::remove_file(socket_path).<span class="kw">await</span>;
+	</span><span class="kw">let _ </span>= tokio::fs::remove_file(socket_path).<span class="kw">await</span>;
 
 	result
 }
@@ -601,7 +536,7 @@
 
 	<span class="kw">for _ in </span><span class="number">0</span>..NUM_RETRIES {
 		<span class="kw">let </span>candidate_path = tmppath(prefix, dir);
-		<span class="kw">if </span>!candidate_path.exists().<span class="kw">await </span>{
+		<span class="kw">if </span>!candidate_path.exists() {
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(candidate_path)
 		}
 	}
@@ -617,104 +552,69 @@
 
 <span class="kw">pub fn </span>worker_event_loop&lt;F, Fut&gt;(debug_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, socket_path: <span class="kw-2">&amp;</span>str, <span class="kw-2">mut </span>event_loop: F)
 <span class="kw">where
-	</span>F: FnMut(UnixStream) -&gt; Fut,
+	</span>F: FnMut(Handle, UnixStream) -&gt; Fut,
 	Fut: futures::Future&lt;Output = io::Result&lt;Never&gt;&gt;,
 {
-	<span class="kw">let </span>err = async_std::task::block_on::&lt;<span class="kw">_</span>, io::Result&lt;Never&gt;&gt;(<span class="kw">async move </span>{
-		<span class="kw">let </span>stream = UnixStream::connect(socket_path).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="kw">let _ </span>= async_std::fs::remove_file(socket_path).<span class="kw">await</span>;
+	<span class="kw">let </span>rt = Runtime::new().expect(<span class="string">&quot;Creates tokio runtime. If this panics the worker will die and the host will detect that and deal with it.&quot;</span>);
+	<span class="kw">let </span>handle = rt.handle();
+	<span class="kw">let </span>err = rt
+		.block_on(<span class="kw">async move </span>{
+			<span class="kw">let </span>stream = UnixStream::connect(socket_path).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let _ </span>= tokio::fs::remove_file(socket_path).<span class="kw">await</span>;
 
-		<span class="kw">let </span>result = event_loop(stream.clone()).<span class="kw">await</span>;
+			<span class="kw">let </span>result = event_loop(handle.clone(), stream).<span class="kw">await</span>;
 
-		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = stream.shutdown(Shutdown::Both) {
-			<span class="comment">// Log, but don&#39;t return error here, as it may shadow any error from `event_loop`.
-			</span><span class="macro">gum::debug!</span>(
-				target: LOG_TARGET,
-				<span class="string">&quot;error shutting down stream at path {}: {}&quot;</span>,
-				socket_path,
-				err
-			);
-		}
+			result
+		})
+		<span class="comment">// It&#39;s never `Ok` because it&#39;s `Ok(Never)`.
+		</span>.unwrap_err();
 
-		result
-	})
-	.unwrap_err(); <span class="comment">// it&#39;s never `Ok` because it&#39;s `Ok(Never)`
-
-	</span><span class="macro">gum::debug!</span>(
+	<span class="macro">gum::debug!</span>(
 		target: LOG_TARGET,
 		worker_pid = %std::process::id(),
 		<span class="string">&quot;pvf worker ({}): {:?}&quot;</span>,
 		debug_id,
 		err,
 	);
+
+	<span class="comment">// We don&#39;t want tokio to wait for the tasks to finish. We want to bring down the worker as fast
+	// as possible and not wait for stalled validation to finish. This isn&#39;t strictly necessary now,
+	// but may be in the future.
+	</span>rt.shutdown_background();
 }
 
 <span class="doccomment">/// Loop that runs in the CPU time monitor thread on prepare and execute jobs. Continuously wakes up
-/// from sleeping and then either sleeps for the remaining CPU time, or sends back a timeout error
-/// if we exceed the CPU timeout.
+/// and then either blocks for the remaining CPU time, or returns if we exceed the CPU timeout.
 ///
-/// NOTE: If the job completes and this thread is still sleeping, it will continue sleeping in the
-/// background. When it wakes, it will see that the flag has been set and return.
-</span><span class="kw">pub async fn </span>cpu_time_monitor_loop(
-	job_kind: JobKind,
-	<span class="kw-2">mut </span>stream: UnixStream,
+/// Returning `Some` indicates that we should send a `TimedOut` error to the host. Will return
+/// `None` if the other thread finishes first, without us timing out.
+///
+/// NOTE: Sending a `TimedOut` error to the host will cause the worker, whether preparation or
+/// execution, to be killed by the host. We do not kill the process here because it would interfere
+/// with the proper handling of this error.
+</span><span class="kw">pub fn </span>cpu_time_monitor_loop(
 	cpu_time_start: ProcessTime,
 	timeout: Duration,
-	lock: Arc&lt;AtomicBool&gt;,
-) {
+	finished_rx: Receiver&lt;()&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;Duration&gt; {
 	<span class="kw">loop </span>{
 		<span class="kw">let </span>cpu_time_elapsed = cpu_time_start.elapsed();
 
 		<span class="comment">// Treat the timeout as CPU time, which is less subject to variance due to load.
-		</span><span class="kw">if </span>cpu_time_elapsed &gt; timeout {
-			<span class="kw">let </span>result = lock.compare_exchange(<span class="bool-val">false</span>, <span class="bool-val">true</span>, Ordering::Relaxed, Ordering::Relaxed);
-			<span class="kw">if </span>result.is_err() {
-				<span class="comment">// Hit the job-completed case first, return from this thread.
-				</span><span class="kw">return
-			</span>}
-
-			<span class="comment">// Log if we exceed the timeout.
-			</span><span class="macro">gum::warn!</span>(
-				target: LOG_TARGET,
-				worker_pid = %std::process::id(),
-				<span class="string">&quot;{job_kind} job took {}ms cpu time, exceeded {job_kind} timeout {}ms&quot;</span>,
-				cpu_time_elapsed.as_millis(),
-				timeout.as_millis(),
-			);
-
-			<span class="comment">// Send back a `TimedOut` error.
-			//
-			// NOTE: This will cause the worker, whether preparation or execution, to be killed by
-			// the host. We do not kill the process here because it would interfere with the proper
-			// handling of this error.
-			</span><span class="kw">let </span>encoded_result = <span class="kw">match </span>job_kind {
-				JobKind::Prepare =&gt; {
-					<span class="kw">let </span>result: <span class="prelude-ty">Result</span>&lt;(), PrepareError&gt; = <span class="prelude-val">Err</span>(PrepareError::TimedOut);
-					result.encode()
-				},
-				JobKind::Execute =&gt; {
-					<span class="kw">let </span>result = ExecuteResponse::TimedOut;
-					result.encode()
-				},
-			};
-			<span class="comment">// If we error here there is nothing we can do apart from log it. The receiving side
-			// will just have to time out.
-			</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = framed_send(<span class="kw-2">&amp;mut </span>stream, encoded_result.as_slice()).<span class="kw">await </span>{
-				<span class="macro">gum::warn!</span>(
-					target: LOG_TARGET,
-					worker_pid = %std::process::id(),
-					<span class="string">&quot;{job_kind} worker -&gt; pvf host: error sending result over the socket: {:?}&quot;</span>,
-					err
-				);
+		</span><span class="kw">if </span>cpu_time_elapsed &lt;= timeout {
+			<span class="comment">// Sleep for the remaining CPU time, plus a bit to account for overhead. Note that the sleep
+			// is wall clock time. The CPU clock may be slower than the wall clock.
+			</span><span class="kw">let </span>sleep_interval = timeout.saturating_sub(cpu_time_elapsed) + JOB_TIMEOUT_OVERHEAD;
+			<span class="kw">match </span>finished_rx.recv_timeout(sleep_interval) {
+				<span class="comment">// Received finish signal.
+				</span><span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+				<span class="comment">// Timed out, restart loop.
+				</span><span class="prelude-val">Err</span>(RecvTimeoutError::Timeout) =&gt; <span class="kw">continue</span>,
+				<span class="prelude-val">Err</span>(RecvTimeoutError::Disconnected) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
 			}
+		}
 
-			<span class="kw">return
-		</span>}
-
-		<span class="comment">// Sleep for the remaining CPU time, plus a bit to account for overhead. Note that the sleep
-		// is wall clock time. The CPU clock may be slower than the wall clock.
-		</span><span class="kw">let </span>sleep_interval = timeout - cpu_time_elapsed + JOB_TIMEOUT_OVERHEAD;
-		std::thread::sleep(sleep_interval);
+		<span class="kw">return </span><span class="prelude-val">Some</span>(cpu_time_elapsed)
 	}
 }
 
@@ -755,9 +655,10 @@
 /// This future relies on the fact that a child process&#39;s stdout `fd` is closed upon it&#39;s termination.
 </span><span class="attr">#[pin_project]
 </span><span class="kw">pub struct </span>WorkerHandle {
-	child: async_process::Child,
+	child: process::Child,
+	child_id: u32,
 	<span class="attr">#[pin]
-	</span>stdout: async_process::ChildStdout,
+	</span>stdout: process::ChildStdout,
 	program: PathBuf,
 	drop_box: Box&lt;[u8]&gt;,
 }
@@ -768,13 +669,16 @@
 		extra_args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str],
 		socket_path: <span class="kw">impl </span>AsRef&lt;Path&gt;,
 	) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
-		<span class="kw">let </span><span class="kw-2">mut </span>child = async_process::Command::new(program.as_ref())
+		<span class="kw">let </span><span class="kw-2">mut </span>child = process::Command::new(program.as_ref())
 			.args(extra_args)
 			.arg(socket_path.as_ref().as_os_str())
-			.stdout(async_process::Stdio::piped())
+			.stdout(std::process::Stdio::piped())
 			.kill_on_drop(<span class="bool-val">true</span>)
 			.spawn()<span class="question-mark">?</span>;
 
+		<span class="kw">let </span>child_id = child
+			.id()
+			.ok_or(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;could not get id of spawned process&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let </span>stdout = child
 			.stdout
 			.take()
@@ -782,6 +686,7 @@
 
 		<span class="prelude-val">Ok</span>(WorkerHandle {
 			child,
+			child_id,
 			stdout,
 			program: program.as_ref().to_path_buf(),
 			<span class="comment">// We don&#39;t expect the bytes to be ever read. But in case we do, we should not use a buffer
@@ -799,7 +704,7 @@
 
 	<span class="doccomment">/// Returns the process id of this worker.
 	</span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-		<span class="self">self</span>.child.id()
+		<span class="self">self</span>.child_id
 	}
 }
 
@@ -808,15 +713,20 @@
 
 	<span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
 		<span class="kw">let </span>me = <span class="self">self</span>.project();
-		<span class="kw">match </span><span class="macro">futures::ready!</span>(AsyncRead::poll_read(me.stdout, cx, <span class="kw-2">&amp;mut *</span>me.drop_box)) {
-			<span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
-				<span class="comment">// 0 means `EOF` means the child was terminated. Resolve.
-				</span>Poll::Ready(())
-			},
-			<span class="prelude-val">Ok</span>(_bytes_read) =&gt; {
-				<span class="comment">// weird, we&#39;ve read something. Pretend that never happened and reschedule ourselves.
-				</span>cx.waker().wake_by_ref();
-				Poll::Pending
+		<span class="comment">// Create a `ReadBuf` here instead of storing it in `WorkerHandle` to avoid a lifetime
+		// parameter on `WorkerHandle`. Creating the `ReadBuf` is fairly cheap.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>read_buf = ReadBuf::new(<span class="kw-2">&amp;mut *</span>me.drop_box);
+		<span class="kw">match </span><span class="macro">futures::ready!</span>(AsyncRead::poll_read(me.stdout, cx, <span class="kw-2">&amp;mut </span>read_buf)) {
+			<span class="prelude-val">Ok</span>(()) =&gt; {
+				<span class="kw">if </span>read_buf.filled().len() &gt; <span class="number">0 </span>{
+					<span class="comment">// weird, we&#39;ve read something. Pretend that never happened and reschedule
+					// ourselves.
+					</span>cx.waker().wake_by_ref();
+					Poll::Pending
+				} <span class="kw">else </span>{
+					<span class="comment">// Nothing read means `EOF` means the child was terminated. Resolve.
+					</span>Poll::Ready(())
+				}
 			},
 			<span class="prelude-val">Err</span>(err) =&gt; {
 				<span class="comment">// The implementation is guaranteed to not to return `WouldBlock` and Interrupted. This
@@ -825,8 +735,8 @@
 				// Log the status code.
 				</span><span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
-					worker_pid = %me.child.id(),
-					status_code = <span class="question-mark">?</span>me.child.try_status(),
+					worker_pid = %me.child_id,
+					status_code = <span class="question-mark">?</span>me.child.try_wait().ok().flatten().map(|c| c.to_string()),
 					<span class="string">&quot;pvf worker ({}): {:?}&quot;</span>,
 					me.program.display(),
 					err,

@@ -275,9 +275,6 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -296,10 +293,10 @@
 
 </span><span class="kw">use crate</span>::{error::PrepareError, host::PrepareResultSender};
 <span class="kw">use </span>always_assert::always;
-<span class="kw">use </span>async_std::path::{Path, PathBuf};
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationCodeHash;
 <span class="kw">use </span>std::{
 	collections::HashMap,
+	path::{Path, PathBuf},
 	time::{Duration, SystemTime},
 };
 
@@ -416,8 +413,8 @@
 	</span><span class="kw">pub async fn </span>new(cache_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="self">Self </span>{
 		<span class="comment">// Make sure that the cache path directory and all its parents are created.
 		// First delete the entire cache. Nodes are long-running so this should populate shortly.
-		</span><span class="kw">let _ </span>= async_std::fs::remove_dir_all(cache_path).<span class="kw">await</span>;
-		<span class="kw">let _ </span>= async_std::fs::create_dir_all(cache_path).<span class="kw">await</span>;
+		</span><span class="kw">let _ </span>= tokio::fs::remove_dir_all(cache_path).<span class="kw">await</span>;
+		<span class="kw">let _ </span>= tokio::fs::create_dir_all(cache_path).<span class="kw">await</span>;
 
 		<span class="self">Self </span>{ artifacts: HashMap::new() }
 	}
@@ -494,9 +491,8 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::{ArtifactId, Artifacts};
-	<span class="kw">use </span>async_std::path::Path;
 	<span class="kw">use </span>sp_core::H256;
-	<span class="kw">use </span>std::str::FromStr;
+	<span class="kw">use </span>std::{path::Path, str::FromStr};
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>from_file_name() {
@@ -532,11 +528,9 @@
 		);
 	}
 
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>artifacts_removes_cache_on_startup() {
-		<span class="kw">let </span>fake_cache_path = async_std::task::block_on(<span class="kw">async move </span>{
-			<span class="kw">crate</span>::worker_common::tmpfile(<span class="string">&quot;test-cache&quot;</span>).<span class="kw">await</span>.unwrap()
-		});
+	<span class="attr">#[tokio::test]
+	</span><span class="kw">async fn </span>artifacts_removes_cache_on_startup() {
+		<span class="kw">let </span>fake_cache_path = <span class="kw">crate</span>::worker_common::tmpfile(<span class="string">&quot;test-cache&quot;</span>).<span class="kw">await</span>.unwrap();
 		<span class="kw">let </span>fake_artifact_path = {
 			<span class="kw">let </span><span class="kw-2">mut </span>p = fake_cache_path.clone();
 			p.push(<span class="string">&quot;wasmtime_0x1234567890123456789012345678901234567890123456789012345678901234&quot;</span>);
@@ -551,7 +545,7 @@
 		<span class="comment">// this should remove it and re-create.
 
 		</span><span class="kw">let </span>p = <span class="kw-2">&amp;</span>fake_cache_path;
-		async_std::task::block_on(<span class="kw">async </span>{ Artifacts::new(p).<span class="kw">await </span>});
+		Artifacts::new(p).<span class="kw">await</span>;
 
 		<span class="macro">assert_eq!</span>(std::fs::read_dir(<span class="kw-2">&amp;</span>fake_cache_path).unwrap().count(), <span class="number">0</span>);
 

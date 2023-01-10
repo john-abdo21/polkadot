@@ -716,6 +716,7 @@
 <a href="#716" id="716">716</a>
 <a href="#717" id="717">717</a>
 <a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1345,7 +1346,8 @@
 			<span class="self">self</span>.validate_candidate(pvf.clone(), timeout, params.encode()).<span class="kw">await</span>;
 
 		<span class="comment">// If we get an AmbiguousWorkerDeath error, retry once after a brief delay, on the
-		// assumption that the conditions that caused this error may have been transient.
+		// assumption that the conditions that caused this error may have been transient. Note that
+		// this error is only a result of execution itself and not of preparation.
 		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::AmbiguousWorkerDeath)) =
 			validation_result
 		{
@@ -1394,12 +1396,12 @@
 
 	<span class="kw">async fn </span>precheck_pvf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pvf: Pvf) -&gt; <span class="prelude-ty">Result</span>&lt;Duration, PrepareError&gt; {
 		<span class="kw">let </span>(tx, rx) = oneshot::channel();
-		<span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = <span class="self">self</span>.precheck_pvf(pvf, tx).<span class="kw">await </span>{
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.precheck_pvf(pvf, tx).<span class="kw">await </span>{
 			<span class="comment">// Return an IO error if there was an error communicating with the host.
-			</span><span class="kw">return </span><span class="prelude-val">Err</span>(PrepareError::IoErr)
+			</span><span class="kw">return </span><span class="prelude-val">Err</span>(PrepareError::IoErr(err))
 		}
 
-		<span class="kw">let </span>precheck_result = rx.<span class="kw">await</span>.or(<span class="prelude-val">Err</span>(PrepareError::IoErr))<span class="question-mark">?</span>;
+		<span class="kw">let </span>precheck_result = rx.<span class="kw">await</span>.map_err(|err| PrepareError::IoErr(err.to_string()))<span class="question-mark">?</span>;
 
 		precheck_result
 	}

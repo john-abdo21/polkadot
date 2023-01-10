@@ -1555,6 +1555,15 @@
 <a href="#1555" id="1555">1555</a>
 <a href="#1556" id="1556">1556</a>
 <a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1585,7 +1594,6 @@
 	prepare, PrepareResult, Priority, Pvf, ValidationError, LOG_TARGET,
 };
 <span class="kw">use </span>always_assert::never;
-<span class="kw">use </span>async_std::path::{Path, PathBuf};
 <span class="kw">use </span>futures::{
 	channel::{mpsc, oneshot},
 	Future, FutureExt, SinkExt, StreamExt,
@@ -1593,6 +1601,7 @@
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
 <span class="kw">use </span>std::{
 	collections::HashMap,
+	path::{Path, PathBuf},
 	time::{Duration, SystemTime},
 };
 
@@ -1728,7 +1737,7 @@
 <span class="kw">impl </span>Config {
 	<span class="doccomment">/// Create a new instance of the configuration.
 	</span><span class="kw">pub fn </span>new(cache_path: std::path::PathBuf, program_path: std::path::PathBuf) -&gt; <span class="self">Self </span>{
-		<span class="comment">// Do not contaminate the other parts of the codebase with the types from `async_std`.
+		<span class="comment">// Do not contaminate the other parts of the codebase with the types from `tokio`.
 		</span><span class="kw">let </span>cache_path = PathBuf::from(cache_path);
 		<span class="kw">let </span>program_path = PathBuf::from(program_path);
 
@@ -2280,10 +2289,19 @@
 	<span class="kw-2">*</span>state = <span class="kw">match </span>result {
 		<span class="prelude-val">Ok</span>(cpu_time_elapsed) =&gt;
 			ArtifactState::Prepared { last_time_needed: SystemTime::now(), cpu_time_elapsed },
-		<span class="prelude-val">Err</span>(error) =&gt; ArtifactState::FailedToProcess {
-			last_time_failed: SystemTime::now(),
-			num_failures: <span class="kw-2">*</span>num_failures + <span class="number">1</span>,
-			error,
+		<span class="prelude-val">Err</span>(error) =&gt; {
+			<span class="macro">gum::debug!</span>(
+				target: LOG_TARGET,
+				artifact_id = <span class="question-mark">?</span>artifact_id,
+				num_failures = <span class="question-mark">?</span>num_failures,
+				<span class="string">&quot;Failed to process artifact: {}&quot;</span>,
+				error
+			);
+			ArtifactState::FailedToProcess {
+				last_time_failed: SystemTime::now(),
+				num_failures: <span class="kw-2">*</span>num_failures + <span class="number">1</span>,
+				error,
+			}
 		},
 	};
 
@@ -2335,7 +2353,7 @@
 		<span class="kw">match </span>sweeper_rx.next().<span class="kw">await </span>{
 			<span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
 			<span class="prelude-val">Some</span>(condemned) =&gt; {
-				<span class="kw">let </span>result = async_std::fs::remove_file(<span class="kw-2">&amp;</span>condemned).<span class="kw">await</span>;
+				<span class="kw">let </span>result = tokio::fs::remove_file(<span class="kw-2">&amp;</span>condemned).<span class="kw">await</span>;
 				<span class="macro">gum::trace!</span>(
 					target: LOG_TARGET,
 					<span class="question-mark">?</span>result,
@@ -2384,7 +2402,7 @@
 
 	<span class="kw">const </span>TEST_EXECUTION_TIMEOUT: Duration = Duration::from_secs(<span class="number">3</span>);
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>pulse_test() {
 		<span class="kw">let </span>pulse = pulse_every(Duration::from_millis(<span class="number">100</span>));
 		<span class="macro">futures::pin_mut!</span>(pulse);
@@ -2574,19 +2592,19 @@
 		}
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>shutdown_on_handle_drop() {
 		<span class="kw">let </span>test = Builder::default().build();
 
-		<span class="kw">let </span>join_handle = async_std::task::spawn(test.run);
+		<span class="kw">let </span>join_handle = tokio::task::spawn(test.run);
 
 		<span class="comment">// Dropping the handle will lead to conclusion of the read part and thus will make the event
 		// loop to stop, which in turn will resolve the join handle.
 		</span>drop(test.to_host_tx);
-		join_handle.<span class="kw">await</span>;
+		join_handle.<span class="kw">await</span>.unwrap();
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>pruning() {
 		<span class="kw">let </span>mock_now = SystemTime::now() - Duration::from_millis(<span class="number">1000</span>);
 
@@ -2616,7 +2634,7 @@
 		test.poll_ensure_to_sweeper_is_empty().<span class="kw">await</span>;
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>execute_pvf_requests() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -2716,7 +2734,7 @@
 		);
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>precheck_pvf() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -2771,7 +2789,7 @@
 		}
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>test_prepare_done() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -2858,7 +2876,7 @@
 
 	<span class="comment">// Test that multiple prechecking requests do not trigger preparation retries if the first one
 	// failed.
-	</span><span class="attr">#[async_std::test]
+	</span><span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>test_precheck_prepare_retry() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -2901,7 +2919,7 @@
 
 	<span class="comment">// Test that multiple execution requests trigger preparation retries if the first one failed due
 	// to a potentially non-reproducible error.
-	</span><span class="attr">#[async_std::test]
+	</span><span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>test_execute_prepare_retry() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -2971,7 +2989,7 @@
 
 	<span class="comment">// Test that multiple execution requests don&#39;t trigger preparation retries if the first one
 	// failed due to a reproducible error (e.g. Prevalidation).
-	</span><span class="attr">#[async_std::test]
+	</span><span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>test_execute_prepare_no_retry() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -3037,7 +3055,7 @@
 	}
 
 	<span class="comment">// Test that multiple heads-up requests trigger preparation retries if the first one failed.
-	</span><span class="attr">#[async_std::test]
+	</span><span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>test_heads_up_prepare_retry() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
@@ -3078,7 +3096,7 @@
 		);
 	}
 
-	<span class="attr">#[async_std::test]
+	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>cancellation() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Builder::default().build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
