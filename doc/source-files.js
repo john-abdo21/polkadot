@@ -41,7 +41,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_node_subsystem":["",[],["lib.rs"]],\
 "polkadot_node_subsystem_test_helpers":["",[],["lib.rs","mock.rs"]],\
 "polkadot_node_subsystem_types":["",[["messages",[],["network_bridge_event.rs"]]],["errors.rs","lib.rs","messages.rs","runtime_client.rs"]],\
-"polkadot_node_subsystem_util":["",[["runtime",[],["error.rs","mod.rs"]]],["database.rs","determine_new_blocks.rs","lib.rs","rolling_session_window.rs"]],\
+"polkadot_node_subsystem_util":["",[["runtime",[],["error.rs","mod.rs"]]],["database.rs","determine_new_blocks.rs","lib.rs","nesting_sender.rs","rolling_session_window.rs"]],\
 "polkadot_overseer":["",[],["dummy.rs","lib.rs","memory_stats.rs","metrics.rs"]],\
 "polkadot_parachain":["",[],["lib.rs","primitives.rs"]],\
 "polkadot_performance_test":["",[],["constants.rs","lib.rs"]],\

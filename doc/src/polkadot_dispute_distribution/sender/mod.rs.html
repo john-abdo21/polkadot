@@ -383,84 +383,6 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -484,19 +406,17 @@
 	time::Duration,
 };
 
-<span class="kw">use </span>futures::{
-	channel::{mpsc, oneshot},
-	future::poll_fn,
-	Future,
-};
+<span class="kw">use </span>futures::{channel::oneshot, future::poll_fn, Future};
 
 <span class="kw">use </span>futures_timer::Delay;
 <span class="kw">use </span>indexmap::{map::Entry, IndexMap};
 <span class="kw">use </span>polkadot_node_network_protocol::request_response::v1::DisputeRequest;
-<span class="kw">use </span>polkadot_node_primitives::{CandidateVotes, DisputeMessage, SignedDisputeStatement};
-<span class="kw">use </span>polkadot_node_subsystem::{messages::DisputeCoordinatorMessage, overseer, ActiveLeavesUpdate};
-<span class="kw">use </span>polkadot_node_subsystem_util::runtime::RuntimeInfo;
-<span class="kw">use </span>polkadot_primitives::v2::{CandidateHash, DisputeStatement, Hash, SessionIndex};
+<span class="kw">use </span>polkadot_node_primitives::{DisputeMessage, DisputeStatus};
+<span class="kw">use </span>polkadot_node_subsystem::{
+	messages::DisputeCoordinatorMessage, overseer, ActiveLeavesUpdate, SubsystemSender,
+};
+<span class="kw">use </span>polkadot_node_subsystem_util::{nesting_sender::NestingSender, runtime::RuntimeInfo};
+<span class="kw">use </span>polkadot_primitives::v2::{CandidateHash, Hash, SessionIndex};
 
 <span class="doccomment">/// For each ongoing dispute we have a `SendTask` which takes care of it.
 ///
@@ -516,6 +436,15 @@
 <span class="kw">use </span><span class="self">self</span>::error::JfyiErrorResult;
 <span class="kw">use crate</span>::{Metrics, LOG_TARGET, SEND_RATE_LIMIT};
 
+<span class="doccomment">/// Messages as sent by background tasks.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>DisputeSenderMessage {
+	<span class="doccomment">/// A task finished.
+	</span>TaskFinish(TaskFinish),
+	<span class="doccomment">/// A request for active disputes to the dispute-coordinator finished.
+	</span>ActiveDisputesReady(JfyiErrorResult&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt;&gt;),
+}
+
 <span class="doccomment">/// The `DisputeSender` keeps track of all ongoing disputes we need to send statements out.
 ///
 /// For each dispute a `SendTask` is responsible for sending to the concerned validators for that
@@ -523,7 +452,7 @@
 /// sessions/validator sets and cleans them up when they become obsolete.
 ///
 /// The unit of work for the  `DisputeSender` is a dispute, represented by `SendTask`s.
-</span><span class="kw">pub struct </span>DisputeSender {
+</span><span class="kw">pub struct </span>DisputeSender&lt;M&gt; {
 	<span class="doccomment">/// All heads we currently consider active.
 	</span>active_heads: Vec&lt;Hash&gt;,
 
@@ -535,10 +464,13 @@
 	<span class="doccomment">/// All ongoing dispute sendings this subsystem is aware of.
 	///
 	/// Using an `IndexMap` so items can be iterated in the order of insertion.
-	</span>disputes: IndexMap&lt;CandidateHash, SendTask&gt;,
+	</span>disputes: IndexMap&lt;CandidateHash, SendTask&lt;M&gt;&gt;,
 
 	<span class="doccomment">/// Sender to be cloned for `SendTask`s.
-	</span>tx: mpsc::Sender&lt;TaskFinish&gt;,
+	</span>tx: NestingSender&lt;M, DisputeSenderMessage&gt;,
+
+	<span class="doccomment">/// `Some` if we are waiting for a response `DisputeCoordinatorMessage::ActiveDisputes`.
+	</span>waiting_for_active_disputes: <span class="prelude-ty">Option</span>&lt;WaitForActiveDisputesState&gt;,
 
 	<span class="doccomment">/// Future for delaying too frequent creation of dispute sending tasks.
 	</span>rate_limit: RateLimit,
@@ -547,15 +479,25 @@
 	</span>metrics: Metrics,
 }
 
+<span class="doccomment">/// State we keep while waiting for active disputes.
+///
+/// When we send `DisputeCoordinatorMessage::ActiveDisputes`, this is the state we keep while
+/// waiting for the response.
+</span><span class="kw">struct </span>WaitForActiveDisputesState {
+	<span class="doccomment">/// Have we seen any new sessions since last refresh?
+	</span>have_new_sessions: bool,
+}
+
 <span class="attr">#[overseer::contextbounds(DisputeDistribution, prefix = <span class="self">self</span>::overseer)]
-</span><span class="kw">impl </span>DisputeSender {
+</span><span class="kw">impl</span>&lt;M: <span class="lifetime">&#39;static </span>+ Send + Sync&gt; DisputeSender&lt;M&gt; {
 	<span class="doccomment">/// Create a new `DisputeSender` which can be used to start dispute sendings.
-	</span><span class="kw">pub fn </span>new(tx: mpsc::Sender&lt;TaskFinish&gt;, metrics: Metrics) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(tx: NestingSender&lt;M, DisputeSenderMessage&gt;, metrics: Metrics) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
 			active_heads: Vec::new(),
 			active_sessions: HashMap::new(),
 			disputes: IndexMap::new(),
 			tx,
+			waiting_for_active_disputes: <span class="prelude-val">None</span>,
 			rate_limit: RateLimit::new(),
 			metrics,
 		}
@@ -585,7 +527,7 @@
 					ctx,
 					runtime,
 					<span class="kw-2">&amp;</span><span class="self">self</span>.active_sessions,
-					<span class="self">self</span>.tx.clone(),
+					NestingSender::new(<span class="self">self</span>.tx.clone(), DisputeSenderMessage::TaskFinish),
 					req,
 					<span class="kw-2">&amp;</span><span class="self">self</span>.metrics,
 				)
@@ -596,14 +538,47 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
+	<span class="doccomment">/// Receive message from a background task.
+	</span><span class="kw">pub async fn </span>on_message&lt;Context&gt;(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		ctx: <span class="kw-2">&amp;mut </span>Context,
+		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
+		msg: DisputeSenderMessage,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+		<span class="kw">match </span>msg {
+			DisputeSenderMessage::TaskFinish(msg) =&gt; {
+				<span class="kw">let </span>TaskFinish { candidate_hash, receiver, result } = msg;
+
+				<span class="self">self</span>.metrics.on_sent_request(result.as_metrics_label());
+
+				<span class="kw">let </span>task = <span class="kw">match </span><span class="self">self</span>.disputes.get_mut(<span class="kw-2">&amp;</span>candidate_hash) {
+					<span class="prelude-val">None </span>=&gt; {
+						<span class="comment">// Can happen when a dispute ends, with messages still in queue:
+						</span><span class="macro">gum::trace!</span>(
+							target: LOG_TARGET,
+							<span class="question-mark">?</span>result,
+							<span class="string">&quot;Received `FromSendingTask::Finished` for non existing dispute.&quot;
+						</span>);
+						<span class="kw">return </span><span class="prelude-val">Ok</span>(())
+					},
+					<span class="prelude-val">Some</span>(task) =&gt; task,
+				};
+				task.on_finished_send(<span class="kw-2">&amp;</span>receiver, result);
+			},
+			DisputeSenderMessage::ActiveDisputesReady(result) =&gt; {
+				<span class="kw">let </span>state = <span class="self">self</span>.waiting_for_active_disputes.take();
+				<span class="kw">let </span>have_new_sessions = state.map(|s| s.have_new_sessions).unwrap_or(<span class="bool-val">false</span>);
+				<span class="kw">let </span>active_disputes = result<span class="question-mark">?</span>;
+				<span class="self">self</span>.handle_new_active_disputes(ctx, runtime, active_disputes, have_new_sessions)
+					.<span class="kw">await</span><span class="question-mark">?</span>;
+			},
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
 	<span class="doccomment">/// Take care of a change in active leaves.
 	///
-	/// - Initiate a retry of failed sends which are still active.
-	/// - Get new authorities to send messages to.
-	/// - Get rid of obsolete tasks and disputes.
-	/// - Get dispute sending started in case we missed one for some reason (e.g. on node startup)
-	///
-	/// This function ensures the `SEND_RATE_LIMIT`, therefore it might block.
+	/// Update our knowledge on sessions and initiate fetching for new active disputes.
 	</span><span class="kw">pub async fn </span>update_leaves&lt;Context&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
@@ -617,14 +592,58 @@
 
 		<span class="kw">let </span>have_new_sessions = <span class="self">self</span>.refresh_sessions(ctx, runtime).<span class="kw">await</span><span class="question-mark">?</span>;
 
-		<span class="kw">let </span>active_disputes = get_active_disputes(ctx).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="kw">let </span>unknown_disputes = {
-			<span class="kw">let </span><span class="kw-2">mut </span>disputes = active_disputes.clone();
-			disputes.retain(|(<span class="kw">_</span>, c)| !<span class="self">self</span>.disputes.contains_key(c));
-			disputes
-		};
+		<span class="comment">// Not yet waiting for data, request an update:
+		</span><span class="kw">match </span><span class="self">self</span>.waiting_for_active_disputes.take() {
+			<span class="prelude-val">None </span>=&gt; {
+				<span class="self">self</span>.waiting_for_active_disputes =
+					<span class="prelude-val">Some</span>(WaitForActiveDisputesState { have_new_sessions });
+				<span class="kw">let </span><span class="kw-2">mut </span>sender = ctx.sender().clone();
+				<span class="kw">let </span><span class="kw-2">mut </span>tx = <span class="self">self</span>.tx.clone();
 
-		<span class="kw">let </span>active_disputes: HashSet&lt;<span class="kw">_</span>&gt; = active_disputes.into_iter().map(|(<span class="kw">_</span>, c)| c).collect();
+				<span class="kw">let </span>get_active_disputes_task = <span class="kw">async move </span>{
+					<span class="kw">let </span>result = get_active_disputes(<span class="kw-2">&amp;mut </span>sender).<span class="kw">await</span>;
+					<span class="kw">let </span>result =
+						tx.send_message(DisputeSenderMessage::ActiveDisputesReady(result)).<span class="kw">await</span>;
+					<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = result {
+						<span class="macro">gum::debug!</span>(
+							target: LOG_TARGET,
+							<span class="question-mark">?</span>err,
+							<span class="string">&quot;Sending `DisputeSenderMessage` from background task failed.&quot;
+						</span>);
+					}
+				};
+
+				ctx.spawn(<span class="string">&quot;get_active_disputes&quot;</span>, Box::pin(get_active_disputes_task))
+					.map_err(FatalError::SpawnTask)<span class="question-mark">?</span>;
+			},
+			<span class="prelude-val">Some</span>(state) =&gt; {
+				<span class="kw">let </span>have_new_sessions = state.have_new_sessions || have_new_sessions;
+				<span class="kw">let </span>new_state = WaitForActiveDisputesState { have_new_sessions };
+				<span class="self">self</span>.waiting_for_active_disputes = <span class="prelude-val">Some</span>(new_state);
+				<span class="macro">gum::debug!</span>(
+					target: LOG_TARGET,
+					<span class="string">&quot;Dispute coordinator slow? We are still waiting for data on next active leaves update.&quot;
+				</span>);
+			},
+		}
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="doccomment">/// Handle new active disputes response.
+	///
+	/// - Initiate a retry of failed sends which are still active.
+	/// - Get new authorities to send messages to.
+	/// - Get rid of obsolete tasks and disputes.
+	///
+	/// This function ensures the `SEND_RATE_LIMIT`, therefore it might block.
+	</span><span class="kw">async fn </span>handle_new_active_disputes&lt;Context&gt;(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		ctx: <span class="kw-2">&amp;mut </span>Context,
+		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
+		active_disputes: Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt;,
+		have_new_sessions: bool,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+		<span class="kw">let </span>active_disputes: HashSet&lt;<span class="kw">_</span>&gt; = active_disputes.into_iter().map(|(<span class="kw">_</span>, c, <span class="kw">_</span>)| c).collect();
 
 		<span class="comment">// Cleanup obsolete senders (retain keeps order of remaining elements):
 		</span><span class="self">self</span>.disputes
@@ -651,164 +670,8 @@
 				</span>should_rate_limit = sends_happened &amp;&amp; have_new_sessions;
 			}
 		}
-
-		<span class="comment">// This should only be non-empty on startup, but if not - we got you covered.
-		//
-		// Initial order will not be maintained in that case, but that should be fine as disputes
-		// recovered at startup will be relatively &quot;old&quot; anyway and we assume that no more than a
-		// third of the validators will go offline at any point in time anyway.
-		</span><span class="kw">for </span>dispute <span class="kw">in </span>unknown_disputes {
-			<span class="comment">// Rate limiting handled inside `start_send_for_dispute` (calls `start_sender`).
-			</span><span class="self">self</span>.start_send_for_dispute(ctx, runtime, dispute).<span class="kw">await</span><span class="question-mark">?</span>;
-		}
 		<span class="prelude-val">Ok</span>(())
 	}
-
-	<span class="doccomment">/// Receive message from a sending task.
-	</span><span class="kw">pub async fn </span>on_task_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: TaskFinish) {
-		<span class="kw">let </span>TaskFinish { candidate_hash, receiver, result } = msg;
-
-		<span class="self">self</span>.metrics.on_sent_request(result.as_metrics_label());
-
-		<span class="kw">let </span>task = <span class="kw">match </span><span class="self">self</span>.disputes.get_mut(<span class="kw-2">&amp;</span>candidate_hash) {
-			<span class="prelude-val">None </span>=&gt; {
-				<span class="comment">// Can happen when a dispute ends, with messages still in queue:
-				</span><span class="macro">gum::trace!</span>(
-					target: LOG_TARGET,
-					<span class="question-mark">?</span>result,
-					<span class="string">&quot;Received `FromSendingTask::Finished` for non existing dispute.&quot;
-				</span>);
-				<span class="kw">return
-			</span>},
-			<span class="prelude-val">Some</span>(task) =&gt; task,
-		};
-		task.on_finished_send(<span class="kw-2">&amp;</span>receiver, result);
-	}
-
-	<span class="doccomment">/// Call `start_sender` on all passed in disputes.
-	///
-	/// Recover necessary votes for building up `DisputeMessage` and start sending for all of them.
-	</span><span class="kw">async fn </span>start_send_for_dispute&lt;Context&gt;(
-		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		ctx: <span class="kw-2">&amp;mut </span>Context,
-		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
-		dispute: (SessionIndex, CandidateHash),
-	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-		<span class="kw">let </span>(session_index, candidate_hash) = dispute;
-		<span class="comment">// A relay chain head is required as context for receiving session info information from runtime and
-		// storage. We will iterate `active_sessions` to find a suitable head. We assume that there is at
-		// least one active head which, by `session_index`, is at least as recent as the `dispute` passed in.
-		// We need to avoid picking an older one from a session that might not yet exist in storage.
-		// Related to &lt;https://github.com/paritytech/polkadot/issues/4730&gt; .
-		</span><span class="kw">let </span>ref_head = <span class="self">self
-			</span>.active_sessions
-			.iter()
-			.find_map(|(active_session_index, head_hash)| {
-				<span class="comment">// There might be more than one session index that is at least as recent as the dispute
-				// so we just pick the first one. Keep in mind we are talking about the session index for the
-				// child of block identified by `head_hash` and not the session index for the block.
-				</span><span class="kw">if </span>active_session_index &gt;= <span class="kw-2">&amp;</span>session_index {
-					<span class="prelude-val">Some</span>(head_hash)
-				} <span class="kw">else </span>{
-					<span class="prelude-val">None
-				</span>}
-			})
-			.ok_or(JfyiError::NoActiveHeads)<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>info = runtime
-			.get_session_info_by_index(ctx.sender(), <span class="kw-2">*</span>ref_head, session_index)
-			.<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="kw">let </span>our_index = <span class="kw">match </span>info.validator_info.our_index {
-			<span class="prelude-val">None </span>=&gt; {
-				<span class="macro">gum::trace!</span>(
-					target: LOG_TARGET,
-					<span class="string">&quot;Not a validator in that session - not starting dispute sending.&quot;
-				</span>);
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-			},
-			<span class="prelude-val">Some</span>(index) =&gt; index,
-		};
-
-		<span class="kw">let </span>votes = <span class="kw">match </span>get_candidate_votes(ctx, session_index, candidate_hash).<span class="kw">await</span><span class="question-mark">? </span>{
-			<span class="prelude-val">None </span>=&gt; {
-				<span class="macro">gum::debug!</span>(
-					target: LOG_TARGET,
-					<span class="question-mark">?</span>session_index,
-					<span class="question-mark">?</span>candidate_hash,
-					<span class="string">&quot;No votes for active dispute?! - possible, due to race.&quot;
-				</span>);
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-			},
-			<span class="prelude-val">Some</span>(votes) =&gt; votes,
-		};
-
-		<span class="kw">let </span>our_valid_vote = votes.valid.raw().get(<span class="kw-2">&amp;</span>our_index);
-
-		<span class="kw">let </span>our_invalid_vote = votes.invalid.get(<span class="kw-2">&amp;</span>our_index);
-
-		<span class="kw">let </span>(valid_vote, invalid_vote) = <span class="kw">if let </span><span class="prelude-val">Some</span>(our_valid_vote) = our_valid_vote {
-			<span class="comment">// Get some invalid vote as well:
-			</span><span class="kw">let </span>invalid_vote =
-				votes.invalid.iter().next().ok_or(JfyiError::MissingVotesFromCoordinator)<span class="question-mark">?</span>;
-			((<span class="kw-2">&amp;</span>our_index, our_valid_vote), invalid_vote)
-		} <span class="kw">else if let </span><span class="prelude-val">Some</span>(our_invalid_vote) = our_invalid_vote {
-			<span class="comment">// Get some valid vote as well:
-			</span><span class="kw">let </span>valid_vote =
-				votes.valid.raw().iter().next().ok_or(JfyiError::MissingVotesFromCoordinator)<span class="question-mark">?</span>;
-			(valid_vote, (<span class="kw-2">&amp;</span>our_index, our_invalid_vote))
-		} <span class="kw">else </span>{
-			<span class="comment">// There is no vote from us yet - nothing to do.
-			</span><span class="kw">return </span><span class="prelude-val">Ok</span>(())
-		};
-		<span class="kw">let </span>(valid_index, (kind, signature)) = valid_vote;
-		<span class="kw">let </span>valid_public = info
-			.session_info
-			.validators
-			.get(<span class="kw-2">*</span>valid_index)
-			.ok_or(JfyiError::InvalidStatementFromCoordinator)<span class="question-mark">?</span>;
-		<span class="kw">let </span>valid_signed = SignedDisputeStatement::new_checked(
-			DisputeStatement::Valid(<span class="kw-2">*</span>kind),
-			candidate_hash,
-			session_index,
-			valid_public.clone(),
-			signature.clone(),
-		)
-		.map_err(|()| JfyiError::InvalidStatementFromCoordinator)<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>(invalid_index, (kind, signature)) = invalid_vote;
-		<span class="kw">let </span>invalid_public = info
-			.session_info
-			.validators
-			.get(<span class="kw-2">*</span>invalid_index)
-			.ok_or(JfyiError::InvalidValidatorIndexFromCoordinator)<span class="question-mark">?</span>;
-		<span class="kw">let </span>invalid_signed = SignedDisputeStatement::new_checked(
-			DisputeStatement::Invalid(<span class="kw-2">*</span>kind),
-			candidate_hash,
-			session_index,
-			invalid_public.clone(),
-			signature.clone(),
-		)
-		.map_err(|()| JfyiError::InvalidValidatorIndexFromCoordinator)<span class="question-mark">?</span>;
-
-		<span class="comment">// Reconstructing the checked signed dispute statements is hardly useful here and wasteful,
-		// but I don&#39;t want to enable a bypass for the below smart constructor and this code path
-		// is supposed to be only hit on startup basically.
-		//
-		// Revisit this decision when the `from_signed_statements` is unneeded for the normal code
-		// path as well.
-		</span><span class="kw">let </span>message = DisputeMessage::from_signed_statements(
-			valid_signed,
-			<span class="kw-2">*</span>valid_index,
-			invalid_signed,
-			<span class="kw-2">*</span>invalid_index,
-			votes.candidate_receipt,
-			<span class="kw-2">&amp;</span>info.session_info,
-		)
-		.map_err(JfyiError::InvalidDisputeFromCoordinator)<span class="question-mark">?</span>;
-
-		<span class="comment">// Finally, get the party started:
-		</span><span class="self">self</span>.start_sender(ctx, runtime, message).<span class="kw">await
-	</span>}
 
 	<span class="doccomment">/// Make active sessions correspond to currently active heads.
 	///
@@ -894,35 +757,16 @@
 }
 
 <span class="doccomment">/// Retrieve Set of active disputes from the dispute coordinator.
-</span><span class="attr">#[overseer::contextbounds(DisputeDistribution, prefix = <span class="self">self</span>::overseer)]
-</span><span class="kw">async fn </span>get_active_disputes&lt;Context&gt;(
-	ctx: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JfyiErrorResult&lt;Vec&lt;(SessionIndex, CandidateHash)&gt;&gt; {
+</span><span class="kw">async fn </span>get_active_disputes&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
+) -&gt; JfyiErrorResult&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeStatus)&gt;&gt;
+<span class="kw">where
+	</span>Sender: SubsystemSender&lt;DisputeCoordinatorMessage&gt;,
+{
 	<span class="kw">let </span>(tx, rx) = oneshot::channel();
 
-	<span class="comment">// Caller scope is in `update_leaves` and this is bounded by fork count.
-	</span>ctx.send_unbounded_message(DisputeCoordinatorMessage::ActiveDisputes(tx));
-	rx.<span class="kw">await
-		</span>.map_err(|<span class="kw">_</span>| JfyiError::AskActiveDisputesCanceled)
-		.map(|disputes| disputes.into_iter().map(|d| (d.<span class="number">0</span>, d.<span class="number">1</span>)).collect())
-}
-
-<span class="doccomment">/// Get all locally available dispute votes for a given dispute.
-</span><span class="attr">#[overseer::contextbounds(DisputeDistribution, prefix = <span class="self">self</span>::overseer)]
-</span><span class="kw">async fn </span>get_candidate_votes&lt;Context&gt;(
-	ctx: <span class="kw-2">&amp;mut </span>Context,
-	session_index: SessionIndex,
-	candidate_hash: CandidateHash,
-) -&gt; JfyiErrorResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
-	<span class="kw">let </span>(tx, rx) = oneshot::channel();
-	<span class="comment">// Caller scope is in `update_leaves` and this is bounded by fork count.
-	</span>ctx.send_unbounded_message(DisputeCoordinatorMessage::QueryCandidateVotes(
-		<span class="macro">vec!</span>[(session_index, candidate_hash)],
-		tx,
-	));
-	rx.<span class="kw">await
-		</span>.map(|v| v.get(<span class="number">0</span>).map(|inner| inner.to_owned().<span class="number">2</span>))
-		.map_err(|<span class="kw">_</span>| JfyiError::AskCandidateVotesCanceled)
+	sender.send_message(DisputeCoordinatorMessage::ActiveDisputes(tx)).<span class="kw">await</span>;
+	rx.<span class="kw">await</span>.map_err(|<span class="kw">_</span>| JfyiError::AskActiveDisputesCanceled)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="polkadot_dispute_distribution" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

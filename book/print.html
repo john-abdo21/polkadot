@@ -4588,11 +4588,11 @@ and only if all of the following conditions are satisfied:</p>
 </ul>
 <p>Whenever any vote on a dispute is imported these conditions are checked. If the
 dispute is found not to be potential spam, then spam slots for the disputed candidate hash are cleared. This decrements the spam count for every validator
-which had voted invalid. </p>
-<p>To keep spam slots from filling up unnecessarily we want to clear spam slots 
+which had voted invalid.</p>
+<p>To keep spam slots from filling up unnecessarily we want to clear spam slots
 whenever a candidate is seen to be backed or included. Fortunately this behavior
 is acheived by clearing slots on vote import as described above. Because on chain
-backing votes are processed when a block backing the disputed candidate is discovered, spam slots are cleared for every backed candidate. Included 
+backing votes are processed when a block backing the disputed candidate is discovered, spam slots are cleared for every backed candidate. Included
 candidates have also been seen as backed on the same fork, so decrementing spam
 slots is handled in that case as well.</p>
 <p>The reason this works is because we only need to worry about actual dispute
@@ -4834,11 +4834,15 @@ day.</p>
 <span class="boring">}
 </span></code></pre></pre>
 <h3 id="on-startup-2"><a class="header" href="#on-startup-2">On startup</a></h3>
-<p>When the subsystem is initialised it waits for a new leaf (message <code>OverseerSignal::ActiveLeaves</code>).
-The leaf is used to initialise a <code>RollingSessionWindow</code> instance (contains leaf hash and
-<code>DISPUTE_WINDOW</code> which is a constant.</p>
-<p>Next the active disputes are loaded from the DB. The subsystem checks if there are disputes for
-which a local statement is not issued. A list of these is passed to the main loop.</p>
+<p>When the subsystem is initialised it waits for a new leaf (message
+<code>OverseerSignal::ActiveLeaves</code>). The leaf is used to initialise a
+<code>RollingSessionWindow</code> instance (contains leaf hash and <code>DISPUTE_WINDOW</code> which
+is a constant).</p>
+<p>Next the active disputes are loaded from the DB and initialize spam slots
+accordingly, then for each loaded dispute, we either send a
+<code>DisputeDistribution::SendDispute</code> if there is a local vote from us available or
+if there is none and participation is in order, we push the dispute to
+participation.</p>
 <h3 id="the-main-loop"><a class="header" href="#the-main-loop">The main loop</a></h3>
 <p>Just after the subsystem initialisation the main loop (<code>fn run_until_error()</code>) runs until
 <code>OverseerSignal::Conclude</code> signal is received. Before executing the actual main loop the leaf and
@@ -4912,7 +4916,7 @@ validators.</li>
 <li>For the highest index <code>i</code> reached in the <code>block_descriptions</code>, send <code>(base_number + i + 1, block_hash)</code> on the channel, unless <code>i</code> is 0, in which case <code>None</code> should be sent. The
 <code>block_hash</code> is determined by inspecting <code>block_descriptions[i]</code>.</li>
 </ul>
-<footer id="last-change">Last change: 2022-12-30, commit: <a href="https://github.com/paritytech/polkadot/commit/db498ce17c">db498ce17c</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="dispute-distribution"><a class="header" href="#dispute-distribution">Dispute Distribution</a></h1>
+<footer id="last-change">Last change: 2023-01-10, commit: <a href="https://github.com/paritytech/polkadot/commit/30005e6b6e">30005e6b6e</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="dispute-distribution"><a class="header" href="#dispute-distribution">Dispute Distribution</a></h1>
 <p>Dispute distribution is responsible for ensuring all concerned validators will
 be aware of a dispute and have the relevant votes.</p>
 <h2 id="design-goals-1"><a class="header" href="#design-goals-1">Design Goals</a></h2>
@@ -5204,11 +5208,8 @@ the time. This attack vector is mitigated also by above rate limit and
 decreasing the peer's reputation on denial of the invalid imports by the
 coordinator.</p>
 <h3 id="node-startup"><a class="header" href="#node-startup">Node Startup</a></h3>
-<p>On startup we need to check with the dispute coordinator for any ongoing
-disputes and assume we have not yet sent our statement for those. In case we
-find an explicit statement from ourselves via
-<code>DisputeCoordinatorMessage::QueryCandidateVotes</code> we will pretend to just have
-received a <code>SendDispute</code> message for that candidate.</p>
+<p>Nothing special happens on node startup. We expect the <code>dispute-coordinator</code> to
+inform us about any ongoing disputes via <code>SendDispute</code> messages.</p>
 <h2 id="backing-and-approval-votes"><a class="header" href="#backing-and-approval-votes">Backing and Approval Votes</a></h2>
 <p>Backing and approval votes get imported when they arrive/are created via the
 dispute coordinator by corresponding subsystems.</p>
@@ -5279,7 +5280,7 @@ and harder over time. Assuming an attacker can not DoS a node forever, the
 dispute will succeed eventually, which is all that matters. And again, even if
 an attacker managed to prevent such a dispute from happening somehow, there is
 no real harm done: There was no serious attack to begin with.</p>
-<footer id="last-change">Last change: 2022-10-04, commit: <a href="https://github.com/paritytech/polkadot/commit/ce430c2256">ce430c2256</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="utility-subsystems"><a class="header" href="#utility-subsystems">Utility Subsystems</a></h1>
+<footer id="last-change">Last change: 2023-01-10, commit: <a href="https://github.com/paritytech/polkadot/commit/30005e6b6e">30005e6b6e</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="utility-subsystems"><a class="header" href="#utility-subsystems">Utility Subsystems</a></h1>
 <p>The utility subsystems are an assortment which don't have a natural home in another subsystem collection.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="availability-store"><a class="header" href="#availability-store">Availability Store</a></h1>
 <p>This is a utility subsystem responsible for keeping available certain data and pruning that data.</p>

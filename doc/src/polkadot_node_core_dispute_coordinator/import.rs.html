@@ -530,6 +530,24 @@
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -619,60 +637,69 @@
 
 <span class="doccomment">/// Whether or not we already issued some statement about a candidate.
 </span><span class="kw">pub enum </span>OwnVoteState {
-	<span class="doccomment">/// We already voted/issued a statement for the candidate.
-	</span>Voted,
-	<span class="doccomment">/// We already voted/issued a statement for the candidate and it was an approval vote.
+	<span class="doccomment">/// Our votes, if any.
+	</span>Voted(Vec&lt;(ValidatorIndex, (DisputeStatement, ValidatorSignature))&gt;),
+
+	<span class="doccomment">/// We are not a parachain validator in the session.
 	///
-	/// Needs special treatment as we have to make sure to propagate it to peers, to guarantee the
-	/// dispute can conclude.
-	</span>VotedApproval(Vec&lt;(ValidatorIndex, ValidatorSignature)&gt;),
-	<span class="doccomment">/// We not yet voted for the dispute.
-	</span>NoVote,
+	/// Hence we cannot vote.
+	</span>CannotVote,
 }
 
 <span class="kw">impl </span>OwnVoteState {
 	<span class="kw">fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(votes: <span class="kw-2">&amp;</span>CandidateVotes, env: <span class="kw-2">&amp;</span>CandidateEnvironment&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
-		<span class="kw">let </span><span class="kw-2">mut </span>our_valid_votes = env
-			.controlled_indices()
+		<span class="kw">let </span>controlled_indices = env.controlled_indices();
+		<span class="kw">if </span>controlled_indices.is_empty() {
+			<span class="kw">return </span><span class="self">Self</span>::CannotVote
+		}
+
+		<span class="kw">let </span>our_valid_votes = controlled_indices
 			.iter()
 			.filter_map(|i| votes.valid.raw().get_key_value(i))
-			.peekable();
-		<span class="kw">let </span><span class="kw-2">mut </span>our_invalid_votes =
-			env.controlled_indices.iter().filter_map(|i| votes.invalid.get_key_value(i));
-		<span class="kw">let </span>has_valid_votes = our_valid_votes.peek().is_some();
-		<span class="kw">let </span>has_invalid_votes = our_invalid_votes.next().is_some();
-		<span class="kw">let </span>our_approval_votes: Vec&lt;<span class="kw">_</span>&gt; = our_valid_votes
-			.filter_map(|(index, (k, sig))| {
-				<span class="kw">if let </span>ValidDisputeStatementKind::ApprovalChecking = k {
-					<span class="prelude-val">Some</span>((<span class="kw-2">*</span>index, sig.clone()))
-				} <span class="kw">else </span>{
-					<span class="prelude-val">None
-				</span>}
-			})
-			.collect();
+			.map(|(index, (kind, sig))| (<span class="kw-2">*</span>index, (DisputeStatement::Valid(<span class="kw-2">*</span>kind), sig.clone())));
+		<span class="kw">let </span>our_invalid_votes = controlled_indices
+			.iter()
+			.filter_map(|i| votes.invalid.get_key_value(i))
+			.map(|(index, (kind, sig))| (<span class="kw-2">*</span>index, (DisputeStatement::Invalid(<span class="kw-2">*</span>kind), sig.clone())));
 
-		<span class="kw">if </span>!our_approval_votes.is_empty() {
-			<span class="kw">return </span><span class="self">Self</span>::VotedApproval(our_approval_votes)
-		}
-		<span class="kw">if </span>has_valid_votes || has_invalid_votes {
-			<span class="kw">return </span><span class="self">Self</span>::Voted
-		}
-		<span class="self">Self</span>::NoVote
+		<span class="self">Self</span>::Voted(our_valid_votes.chain(our_invalid_votes).collect())
 	}
 
-	<span class="doccomment">/// Whether or not we issued a statement for the candidate already.
-	</span><span class="kw">fn </span>voted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+	<span class="doccomment">/// Is a vote from us missing but we are a validator able to vote?
+	</span><span class="kw">fn </span>vote_missing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 		<span class="kw">match </span><span class="self">self </span>{
-			<span class="self">Self</span>::Voted | <span class="self">Self</span>::VotedApproval(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-			<span class="self">Self</span>::NoVote =&gt; <span class="bool-val">false</span>,
+			<span class="self">Self</span>::Voted(votes) <span class="kw">if </span>votes.is_empty() =&gt; <span class="bool-val">true</span>,
+			<span class="self">Self</span>::Voted(<span class="kw">_</span>) | <span class="self">Self</span>::CannotVote =&gt; <span class="bool-val">false</span>,
 		}
 	}
 
 	<span class="doccomment">/// Get own approval votes, if any.
-	</span><span class="kw">fn </span>approval_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(ValidatorIndex, ValidatorSignature)&gt;&gt; {
+	///
+	/// Empty iterator means, no approval votes. `None` means, there will never be any (we cannot
+	/// vote).
+	</span><span class="kw">fn </span>approval_votes(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = (ValidatorIndex, <span class="kw-2">&amp;</span>ValidatorSignature)&gt;&gt; {
 		<span class="kw">match </span><span class="self">self </span>{
-			<span class="self">Self</span>::VotedApproval(votes) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>votes),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+			<span class="self">Self</span>::Voted(votes) =&gt; <span class="prelude-val">Some</span>(votes.iter().filter_map(|(index, (kind, sig))| {
+				<span class="kw">if let </span>DisputeStatement::Valid(ValidDisputeStatementKind::ApprovalChecking) = kind {
+					<span class="prelude-val">Some</span>((<span class="kw-2">*</span>index, sig))
+				} <span class="kw">else </span>{
+					<span class="prelude-val">None
+				</span>}
+			})),
+			<span class="self">Self</span>::CannotVote =&gt; <span class="prelude-val">None</span>,
+		}
+	}
+
+	<span class="doccomment">/// Get our votes if there are any.
+	///
+	/// Empty iterator means, no votes. `None` means, there will never be any (we cannot
+	/// vote).
+	</span><span class="kw">fn </span>votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(ValidatorIndex, (DisputeStatement, ValidatorSignature))&gt;&gt; {
+		<span class="kw">match </span><span class="self">self </span>{
+			<span class="self">Self</span>::Voted(votes) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>votes),
+			<span class="self">Self</span>::CannotVote =&gt; <span class="prelude-val">None</span>,
 		}
 	}
 }
@@ -702,7 +729,7 @@
 			valid: ValidCandidateVotes::new(),
 			invalid: BTreeMap::new(),
 		};
-		<span class="self">Self </span>{ votes, own_vote: OwnVoteState::NoVote, dispute_status: <span class="prelude-val">None </span>}
+		<span class="self">Self </span>{ votes, own_vote: OwnVoteState::CannotVote, dispute_status: <span class="prelude-val">None </span>}
 	}
 
 	<span class="doccomment">/// Create a new `CandidateVoteState` from already existing votes.
@@ -859,14 +886,23 @@
 		<span class="self">self</span>.dispute_status.map_or(<span class="bool-val">false</span>, |s| s.is_confirmed_concluded())
 	}
 
-	<span class="doccomment">/// This machine already cast some vote in that dispute/for that candidate.
-	</span><span class="kw">pub fn </span>has_own_vote(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.own_vote.voted()
+	<span class="doccomment">/// Are we a validator in the session, but have not yet voted?
+	</span><span class="kw">pub fn </span>own_vote_missing(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.own_vote.vote_missing()
 	}
 
 	<span class="doccomment">/// Own approval votes if any:
-	</span><span class="kw">pub fn </span>own_approval_votes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(ValidatorIndex, ValidatorSignature)&gt;&gt; {
+	</span><span class="kw">pub fn </span>own_approval_votes(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = (ValidatorIndex, <span class="kw-2">&amp;</span>ValidatorSignature)&gt;&gt; {
 		<span class="self">self</span>.own_vote.approval_votes()
+	}
+
+	<span class="doccomment">/// Get own votes if there are any.
+	</span><span class="kw">pub fn </span>own_votes(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;(ValidatorIndex, (DisputeStatement, ValidatorSignature))&gt;&gt; {
+		<span class="self">self</span>.own_vote.votes()
 	}
 
 	<span class="doccomment">/// Whether or not there is a dispute and it has already enough valid votes to conclude.

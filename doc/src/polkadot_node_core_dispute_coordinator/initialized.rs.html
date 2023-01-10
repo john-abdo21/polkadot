@@ -1286,78 +1286,6 @@
 <a href="#1286" id="1286">1286</a>
 <a href="#1287" id="1287">1287</a>
 <a href="#1288" id="1288">1288</a>
-<a href="#1289" id="1289">1289</a>
-<a href="#1290" id="1290">1290</a>
-<a href="#1291" id="1291">1291</a>
-<a href="#1292" id="1292">1292</a>
-<a href="#1293" id="1293">1293</a>
-<a href="#1294" id="1294">1294</a>
-<a href="#1295" id="1295">1295</a>
-<a href="#1296" id="1296">1296</a>
-<a href="#1297" id="1297">1297</a>
-<a href="#1298" id="1298">1298</a>
-<a href="#1299" id="1299">1299</a>
-<a href="#1300" id="1300">1300</a>
-<a href="#1301" id="1301">1301</a>
-<a href="#1302" id="1302">1302</a>
-<a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
-<a href="#1305" id="1305">1305</a>
-<a href="#1306" id="1306">1306</a>
-<a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
-<a href="#1309" id="1309">1309</a>
-<a href="#1310" id="1310">1310</a>
-<a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
-<a href="#1315" id="1315">1315</a>
-<a href="#1316" id="1316">1316</a>
-<a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
-<a href="#1321" id="1321">1321</a>
-<a href="#1322" id="1322">1322</a>
-<a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
-<a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
-<a href="#1356" id="1356">1356</a>
-<a href="#1357" id="1357">1357</a>
-<a href="#1358" id="1358">1358</a>
-<a href="#1359" id="1359">1359</a>
-<a href="#1360" id="1360">1360</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1386,8 +1314,7 @@
 <span class="kw">use </span>sc_keystore::LocalKeystore;
 
 <span class="kw">use </span>polkadot_node_primitives::{
-	disputes::ValidCandidateVotes, CandidateVotes, DisputeMessage, DisputeMessageCheckError,
-	DisputeStatus, SignedDisputeStatement, Timestamp,
+	disputes::ValidCandidateVotes, CandidateVotes, DisputeStatus, SignedDisputeStatement, Timestamp,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{
 	messages::{
@@ -1408,6 +1335,7 @@
 <span class="kw">use crate</span>::{
 	error::{log_error, Error, FatalError, FatalResult, JfyiError, JfyiResult, <span class="prelude-ty">Result</span>},
 	import::{CandidateEnvironment, CandidateVoteState},
+	is_potential_spam,
 	metrics::Metrics,
 	status::{get_active_with_status, Clock},
 	DisputeCoordinatorSubsystem, LOG_TARGET,
@@ -1415,7 +1343,7 @@
 
 <span class="kw">use super</span>::{
 	backend::Backend,
-	db,
+	db, make_dispute_message,
 	participation::{
 		<span class="self">self</span>, Participation, ParticipationPriority, ParticipationRequest, ParticipationStatement,
 		WorkerMessageReceiver,
@@ -1756,19 +1684,19 @@
 							CompactStatement::Valid(<span class="kw">_</span>) =&gt;
 								ValidDisputeStatementKind::BackingValid(relay_parent),
 						};
-                    <span class="macro">debug_assert!</span>(
-                        SignedDisputeStatement::new_checked(
+					<span class="macro">debug_assert!</span>(
+						SignedDisputeStatement::new_checked(
 							DisputeStatement::Valid(valid_statement_kind),
 							candidate_hash,
 							session,
 							validator_public.clone(),
 							validator_signature.clone(),
-                        ).is_ok(),
-                        <span class="string">&quot;Scraped backing votes had invalid signature! candidate: {:?}, session: {:?}, validator_public: {:?}&quot;</span>,
-                        candidate_hash,
-                        session,
-                        validator_public,
-                    );
+						).is_ok(),
+						<span class="string">&quot;Scraped backing votes had invalid signature! candidate: {:?}, session: {:?}, validator_public: {:?}&quot;</span>,
+						candidate_hash,
+						session,
+						validator_public,
+					);
 					<span class="kw">let </span>signed_dispute_statement =
 						SignedDisputeStatement::new_unchecked_from_trusted_source(
 							DisputeStatement::Valid(valid_statement_kind),
@@ -1852,20 +1780,20 @@
 						</span>})
 						.cloned()<span class="question-mark">?</span>;
 
-                    <span class="macro">debug_assert!</span>(
-                        SignedDisputeStatement::new_checked(
+					<span class="macro">debug_assert!</span>(
+						SignedDisputeStatement::new_checked(
 							dispute_statement.clone(),
 							candidate_hash,
 							session,
 							validator_public.clone(),
 							validator_signature.clone(),
-                        ).is_ok(),
-                        <span class="string">&quot;Scraped dispute votes had invalid signature! candidate: {:?}, session: {:?}, dispute_statement: {:?}, validator_public: {:?}&quot;</span>,
-                        candidate_hash,
-                        session,
+						).is_ok(),
+						<span class="string">&quot;Scraped dispute votes had invalid signature! candidate: {:?}, session: {:?}, dispute_statement: {:?}, validator_public: {:?}&quot;</span>,
+						candidate_hash,
+						session,
 						dispute_statement,
-                        validator_public,
-                    );
+						validator_public,
+					);
 
 					<span class="prelude-val">Some</span>((
 						SignedDisputeStatement::new_unchecked_from_trusted_source(
@@ -2205,18 +2133,16 @@
 
 		<span class="kw">let </span>is_included = <span class="self">self</span>.scraper.is_candidate_included(<span class="kw-2">&amp;</span>candidate_hash);
 		<span class="kw">let </span>is_backed = <span class="self">self</span>.scraper.is_candidate_backed(<span class="kw-2">&amp;</span>candidate_hash);
-		<span class="kw">let </span>has_own_vote = new_state.has_own_vote();
+		<span class="kw">let </span>own_vote_missing = new_state.own_vote_missing();
 		<span class="kw">let </span>is_disputed = new_state.is_disputed();
-		<span class="kw">let </span>has_controlled_indices = !env.controlled_indices().is_empty();
 		<span class="kw">let </span>is_confirmed = new_state.is_confirmed();
-		<span class="kw">let </span>potential_spam =
-			!is_included &amp;&amp; !is_backed &amp;&amp; !new_state.is_confirmed() &amp;&amp; !new_state.has_own_vote();
-		<span class="comment">// We participate only in disputes which are included, backed or confirmed
-		</span><span class="kw">let </span>allow_participation = is_included || is_backed || is_confirmed;
+		<span class="kw">let </span>potential_spam = is_potential_spam(<span class="kw-2">&amp;</span><span class="self">self</span>.scraper, <span class="kw-2">&amp;</span>new_state, <span class="kw-2">&amp;</span>candidate_hash);
+		<span class="comment">// We participate only in disputes which are not potential spam.
+		</span><span class="kw">let </span>allow_participation = !potential_spam;
 
 		<span class="macro">gum::trace!</span>(
 			target: LOG_TARGET,
-			has_own_vote = <span class="question-mark">?</span>new_state.has_own_vote(),
+			<span class="question-mark">?</span>own_vote_missing,
 			<span class="question-mark">?</span>potential_spam,
 			<span class="question-mark">?</span>is_included,
 			<span class="question-mark">?</span>candidate_hash,
@@ -2263,7 +2189,7 @@
 		// - `is_included` lands in prioritised queue
 		// - `is_confirmed` | `is_backed` lands in best effort queue
 		// We don&#39;t participate in disputes on finalized candidates.
-		</span><span class="kw">if </span>!has_own_vote &amp;&amp; is_disputed &amp;&amp; has_controlled_indices &amp;&amp; allow_participation {
+		</span><span class="kw">if </span>own_vote_missing &amp;&amp; is_disputed &amp;&amp; allow_participation {
 			<span class="kw">let </span>priority = ParticipationPriority::with_priority_if(is_included);
 			<span class="macro">gum::trace!</span>(
 				target: LOG_TARGET,
@@ -2290,9 +2216,8 @@
 				target: LOG_TARGET,
 				<span class="question-mark">?</span>candidate_hash,
 				<span class="question-mark">?</span>is_confirmed,
-				<span class="question-mark">?</span>has_own_vote,
+				<span class="question-mark">?</span>own_vote_missing,
 				<span class="question-mark">?</span>is_disputed,
-				<span class="question-mark">?</span>has_controlled_indices,
 				<span class="question-mark">?</span>allow_participation,
 				<span class="question-mark">?</span>is_included,
 				<span class="question-mark">?</span>is_backed,
@@ -2306,10 +2231,9 @@
 
 		<span class="comment">// Also send any already existing approval vote on new disputes:
 		</span><span class="kw">if </span>import_result.is_freshly_disputed() {
-			<span class="kw">let </span>no_votes = Vec::new();
-			<span class="kw">let </span>our_approval_votes = new_state.own_approval_votes().unwrap_or(<span class="kw-2">&amp;</span>no_votes);
+			<span class="kw">let </span>our_approval_votes = new_state.own_approval_votes().into_iter().flatten();
 			<span class="kw">for </span>(validator_index, sig) <span class="kw">in </span>our_approval_votes {
-				<span class="kw">let </span>pub_key = <span class="kw">match </span>env.validators().get(<span class="kw-2">*</span>validator_index) {
+				<span class="kw">let </span>pub_key = <span class="kw">match </span>env.validators().get(validator_index) {
 					<span class="prelude-val">None </span>=&gt; {
 						<span class="macro">gum::error!</span>(
 							target: LOG_TARGET,
@@ -2339,7 +2263,7 @@
 					env.session_info(),
 					<span class="kw-2">&amp;</span>new_state.votes(),
 					statement,
-					<span class="kw-2">*</span>validator_index,
+					validator_index,
 				) {
 					<span class="prelude-val">Err</span>(err) =&gt; {
 						<span class="macro">gum::error!</span>(
@@ -2510,9 +2434,9 @@
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {},
 				<span class="prelude-val">Err</span>(e) =&gt; {
 					<span class="macro">gum::error!</span>(
-					target: LOG_TARGET,
-					err = <span class="question-mark">?</span>e,
-					<span class="string">&quot;Encountered keystore error while signing dispute statement&quot;</span>,
+						target: LOG_TARGET,
+						err = <span class="question-mark">?</span>e,
+						<span class="string">&quot;Encountered keystore error while signing dispute statement&quot;</span>,
 					);
 				},
 			}
@@ -2609,74 +2533,6 @@
 			<span class="self">Self</span>::AssumeBackingVotePresent(hash) =&gt; <span class="kw-2">*</span>hash,
 		}
 	}
-}
-
-<span class="attr">#[derive(Debug, thiserror::Error)]
-</span><span class="kw">enum </span>DisputeMessageCreationError {
-	<span class="attr">#[error(<span class="string">&quot;There was no opposite vote available&quot;</span>)]
-	</span>NoOppositeVote,
-	<span class="attr">#[error(<span class="string">&quot;Found vote had an invalid validator index that could not be found&quot;</span>)]
-	</span>InvalidValidatorIndex,
-	<span class="attr">#[error(<span class="string">&quot;Statement found in votes had invalid signature.&quot;</span>)]
-	</span>InvalidStoredStatement,
-	<span class="attr">#[error(transparent)]
-	</span>InvalidStatementCombination(DisputeMessageCheckError),
-}
-
-<span class="kw">fn </span>make_dispute_message(
-	info: <span class="kw-2">&amp;</span>SessionInfo,
-	votes: <span class="kw-2">&amp;</span>CandidateVotes,
-	our_vote: SignedDisputeStatement,
-	our_index: ValidatorIndex,
-) -&gt; std::result::Result&lt;DisputeMessage, DisputeMessageCreationError&gt; {
-	<span class="kw">let </span>validators = <span class="kw-2">&amp;</span>info.validators;
-
-	<span class="kw">let </span>(valid_statement, valid_index, invalid_statement, invalid_index) =
-		<span class="kw">if let </span>DisputeStatement::Valid(<span class="kw">_</span>) = our_vote.statement() {
-			<span class="kw">let </span>(validator_index, (statement_kind, validator_signature)) =
-				votes.invalid.iter().next().ok_or(DisputeMessageCreationError::NoOppositeVote)<span class="question-mark">?</span>;
-			<span class="kw">let </span>other_vote = SignedDisputeStatement::new_checked(
-				DisputeStatement::Invalid(<span class="kw-2">*</span>statement_kind),
-				<span class="kw-2">*</span>our_vote.candidate_hash(),
-				our_vote.session_index(),
-				validators
-					.get(<span class="kw-2">*</span>validator_index)
-					.ok_or(DisputeMessageCreationError::InvalidValidatorIndex)<span class="question-mark">?
-					</span>.clone(),
-				validator_signature.clone(),
-			)
-			.map_err(|()| DisputeMessageCreationError::InvalidStoredStatement)<span class="question-mark">?</span>;
-			(our_vote, our_index, other_vote, <span class="kw-2">*</span>validator_index)
-		} <span class="kw">else </span>{
-			<span class="kw">let </span>(validator_index, (statement_kind, validator_signature)) = votes
-				.valid
-				.raw()
-				.iter()
-				.next()
-				.ok_or(DisputeMessageCreationError::NoOppositeVote)<span class="question-mark">?</span>;
-			<span class="kw">let </span>other_vote = SignedDisputeStatement::new_checked(
-				DisputeStatement::Valid(<span class="kw-2">*</span>statement_kind),
-				<span class="kw-2">*</span>our_vote.candidate_hash(),
-				our_vote.session_index(),
-				validators
-					.get(<span class="kw-2">*</span>validator_index)
-					.ok_or(DisputeMessageCreationError::InvalidValidatorIndex)<span class="question-mark">?
-					</span>.clone(),
-				validator_signature.clone(),
-			)
-			.map_err(|()| DisputeMessageCreationError::InvalidStoredStatement)<span class="question-mark">?</span>;
-			(other_vote, <span class="kw-2">*</span>validator_index, our_vote, our_index)
-		};
-
-	DisputeMessage::from_signed_statements(
-		valid_statement,
-		valid_index,
-		invalid_statement,
-		invalid_index,
-		votes.candidate_receipt.clone(),
-		info,
-	)
-	.map_err(DisputeMessageCreationError::InvalidStatementCombination)
 }
 
 <span class="doccomment">/// Determine the best block and its block number.

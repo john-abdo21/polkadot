@@ -346,7 +346,7 @@
 
 </span><span class="kw">use </span>std::collections::{HashMap, HashSet};
 
-<span class="kw">use </span>futures::{channel::mpsc, future::RemoteHandle, Future, FutureExt, SinkExt};
+<span class="kw">use </span>futures::{future::RemoteHandle, Future, FutureExt};
 
 <span class="kw">use </span>polkadot_node_network_protocol::{
 	request_response::{
@@ -357,7 +357,7 @@
 	IfDisconnected,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{messages::NetworkBridgeTxMessage, overseer};
-<span class="kw">use </span>polkadot_node_subsystem_util::{metrics, runtime::RuntimeInfo};
+<span class="kw">use </span>polkadot_node_subsystem_util::{metrics, nesting_sender::NestingSender, runtime::RuntimeInfo};
 <span class="kw">use </span>polkadot_primitives::v2::{
 	AuthorityDiscoveryId, CandidateHash, Hash, SessionIndex, ValidatorIndex,
 };
@@ -374,7 +374,7 @@
 /// Keeps track of all the validators that have to be reached for a dispute.
 ///
 /// The unit of work for a `SendTask` is an authority/validator.
-</span><span class="kw">pub struct </span>SendTask {
+</span><span class="kw">pub struct </span>SendTask&lt;M&gt; {
 	<span class="doccomment">/// The request we are supposed to get out to all `parachain` validators of the dispute&#39;s session
 	/// and to all current authorities.
 	</span>request: DisputeRequest,
@@ -388,7 +388,7 @@
 	</span>has_failed_sends: bool,
 
 	<span class="doccomment">/// Sender to be cloned for tasks.
-	</span>tx: mpsc::Sender&lt;TaskFinish&gt;,
+	</span>tx: NestingSender&lt;M, TaskFinish&gt;,
 }
 
 <span class="doccomment">/// Status of a particular vote/statement delivery to a particular validator.
@@ -430,7 +430,7 @@
 }
 
 <span class="attr">#[overseer::contextbounds(DisputeDistribution, prefix = <span class="self">self</span>::overseer)]
-</span><span class="kw">impl </span>SendTask {
+</span><span class="kw">impl</span>&lt;M: <span class="lifetime">&#39;static </span>+ Send + Sync&gt; SendTask&lt;M&gt; {
 	<span class="doccomment">/// Initiates sending a dispute message to peers.
 	///
 	/// Creation of new `SendTask`s is subject to rate limiting. As each `SendTask` will trigger
@@ -440,7 +440,7 @@
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 		active_sessions: <span class="kw-2">&amp;</span>HashMap&lt;SessionIndex, Hash&gt;,
-		tx: mpsc::Sender&lt;TaskFinish&gt;,
+		tx: NestingSender&lt;M, TaskFinish&gt;,
 		request: DisputeRequest,
 		metrics: <span class="kw-2">&amp;</span>Metrics,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
@@ -602,9 +602,9 @@
 ///
 /// And spawn tasks for handling the response.
 </span><span class="attr">#[overseer::contextbounds(DisputeDistribution, prefix = <span class="self">self</span>::overseer)]
-</span><span class="kw">async fn </span>send_requests&lt;Context&gt;(
+</span><span class="kw">async fn </span>send_requests&lt;Context, M: <span class="lifetime">&#39;static </span>+ Send + Sync&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
-	tx: mpsc::Sender&lt;TaskFinish&gt;,
+	tx: NestingSender&lt;M, TaskFinish&gt;,
 	receivers: Vec&lt;AuthorityDiscoveryId&gt;,
 	req: DisputeRequest,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
@@ -637,11 +637,11 @@
 }
 
 <span class="doccomment">/// Future to be spawned in a task for awaiting a response.
-</span><span class="kw">async fn </span>wait_response_task(
+</span><span class="kw">async fn </span>wait_response_task&lt;M: <span class="lifetime">&#39;static </span>+ Send + Sync&gt;(
 	pending_response: <span class="kw">impl </span>Future&lt;Output = OutgoingResult&lt;DisputeResponse&gt;&gt;,
 	candidate_hash: CandidateHash,
 	receiver: AuthorityDiscoveryId,
-	<span class="kw-2">mut </span>tx: mpsc::Sender&lt;TaskFinish&gt;,
+	<span class="kw-2">mut </span>tx: NestingSender&lt;M, TaskFinish&gt;,
 	_timer: <span class="prelude-ty">Option</span>&lt;metrics::prometheus::prometheus::HistogramTimer&gt;,
 ) {
 	<span class="kw">let </span>result = pending_response.<span class="kw">await</span>;
@@ -650,7 +650,7 @@
 		<span class="prelude-val">Ok</span>(DisputeResponse::Confirmed) =&gt;
 			TaskFinish { candidate_hash, receiver, result: TaskResult::Succeeded },
 	};
-	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = tx.feed(msg).<span class="kw">await </span>{
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = tx.send_message(msg).<span class="kw">await </span>{
 		<span class="macro">gum::debug!</span>(
 			target: LOG_TARGET,
 			%err,

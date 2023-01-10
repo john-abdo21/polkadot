@@ -288,6 +288,14 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -319,6 +327,7 @@
 <span class="kw">use </span>futures::{channel::mpsc, FutureExt, StreamExt, TryFutureExt};
 
 <span class="kw">use </span>polkadot_node_network_protocol::authority_discovery::AuthorityDiscovery;
+<span class="kw">use </span>polkadot_node_subsystem_util::nesting_sender::NestingSender;
 <span class="kw">use </span>sp_keystore::SyncCryptoStorePtr;
 
 <span class="kw">use </span>polkadot_node_network_protocol::request_response::{incoming::IncomingRequestReceiver, v1};
@@ -341,33 +350,33 @@
 /// to this subsystem, unknown dispute. This is to make sure, we get our vote out, even on
 /// restarts.
 ///
-///	The actual work of sending and keeping track of transmission attempts to each validator for a
-///	particular dispute are done by [`SendTask`].  The purpose of the `DisputeSender` is to keep
-///	track of all ongoing disputes and start and clean up `SendTask`s accordingly.
+/// The actual work of sending and keeping track of transmission attempts to each validator for a
+/// particular dispute are done by [`SendTask`].  The purpose of the `DisputeSender` is to keep
+/// track of all ongoing disputes and start and clean up `SendTask`s accordingly.
 </span><span class="kw">mod </span>sender;
-<span class="kw">use </span><span class="self">self</span>::sender::{DisputeSender, TaskFinish};
+<span class="kw">use </span><span class="self">self</span>::sender::{DisputeSender, DisputeSenderMessage};
 
-<span class="doccomment">///	## The receiver [`DisputesReceiver`]
+<span class="doccomment">/// ## The receiver [`DisputesReceiver`]
 ///
-///	The receiving side is implemented as `DisputesReceiver` and is run as a separate long running task within
-///	this subsystem ([`DisputesReceiver::run`]).
+/// The receiving side is implemented as `DisputesReceiver` and is run as a separate long running task within
+/// this subsystem ([`DisputesReceiver::run`]).
 ///
-///	Conceptually all the receiver has to do, is waiting for incoming requests which are passed in
-///	via a dedicated channel and forwarding them to the dispute coordinator via
-///	`DisputeCoordinatorMessage::ImportStatements`. Being the interface to the network and untrusted
-///	nodes, the reality is not that simple of course. Before importing statements the receiver will
-///	batch up imports as well as possible for efficient imports while maintaining timely dispute
-///	resolution and handling of spamming validators:
+/// Conceptually all the receiver has to do, is waiting for incoming requests which are passed in
+/// via a dedicated channel and forwarding them to the dispute coordinator via
+/// `DisputeCoordinatorMessage::ImportStatements`. Being the interface to the network and untrusted
+/// nodes, the reality is not that simple of course. Before importing statements the receiver will
+/// batch up imports as well as possible for efficient imports while maintaining timely dispute
+/// resolution and handling of spamming validators:
 ///
-///	- Drop all messages from non validator nodes, for this it requires the [`AuthorityDiscovery`]
-///	service.
-///	- Drop messages from a node, if it sends at a too high rate.
-///	- Filter out duplicate messages (over some period of time).
-///	- Drop any obviously invalid votes (invalid signatures for example).
-///	- Ban peers whose votes were deemed invalid.
+/// - Drop all messages from non validator nodes, for this it requires the [`AuthorityDiscovery`]
+/// service.
+/// - Drop messages from a node, if it sends at a too high rate.
+/// - Filter out duplicate messages (over some period of time).
+/// - Drop any obviously invalid votes (invalid signatures for example).
+/// - Ban peers whose votes were deemed invalid.
 ///
-///	In general dispute-distribution works on limiting the work the dispute-coordinator will have to
-///	do, while at the same time making it aware of new disputes as fast as possible.
+/// In general dispute-distribution works on limiting the work the dispute-coordinator will have to
+/// do, while at the same time making it aware of new disputes as fast as possible.
 ///
 /// For successfully imported votes, we will confirm the receipt of the message back to the sender.
 /// This way a received confirmation guarantees, that the vote has been stored to disk by the
@@ -377,7 +386,7 @@
 
 <span class="doccomment">/// Error and [`Result`] type for this subsystem.
 </span><span class="kw">mod </span>error;
-<span class="kw">use </span>error::{log_error, FatalError, FatalResult, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>error::{log_error, Error, FatalError, FatalResult, <span class="prelude-ty">Result</span>};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -408,10 +417,10 @@
 	</span>runtime: RuntimeInfo,
 
 	<span class="doccomment">/// Sender for our dispute requests.
-	</span>disputes_sender: DisputeSender,
+	</span>disputes_sender: DisputeSender&lt;DisputeSenderMessage&gt;,
 
-	<span class="doccomment">/// Receive messages from `SendTask`.
-	</span>sender_rx: mpsc::Receiver&lt;TaskFinish&gt;,
+	<span class="doccomment">/// Receive messages from `DisputeSender` background tasks.
+	</span>sender_rx: mpsc::Receiver&lt;DisputeSenderMessage&gt;,
 
 	<span class="doccomment">/// Receiver for incoming requests.
 	</span>req_receiver: <span class="prelude-ty">Option</span>&lt;IncomingRequestReceiver&lt;v1::DisputeRequest&gt;&gt;,
@@ -457,7 +466,7 @@
 			session_cache_lru_size: NonZeroUsize::new(DISPUTE_WINDOW.get() <span class="kw">as </span>usize)
 				.expect(<span class="string">&quot;Dispute window can not be 0; qed&quot;</span>),
 		});
-		<span class="kw">let </span>(tx, sender_rx) = mpsc::channel(<span class="number">1</span>);
+		<span class="kw">let </span>(tx, sender_rx) = NestingSender::new_root(<span class="number">1</span>);
 		<span class="kw">let </span>disputes_sender = DisputeSender::new(tx, metrics.clone());
 		<span class="self">Self </span>{
 			runtime,
@@ -506,9 +515,16 @@
 					log_error(result, <span class="string">&quot;on FromOrchestra&quot;</span>)<span class="question-mark">?</span>;
 				},
 				MuxedMessage::Sender(result) =&gt; {
-					<span class="self">self</span>.disputes_sender
-						.on_task_message(result.ok_or(FatalError::SenderExhausted)<span class="question-mark">?</span>)
-						.<span class="kw">await</span>;
+					<span class="kw">let </span>result = <span class="self">self
+						</span>.disputes_sender
+						.on_message(
+							<span class="kw-2">&amp;mut </span>ctx,
+							<span class="kw-2">&amp;mut </span><span class="self">self</span>.runtime,
+							result.ok_or(FatalError::SenderExhausted)<span class="question-mark">?</span>,
+						)
+						.<span class="kw">await
+						</span>.map_err(Error::Sender);
+					log_error(result, <span class="string">&quot;on_message&quot;</span>)<span class="question-mark">?</span>;
 				},
 			}
 		}
@@ -550,14 +566,14 @@
 	<span class="doccomment">/// Messages from other subsystems.
 	</span>Subsystem(FatalResult&lt;FromOrchestra&lt;DisputeDistributionMessage&gt;&gt;),
 	<span class="doccomment">/// Messages from spawned sender background tasks.
-	</span>Sender(<span class="prelude-ty">Option</span>&lt;TaskFinish&gt;),
+	</span>Sender(<span class="prelude-ty">Option</span>&lt;DisputeSenderMessage&gt;),
 }
 
 <span class="attr">#[overseer::contextbounds(DisputeDistribution, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">impl </span>MuxedMessage {
 	<span class="kw">async fn </span>receive&lt;Context&gt;(
 		ctx: <span class="kw-2">&amp;mut </span>Context,
-		from_sender: <span class="kw-2">&amp;mut </span>mpsc::Receiver&lt;TaskFinish&gt;,
+		from_sender: <span class="kw-2">&amp;mut </span>mpsc::Receiver&lt;DisputeSenderMessage&gt;,
 	) -&gt; <span class="self">Self </span>{
 		<span class="comment">// We are only fusing here to make `select` happy, in reality we will quit if the stream
 		// ends.
