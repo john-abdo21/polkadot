@@ -547,7 +547,6 @@
 <a href="#547" id="547">547</a>
 <a href="#548" id="548">548</a>
 <a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -582,7 +581,7 @@
 	disputes::ValidCandidateVotes, CandidateVotes, DisputeStatus, SignedDisputeStatement, Timestamp,
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::rolling_session_window::RollingSessionWindow;
-<span class="kw">use </span>polkadot_primitives::v2::{
+<span class="kw">use </span>polkadot_primitives::{
 	CandidateReceipt, DisputeStatement, IndexedVec, SessionIndex, SessionInfo,
 	ValidDisputeStatementKind, ValidatorId, ValidatorIndex, ValidatorPair, ValidatorSignature,
 };
@@ -738,15 +737,14 @@
 
 		<span class="kw">let </span>n_validators = env.validators().len();
 
-		<span class="kw">let </span>supermajority_threshold =
-			polkadot_primitives::v2::supermajority_threshold(n_validators);
+		<span class="kw">let </span>supermajority_threshold = polkadot_primitives::supermajority_threshold(n_validators);
 
 		<span class="comment">// We have a dispute, if we have votes on both sides:
 		</span><span class="kw">let </span>is_disputed = !votes.invalid.is_empty() &amp;&amp; !votes.valid.raw().is_empty();
 
 		<span class="kw">let </span>dispute_status = <span class="kw">if </span>is_disputed {
 			<span class="kw">let </span><span class="kw-2">mut </span>status = DisputeStatus::active();
-			<span class="kw">let </span>byzantine_threshold = polkadot_primitives::v2::byzantine_threshold(n_validators);
+			<span class="kw">let </span>byzantine_threshold = polkadot_primitives::byzantine_threshold(n_validators);
 			<span class="kw">let </span>is_confirmed = votes.voted_indices().len() &gt; byzantine_threshold;
 			<span class="kw">if </span>is_confirmed {
 				status = status.confirm();
