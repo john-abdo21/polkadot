@@ -2104,6 +2104,8 @@
 <a href="#2104" id="2104">2104</a>
 <a href="#2105" id="2105">2105</a>
 <a href="#2106" id="2106">2106</a>
+<a href="#2107" id="2107">2107</a>
+<a href="#2108" id="2108">2108</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3587,8 +3589,10 @@
 ///
 /// Should be cleared after every release.
 </span><span class="kw">pub type </span>Migrations = (
-	pallet_balances::migration::MigrateToTrackInactive&lt;Runtime, xcm_config::CheckAccount&gt;,
-	crowdloan::migration::MigrateToTrackInactive&lt;Runtime&gt;,
+	pallet_balances::migration::ResetInactive&lt;Runtime&gt;,
+	<span class="comment">// We need to apply this migration again, because `ResetInactive` resets the state again.
+	</span>pallet_balances::migration::MigrateToTrackInactive&lt;Runtime, xcm_config::CheckAccount&gt;,
+	crowdloan::migration::MigrateToTrackInactiveV2&lt;Runtime&gt;,
 	pallet_scheduler::migration::v4::CleanupAgendas&lt;Runtime&gt;,
 	parachains_disputes::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	parachains_configuration::migration::v4::MigrateToV4&lt;Runtime&gt;,

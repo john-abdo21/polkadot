@@ -223,6 +223,7 @@
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -247,20 +248,21 @@
 	Twox64Concat,
 };
 
-<span class="kw">pub struct </span>MigrateToTrackInactive&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
-<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateToTrackInactive&lt;T&gt; {
+<span class="kw">pub struct </span>MigrateToTrackInactiveV2&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateToTrackInactiveV2&lt;T&gt; {
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
 		<span class="kw">let </span>onchain_version = Pallet::&lt;T&gt;::on_chain_storage_version();
 
-		<span class="kw">if </span>onchain_version == <span class="number">0 </span>{
+		<span class="kw">if </span>onchain_version == <span class="number">1 </span>{
 			<span class="kw">let </span><span class="kw-2">mut </span>translated = <span class="number">0u64</span>;
-			<span class="kw">for </span>index <span class="kw">in </span>Funds::&lt;T&gt;::iter_keys() {
-				<span class="kw">let </span>b = CurrencyOf::&lt;T&gt;::total_balance(<span class="kw-2">&amp;</span>Pallet::&lt;T&gt;::fund_account_id(index.into()));
+			<span class="kw">for </span>item <span class="kw">in </span>Funds::&lt;T&gt;::iter_values() {
+				<span class="kw">let </span>b =
+					CurrencyOf::&lt;T&gt;::total_balance(<span class="kw-2">&amp;</span>Pallet::&lt;T&gt;::fund_account_id(item.fund_index));
 				CurrencyOf::&lt;T&gt;::deactivate(b);
 				translated.saturating_inc();
 			}
 
-			StorageVersion::new(<span class="number">1</span>).put::&lt;Pallet&lt;T&gt;&gt;();
+			StorageVersion::new(<span class="number">2</span>).put::&lt;Pallet&lt;T&gt;&gt;();
 			<span class="macro">log::info!</span>(target: <span class="string">&quot;runtime::crowdloan&quot;</span>, <span class="string">&quot;Summed {} funds, storage to version 1&quot;</span>, translated);
 			T::DbWeight::get().reads_writes(translated * <span class="number">2 </span>+ <span class="number">1</span>, translated * <span class="number">2 </span>+ <span class="number">1</span>)
 		} <span class="kw">else </span>{
@@ -271,9 +273,9 @@
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">let </span>total = Funds::&lt;T&gt;::iter_keys()
-			.map(|index| {
-				CurrencyOf::&lt;T&gt;::total_balance(<span class="kw-2">&amp;</span>Pallet::&lt;T&gt;::fund_account_id(index.into()))
+		<span class="kw">let </span>total = Funds::&lt;T&gt;::iter_values()
+			.map(|item| {
+				CurrencyOf::&lt;T&gt;::total_balance(<span class="kw-2">&amp;</span>Pallet::&lt;T&gt;::fund_account_id(item.fund_index))
 			})
 			.fold(BalanceOf::&lt;T&gt;::zero(), |a, i| a.saturating_add(i));
 		<span class="prelude-val">Ok</span>((total, CurrencyOf::&lt;T&gt;::active_issuance()).encode())

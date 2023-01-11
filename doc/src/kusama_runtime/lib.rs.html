@@ -2242,6 +2242,8 @@
 <a href="#2242" id="2242">2242</a>
 <a href="#2243" id="2243">2243</a>
 <a href="#2244" id="2244">2244</a>
+<a href="#2245" id="2245">2245</a>
+<a href="#2246" id="2246">2246</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3728,8 +3730,10 @@
 ///
 /// Should be cleared after every release.
 </span><span class="kw">pub type </span>Migrations = (
-	pallet_balances::migration::MigrateToTrackInactive&lt;Runtime, CheckAccount&gt;,
-	crowdloan::migration::MigrateToTrackInactive&lt;Runtime&gt;,
+	pallet_balances::migration::ResetInactive&lt;Runtime&gt;,
+	<span class="comment">// We need to apply this migration again, because `ResetInactive` resets the state again.
+	</span>pallet_balances::migration::MigrateToTrackInactive&lt;Runtime, CheckAccount&gt;,
+	crowdloan::migration::MigrateToTrackInactiveV2&lt;Runtime&gt;,
 	pallet_referenda::migration::v1::MigrateV0ToV1&lt;Runtime&gt;,
 	pallet_referenda::migration::v1::MigrateV0ToV1&lt;
 		Runtime,
