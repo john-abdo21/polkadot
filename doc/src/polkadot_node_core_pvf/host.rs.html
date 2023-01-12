@@ -2167,7 +2167,7 @@
 			},
 			ArtifactState::FailedToProcess { last_time_failed, num_failures, error } =&gt; {
 				<span class="kw">if </span>can_retry_prepare_after_failure(<span class="kw-2">*</span>last_time_failed, <span class="kw-2">*</span>num_failures, error) {
-					<span class="macro">gum::debug!</span>(
+					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
 						<span class="question-mark">?</span>pvf,
 						<span class="question-mark">?</span>artifact_id,
@@ -2241,7 +2241,7 @@
 				</span>},
 				ArtifactState::FailedToProcess { last_time_failed, num_failures, error } =&gt; {
 					<span class="kw">if </span>can_retry_prepare_after_failure(<span class="kw-2">*</span>last_time_failed, <span class="kw-2">*</span>num_failures, error) {
-						<span class="macro">gum::debug!</span>(
+						<span class="macro">gum::warn!</span>(
 							target: LOG_TARGET,
 							<span class="question-mark">?</span>active_pvf,
 							<span class="question-mark">?</span>artifact_id,
@@ -2370,18 +2370,18 @@
 		<span class="prelude-val">Ok</span>(cpu_time_elapsed) =&gt;
 			ArtifactState::Prepared { last_time_needed: SystemTime::now(), cpu_time_elapsed },
 		<span class="prelude-val">Err</span>(error) =&gt; {
-			<span class="macro">gum::debug!</span>(
+			<span class="kw">let </span>last_time_failed = SystemTime::now();
+			<span class="kw">let </span>num_failures = <span class="kw-2">*</span>num_failures + <span class="number">1</span>;
+
+			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
-				artifact_id = <span class="question-mark">?</span>artifact_id,
-				num_failures = <span class="question-mark">?</span>num_failures,
-				<span class="string">&quot;Failed to process artifact: {}&quot;</span>,
+				<span class="question-mark">?</span>artifact_id,
+				time_failed = <span class="question-mark">?</span>last_time_failed,
+				%num_failures,
+				<span class="string">&quot;artifact preparation failed: {}&quot;</span>,
 				error
 			);
-			ArtifactState::FailedToProcess {
-				last_time_failed: SystemTime::now(),
-				num_failures: <span class="kw-2">*</span>num_failures + <span class="number">1</span>,
-				error,
-			}
+			ArtifactState::FailedToProcess { last_time_failed, num_failures, error }
 		},
 	};
 

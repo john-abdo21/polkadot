@@ -353,6 +353,22 @@
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -578,32 +594,48 @@
 	artifact_id: ArtifactId,
 	result_tx: ResultSender,
 ) {
-	<span class="kw">let </span>(idle_worker, result) = <span class="kw">match </span>outcome {
-		Outcome::Ok { result_descriptor, duration: <span class="kw">_</span>, idle_worker } =&gt; {
+	<span class="kw">let </span>(idle_worker, result, duration) = <span class="kw">match </span>outcome {
+		Outcome::Ok { result_descriptor, duration, idle_worker } =&gt; {
 			<span class="comment">// TODO: propagate the soft timeout
 
-			</span>(<span class="prelude-val">Some</span>(idle_worker), <span class="prelude-val">Ok</span>(result_descriptor))
+			</span>(<span class="prelude-val">Some</span>(idle_worker), <span class="prelude-val">Ok</span>(result_descriptor), <span class="prelude-val">Some</span>(duration))
 		},
 		Outcome::InvalidCandidate { err, idle_worker } =&gt; (
 			<span class="prelude-val">Some</span>(idle_worker),
 			<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::WorkerReportedError(err))),
+			<span class="prelude-val">None</span>,
 		),
 		Outcome::InternalError { err, idle_worker } =&gt;
-			(<span class="prelude-val">Some</span>(idle_worker), <span class="prelude-val">Err</span>(ValidationError::InternalError(err))),
+			(<span class="prelude-val">Some</span>(idle_worker), <span class="prelude-val">Err</span>(ValidationError::InternalError(err)), <span class="prelude-val">None</span>),
 		Outcome::HardTimeout =&gt;
-			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::HardTimeout))),
-		Outcome::IoErr =&gt;
-			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath))),
+			(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::HardTimeout)), <span class="prelude-val">None</span>),
+		Outcome::IoErr =&gt; (
+			<span class="prelude-val">None</span>,
+			<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(InvalidCandidate::AmbiguousWorkerDeath)),
+			<span class="prelude-val">None</span>,
+		),
 	};
 
 	queue.metrics.execute_finished();
-	<span class="macro">gum::debug!</span>(
-		target: LOG_TARGET,
-		validation_code_hash = <span class="question-mark">?</span>artifact_id.code_hash,
-		<span class="question-mark">?</span>worker,
-		worker_rip = idle_worker.is_none(),
-		<span class="string">&quot;execute worker concluded&quot;</span>,
-	);
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw-2">ref </span>err) = result {
+		<span class="macro">gum::warn!</span>(
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>artifact_id,
+			<span class="question-mark">?</span>worker,
+			worker_rip = idle_worker.is_none(),
+			<span class="string">&quot;execution worker concluded, error occurred: {:?}&quot;</span>,
+			err
+		);
+	} <span class="kw">else </span>{
+		<span class="macro">gum::debug!</span>(
+			target: LOG_TARGET,
+			<span class="question-mark">?</span>artifact_id,
+			<span class="question-mark">?</span>worker,
+			worker_rip = idle_worker.is_none(),
+			<span class="question-mark">?</span>duration,
+			<span class="string">&quot;execute worker concluded successfully&quot;</span>,
+		);
+	}
 
 	<span class="comment">// First we send the result. It may fail due to the other end of the channel being dropped,
 	// that&#39;s legitimate and we don&#39;t treat that as an error.

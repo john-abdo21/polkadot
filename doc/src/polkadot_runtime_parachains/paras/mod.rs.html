@@ -2162,6 +2162,9 @@
 <a href="#2162" id="2162">2162</a>
 <a href="#2163" id="2163">2163</a>
 <a href="#2164" id="2164">2164</a>
+<a href="#2165" id="2165">2165</a>
+<a href="#2166" id="2166">2166</a>
+<a href="#2167" id="2167">2167</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2237,13 +2240,14 @@
 //!
 //! # PVF Pre-checking
 //!
-//! As was mentioned above, a brand new validation code should go through a process of approval.
-//! As part of this process, validators from the active set will take the validation code and
-//! check if it is malicious. Once they did that and have their judgement, either accept or reject,
-//! they issue a statement in a form of an unsigned extrinsic. This extrinsic is processed by this
-//! pallet. Once supermajority is gained for accept, then the process that initiated the check
-//! is resumed (as mentioned before this can be either upgrading of validation code or onboarding).
-//! If supermajority is gained for reject, then the process is canceled.
+//! As was mentioned above, a brand new validation code should go through a process of approval. As
+//! part of this process, validators from the active set will take the validation code and check if
+//! it is malicious. Once they did that and have their judgement, either accept or reject, they
+//! issue a statement in a form of an unsigned extrinsic. This extrinsic is processed by this
+//! pallet. Once supermajority is gained for accept, then the process that initiated the check is
+//! resumed (as mentioned before this can be either upgrading of validation code or onboarding). If
+//! getting a supermajority becomes impossible (&gt;1/3 of validators have already voted against), then
+//! we reject.
 //!
 //! Below is a state diagram that depicts states of a single PVF pre-checking vote.
 //!
@@ -2256,8 +2260,8 @@
 //!         │      │   │
 //!         │  ┌───────┐
 //!         │  │       │
-//!         └─▶│ init  │────supermajority      ┌──────────┐
-//!            │       │       against         │          │
+//!         └─▶│ init  │──── &gt;1/3 against      ┌──────────┐
+//!            │       │           │           │          │
 //!            └───────┘           └──────────▶│ rejected │
 //!             ▲  │                           │          │
 //!             │  │ session                   └──────────┘
@@ -2616,12 +2620,14 @@
 
 	<span class="doccomment">/// Returns `None` if the quorum is not reached, or the direction of the decision.
 	</span><span class="kw">fn </span>quorum(<span class="kw-2">&amp;</span><span class="self">self</span>, n_validators: usize) -&gt; <span class="prelude-ty">Option</span>&lt;PvfCheckOutcome&gt; {
-		<span class="kw">let </span>q_threshold = primitives::supermajority_threshold(n_validators);
-		<span class="comment">// NOTE: counting the reject votes is deliberately placed first. This is to err on the safe.
-		</span><span class="kw">if </span><span class="self">self</span>.votes_reject.count_ones() &gt;= q_threshold {
-			<span class="prelude-val">Some</span>(PvfCheckOutcome::Rejected)
-		} <span class="kw">else if </span><span class="self">self</span>.votes_accept.count_ones() &gt;= q_threshold {
+		<span class="kw">let </span>accept_threshold = primitives::supermajority_threshold(n_validators);
+		<span class="comment">// At this threshold, a supermajority is no longer possible, so we reject.
+		</span><span class="kw">let </span>reject_threshold = n_validators - accept_threshold;
+
+		<span class="kw">if </span><span class="self">self</span>.votes_accept.count_ones() &gt;= accept_threshold {
 			<span class="prelude-val">Some</span>(PvfCheckOutcome::Accepted)
+		} <span class="kw">else if </span><span class="self">self</span>.votes_reject.count_ones() &gt; reject_threshold {
+			<span class="prelude-val">Some</span>(PvfCheckOutcome::Rejected)
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>}
@@ -3175,7 +3181,7 @@
 			}
 
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(outcome) = active_vote.quorum(validators.len()) {
-				<span class="comment">// The supermajority quorum has been achieved.
+				<span class="comment">// The quorum has been achieved.
 				//
 				// Remove the PVF vote from the active map and finalize the PVF checking according
 				// to the outcome.

@@ -561,6 +561,8 @@
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
 <a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -753,17 +755,19 @@
 		PreCheckOutcome::Valid =&gt; Judgement::Valid,
 		PreCheckOutcome::Invalid =&gt; Judgement::Invalid,
 		PreCheckOutcome::Failed =&gt; {
-			<span class="comment">// Abstain.
+			<span class="comment">// Always vote against in case of failures. Voting against a PVF when encountering a
+			// timeout (or an unlikely node-specific issue) can be considered safe, since
+			// there is no slashing for being on the wrong side on a pre-check vote.
 			//
-			// Returning here will leave the PVF in the view dangling. Since it is there, no new
-			// pre-checking request will be sent.
+			// Also, by being more strict here, we can safely be more lenient during preparation and
+			// avoid the risk of getting slashed there.
 			</span><span class="macro">gum::info!</span>(
 				target: LOG_TARGET,
 				<span class="question-mark">?</span>validation_code_hash,
-				<span class="string">&quot;Pre-check failed, abstaining from voting&quot;</span>,
+				<span class="string">&quot;Pre-check failed, voting against&quot;</span>,
 			);
-			<span class="kw">return
-		</span>},
+			Judgement::Invalid
+		},
 	};
 
 	<span class="kw">match </span>state.view.on_judgement(validation_code_hash, judgement) {
