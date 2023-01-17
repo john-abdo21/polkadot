@@ -93,6 +93,60 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -109,30 +163,44 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>frame_support::{parameter_types, traits::Everything};
-<span class="kw">use </span>xcm::latest::{prelude::<span class="kw-2">*</span>, Weight <span class="kw">as </span>XCMWeight};
-<span class="kw">use </span>xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds, SignedToAccountId32};
+</span><span class="kw">use </span>frame_support::{
+	parameter_types,
+	traits::{Everything, Nothing},
+	weights::Weight,
+};
+<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>xcm_builder::{
+	AllowUnpaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, SignedAccountId32AsNative,
+	SignedToAccountId32,
+};
 <span class="kw">use </span>xcm_executor::{
-	traits::{InvertLocation, TransactAsset, WeightTrader},
+	traits::{TransactAsset, WeightTrader},
 	Assets,
 };
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>OurNetwork: NetworkId = NetworkId::Polkadot;
+	<span class="kw">pub const </span>BaseXcmWeight: xcm::latest::Weight = Weight::from_parts(<span class="number">1_000</span>, <span class="number">1_000</span>);
+	<span class="kw">pub const </span>AnyNetwork: <span class="prelude-ty">Option</span>&lt;NetworkId&gt; = <span class="prelude-val">None</span>;
 	<span class="kw">pub const </span>MaxInstructions: u32 = <span class="number">100</span>;
+	<span class="kw">pub const </span>MaxAssetsIntoHolding: u32 = <span class="number">16</span>;
+	<span class="kw">pub const </span>UniversalLocation: xcm::latest::InteriorMultiLocation = xcm::latest::Junctions::Here;
 }
 
 <span class="doccomment">/// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior location
 /// of this chain.
 </span><span class="kw">pub type </span>LocalOriginToLocation = (
 	<span class="comment">// And a usual Signed origin to be used in XCM as a corresponding AccountId32
-	</span>SignedToAccountId32&lt;<span class="kw">crate</span>::RuntimeOrigin, <span class="kw">crate</span>::AccountId, OurNetwork&gt;,
+	</span>SignedToAccountId32&lt;<span class="kw">crate</span>::RuntimeOrigin, <span class="kw">crate</span>::AccountId, AnyNetwork&gt;,
 );
 
 <span class="kw">pub struct </span>DoNothingRouter;
 <span class="kw">impl </span>SendXcm <span class="kw">for </span>DoNothingRouter {
-	<span class="kw">fn </span>send_xcm(_dest: <span class="kw">impl </span>Into&lt;MultiLocation&gt;, _msg: Xcm&lt;()&gt;) -&gt; SendResult {
-		<span class="prelude-val">Ok</span>(())
+	<span class="kw">type </span>Ticket = ();
+	<span class="kw">fn </span>validate(_dest: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;MultiLocation&gt;, _msg: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Xcm&lt;()&gt;&gt;) -&gt; SendResult&lt;()&gt; {
+		<span class="prelude-val">Ok</span>(((), MultiAssets::new()))
+	}
+	<span class="kw">fn </span>deliver(<span class="kw">_</span>: ()) -&gt; <span class="prelude-ty">Result</span>&lt;XcmHash, SendError&gt; {
+		<span class="prelude-val">Ok</span>([<span class="number">0</span>; <span class="number">32</span>])
 	}
 }
 
@@ -140,11 +208,15 @@
 
 <span class="kw">pub struct </span>DummyAssetTransactor;
 <span class="kw">impl </span>TransactAsset <span class="kw">for </span>DummyAssetTransactor {
-	<span class="kw">fn </span>deposit_asset(_what: <span class="kw-2">&amp;</span>MultiAsset, _who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; XcmResult {
+	<span class="kw">fn </span>deposit_asset(_what: <span class="kw-2">&amp;</span>MultiAsset, _who: <span class="kw-2">&amp;</span>MultiLocation, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn </span>withdraw_asset(_what: <span class="kw-2">&amp;</span>MultiAsset, _who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
+	<span class="kw">fn </span>withdraw_asset(
+		_what: <span class="kw-2">&amp;</span>MultiAsset,
+		_who: <span class="kw-2">&amp;</span>MultiLocation,
+		_maybe_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
 		<span class="kw">let </span>asset: MultiAsset = (Parent, <span class="number">100_000</span>).into();
 		<span class="prelude-val">Ok</span>(asset.into())
 	}
@@ -156,37 +228,73 @@
 		DummyWeightTrader
 	}
 
-	<span class="kw">fn </span>buy_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _weight: XCMWeight, _payment: Assets) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
+	<span class="kw">fn </span>buy_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _weight: Weight, _payment: Assets) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
 		<span class="prelude-val">Ok</span>(Assets::default())
 	}
 }
 
-<span class="kw">pub struct </span>InvertNothing;
-<span class="kw">impl </span>InvertLocation <span class="kw">for </span>InvertNothing {
-	<span class="kw">fn </span>invert_location(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation) -&gt; sp_std::result::Result&lt;MultiLocation, ()&gt; {
-		<span class="prelude-val">Ok</span>(Here.into())
-	}
-	<span class="kw">fn </span>ancestry() -&gt; MultiLocation {
-		Here.into()
-	}
-}
+<span class="kw">type </span>OriginConverter = (
+	pallet_xcm::XcmPassthrough&lt;<span class="kw">super</span>::RuntimeOrigin&gt;,
+	SignedAccountId32AsNative&lt;AnyNetwork, <span class="kw">super</span>::RuntimeOrigin&gt;,
+);
 
 <span class="kw">pub struct </span>XcmConfig;
 <span class="kw">impl </span>xcm_executor::Config <span class="kw">for </span>XcmConfig {
 	<span class="kw">type </span>RuntimeCall = <span class="kw">super</span>::RuntimeCall;
 	<span class="kw">type </span>XcmSender = DoNothingRouter;
 	<span class="kw">type </span>AssetTransactor = DummyAssetTransactor;
-	<span class="kw">type </span>OriginConverter = pallet_xcm::XcmPassthrough&lt;<span class="kw">super</span>::RuntimeOrigin&gt;;
+	<span class="kw">type </span>OriginConverter = OriginConverter;
 	<span class="kw">type </span>IsReserve = ();
 	<span class="kw">type </span>IsTeleporter = ();
-	<span class="kw">type </span>LocationInverter = InvertNothing;
+	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>Barrier = Barrier;
-	<span class="kw">type </span>Weigher = FixedWeightBounds&lt;<span class="kw">super</span>::BaseXcmWeight, <span class="kw">super</span>::RuntimeCall, MaxInstructions&gt;;
+	<span class="kw">type </span>Weigher = FixedWeightBounds&lt;BaseXcmWeight, <span class="kw">super</span>::RuntimeCall, MaxInstructions&gt;;
 	<span class="kw">type </span>Trader = DummyWeightTrader;
 	<span class="kw">type </span>ResponseHandler = <span class="kw">super</span>::Xcm;
 	<span class="kw">type </span>AssetTrap = <span class="kw">super</span>::Xcm;
+	<span class="kw">type </span>AssetLocker = ();
+	<span class="kw">type </span>AssetExchanger = ();
 	<span class="kw">type </span>AssetClaims = <span class="kw">super</span>::Xcm;
 	<span class="kw">type </span>SubscriptionService = <span class="kw">super</span>::Xcm;
+	<span class="kw">type </span>PalletInstancesInfo = ();
+	<span class="kw">type </span>MaxAssetsIntoHolding = MaxAssetsIntoHolding;
+	<span class="kw">type </span>FeeManager = ();
+	<span class="kw">type </span>MessageExporter = ();
+	<span class="kw">type </span>UniversalAliases = Nothing;
+	<span class="kw">type </span>CallDispatcher = <span class="kw">super</span>::RuntimeCall;
+	<span class="kw">type </span>SafeCallFilter = Everything;
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(xcm::latest::Junctions::Here.into());
+}
+
+<span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span><span class="kw">crate</span>::Runtime {
+	<span class="comment">// The config types here are entirely configurable, since the only one that is sorely needed
+	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
+	</span><span class="kw">type </span>RuntimeEvent = <span class="kw">crate</span>::RuntimeEvent;
+	<span class="kw">type </span>ExecuteXcmOrigin = EnsureXcmOrigin&lt;<span class="kw">crate</span>::RuntimeOrigin, LocalOriginToLocation&gt;;
+	<span class="kw">type </span>UniversalLocation = UniversalLocation;
+	<span class="kw">type </span>SendXcmOrigin = EnsureXcmOrigin&lt;<span class="kw">crate</span>::RuntimeOrigin, LocalOriginToLocation&gt;;
+	<span class="kw">type </span>Weigher = FixedWeightBounds&lt;BaseXcmWeight, <span class="kw">crate</span>::RuntimeCall, MaxInstructions&gt;;
+	<span class="kw">type </span>XcmRouter = DoNothingRouter;
+	<span class="kw">type </span>XcmExecuteFilter = Everything;
+	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmConfig&gt;;
+	<span class="kw">type </span>XcmTeleportFilter = Everything;
+	<span class="kw">type </span>XcmReserveTransferFilter = Everything;
+	<span class="kw">type </span>RuntimeOrigin = <span class="kw">crate</span>::RuntimeOrigin;
+	<span class="kw">type </span>RuntimeCall = <span class="kw">crate</span>::RuntimeCall;
+	<span class="kw">const </span>VERSION_DISCOVERY_QUEUE_SIZE: u32 = <span class="number">100</span>;
+	<span class="kw">type </span>AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
+	<span class="kw">type </span>Currency = <span class="kw">crate</span>::Balances;
+	<span class="kw">type </span>CurrencyMatcher = ();
+	<span class="kw">type </span>TrustedLockers = ();
+	<span class="kw">type </span>SovereignAccountOf = ();
+	<span class="kw">type </span>MaxLockers = frame_support::traits::ConstU32&lt;<span class="number">8</span>&gt;;
+	<span class="kw">type </span>WeightInfo = pallet_xcm::TestWeightInfo;
+	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">type </span>ReachableDest = ReachableDest;
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polkadot_test_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

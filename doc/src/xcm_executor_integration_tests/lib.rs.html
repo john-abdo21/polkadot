@@ -229,6 +229,63 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -248,15 +305,17 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 #![cfg(test)]
 
-</span><span class="kw">use </span>polkadot_test_client::{
+</span><span class="kw">use </span>frame_support::{codec::Encode, dispatch::GetDispatchInfo, weights::Weight};
+<span class="kw">use </span>polkadot_test_client::{
 	BlockBuilderExt, ClientBlockImportExt, DefaultTestClientBuilderExt, ExecutionStrategy,
 	InitPolkadotBlockBuilder, TestClientBuilder, TestClientBuilderExt,
 };
-<span class="kw">use </span>polkadot_test_runtime::pallet_test_notifier;
+<span class="kw">use </span>polkadot_test_runtime::{pallet_test_notifier, xcm_config::XcmConfig};
 <span class="kw">use </span>polkadot_test_service::construct_extrinsic;
 <span class="kw">use </span>sp_runtime::traits::Block;
 <span class="kw">use </span>sp_state_machine::InspectState;
 <span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedResponse, VersionedXcm};
+<span class="kw">use </span>xcm_executor::traits::WeightBounds;
 
 <span class="attr">#[test]
 </span><span class="kw">fn </span>basic_buy_fees_message_executes() {
@@ -268,7 +327,7 @@
 	<span class="kw">let </span>msg = Xcm(<span class="macro">vec!</span>[
 		WithdrawAsset((Parent, <span class="number">100</span>).into()),
 		BuyExecution { fees: (Parent, <span class="number">1</span>).into(), weight_limit: Unlimited },
-		DepositAsset { assets: Wild(All), max_assets: <span class="number">1</span>, beneficiary: Parent.into() },
+		DepositAsset { assets: Wild(AllCounted(<span class="number">1</span>)), beneficiary: Parent.into() },
 	]);
 
 	<span class="kw">let </span><span class="kw-2">mut </span>block_builder = client.init_polkadot_block_builder();
@@ -277,7 +336,7 @@
 		<span class="kw-2">&amp;</span>client,
 		polkadot_test_runtime::RuntimeCall::Xcm(pallet_xcm::Call::execute {
 			message: Box::new(VersionedXcm::from(msg)),
-			max_weight: <span class="number">1_000_000_000</span>,
+			max_weight: Weight::from_parts(<span class="number">1_000_000_000</span>, <span class="number">1024 </span>* <span class="number">1024</span>),
 		}),
 		sp_keyring::Sr25519Keyring::Alice,
 		<span class="number">0</span>,
@@ -296,6 +355,59 @@
 			r.event,
 			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::Attempted(
 				Outcome::Complete(<span class="kw">_</span>)
+			)),
+		)));
+	});
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>transact_recursion_limit_works() {
+	sp_tracing::try_init_simple();
+	<span class="kw">let </span><span class="kw-2">mut </span>client = TestClientBuilder::new()
+		.set_execution_strategy(ExecutionStrategy::AlwaysWasm)
+		.build();
+
+	<span class="kw">let </span><span class="kw-2">mut </span>msg = Xcm(<span class="macro">vec!</span>[ClearOrigin]);
+	<span class="kw">let </span>max_weight = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Weigher::weight(<span class="kw-2">&amp;mut </span>msg).unwrap();
+	<span class="kw">let </span><span class="kw-2">mut </span>call = polkadot_test_runtime::RuntimeCall::Xcm(pallet_xcm::Call::execute {
+		message: Box::new(VersionedXcm::from(msg)),
+		max_weight,
+	});
+
+	<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">11 </span>{
+		<span class="kw">let </span><span class="kw-2">mut </span>msg = Xcm(<span class="macro">vec!</span>[
+			WithdrawAsset((Parent, <span class="number">1_000</span>).into()),
+			BuyExecution { fees: (Parent, <span class="number">1</span>).into(), weight_limit: Unlimited },
+			Transact {
+				origin_kind: OriginKind::Native,
+				require_weight_at_most: call.get_dispatch_info().weight,
+				call: call.encode().into(),
+			},
+		]);
+		<span class="kw">let </span>max_weight = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Weigher::weight(<span class="kw-2">&amp;mut </span>msg).unwrap();
+		call = polkadot_test_runtime::RuntimeCall::Xcm(pallet_xcm::Call::execute {
+			message: Box::new(VersionedXcm::from(msg)),
+			max_weight,
+		});
+	}
+
+	<span class="kw">let </span><span class="kw-2">mut </span>block_builder = client.init_polkadot_block_builder();
+
+	<span class="kw">let </span>execute = construct_extrinsic(<span class="kw-2">&amp;</span>client, call, sp_keyring::Sr25519Keyring::Alice, <span class="number">0</span>);
+
+	block_builder.push_polkadot_extrinsic(execute).expect(<span class="string">&quot;pushes extrinsic&quot;</span>);
+
+	<span class="kw">let </span>block = block_builder.build().expect(<span class="string">&quot;Finalizes the block&quot;</span>).block;
+	<span class="kw">let </span>block_hash = block.hash();
+
+	futures::executor::block_on(client.import(sp_consensus::BlockOrigin::Own, block))
+		.expect(<span class="string">&quot;imports the block&quot;</span>);
+
+	client.state_at(block_hash).expect(<span class="string">&quot;state should exist&quot;</span>).inspect_state(|| {
+		<span class="macro">assert!</span>(polkadot_test_runtime::System::events().iter().any(|r| <span class="macro">matches!</span>(
+			r.event,
+			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::Attempted(
+				Outcome::Incomplete(<span class="kw">_</span>, XcmError::ExceedsStackLimit)
 			)),
 		)));
 	});
@@ -345,15 +457,16 @@
 	<span class="kw">let </span><span class="kw-2">mut </span>block_builder = client.init_polkadot_block_builder();
 
 	<span class="kw">let </span>response = Response::ExecutionResult(<span class="prelude-val">None</span>);
-	<span class="kw">let </span>max_weight = <span class="number">1_000_000</span>;
-	<span class="kw">let </span>msg = Xcm(<span class="macro">vec!</span>[QueryResponse { query_id, response, max_weight }]);
+	<span class="kw">let </span>max_weight = Weight::from_parts(<span class="number">1_000_000</span>, <span class="number">1024 </span>* <span class="number">1024</span>);
+	<span class="kw">let </span>querier = <span class="prelude-val">Some</span>(Here.into());
+	<span class="kw">let </span>msg = Xcm(<span class="macro">vec!</span>[QueryResponse { query_id, response, max_weight, querier }]);
 	<span class="kw">let </span>msg = Box::new(VersionedXcm::from(msg));
 
 	<span class="kw">let </span>execute = construct_extrinsic(
 		<span class="kw-2">&amp;</span>client,
 		polkadot_test_runtime::RuntimeCall::Xcm(pallet_xcm::Call::execute {
 			message: msg,
-			max_weight: <span class="number">1_000_000_000</span>,
+			max_weight: Weight::from_parts(<span class="number">1_000_000_000</span>, <span class="number">1024 </span>* <span class="number">1024</span>),
 		}),
 		sp_keyring::Sr25519Keyring::Alice,
 		<span class="number">1</span>,
@@ -378,7 +491,7 @@
 		<span class="macro">assert_eq!</span>(
 			polkadot_test_runtime::Xcm::query(query_id),
 			<span class="prelude-val">Some</span>(QueryStatus::Ready {
-				response: VersionedResponse::V2(Response::ExecutionResult(<span class="prelude-val">None</span>)),
+				response: VersionedResponse::V3(Response::ExecutionResult(<span class="prelude-val">None</span>)),
 				at: <span class="number">2u32</span>.into()
 			}),
 		)
@@ -428,14 +541,15 @@
 	<span class="kw">let </span><span class="kw-2">mut </span>block_builder = client.init_polkadot_block_builder();
 
 	<span class="kw">let </span>response = Response::ExecutionResult(<span class="prelude-val">None</span>);
-	<span class="kw">let </span>max_weight = <span class="number">1_000_000</span>;
-	<span class="kw">let </span>msg = Xcm(<span class="macro">vec!</span>[QueryResponse { query_id, response, max_weight }]);
+	<span class="kw">let </span>max_weight = Weight::from_parts(<span class="number">1_000_000</span>, <span class="number">1024 </span>* <span class="number">1024</span>);
+	<span class="kw">let </span>querier = <span class="prelude-val">Some</span>(Here.into());
+	<span class="kw">let </span>msg = Xcm(<span class="macro">vec!</span>[QueryResponse { query_id, response, max_weight, querier }]);
 
 	<span class="kw">let </span>execute = construct_extrinsic(
 		<span class="kw-2">&amp;</span>client,
 		polkadot_test_runtime::RuntimeCall::Xcm(pallet_xcm::Call::execute {
 			message: Box::new(VersionedXcm::from(msg)),
-			max_weight: <span class="number">1_000_000_000</span>,
+			max_weight: Weight::from_parts(<span class="number">1_000_000_000</span>, <span class="number">1024 </span>* <span class="number">1024</span>),
 		}),
 		sp_keyring::Sr25519Keyring::Alice,
 		<span class="number">1</span>,

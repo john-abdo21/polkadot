@@ -316,6 +316,39 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Cumulus.
 
@@ -334,7 +367,8 @@
 
 </span><span class="doccomment">//! Cross-Consensus Message format data structures.
 
-</span><span class="kw">use </span>core::result;
+</span><span class="kw">use </span><span class="kw">crate</span>::v3::Error <span class="kw">as </span>NewError;
+<span class="kw">use </span>core::result;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
 
@@ -428,10 +462,42 @@
 	</span>WeightNotComputable,
 }
 
+<span class="kw">impl </span>TryFrom&lt;NewError&gt; <span class="kw">for </span>Error {
+	<span class="kw">type </span>Error = ();
+	<span class="kw">fn </span>try_from(new_error: NewError) -&gt; result::Result&lt;Error, ()&gt; {
+		<span class="kw">use </span>NewError::<span class="kw-2">*</span>;
+		<span class="prelude-val">Ok</span>(<span class="kw">match </span>new_error {
+			Overflow =&gt; <span class="self">Self</span>::Overflow,
+			Unimplemented =&gt; <span class="self">Self</span>::Unimplemented,
+			UntrustedReserveLocation =&gt; <span class="self">Self</span>::UntrustedReserveLocation,
+			UntrustedTeleportLocation =&gt; <span class="self">Self</span>::UntrustedTeleportLocation,
+			LocationFull =&gt; <span class="self">Self</span>::MultiLocationFull,
+			LocationNotInvertible =&gt; <span class="self">Self</span>::MultiLocationNotInvertible,
+			BadOrigin =&gt; <span class="self">Self</span>::BadOrigin,
+			InvalidLocation =&gt; <span class="self">Self</span>::InvalidLocation,
+			AssetNotFound =&gt; <span class="self">Self</span>::AssetNotFound,
+			FailedToTransactAsset(s) =&gt; <span class="self">Self</span>::FailedToTransactAsset(s),
+			NotWithdrawable =&gt; <span class="self">Self</span>::NotWithdrawable,
+			LocationCannotHold =&gt; <span class="self">Self</span>::LocationCannotHold,
+			ExceedsMaxMessageSize =&gt; <span class="self">Self</span>::ExceedsMaxMessageSize,
+			DestinationUnsupported =&gt; <span class="self">Self</span>::DestinationUnsupported,
+			Transport(s) =&gt; <span class="self">Self</span>::Transport(s),
+			Unroutable =&gt; <span class="self">Self</span>::Unroutable,
+			UnknownClaim =&gt; <span class="self">Self</span>::UnknownClaim,
+			FailedToDecode =&gt; <span class="self">Self</span>::FailedToDecode,
+			MaxWeightInvalid =&gt; <span class="self">Self</span>::MaxWeightInvalid,
+			NotHoldingFees =&gt; <span class="self">Self</span>::NotHoldingFees,
+			TooExpensive =&gt; <span class="self">Self</span>::TooExpensive,
+			Trap(i) =&gt; <span class="self">Self</span>::Trap(i),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(()),
+		})
+	}
+}
+
 <span class="kw">impl </span>From&lt;SendError&gt; <span class="kw">for </span>Error {
 	<span class="kw">fn </span>from(e: SendError) -&gt; <span class="self">Self </span>{
 		<span class="kw">match </span>e {
-			SendError::CannotReachDestination(..) | SendError::Unroutable =&gt; Error::Unroutable,
+			SendError::NotApplicable(..) | SendError::Unroutable =&gt; Error::Unroutable,
 			SendError::Transport(s) =&gt; Error::Transport(s),
 			SendError::DestinationUnsupported =&gt; Error::DestinationUnsupported,
 			SendError::ExceedsMaxMessageSize =&gt; Error::ExceedsMaxMessageSize,
@@ -528,7 +594,7 @@
 	///
 	/// This is not considered fatal: if there are alternative transport routes available, then
 	/// they may be attempted. For this reason, the destination and message are contained.
-	</span>CannotReachDestination(MultiLocation, Xcm&lt;()&gt;),
+	</span>NotApplicable(MultiLocation, Xcm&lt;()&gt;),
 	<span class="doccomment">/// Destination is routable, but there is some issue with the transport mechanism. This is
 	/// considered fatal.
 	/// A human-readable explanation of the specific issue is provided.
@@ -549,7 +615,7 @@
 <span class="doccomment">/// Utility for sending an XCM message.
 ///
 /// These can be amalgamated in tuples to form sophisticated routing systems. In tuple format, each router might return
-/// `CannotReachDestination` to pass the execution to the next sender item. Note that each `CannotReachDestination`
+/// `NotApplicable` to pass the execution to the next sender item. Note that each `NotApplicable`
 /// might alter the destination and the XCM message for to the next router.
 ///
 ///
@@ -562,7 +628,7 @@
 /// struct Sender1;
 /// impl SendXcm for Sender1 {
 ///     fn send_xcm(destination: impl Into&lt;MultiLocation&gt;, message: Xcm&lt;()&gt;) -&gt; SendResult {
-///         return Err(SendError::CannotReachDestination(destination.into(), message))
+///         return Err(SendError::NotApplicable(destination.into(), message))
 ///     }
 /// }
 ///
@@ -585,7 +651,7 @@
 ///         let destination = destination.into();
 ///         match destination {
 ///             MultiLocation { parents: 1, interior: Here } =&gt; Ok(()),
-///             _ =&gt; Err(SendError::CannotReachDestination(destination, message)),
+///             _ =&gt; Err(SendError::NotApplicable(destination, message)),
 ///         }
 ///     }
 /// }
@@ -616,7 +682,7 @@
 	<span class="doccomment">/// Send an XCM `message` to a given `destination`.
 	///
 	/// If it is not a destination which can be reached with this type but possibly could by others, then it *MUST*
-	/// return `CannotReachDestination`. Any other error will cause the tuple implementation to exit early without
+	/// return `NotApplicable`. Any other error will cause the tuple implementation to exit early without
 	/// trying other type fields.
 	</span><span class="kw">fn </span>send_xcm(destination: <span class="kw">impl </span>Into&lt;MultiLocation&gt;, message: Xcm&lt;()&gt;) -&gt; SendResult;
 }
@@ -627,11 +693,11 @@
 		<span class="macro">for_tuples!</span>( #(
 			<span class="comment">// we shadow `destination` and `message` in each expansion for the next one.
 			</span><span class="kw">let </span>(destination, message) = <span class="kw">match </span>Tuple::send_xcm(destination, message) {
-				<span class="prelude-val">Err</span>(SendError::CannotReachDestination(d, m)) =&gt; (d, m),
+				<span class="prelude-val">Err</span>(SendError::NotApplicable(d, m)) =&gt; (d, m),
 				o @ <span class="kw">_ </span>=&gt; <span class="kw">return </span>o,
 			};
 		)* );
-		<span class="prelude-val">Err</span>(SendError::CannotReachDestination(destination.into(), message))
+		<span class="prelude-val">Err</span>(SendError::NotApplicable(destination.into(), message))
 	}
 }
 </code></pre></div>

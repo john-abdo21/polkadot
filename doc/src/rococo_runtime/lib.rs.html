@@ -2106,6 +2106,26 @@
 <a href="#2106" id="2106">2106</a>
 <a href="#2107" id="2107">2107</a>
 <a href="#2108" id="2108">2108</a>
+<a href="#2109" id="2109">2109</a>
+<a href="#2110" id="2110">2110</a>
+<a href="#2111" id="2111">2111</a>
+<a href="#2112" id="2112">2112</a>
+<a href="#2113" id="2113">2113</a>
+<a href="#2114" id="2114">2114</a>
+<a href="#2115" id="2115">2115</a>
+<a href="#2116" id="2116">2116</a>
+<a href="#2117" id="2117">2117</a>
+<a href="#2118" id="2118">2118</a>
+<a href="#2119" id="2119">2119</a>
+<a href="#2120" id="2120">2120</a>
+<a href="#2121" id="2121">2121</a>
+<a href="#2122" id="2122">2122</a>
+<a href="#2123" id="2123">2123</a>
+<a href="#2124" id="2124">2124</a>
+<a href="#2125" id="2125">2125</a>
+<a href="#2126" id="2126">2126</a>
+<a href="#2127" id="2127">2127</a>
+<a href="#2128" id="2128">2128</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3596,6 +3616,9 @@
 	pallet_scheduler::migration::v4::CleanupAgendas&lt;Runtime&gt;,
 	parachains_disputes::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	parachains_configuration::migration::v4::MigrateToV4&lt;Runtime&gt;,
+	<span class="comment">// &quot;Use 2D weights in XCM v3&quot; &lt;https://github.com/paritytech/polkadot/pull/6134&gt;
+	</span>pallet_xcm::migration::v1::MigrateToV1&lt;Runtime&gt;,
+	parachains_ump::migration::v1::MigrateToV1&lt;Runtime&gt;,
 );
 
 <span class="doccomment">/// Executive: handles dispatch to the various modules.
@@ -3684,7 +3707,8 @@
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
 		<span class="comment">// XCM
-		</span>[pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet::&lt;Runtime&gt;]
+		</span>[pallet_xcm, XcmPallet]
+		[pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet::&lt;Runtime&gt;]
 		[pallet_xcm_benchmarks::generic, pallet_xcm_benchmarks::generic::Pallet::&lt;Runtime&gt;]
 	);
 }
@@ -4087,20 +4111,22 @@
 			<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
 			<span class="kw">use </span>frame_benchmarking::baseline::Pallet <span class="kw">as </span>Baseline;
 			<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-			<span class="kw">use </span>xcm_config::{CheckAccount, RocLocation, SovereignAccountOf, Statemine, XcmConfig};
+			<span class="kw">use </span>xcm_config::{
+				LocalCheckAccount, LocationConverter, Statemine, TokenLocation, XcmConfig,
+			};
 
 			<span class="kw">impl </span>frame_system_benchmarking::Config <span class="kw">for </span>Runtime {}
 			<span class="kw">impl </span>frame_benchmarking::baseline::Config <span class="kw">for </span>Runtime {}
 			<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
 				<span class="kw">type </span>XcmConfig = XcmConfig;
-				<span class="kw">type </span>AccountIdConverter = SovereignAccountOf;
+				<span class="kw">type </span>AccountIdConverter = LocationConverter;
 				<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
 					<span class="prelude-val">Ok</span>(Statemine::get())
 				}
-				<span class="kw">fn </span>worst_case_holding() -&gt; MultiAssets {
+				<span class="kw">fn </span>worst_case_holding(_depositable_count: u32) -&gt; MultiAssets {
 					<span class="comment">// Rococo only knows about ROC
 					</span><span class="macro">vec!</span>[MultiAsset{
-						id: Concrete(RocLocation::get()),
+						id: Concrete(TokenLocation::get()),
 						fun: Fungible(<span class="number">1_000_000 </span>* UNITS),
 					}].into()
 				}
@@ -4109,24 +4135,23 @@
 			<span class="macro">parameter_types! </span>{
 				<span class="kw">pub const </span>TrustedTeleporter: <span class="prelude-ty">Option</span>&lt;(MultiLocation, MultiAsset)&gt; = <span class="prelude-val">Some</span>((
 					Statemine::get(),
-					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(RocLocation::get()) },
+					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(TokenLocation::get()) },
 				));
 				<span class="kw">pub const </span>TrustedReserve: <span class="prelude-ty">Option</span>&lt;(MultiLocation, MultiAsset)&gt; = <span class="prelude-val">Some</span>((
 					Statemine::get(),
-					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(RocLocation::get()) },
+					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(TokenLocation::get()) },
 				));
 			}
 
 			<span class="kw">impl </span>pallet_xcm_benchmarks::fungible::Config <span class="kw">for </span>Runtime {
 				<span class="kw">type </span>TransactAsset = Balances;
 
-				<span class="kw">type </span>CheckedAccount = CheckAccount;
+				<span class="kw">type </span>CheckedAccount = LocalCheckAccount;
 				<span class="kw">type </span>TrustedTeleporter = TrustedTeleporter;
-				<span class="kw">type </span>TrustedReserve = TrustedReserve;
 
 				<span class="kw">fn </span>get_multi_asset() -&gt; MultiAsset {
 					MultiAsset {
-						id: Concrete(RocLocation::get()),
+						id: Concrete(TokenLocation::get()),
 						fun: Fungible(<span class="number">1 </span>* UNITS),
 					}
 				}
@@ -4139,8 +4164,18 @@
 					(<span class="number">0u64</span>, Response::Version(Default::default()))
 				}
 
-				<span class="kw">fn </span>transact_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
-					<span class="prelude-val">Ok</span>(Statemine::get())
+				<span class="kw">fn </span>worst_case_asset_exchange() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiAssets, MultiAssets), BenchmarkError&gt; {
+					<span class="comment">// Rococo doesn&#39;t support asset exchanges
+					</span><span class="prelude-val">Err</span>(BenchmarkError::Skip)
+				}
+
+				<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;Junction, BenchmarkError&gt; {
+					<span class="comment">// The XCM executor of Rococo doesn&#39;t have a configured `UniversalAliases`
+					</span><span class="prelude-val">Err</span>(BenchmarkError::Skip)
+				}
+
+				<span class="kw">fn </span>transact_origin_and_runtime_call() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, RuntimeCall), BenchmarkError&gt; {
+					<span class="prelude-val">Ok</span>((Statemine::get(), frame_system::Call::remark_with_event { remark: <span class="macro">vec!</span>[] }.into()))
 				}
 
 				<span class="kw">fn </span>subscribe_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
@@ -4149,9 +4184,14 @@
 
 				<span class="kw">fn </span>claimable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAssets), BenchmarkError&gt; {
 					<span class="kw">let </span>origin = Statemine::get();
-					<span class="kw">let </span>assets: MultiAssets = (Concrete(RocLocation::get()), <span class="number">1_000 </span>* UNITS).into();
+					<span class="kw">let </span>assets: MultiAssets = (Concrete(TokenLocation::get()), <span class="number">1_000 </span>* UNITS).into();
 					<span class="kw">let </span>ticket = MultiLocation { parents: <span class="number">0</span>, interior: Here };
 					<span class="prelude-val">Ok</span>((origin, ticket, assets))
+				}
+
+				<span class="kw">fn </span>unlockable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAsset), BenchmarkError&gt; {
+					<span class="comment">// Rococo doesn&#39;t support asset locking
+					</span><span class="prelude-val">Err</span>(BenchmarkError::Skip)
 				}
 			}
 

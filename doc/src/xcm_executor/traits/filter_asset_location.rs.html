@@ -32,13 +32,6 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a>
-<a href="#40" id="40">40</a>
-<a href="#41" id="41">41</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -55,30 +48,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>xcm::latest::{MultiAsset, MultiLocation};
+</span><span class="kw">use </span>frame_support::traits::ContainsPair;
+<span class="kw">use </span>xcm::latest::{MultiAsset, MultiLocation};
 
 <span class="doccomment">/// Filters assets/location pairs.
 ///
 /// Can be amalgamated into tuples. If any item returns `true`, it short-circuits, else `false` is returned.
+</span><span class="attr">#[deprecated = <span class="string">&quot;Use `frame_support::traits::ContainsPair&lt;MultiAsset, MultiLocation&gt;` instead&quot;</span>]
 </span><span class="kw">pub trait </span>FilterAssetLocation {
 	<span class="doccomment">/// A filter to distinguish between asset/location pairs.
-	</span><span class="kw">fn </span>filter_asset_location(asset: <span class="kw-2">&amp;</span>MultiAsset, origin: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool;
+	</span><span class="kw">fn </span>contains(asset: <span class="kw-2">&amp;</span>MultiAsset, origin: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool;
 }
 
-<span class="attr">#[impl_trait_for_tuples::impl_for_tuples(<span class="number">30</span>)]
-</span><span class="kw">impl </span>FilterAssetLocation <span class="kw">for </span>Tuple {
-	<span class="kw">fn </span>filter_asset_location(what: <span class="kw-2">&amp;</span>MultiAsset, origin: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {
-		<span class="macro">for_tuples!</span>( #(
-			<span class="kw">if </span>Tuple::filter_asset_location(what, origin) { <span class="kw">return </span><span class="bool-val">true </span>}
-		)* );
-		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::filter_asset_location&quot;</span>,
-			<span class="string">&quot;got filtered: what: {:?}, origin: {:?}&quot;</span>,
-			what,
-			origin,
-		);
-		<span class="bool-val">false
-	</span>}
+<span class="attr">#[allow(deprecated)]
+</span><span class="kw">impl</span>&lt;T: ContainsPair&lt;MultiAsset, MultiLocation&gt;&gt; FilterAssetLocation <span class="kw">for </span>T {
+	<span class="kw">fn </span>contains(asset: <span class="kw-2">&amp;</span>MultiAsset, origin: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {
+		T::contains(asset, origin)
+	}
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xcm_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

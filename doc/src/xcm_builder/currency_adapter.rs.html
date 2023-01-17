@@ -183,6 +183,56 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -201,10 +251,11 @@
 
 </span><span class="doccomment">//! Adapters to work with `frame_support::traits::Currency` through XCM.
 
-</span><span class="kw">use </span>frame_support::traits::{ExistenceRequirement::AllowDeath, Get, WithdrawReasons};
+</span><span class="kw">use </span><span class="kw">super</span>::MintLocation;
+<span class="kw">use </span>frame_support::traits::{ExistenceRequirement::AllowDeath, Get, WithdrawReasons};
 <span class="kw">use </span>sp_runtime::traits::CheckedSub;
 <span class="kw">use </span>sp_std::{marker::PhantomData, result};
-<span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, MultiAsset, MultiLocation, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, MultiAsset, MultiLocation, <span class="prelude-ty">Result</span>, XcmContext};
 <span class="kw">use </span>xcm_executor::{
 	traits::{Convert, MatchesFungible, TransactAsset},
 	Assets,
@@ -252,10 +303,13 @@
 /// /// messages from the parent (relay chain).
 /// pub type LocationConverter = (ParentIsPreset&lt;AccountId&gt;);
 ///
+/// /// Just a dummy implementation of `Currency`. Normally this would be `Balances`.
+/// pub type CurrencyImpl = ();
+///
 /// /// Final currency adapter. This can be used in `xcm::Config` to specify how asset related transactions happen.
 /// pub type AssetTransactor = CurrencyAdapter&lt;
-///     // Use this balance type:
-///     u128,
+///     // Use this `Currency` impl instance:
+///     CurrencyImpl,
 ///     // The matcher: use the currency when the asset is a concrete asset in our relay chain.
 ///     IsConcrete&lt;RelayChain&gt;,
 ///     // The local converter: default account of the parent relay chain.
@@ -271,67 +325,108 @@
 );
 
 <span class="kw">impl</span>&lt;
+		Currency: frame_support::traits::Currency&lt;AccountId&gt;,
 		Matcher: MatchesFungible&lt;Currency::Balance&gt;,
 		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
-		Currency: frame_support::traits::Currency&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
-		</span>CheckedAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;AccountId&gt;&gt;,
+		</span>CheckedAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;(AccountId, MintLocation)&gt;&gt;,
+	&gt; CurrencyAdapter&lt;Currency, Matcher, AccountIdConverter, AccountId, CheckedAccount&gt;
+{
+	<span class="kw">fn </span>can_accrue_checked(_checked_account: AccountId, _amount: Currency::Balance) -&gt; <span class="prelude-ty">Result </span>{
+		<span class="prelude-val">Ok</span>(())
+	}
+	<span class="kw">fn </span>can_reduce_checked(checked_account: AccountId, amount: Currency::Balance) -&gt; <span class="prelude-ty">Result </span>{
+		<span class="kw">let </span>new_balance = Currency::free_balance(<span class="kw-2">&amp;</span>checked_account)
+			.checked_sub(<span class="kw-2">&amp;</span>amount)
+			.ok_or(XcmError::NotWithdrawable)<span class="question-mark">?</span>;
+		Currency::ensure_can_withdraw(
+			<span class="kw-2">&amp;</span>checked_account,
+			amount,
+			WithdrawReasons::TRANSFER,
+			new_balance,
+		)
+		.map_err(|<span class="kw">_</span>| XcmError::NotWithdrawable)
+	}
+	<span class="kw">fn </span>accrue_checked(checked_account: AccountId, amount: Currency::Balance) {
+		Currency::deposit_creating(<span class="kw-2">&amp;</span>checked_account, amount);
+		Currency::deactivate(amount);
+	}
+	<span class="kw">fn </span>reduce_checked(checked_account: AccountId, amount: Currency::Balance) {
+		<span class="kw">let </span>ok =
+			Currency::withdraw(<span class="kw-2">&amp;</span>checked_account, amount, WithdrawReasons::TRANSFER, AllowDeath)
+				.is_ok();
+		<span class="kw">if </span>ok {
+			Currency::reactivate(amount);
+		} <span class="kw">else </span>{
+			<span class="macro">frame_support::defensive!</span>(
+				<span class="string">&quot;`can_check_in` must have returned `true` immediately prior; qed&quot;
+			</span>);
+		}
+	}
+}
+
+<span class="kw">impl</span>&lt;
+		Currency: frame_support::traits::Currency&lt;AccountId&gt;,
+		Matcher: MatchesFungible&lt;Currency::Balance&gt;,
+		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
+		</span>CheckedAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;(AccountId, MintLocation)&gt;&gt;,
 	&gt; TransactAsset
 	<span class="kw">for </span>CurrencyAdapter&lt;Currency, Matcher, AccountIdConverter, AccountId, CheckedAccount&gt;
 {
-	<span class="kw">fn </span>can_check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) -&gt; <span class="prelude-ty">Result </span>{
+	<span class="kw">fn </span>can_check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Result </span>{
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;can_check_in origin: {:?}, what: {:?}&quot;</span>, _origin, what);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>amount: Currency::Balance =
 			Matcher::matches_fungible(what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(checked_account) = CheckedAccount::get() {
-			<span class="kw">let </span>new_balance = Currency::free_balance(<span class="kw-2">&amp;</span>checked_account)
-				.checked_sub(<span class="kw-2">&amp;</span>amount)
-				.ok_or(XcmError::NotWithdrawable)<span class="question-mark">?</span>;
-			Currency::ensure_can_withdraw(
-				<span class="kw-2">&amp;</span>checked_account,
-				amount,
-				WithdrawReasons::TRANSFER,
-				new_balance,
-			)
-			.map_err(|<span class="kw">_</span>| XcmError::NotWithdrawable)<span class="question-mark">?</span>;
+		<span class="kw">match </span>CheckedAccount::get() {
+			<span class="prelude-val">Some</span>((checked_account, MintLocation::Local)) =&gt;
+				<span class="self">Self</span>::can_reduce_checked(checked_account, amount),
+			<span class="prelude-val">Some</span>((checked_account, MintLocation::NonLocal)) =&gt;
+				<span class="self">Self</span>::can_accrue_checked(checked_account, amount),
+			<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
 		}
-		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn </span>check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) {
+	<span class="kw">fn </span>check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;check_in origin: {:?}, what: {:?}&quot;</span>, _origin, what);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(amount) = Matcher::matches_fungible(what) {
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(checked_account) = CheckedAccount::get() {
-				<span class="kw">let </span>ok = Currency::withdraw(
-					<span class="kw-2">&amp;</span>checked_account,
-					amount,
-					WithdrawReasons::TRANSFER,
-					AllowDeath,
-				)
-				.is_ok();
-				<span class="kw">if </span>ok {
-					Currency::reactivate(amount);
-				}
-				<span class="macro">debug_assert!</span>(
-					ok,
-					<span class="string">&quot;`can_check_in` must have returned `true` immediately prior; qed&quot;
-				</span>);
+			<span class="kw">match </span>CheckedAccount::get() {
+				<span class="prelude-val">Some</span>((checked_account, MintLocation::Local)) =&gt;
+					<span class="self">Self</span>::reduce_checked(checked_account, amount),
+				<span class="prelude-val">Some</span>((checked_account, MintLocation::NonLocal)) =&gt;
+					<span class="self">Self</span>::accrue_checked(checked_account, amount),
+				<span class="prelude-val">None </span>=&gt; (),
 			}
 		}
 	}
 
-	<span class="kw">fn </span>check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) {
+	<span class="kw">fn </span>can_check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Result </span>{
+		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;check_out dest: {:?}, what: {:?}&quot;</span>, _dest, what);
+		<span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
+		<span class="kw">match </span>CheckedAccount::get() {
+			<span class="prelude-val">Some</span>((checked_account, MintLocation::Local)) =&gt;
+				<span class="self">Self</span>::can_accrue_checked(checked_account, amount),
+			<span class="prelude-val">Some</span>((checked_account, MintLocation::NonLocal)) =&gt;
+				<span class="self">Self</span>::can_reduce_checked(checked_account, amount),
+			<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
+		}
+	}
+
+	<span class="kw">fn </span>check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;check_out dest: {:?}, what: {:?}&quot;</span>, _dest, what);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(amount) = Matcher::matches_fungible(what) {
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(checked_account) = CheckedAccount::get() {
-				Currency::deposit_creating(<span class="kw-2">&amp;</span>checked_account, amount);
-				Currency::deactivate(amount);
+			<span class="kw">match </span>CheckedAccount::get() {
+				<span class="prelude-val">Some</span>((checked_account, MintLocation::Local)) =&gt;
+					<span class="self">Self</span>::accrue_checked(checked_account, amount),
+				<span class="prelude-val">Some</span>((checked_account, MintLocation::NonLocal)) =&gt;
+					<span class="self">Self</span>::reduce_checked(checked_account, amount),
+				<span class="prelude-val">None </span>=&gt; (),
 			}
 		}
 	}
 
-	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result </span>{
+	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Result </span>{
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;deposit_asset what: {:?}, who: {:?}&quot;</span>, what, who);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>amount = Matcher::matches_fungible(<span class="kw-2">&amp;</span>what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
@@ -341,7 +436,11 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn </span>withdraw_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; result::Result&lt;Assets, XcmError&gt; {
+	<span class="kw">fn </span>withdraw_asset(
+		what: <span class="kw-2">&amp;</span>MultiAsset,
+		who: <span class="kw-2">&amp;</span>MultiLocation,
+		_maybe_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
+	) -&gt; result::Result&lt;Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;withdraw_asset what: {:?}, who: {:?}&quot;</span>, what, who);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
@@ -356,6 +455,7 @@
 		asset: <span class="kw-2">&amp;</span>MultiAsset,
 		from: <span class="kw-2">&amp;</span>MultiLocation,
 		to: <span class="kw-2">&amp;</span>MultiLocation,
+		_context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; result::Result&lt;Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;internal_transfer_asset asset: {:?}, from: {:?}, to: {:?}&quot;</span>, asset, from, to);
 		<span class="kw">let </span>amount = Matcher::matches_fungible(asset).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;

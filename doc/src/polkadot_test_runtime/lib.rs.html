@@ -1047,32 +1047,6 @@
 <a href="#1047" id="1047">1047</a>
 <a href="#1048" id="1048">1048</a>
 <a href="#1049" id="1049">1049</a>
-<a href="#1050" id="1050">1050</a>
-<a href="#1051" id="1051">1051</a>
-<a href="#1052" id="1052">1052</a>
-<a href="#1053" id="1053">1053</a>
-<a href="#1054" id="1054">1054</a>
-<a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
-<a href="#1059" id="1059">1059</a>
-<a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a>
-<a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
-<a href="#1065" id="1065">1065</a>
-<a href="#1066" id="1066">1066</a>
-<a href="#1067" id="1067">1067</a>
-<a href="#1068" id="1068">1068</a>
-<a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
-<a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
-<a href="#1073" id="1073">1073</a>
-<a href="#1074" id="1074">1074</a>
-<a href="#1075" id="1075">1075</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1206,7 +1180,7 @@
 }
 
 <span class="kw">impl </span>frame_system::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>BaseCallFilter = frame_support::traits::Everything;
+	<span class="kw">type </span>BaseCallFilter = Everything;
 	<span class="kw">type </span>BlockWeights = BlockWeights;
 	<span class="kw">type </span>BlockLength = BlockLength;
 	<span class="kw">type </span>DbWeight = ();
@@ -1612,34 +1586,6 @@
 	<span class="kw">type </span>WeightInfo = parachains_ump::TestWeightInfo;
 }
 
-<span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>BaseXcmWeight: xcm::latest::Weight = <span class="number">1_000</span>;
-	<span class="kw">pub const </span>AnyNetwork: xcm::latest::NetworkId = xcm::latest::NetworkId::Any;
-	<span class="kw">pub const </span>MaxInstructions: u32 = <span class="number">100</span>;
-}
-
-<span class="kw">pub type </span>LocalOriginToLocation =
-	xcm_builder::SignedToAccountId32&lt;RuntimeOrigin, AccountId, AnyNetwork&gt;;
-
-<span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
-	<span class="comment">// The config types here are entirely configurable, since the only one that is sorely needed
-	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
-	</span><span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
-	<span class="kw">type </span>LocationInverter = xcm_config::InvertNothing;
-	<span class="kw">type </span>SendXcmOrigin = xcm_builder::EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
-	<span class="kw">type </span>Weigher = xcm_builder::FixedWeightBounds&lt;BaseXcmWeight, RuntimeCall, MaxInstructions&gt;;
-	<span class="kw">type </span>XcmRouter = xcm_config::DoNothingRouter;
-	<span class="kw">type </span>XcmExecuteFilter = Everything;
-	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;xcm_config::XcmConfig&gt;;
-	<span class="kw">type </span>XcmTeleportFilter = Everything;
-	<span class="kw">type </span>XcmReserveTransferFilter = Everything;
-	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
-	<span class="kw">type </span>RuntimeCall = RuntimeCall;
-	<span class="kw">const </span>VERSION_DISCOVERY_QUEUE_SIZE: u32 = <span class="number">100</span>;
-	<span class="kw">type </span>AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-}
-
 <span class="kw">impl </span>parachains_hrmp::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
@@ -1703,8 +1649,9 @@
 				.using_encoded(|<span class="kw-2">mut </span>d| &lt;[u8; <span class="number">32</span>]&gt;::decode(<span class="kw-2">&amp;mut </span>d))
 				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::BadAccountFormat)<span class="question-mark">?</span>;
 			<span class="kw">let </span>qid = pallet_xcm::Pallet::&lt;T&gt;::new_query(
-				Junction::AccountId32 { network: Any, id }.into(),
+				Junction::AccountId32 { network: <span class="prelude-val">None</span>, id },
 				<span class="number">100u32</span>.into(),
+				Here,
 			);
 			<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::QueryPrepared(qid));
 			<span class="prelude-val">Ok</span>(())
@@ -1720,9 +1667,10 @@
 			<span class="kw">let </span>call =
 				Call::&lt;T&gt;::notification_received { query_id: <span class="number">0</span>, response: Default::default() };
 			<span class="kw">let </span>qid = pallet_xcm::Pallet::&lt;T&gt;::new_notify_query(
-				Junction::AccountId32 { network: Any, id }.into(),
+				Junction::AccountId32 { network: <span class="prelude-val">None</span>, id },
 				&lt;T <span class="kw">as </span>Config&gt;::RuntimeCall::from(call),
 				<span class="number">100u32</span>.into(),
+				Here,
 			);
 			<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::NotifyQueryPrepared(qid));
 			<span class="prelude-val">Ok</span>(())

@@ -132,7 +132,7 @@
 <span class="kw">use </span>frame_benchmarking::{account, BenchmarkError};
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_executor::traits::Convert;
+<span class="kw">use </span>xcm_executor::{traits::Convert, Config <span class="kw">as </span>XcmConfig};
 
 <span class="kw">pub mod </span>fungible;
 <span class="kw">pub mod </span>generic;
@@ -146,7 +146,7 @@
 	///
 	/// These might affect the execution of XCM messages, such as defining how the
 	/// `TransactAsset` is implemented.
-	</span><span class="kw">type </span>XcmConfig: xcm_executor::Config;
+	</span><span class="kw">type </span>XcmConfig: XcmConfig;
 
 	<span class="doccomment">/// A converter between a multi-location to a sovereign account.
 	</span><span class="kw">type </span>AccountIdConverter: Convert&lt;MultiLocation, <span class="self">Self</span>::AccountId&gt;;
@@ -156,7 +156,7 @@
 	</span><span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt;;
 
 	<span class="doccomment">/// Worst case scenario for a holding account in this runtime.
-	</span><span class="kw">fn </span>worst_case_holding() -&gt; MultiAssets;
+	</span><span class="kw">fn </span>worst_case_holding(depositable_count: u32) -&gt; MultiAssets;
 }
 
 <span class="kw">const </span>SEED: u32 = <span class="number">0</span>;
@@ -166,15 +166,15 @@
 <span class="doccomment">/// The overarching call type.
 </span><span class="kw">pub type </span>OverArchingCallOf&lt;T&gt; = &lt;T <span class="kw">as </span>frame_system::Config&gt;::RuntimeCall;
 <span class="doccomment">/// The asset transactor of our executor
-</span><span class="kw">pub type </span>AssetTransactorOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::AssetTransactor;
+</span><span class="kw">pub type </span>AssetTransactorOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::XcmConfig <span class="kw">as </span>XcmConfig&gt;::AssetTransactor;
 <span class="doccomment">/// The call type of executor&#39;s config. Should eventually resolve to the same overarching call type.
-</span><span class="kw">pub type </span>XcmCallOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall;
+</span><span class="kw">pub type </span>XcmCallOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::XcmConfig <span class="kw">as </span>XcmConfig&gt;::RuntimeCall;
 
-<span class="kw">pub fn </span>mock_worst_case_holding() -&gt; MultiAssets {
-	<span class="kw">const </span>HOLDING_FUNGIBLES: u32 = <span class="number">99</span>;
-	<span class="kw">const </span>HOLDING_NON_FUNGIBLES: u32 = <span class="number">99</span>;
+<span class="kw">pub fn </span>mock_worst_case_holding(depositable_count: u32, max_assets: u32) -&gt; MultiAssets {
 	<span class="kw">let </span>fungibles_amount: u128 = <span class="number">100</span>;
-	(<span class="number">0</span>..HOLDING_FUNGIBLES)
+	<span class="kw">let </span>holding_fungibles = max_assets / <span class="number">2 </span>- depositable_count;
+	<span class="kw">let </span>holding_non_fungibles = holding_fungibles;
+	(<span class="number">0</span>..holding_fungibles)
 		.map(|i| {
 			MultiAsset {
 				id: Concrete(GeneralIndex(i <span class="kw">as </span>u128).into()),
@@ -183,7 +183,7 @@
 			.into()
 		})
 		.chain(core::iter::once(MultiAsset { id: Concrete(Here.into()), fun: Fungible(u128::MAX) }))
-		.chain((<span class="number">0</span>..HOLDING_NON_FUNGIBLES).map(|i| MultiAsset {
+		.chain((<span class="number">0</span>..holding_non_fungibles).map(|i| MultiAsset {
 			id: Concrete(GeneralIndex(i <span class="kw">as </span>u128).into()),
 			fun: NonFungible(asset_instance_from(i)),
 		}))
@@ -199,7 +199,7 @@
 }
 
 <span class="kw">pub fn </span>new_executor&lt;T: Config&gt;(origin: MultiLocation) -&gt; ExecutorOf&lt;T&gt; {
-	ExecutorOf::&lt;T&gt;::new(origin)
+	ExecutorOf::&lt;T&gt;::new(origin, [<span class="number">0</span>; <span class="number">32</span>])
 }
 
 <span class="doccomment">/// Build a multi-location from an account id.
@@ -209,7 +209,7 @@
 	encoded.resize(<span class="number">32</span>, <span class="number">0u8</span>);
 	<span class="kw">let </span><span class="kw-2">mut </span>id = [<span class="number">0u8</span>; <span class="number">32</span>];
 	id.copy_from_slice(<span class="kw-2">&amp;</span>encoded);
-	Junction::AccountId32 { network: NetworkId::Any, id }
+	Junction::AccountId32 { network: <span class="prelude-val">None</span>, id }
 }
 
 <span class="kw">pub fn </span>account_and_location&lt;T: Config&gt;(index: u32) -&gt; (T::AccountId, MultiLocation) {

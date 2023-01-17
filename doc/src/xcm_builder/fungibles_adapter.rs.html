@@ -335,6 +335,73 @@
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -354,98 +421,12 @@
 </span><span class="doccomment">//! Adapters to work with `frame_support::traits::tokens::fungibles` through XCM.
 
 </span><span class="kw">use </span>frame_support::traits::{tokens::fungibles, Contains, Get};
-<span class="kw">use </span>sp_std::{borrow::Borrow, marker::PhantomData, prelude::<span class="kw-2">*</span>, result};
-<span class="kw">use </span>xcm::latest::{
-	AssetId::{Abstract, Concrete},
-	Error <span class="kw">as </span>XcmError,
-	Fungibility::Fungible,
-	Junction, MultiAsset, MultiLocation, <span class="prelude-ty">Result</span>,
-};
+<span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>, result};
+<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_executor::traits::{Convert, Error <span class="kw">as </span>MatchError, MatchesFungibles, TransactAsset};
 
-<span class="doccomment">/// Converter struct implementing `AssetIdConversion` converting a numeric asset ID (must be `TryFrom/TryInto&lt;u128&gt;`) into
-/// a `GeneralIndex` junction, prefixed by some `MultiLocation` value. The `MultiLocation` value will typically be a
-/// `PalletInstance` junction.
-</span><span class="kw">pub struct </span>AsPrefixedGeneralIndex&lt;Prefix, AssetId, ConvertAssetId&gt;(
-	PhantomData&lt;(Prefix, AssetId, ConvertAssetId)&gt;,
-);
-<span class="kw">impl</span>&lt;Prefix: Get&lt;MultiLocation&gt;, AssetId: Clone, ConvertAssetId: Convert&lt;u128, AssetId&gt;&gt;
-	Convert&lt;MultiLocation, AssetId&gt; <span class="kw">for </span>AsPrefixedGeneralIndex&lt;Prefix, AssetId, ConvertAssetId&gt;
-{
-	<span class="kw">fn </span>convert_ref(id: <span class="kw">impl </span>Borrow&lt;MultiLocation&gt;) -&gt; result::Result&lt;AssetId, ()&gt; {
-		<span class="kw">let </span>prefix = Prefix::get();
-		<span class="kw">let </span>id = id.borrow();
-		<span class="kw">if </span>prefix.parent_count() != id.parent_count() ||
-			prefix
-				.interior()
-				.iter()
-				.enumerate()
-				.any(|(index, junction)| id.interior().at(index) != <span class="prelude-val">Some</span>(junction))
-		{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(())
-		}
-		<span class="kw">match </span>id.interior().at(prefix.interior().len()) {
-			<span class="prelude-val">Some</span>(Junction::GeneralIndex(id)) =&gt; ConvertAssetId::convert_ref(id),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
-		}
-	}
-	<span class="kw">fn </span>reverse_ref(what: <span class="kw">impl </span>Borrow&lt;AssetId&gt;) -&gt; result::Result&lt;MultiLocation, ()&gt; {
-		<span class="kw">let </span><span class="kw-2">mut </span>location = Prefix::get();
-		<span class="kw">let </span>id = ConvertAssetId::reverse_ref(what)<span class="question-mark">?</span>;
-		location.push_interior(Junction::GeneralIndex(id)).map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>(location)
-	}
-}
-
-<span class="kw">pub struct </span>ConvertedConcreteAssetId&lt;AssetId, Balance, ConvertAssetId, ConvertBalance&gt;(
-	PhantomData&lt;(AssetId, Balance, ConvertAssetId, ConvertBalance)&gt;,
-);
-<span class="kw">impl</span>&lt;
-		AssetId: Clone,
-		Balance: Clone,
-		ConvertAssetId: Convert&lt;MultiLocation, AssetId&gt;,
-		ConvertBalance: Convert&lt;u128, Balance&gt;,
-	&gt; MatchesFungibles&lt;AssetId, Balance&gt;
-	<span class="kw">for </span>ConvertedConcreteAssetId&lt;AssetId, Balance, ConvertAssetId, ConvertBalance&gt;
-{
-	<span class="kw">fn </span>matches_fungibles(a: <span class="kw-2">&amp;</span>MultiAsset) -&gt; result::Result&lt;(AssetId, Balance), MatchError&gt; {
-		<span class="kw">let </span>(amount, id) = <span class="kw">match </span>(<span class="kw-2">&amp;</span>a.fun, <span class="kw-2">&amp;</span>a.id) {
-			(Fungible(<span class="kw-2">ref </span>amount), Concrete(<span class="kw-2">ref </span>id)) =&gt; (amount, id),
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MatchError::AssetNotFound),
-		};
-		<span class="kw">let </span>what =
-			ConvertAssetId::convert_ref(id).map_err(|<span class="kw">_</span>| MatchError::AssetIdConversionFailed)<span class="question-mark">?</span>;
-		<span class="kw">let </span>amount = ConvertBalance::convert_ref(amount)
-			.map_err(|<span class="kw">_</span>| MatchError::AmountToBalanceConversionFailed)<span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>((what, amount))
-	}
-}
-
-<span class="kw">pub struct </span>ConvertedAbstractAssetId&lt;AssetId, Balance, ConvertAssetId, ConvertBalance&gt;(
-	PhantomData&lt;(AssetId, Balance, ConvertAssetId, ConvertBalance)&gt;,
-);
-<span class="kw">impl</span>&lt;
-		AssetId: Clone,
-		Balance: Clone,
-		ConvertAssetId: Convert&lt;Vec&lt;u8&gt;, AssetId&gt;,
-		ConvertBalance: Convert&lt;u128, Balance&gt;,
-	&gt; MatchesFungibles&lt;AssetId, Balance&gt;
-	<span class="kw">for </span>ConvertedAbstractAssetId&lt;AssetId, Balance, ConvertAssetId, ConvertBalance&gt;
-{
-	<span class="kw">fn </span>matches_fungibles(a: <span class="kw-2">&amp;</span>MultiAsset) -&gt; result::Result&lt;(AssetId, Balance), MatchError&gt; {
-		<span class="kw">let </span>(amount, id) = <span class="kw">match </span>(<span class="kw-2">&amp;</span>a.fun, <span class="kw-2">&amp;</span>a.id) {
-			(Fungible(<span class="kw-2">ref </span>amount), Abstract(<span class="kw-2">ref </span>id)) =&gt; (amount, id),
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MatchError::AssetNotFound),
-		};
-		<span class="kw">let </span>what =
-			ConvertAssetId::convert_ref(id).map_err(|<span class="kw">_</span>| MatchError::AssetIdConversionFailed)<span class="question-mark">?</span>;
-		<span class="kw">let </span>amount = ConvertBalance::convert_ref(amount)
-			.map_err(|<span class="kw">_</span>| MatchError::AmountToBalanceConversionFailed)<span class="question-mark">?</span>;
-		<span class="prelude-val">Ok</span>((what, amount))
-	}
-}
-
-<span class="kw">pub struct </span>FungiblesTransferAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;(
+<span class="doccomment">/// `TransactAsset` implementation to convert a `fungibles` implementation to become usable in XCM.
+</span><span class="kw">pub struct </span>FungiblesTransferAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;(
 	PhantomData&lt;(Assets, Matcher, AccountIdConverter, AccountId)&gt;,
 );
 <span class="kw">impl</span>&lt;
@@ -459,6 +440,7 @@
 		what: <span class="kw-2">&amp;</span>MultiAsset,
 		from: <span class="kw-2">&amp;</span>MultiLocation,
 		to: <span class="kw-2">&amp;</span>MultiLocation,
+		_context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; result::Result&lt;xcm_executor::Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
@@ -477,6 +459,83 @@
 	}
 }
 
+<span class="doccomment">/// The location which is allowed to mint a particular asset.
+</span><span class="attr">#[derive(Copy, Clone, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>MintLocation {
+	<span class="doccomment">/// This chain is allowed to mint the asset. When we track teleports of the asset we ensure that
+	/// no more of the asset returns back to the chain than has been sent out.
+	</span>Local,
+	<span class="doccomment">/// This chain is not allowed to mint the asset. When we track teleports of the asset we ensure
+	/// that no more of the asset is sent out from the chain than has been previously received.
+	</span>NonLocal,
+}
+
+<span class="doccomment">/// Simple trait to indicate whether an asset is subject to having its teleportation into and out of
+/// this chain recorded and if so in what `MintLocation`.
+///
+/// The overall purpose of asset-checking is to ensure either no more assets are teleported into a
+/// chain than the outstanding balance of assets which were previously teleported out (as in the
+/// case of locally-minted assets); or that no more assets are teleported out of a chain than the
+/// outstanding balance of assets which have previously been teleported in (as in the case of chains
+/// where the `asset` is not minted locally).
+</span><span class="kw">pub trait </span>AssetChecking&lt;AssetId&gt; {
+	<span class="doccomment">/// Return the teleportation asset-checking policy for the given `asset`. `None` implies no
+	/// checking. Otherwise the policy detailed by the inner `MintLocation` should be respected by
+	/// teleportation.
+	</span><span class="kw">fn </span>asset_checking(asset: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;MintLocation&gt;;
+}
+
+<span class="doccomment">/// Implementation of `AssetChecking` which subjects no assets to having their teleportations
+/// recorded.
+</span><span class="kw">pub struct </span>NoChecking;
+<span class="kw">impl</span>&lt;AssetId&gt; AssetChecking&lt;AssetId&gt; <span class="kw">for </span>NoChecking {
+	<span class="kw">fn </span>asset_checking(<span class="kw">_</span>: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;MintLocation&gt; {
+		<span class="prelude-val">None
+	</span>}
+}
+
+<span class="doccomment">/// Implementation of `AssetChecking` which subjects a given set of assets `T` to having their
+/// teleportations recorded with a `MintLocation::Local`.
+</span><span class="kw">pub struct </span>LocalMint&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;AssetId, T: Contains&lt;AssetId&gt;&gt; AssetChecking&lt;AssetId&gt; <span class="kw">for </span>LocalMint&lt;T&gt; {
+	<span class="kw">fn </span>asset_checking(asset: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;MintLocation&gt; {
+		<span class="kw">match </span>T::contains(asset) {
+			<span class="bool-val">true </span>=&gt; <span class="prelude-val">Some</span>(MintLocation::Local),
+			<span class="bool-val">false </span>=&gt; <span class="prelude-val">None</span>,
+		}
+	}
+}
+
+<span class="doccomment">/// Implementation of `AssetChecking` which subjects a given set of assets `T` to having their
+/// teleportations recorded with a `MintLocation::NonLocal`.
+</span><span class="kw">pub struct </span>NonLocalMint&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;AssetId, T: Contains&lt;AssetId&gt;&gt; AssetChecking&lt;AssetId&gt; <span class="kw">for </span>NonLocalMint&lt;T&gt; {
+	<span class="kw">fn </span>asset_checking(asset: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;MintLocation&gt; {
+		<span class="kw">match </span>T::contains(asset) {
+			<span class="bool-val">true </span>=&gt; <span class="prelude-val">Some</span>(MintLocation::NonLocal),
+			<span class="bool-val">false </span>=&gt; <span class="prelude-val">None</span>,
+		}
+	}
+}
+
+<span class="doccomment">/// Implementation of `AssetChecking` which subjects a given set of assets `L` to having their
+/// teleportations recorded with a `MintLocation::Local` and a second set of assets `R` to having
+/// their teleportations recorded with a `MintLocation::NonLocal`.
+</span><span class="kw">pub struct </span>DualMint&lt;L, R&gt;(sp_std::marker::PhantomData&lt;(L, R)&gt;);
+<span class="kw">impl</span>&lt;AssetId, L: Contains&lt;AssetId&gt;, R: Contains&lt;AssetId&gt;&gt; AssetChecking&lt;AssetId&gt;
+	<span class="kw">for </span>DualMint&lt;L, R&gt;
+{
+	<span class="kw">fn </span>asset_checking(asset: <span class="kw-2">&amp;</span>AssetId) -&gt; <span class="prelude-ty">Option</span>&lt;MintLocation&gt; {
+		<span class="kw">if </span>L::contains(asset) {
+			<span class="prelude-val">Some</span>(MintLocation::Local)
+		} <span class="kw">else if </span>R::contains(asset) {
+			<span class="prelude-val">Some</span>(MintLocation::NonLocal)
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
+	}
+}
+
 <span class="kw">pub struct </span>FungiblesMutateAdapter&lt;
 	Assets,
 	Matcher,
@@ -485,12 +544,48 @@
 	CheckAsset,
 	CheckingAccount,
 &gt;(PhantomData&lt;(Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount)&gt;);
+
 <span class="kw">impl</span>&lt;
 		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
 		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
-		</span>CheckAsset: Contains&lt;Assets::AssetId&gt;,
+		</span>CheckAsset: AssetChecking&lt;Assets::AssetId&gt;,
+		CheckingAccount: Get&lt;AccountId&gt;,
+	&gt;
+	FungiblesMutateAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount&gt;
+{
+	<span class="kw">fn </span>can_accrue_checked(asset_id: Assets::AssetId, amount: Assets::Balance) -&gt; XcmResult {
+		<span class="kw">let </span>checking_account = CheckingAccount::get();
+		Assets::can_deposit(asset_id, <span class="kw-2">&amp;</span>checking_account, amount, <span class="bool-val">true</span>)
+			.into_result()
+			.map_err(|<span class="kw">_</span>| XcmError::NotDepositable)
+	}
+	<span class="kw">fn </span>can_reduce_checked(asset_id: Assets::AssetId, amount: Assets::Balance) -&gt; XcmResult {
+		<span class="kw">let </span>checking_account = CheckingAccount::get();
+		Assets::can_withdraw(asset_id, <span class="kw-2">&amp;</span>checking_account, amount)
+			.into_result()
+			.map_err(|<span class="kw">_</span>| XcmError::NotWithdrawable)
+			.map(|<span class="kw">_</span>| ())
+	}
+	<span class="kw">fn </span>accrue_checked(asset_id: Assets::AssetId, amount: Assets::Balance) {
+		<span class="kw">let </span>checking_account = CheckingAccount::get();
+		<span class="kw">let </span>ok = Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>checking_account, amount).is_ok();
+		<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`can_accrue_checked` must have returned `true` immediately prior; qed&quot;</span>);
+	}
+	<span class="kw">fn </span>reduce_checked(asset_id: Assets::AssetId, amount: Assets::Balance) {
+		<span class="kw">let </span>checking_account = CheckingAccount::get();
+		<span class="kw">let </span>ok = Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>checking_account, amount).is_ok();
+		<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`can_reduce_checked` must have returned `true` immediately prior; qed&quot;</span>);
+	}
+}
+
+<span class="kw">impl</span>&lt;
+		Assets: fungibles::Mutate&lt;AccountId&gt;,
+		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
+		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
+		</span>CheckAsset: AssetChecking&lt;Assets::AssetId&gt;,
 		CheckingAccount: Get&lt;AccountId&gt;,
 	&gt; TransactAsset
 	<span class="kw">for </span>FungiblesMutateAdapter&lt;
@@ -502,7 +597,11 @@
 		CheckingAccount,
 	&gt;
 {
-	<span class="kw">fn </span>can_check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) -&gt; <span class="prelude-ty">Result </span>{
+	<span class="kw">fn </span>can_check_in(
+		_origin: <span class="kw-2">&amp;</span>MultiLocation,
+		what: <span class="kw-2">&amp;</span>MultiAsset,
+		_context: <span class="kw-2">&amp;</span>XcmContext,
+	) -&gt; XcmResult {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
 			<span class="string">&quot;can_check_in origin: {:?}, what: {:?}&quot;</span>,
@@ -510,50 +609,71 @@
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(asset_id, amount) = Matcher::matches_fungibles(what)<span class="question-mark">?</span>;
-		<span class="kw">if </span>CheckAsset::contains(<span class="kw-2">&amp;</span>asset_id) {
-			<span class="comment">// This is an asset whose teleports we track.
-			</span><span class="kw">let </span>checking_account = CheckingAccount::get();
-			Assets::can_withdraw(asset_id, <span class="kw-2">&amp;</span>checking_account, amount)
-				.into_result()
-				.map_err(|<span class="kw">_</span>| XcmError::NotWithdrawable)<span class="question-mark">?</span>;
+		<span class="kw">match </span>CheckAsset::asset_checking(<span class="kw-2">&amp;</span>asset_id) {
+			<span class="comment">// We track this asset&#39;s teleports to ensure no more come in than have gone out.
+			</span><span class="prelude-val">Some</span>(MintLocation::Local) =&gt; <span class="self">Self</span>::can_reduce_checked(asset_id, amount),
+			<span class="comment">// We track this asset&#39;s teleports to ensure no more go out than have come in.
+			</span><span class="prelude-val">Some</span>(MintLocation::NonLocal) =&gt; <span class="self">Self</span>::can_accrue_checked(asset_id, amount),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
 		}
-		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn </span>check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) {
+	<span class="kw">fn </span>check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
 			<span class="string">&quot;check_in origin: {:?}, what: {:?}&quot;</span>,
 			_origin, what
 		);
 		<span class="kw">if let </span><span class="prelude-val">Ok</span>((asset_id, amount)) = Matcher::matches_fungibles(what) {
-			<span class="kw">if </span>CheckAsset::contains(<span class="kw-2">&amp;</span>asset_id) {
-				<span class="kw">let </span>checking_account = CheckingAccount::get();
-				<span class="kw">let </span>ok = Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>checking_account, amount).is_ok();
-				<span class="macro">debug_assert!</span>(
-					ok,
-					<span class="string">&quot;`can_check_in` must have returned `true` immediately prior; qed&quot;
-				</span>);
+			<span class="kw">match </span>CheckAsset::asset_checking(<span class="kw-2">&amp;</span>asset_id) {
+				<span class="comment">// We track this asset&#39;s teleports to ensure no more come in than have gone out.
+				</span><span class="prelude-val">Some</span>(MintLocation::Local) =&gt; <span class="self">Self</span>::reduce_checked(asset_id, amount),
+				<span class="comment">// We track this asset&#39;s teleports to ensure no more go out than have come in.
+				</span><span class="prelude-val">Some</span>(MintLocation::NonLocal) =&gt; <span class="self">Self</span>::accrue_checked(asset_id, amount),
+				<span class="kw">_ </span>=&gt; (),
 			}
 		}
 	}
 
-	<span class="kw">fn </span>check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) {
+	<span class="kw">fn </span>can_check_out(
+		_origin: <span class="kw-2">&amp;</span>MultiLocation,
+		what: <span class="kw-2">&amp;</span>MultiAsset,
+		_context: <span class="kw-2">&amp;</span>XcmContext,
+	) -&gt; XcmResult {
+		<span class="macro">log::trace!</span>(
+			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			<span class="string">&quot;can_check_in origin: {:?}, what: {:?}&quot;</span>,
+			_origin, what
+		);
+		<span class="comment">// Check we handle this asset.
+		</span><span class="kw">let </span>(asset_id, amount) = Matcher::matches_fungibles(what)<span class="question-mark">?</span>;
+		<span class="kw">match </span>CheckAsset::asset_checking(<span class="kw-2">&amp;</span>asset_id) {
+			<span class="comment">// We track this asset&#39;s teleports to ensure no more come in than have gone out.
+			</span><span class="prelude-val">Some</span>(MintLocation::Local) =&gt; <span class="self">Self</span>::can_accrue_checked(asset_id, amount),
+			<span class="comment">// We track this asset&#39;s teleports to ensure no more go out than have come in.
+			</span><span class="prelude-val">Some</span>(MintLocation::NonLocal) =&gt; <span class="self">Self</span>::can_reduce_checked(asset_id, amount),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
+		}
+	}
+
+	<span class="kw">fn </span>check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
 			<span class="string">&quot;check_out dest: {:?}, what: {:?}&quot;</span>,
 			_dest, what
 		);
 		<span class="kw">if let </span><span class="prelude-val">Ok</span>((asset_id, amount)) = Matcher::matches_fungibles(what) {
-			<span class="kw">if </span>CheckAsset::contains(<span class="kw-2">&amp;</span>asset_id) {
-				<span class="kw">let </span>checking_account = CheckingAccount::get();
-				<span class="kw">let </span>ok = Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>checking_account, amount).is_ok();
-				<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`mint_into` cannot generally fail; qed&quot;</span>);
+			<span class="kw">match </span>CheckAsset::asset_checking(<span class="kw-2">&amp;</span>asset_id) {
+				<span class="comment">// We track this asset&#39;s teleports to ensure no more come in than have gone out.
+				</span><span class="prelude-val">Some</span>(MintLocation::Local) =&gt; <span class="self">Self</span>::accrue_checked(asset_id, amount),
+				<span class="comment">// We track this asset&#39;s teleports to ensure no more go out than have come in.
+				</span><span class="prelude-val">Some</span>(MintLocation::NonLocal) =&gt; <span class="self">Self</span>::reduce_checked(asset_id, amount),
+				<span class="kw">_ </span>=&gt; (),
 			}
 		}
 	}
 
-	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result </span>{
+	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
 			<span class="string">&quot;deposit_asset what: {:?}, who: {:?}&quot;</span>,
@@ -570,6 +690,7 @@
 	<span class="kw">fn </span>withdraw_asset(
 		what: <span class="kw-2">&amp;</span>MultiAsset,
 		who: <span class="kw-2">&amp;</span>MultiLocation,
+		_maybe_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
 	) -&gt; result::Result&lt;xcm_executor::Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
@@ -599,12 +720,12 @@
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
 		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
-		</span>CheckAsset: Contains&lt;Assets::AssetId&gt;,
+		</span>CheckAsset: AssetChecking&lt;Assets::AssetId&gt;,
 		CheckingAccount: Get&lt;AccountId&gt;,
 	&gt; TransactAsset
 	<span class="kw">for </span>FungiblesAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount&gt;
 {
-	<span class="kw">fn </span>can_check_in(origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) -&gt; <span class="prelude-ty">Result </span>{
+	<span class="kw">fn </span>can_check_in(origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		FungiblesMutateAdapter::&lt;
 			Assets,
 			Matcher,
@@ -612,10 +733,10 @@
 			AccountId,
 			CheckAsset,
 			CheckingAccount,
-		&gt;::can_check_in(origin, what)
+		&gt;::can_check_in(origin, what, context)
 	}
 
-	<span class="kw">fn </span>check_in(origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) {
+	<span class="kw">fn </span>check_in(origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) {
 		FungiblesMutateAdapter::&lt;
 			Assets,
 			Matcher,
@@ -623,10 +744,10 @@
 			AccountId,
 			CheckAsset,
 			CheckingAccount,
-		&gt;::check_in(origin, what)
+		&gt;::check_in(origin, what, context)
 	}
 
-	<span class="kw">fn </span>check_out(dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset) {
+	<span class="kw">fn </span>can_check_out(dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		FungiblesMutateAdapter::&lt;
 			Assets,
 			Matcher,
@@ -634,10 +755,10 @@
 			AccountId,
 			CheckAsset,
 			CheckingAccount,
-		&gt;::check_out(dest, what)
+		&gt;::can_check_out(dest, what, context)
 	}
 
-	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result </span>{
+	<span class="kw">fn </span>check_out(dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) {
 		FungiblesMutateAdapter::&lt;
 			Assets,
 			Matcher,
@@ -645,12 +766,24 @@
 			AccountId,
 			CheckAsset,
 			CheckingAccount,
-		&gt;::deposit_asset(what, who)
+		&gt;::check_out(dest, what, context)
+	}
+
+	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
+		FungiblesMutateAdapter::&lt;
+			Assets,
+			Matcher,
+			AccountIdConverter,
+			AccountId,
+			CheckAsset,
+			CheckingAccount,
+		&gt;::deposit_asset(what, who, context)
 	}
 
 	<span class="kw">fn </span>withdraw_asset(
 		what: <span class="kw-2">&amp;</span>MultiAsset,
 		who: <span class="kw-2">&amp;</span>MultiLocation,
+		maybe_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
 	) -&gt; result::Result&lt;xcm_executor::Assets, XcmError&gt; {
 		FungiblesMutateAdapter::&lt;
 			Assets,
@@ -659,16 +792,17 @@
 			AccountId,
 			CheckAsset,
 			CheckingAccount,
-		&gt;::withdraw_asset(what, who)
+		&gt;::withdraw_asset(what, who, maybe_context)
 	}
 
 	<span class="kw">fn </span>internal_transfer_asset(
 		what: <span class="kw-2">&amp;</span>MultiAsset,
 		from: <span class="kw-2">&amp;</span>MultiLocation,
 		to: <span class="kw-2">&amp;</span>MultiLocation,
+		context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; result::Result&lt;xcm_executor::Assets, XcmError&gt; {
 		FungiblesTransferAdapter::&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;::internal_transfer_asset(
-			what, from, to,
+			what, from, to, context
 		)
 	}
 }

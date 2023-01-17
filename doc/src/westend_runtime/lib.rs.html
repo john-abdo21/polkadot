@@ -1910,6 +1910,20 @@
 <a href="#1910" id="1910">1910</a>
 <a href="#1911" id="1911">1911</a>
 <a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3159,6 +3173,9 @@
 	parachains_disputes::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	parachains_configuration::migration::v4::MigrateToV4&lt;Runtime&gt;,
 	init_state_migration::InitMigrate,
+	<span class="comment">// &quot;Use 2D weights in XCM v3&quot; &lt;https://github.com/paritytech/polkadot/pull/6134&gt;
+	</span>pallet_xcm::migration::v1::MigrateToV1&lt;Runtime&gt;,
+	parachains_ump::migration::v1::MigrateToV1&lt;Runtime&gt;,
 );
 
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
@@ -3221,7 +3238,8 @@
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
 		<span class="comment">// XCM
-		// NOTE: Make sure you point to the individual modules below.
+		</span>[pallet_xcm, XcmPallet]
+		<span class="comment">// NOTE: Make sure you point to the individual modules below.
 		</span>[pallet_xcm_benchmarks::fungible, XcmBalances]
 		[pallet_xcm_benchmarks::generic, XcmGeneric]
 	);
@@ -3640,10 +3658,10 @@
 			<span class="kw">impl </span>runtime_parachains::disputes::slashing::benchmarking::Config <span class="kw">for </span>Runtime {}
 
 			<span class="kw">use </span>xcm::latest::{
-				AssetId::<span class="kw-2">*</span>, Fungibility::<span class="kw-2">*</span>, Junctions::<span class="kw-2">*</span>, MultiAsset, MultiAssets, MultiLocation,
-				Response,
+				AssetId::<span class="kw-2">*</span>, Fungibility::<span class="kw-2">*</span>, Junction, Junctions::<span class="kw-2">*</span>, MultiAsset, MultiAssets,
+				MultiLocation, Response,
 			};
-			<span class="kw">use </span>xcm_config::{Westmint, WndLocation};
+			<span class="kw">use </span>xcm_config::{Westmint, TokenLocation};
 
 			<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
 				<span class="kw">type </span>XcmConfig = xcm_config::XcmConfig;
@@ -3651,10 +3669,10 @@
 				<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
 					<span class="prelude-val">Ok</span>(Westmint::get())
 				}
-				<span class="kw">fn </span>worst_case_holding() -&gt; MultiAssets {
+				<span class="kw">fn </span>worst_case_holding(_depositable_count: u32) -&gt; MultiAssets {
 					<span class="comment">// Westend only knows about WND.
 					</span><span class="macro">vec!</span>[MultiAsset{
-						id: Concrete(WndLocation::get()),
+						id: Concrete(TokenLocation::get()),
 						fun: Fungible(<span class="number">1_000_000 </span>* UNITS),
 					}].into()
 				}
@@ -3663,24 +3681,19 @@
 			<span class="macro">parameter_types! </span>{
 				<span class="kw">pub const </span>TrustedTeleporter: <span class="prelude-ty">Option</span>&lt;(MultiLocation, MultiAsset)&gt; = <span class="prelude-val">Some</span>((
 					Westmint::get(),
-					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(WndLocation::get()) },
-				));
-				<span class="kw">pub const </span>TrustedReserve: <span class="prelude-ty">Option</span>&lt;(MultiLocation, MultiAsset)&gt; = <span class="prelude-val">Some</span>((
-					Westmint::get(),
-					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(WndLocation::get()) },
+					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(TokenLocation::get()) },
 				));
 			}
 
 			<span class="kw">impl </span>pallet_xcm_benchmarks::fungible::Config <span class="kw">for </span>Runtime {
 				<span class="kw">type </span>TransactAsset = Balances;
 
-				<span class="kw">type </span>CheckedAccount = xcm_config::CheckAccount;
+				<span class="kw">type </span>CheckedAccount = xcm_config::LocalCheckAccount;
 				<span class="kw">type </span>TrustedTeleporter = TrustedTeleporter;
-				<span class="kw">type </span>TrustedReserve = TrustedReserve;
 
 				<span class="kw">fn </span>get_multi_asset() -&gt; MultiAsset {
 					MultiAsset {
-						id: Concrete(WndLocation::get()),
+						id: Concrete(TokenLocation::get()),
 						fun: Fungible(<span class="number">1 </span>* UNITS),
 					}
 				}
@@ -3693,8 +3706,18 @@
 					(<span class="number">0u64</span>, Response::Version(Default::default()))
 				}
 
-				<span class="kw">fn </span>transact_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
-					<span class="prelude-val">Ok</span>(Westmint::get())
+				<span class="kw">fn </span>worst_case_asset_exchange() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiAssets, MultiAssets), BenchmarkError&gt; {
+					<span class="comment">// Westend doesn&#39;t support asset exchanges
+					</span><span class="prelude-val">Err</span>(BenchmarkError::Skip)
+				}
+
+				<span class="kw">fn </span>universal_alias() -&gt; <span class="prelude-ty">Result</span>&lt;Junction, BenchmarkError&gt; {
+					<span class="comment">// The XCM executor of Westend doesn&#39;t have a configured `UniversalAliases`
+					</span><span class="prelude-val">Err</span>(BenchmarkError::Skip)
+				}
+
+				<span class="kw">fn </span>transact_origin_and_runtime_call() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, RuntimeCall), BenchmarkError&gt; {
+					<span class="prelude-val">Ok</span>((Westmint::get(), frame_system::Call::remark_with_event { remark: <span class="macro">vec!</span>[] }.into()))
 				}
 
 				<span class="kw">fn </span>subscribe_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
@@ -3703,9 +3726,14 @@
 
 				<span class="kw">fn </span>claimable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAssets), BenchmarkError&gt; {
 					<span class="kw">let </span>origin = Westmint::get();
-					<span class="kw">let </span>assets: MultiAssets = (Concrete(WndLocation::get()), <span class="number">1_000 </span>* UNITS).into();
+					<span class="kw">let </span>assets: MultiAssets = (Concrete(TokenLocation::get()), <span class="number">1_000 </span>* UNITS).into();
 					<span class="kw">let </span>ticket = MultiLocation { parents: <span class="number">0</span>, interior: Here };
 					<span class="prelude-val">Ok</span>((origin, ticket, assets))
+				}
+
+				<span class="kw">fn </span>unlockable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAsset), BenchmarkError&gt; {
+					<span class="comment">// Westend doesn&#39;t support asset locking
+					</span><span class="prelude-val">Err</span>(BenchmarkError::Skip)
 				}
 			}
 

@@ -80,7 +80,7 @@
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use </span>sp_std::result::Result;
-<span class="kw">use </span>xcm::latest::{MultiLocation, Weight, Xcm};
+<span class="kw">use </span>xcm::latest::{Instruction, MultiLocation, Weight};
 
 <span class="doccomment">/// Trait to determine whether the execution engine should actually execute a given XCM.
 ///
@@ -90,14 +90,14 @@
 	<span class="doccomment">/// Returns `true` if the given `message` may be executed.
 	///
 	/// - `origin`: The origin (sender) of the message.
-	/// - `message`: The message itself.
+	/// - `instructions`: The message itself.
 	/// - `max_weight`: The (possibly over-) estimation of the weight of execution of the message.
 	/// - `weight_credit`: The pre-established amount of weight that the system has determined this
 	///   message may utilize in its execution. Typically non-zero only because of prior fee
 	///   payment, but could in principle be due to other factors.
 	</span><span class="kw">fn </span>should_execute&lt;RuntimeCall&gt;(
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
-		message: <span class="kw-2">&amp;mut </span>Xcm&lt;RuntimeCall&gt;,
+		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		max_weight: Weight,
 		weight_credit: <span class="kw-2">&amp;mut </span>Weight,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt;;
@@ -107,21 +107,21 @@
 </span><span class="kw">impl </span>ShouldExecute <span class="kw">for </span>Tuple {
 	<span class="kw">fn </span>should_execute&lt;RuntimeCall&gt;(
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
-		message: <span class="kw-2">&amp;mut </span>Xcm&lt;RuntimeCall&gt;,
+		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		max_weight: Weight,
 		weight_credit: <span class="kw-2">&amp;mut </span>Weight,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
 		<span class="macro">for_tuples!</span>( #(
-			<span class="kw">match </span>Tuple::should_execute(origin, message, max_weight, weight_credit) {
+			<span class="kw">match </span>Tuple::should_execute(origin, instructions, max_weight, weight_credit) {
 				<span class="prelude-val">Ok</span>(()) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
 				<span class="kw">_ </span>=&gt; (),
 			}
 		)* );
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::should_execute&quot;</span>,
-			<span class="string">&quot;did not pass barrier: origin: {:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
+			<span class="string">&quot;did not pass barrier: origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
 			origin,
-			message,
+			instructions,
 			max_weight,
 			weight_credit,
 		);

@@ -76,6 +76,24 @@
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -92,32 +110,45 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>sp_runtime::traits::Zero;
-<span class="kw">use </span>xcm::latest::{
-	Error <span class="kw">as </span>XcmError, MultiLocation, QueryId, Response, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult, Weight,
+</span><span class="kw">use </span>xcm::latest::{
+	Error <span class="kw">as </span>XcmError, MultiLocation, QueryId, Response, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult, Weight, XcmContext,
 };
 
 <span class="doccomment">/// Define what needs to be done upon receiving a query response.
 </span><span class="kw">pub trait </span>OnResponse {
-	<span class="doccomment">/// Returns `true` if we are expecting a response from `origin` for query `query_id`.
-	</span><span class="kw">fn </span>expecting_response(origin: <span class="kw-2">&amp;</span>MultiLocation, query_id: u64) -&gt; bool;
-	<span class="doccomment">/// Handler for receiving a `response` from `origin` relating to `query_id`.
+	<span class="doccomment">/// Returns `true` if we are expecting a response from `origin` for query `query_id` that was
+	/// queried by `querier`.
+	</span><span class="kw">fn </span>expecting_response(
+		origin: <span class="kw-2">&amp;</span>MultiLocation,
+		query_id: u64,
+		querier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiLocation&gt;,
+	) -&gt; bool;
+	<span class="doccomment">/// Handler for receiving a `response` from `origin` relating to `query_id` initiated by
+	/// `querier`.
 	</span><span class="kw">fn </span>on_response(
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		query_id: u64,
+		querier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiLocation&gt;,
 		response: Response,
 		max_weight: Weight,
+		context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; Weight;
 }
 <span class="kw">impl </span>OnResponse <span class="kw">for </span>() {
-	<span class="kw">fn </span>expecting_response(_origin: <span class="kw-2">&amp;</span>MultiLocation, _query_id: u64) -&gt; bool {
+	<span class="kw">fn </span>expecting_response(
+		_origin: <span class="kw-2">&amp;</span>MultiLocation,
+		_query_id: u64,
+		_querier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiLocation&gt;,
+	) -&gt; bool {
 		<span class="bool-val">false
 	</span>}
 	<span class="kw">fn </span>on_response(
 		_origin: <span class="kw-2">&amp;</span>MultiLocation,
 		_query_id: u64,
+		_querier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MultiLocation&gt;,
 		_response: Response,
 		_max_weight: Weight,
+		_context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; Weight {
 		Weight::zero()
 	}
@@ -128,26 +159,31 @@
 	<span class="doccomment">/// Start notifying `location` should the XCM version of this chain change.
 	///
 	/// When it does, this type should ensure a `QueryResponse` message is sent with the given
-	/// `query_id` &amp; `max_weight` and with a `response` of `Repsonse::Version`. This should happen
+	/// `query_id` &amp; `max_weight` and with a `response` of `Response::Version`. This should happen
 	/// until/unless `stop` is called with the correct `query_id`.
 	///
 	/// If the `location` has an ongoing notification and when this function is called, then an
 	/// error should be returned.
-	</span><span class="kw">fn </span>start(location: <span class="kw-2">&amp;</span>MultiLocation, query_id: QueryId, max_weight: u64) -&gt; XcmResult;
+	</span><span class="kw">fn </span>start(
+		location: <span class="kw-2">&amp;</span>MultiLocation,
+		query_id: QueryId,
+		max_weight: Weight,
+		context: <span class="kw-2">&amp;</span>XcmContext,
+	) -&gt; XcmResult;
 
 	<span class="doccomment">/// Stop notifying `location` should the XCM change. Returns an error if there is no existing
 	/// notification set up.
-	</span><span class="kw">fn </span>stop(location: <span class="kw-2">&amp;</span>MultiLocation) -&gt; XcmResult;
+	</span><span class="kw">fn </span>stop(location: <span class="kw-2">&amp;</span>MultiLocation, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult;
 
 	<span class="doccomment">/// Return true if a location is subscribed to XCM version changes.
 	</span><span class="kw">fn </span>is_subscribed(location: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool;
 }
 
 <span class="kw">impl </span>VersionChangeNotifier <span class="kw">for </span>() {
-	<span class="kw">fn </span>start(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation, <span class="kw">_</span>: QueryId, <span class="kw">_</span>: u64) -&gt; XcmResult {
+	<span class="kw">fn </span>start(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation, <span class="kw">_</span>: QueryId, <span class="kw">_</span>: Weight, <span class="kw">_</span>: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="prelude-val">Err</span>(XcmError::Unimplemented)
 	}
-	<span class="kw">fn </span>stop(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation) -&gt; XcmResult {
+	<span class="kw">fn </span>stop(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation, <span class="kw">_</span>: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="prelude-val">Err</span>(XcmError::Unimplemented)
 	}
 	<span class="kw">fn </span>is_subscribed(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {

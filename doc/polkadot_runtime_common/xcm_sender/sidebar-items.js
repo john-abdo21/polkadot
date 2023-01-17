@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ChildParachainRouter","XCM sender for relay chain. It only sends downward message."]]};
+window.SIDEBAR_ITEMS = {"struct":[["ChildParachainRouter","XCM sender for relay chain. It only sends downward message."],["ConstantPrice","Implementation of `PriceForParachainDelivery` which returns a fixed price."]],"trait":[["PriceForParachainDelivery","Simple value-bearing trait for determining/expressing the assets required to be paid for a messages to be delivered to a parachain."]]};

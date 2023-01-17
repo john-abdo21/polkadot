@@ -338,6 +338,9 @@
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -527,7 +530,7 @@
 }
 
 <span class="kw">pub struct </span>SignedAccountId32AsNative&lt;Network, RuntimeOrigin&gt;(PhantomData&lt;(Network, RuntimeOrigin)&gt;);
-<span class="kw">impl</span>&lt;Network: Get&lt;NetworkId&gt;, RuntimeOrigin: OriginTrait&gt; ConvertOrigin&lt;RuntimeOrigin&gt;
+<span class="kw">impl</span>&lt;Network: Get&lt;<span class="prelude-ty">Option</span>&lt;NetworkId&gt;&gt;, RuntimeOrigin: OriginTrait&gt; ConvertOrigin&lt;RuntimeOrigin&gt;
 	<span class="kw">for </span>SignedAccountId32AsNative&lt;Network, RuntimeOrigin&gt;
 <span class="kw">where
 	</span>RuntimeOrigin::AccountId: From&lt;[u8; <span class="number">32</span>]&gt;,
@@ -546,7 +549,7 @@
 			(
 				OriginKind::Native,
 				MultiLocation { parents: <span class="number">0</span>, interior: X1(Junction::AccountId32 { id, network }) },
-			) <span class="kw">if </span><span class="macro">matches!</span>(network, NetworkId::Any) || network == Network::get() =&gt;
+			) <span class="kw">if </span><span class="macro">matches!</span>(network, <span class="prelude-val">None</span>) || network == Network::get() =&gt;
 				<span class="prelude-val">Ok</span>(RuntimeOrigin::signed(id.into())),
 			(<span class="kw">_</span>, origin) =&gt; <span class="prelude-val">Err</span>(origin),
 		}
@@ -556,7 +559,7 @@
 <span class="kw">pub struct </span>SignedAccountKey20AsNative&lt;Network, RuntimeOrigin&gt;(
 	PhantomData&lt;(Network, RuntimeOrigin)&gt;,
 );
-<span class="kw">impl</span>&lt;Network: Get&lt;NetworkId&gt;, RuntimeOrigin: OriginTrait&gt; ConvertOrigin&lt;RuntimeOrigin&gt;
+<span class="kw">impl</span>&lt;Network: Get&lt;<span class="prelude-ty">Option</span>&lt;NetworkId&gt;&gt;, RuntimeOrigin: OriginTrait&gt; ConvertOrigin&lt;RuntimeOrigin&gt;
 	<span class="kw">for </span>SignedAccountKey20AsNative&lt;Network, RuntimeOrigin&gt;
 <span class="kw">where
 	</span>RuntimeOrigin::AccountId: From&lt;[u8; <span class="number">20</span>]&gt;,
@@ -575,7 +578,7 @@
 			(
 				OriginKind::Native,
 				MultiLocation { parents: <span class="number">0</span>, interior: X1(Junction::AccountKey20 { key, network }) },
-			) <span class="kw">if </span>(<span class="macro">matches!</span>(network, NetworkId::Any) || network == Network::get()) =&gt;
+			) <span class="kw">if </span>(<span class="macro">matches!</span>(network, <span class="prelude-val">None</span>) || network == Network::get()) =&gt;
 				<span class="prelude-val">Ok</span>(RuntimeOrigin::signed(key.into())),
 			(<span class="kw">_</span>, origin) =&gt; <span class="prelude-val">Err</span>(origin),
 		}
@@ -617,8 +620,11 @@
 </span><span class="kw">pub struct </span>SignedToAccountId32&lt;RuntimeOrigin, AccountId, Network&gt;(
 	PhantomData&lt;(RuntimeOrigin, AccountId, Network)&gt;,
 );
-<span class="kw">impl</span>&lt;RuntimeOrigin: OriginTrait + Clone, AccountId: Into&lt;[u8; <span class="number">32</span>]&gt;, Network: Get&lt;NetworkId&gt;&gt;
-	Convert&lt;RuntimeOrigin, MultiLocation&gt; <span class="kw">for </span>SignedToAccountId32&lt;RuntimeOrigin, AccountId, Network&gt;
+<span class="kw">impl</span>&lt;
+		RuntimeOrigin: OriginTrait + Clone,
+		AccountId: Into&lt;[u8; <span class="number">32</span>]&gt;,
+		Network: Get&lt;<span class="prelude-ty">Option</span>&lt;NetworkId&gt;&gt;,
+	&gt; Convert&lt;RuntimeOrigin, MultiLocation&gt; <span class="kw">for </span>SignedToAccountId32&lt;RuntimeOrigin, AccountId, Network&gt;
 <span class="kw">where
 	</span>RuntimeOrigin::PalletsOrigin: From&lt;SystemRawOrigin&lt;AccountId&gt;&gt;
 		+ TryInto&lt;SystemRawOrigin&lt;AccountId&gt;, Error = RuntimeOrigin::PalletsOrigin&gt;,

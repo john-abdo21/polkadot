@@ -2452,6 +2452,11 @@
 <a href="#2452" id="2452">2452</a>
 <a href="#2453" id="2453">2453</a>
 <a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3757,7 +3762,7 @@
 		<span class="kw">crate</span>::parachains_ump::XcmSink&lt;xcm_executor::XcmExecutor&lt;xcm_config::XcmConfig&gt;, Runtime&gt;;
 	<span class="kw">type </span>FirstMessageFactorPercent = FirstMessageFactorPercent;
 	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="kw">type </span>WeightInfo = parachains_ump::TestWeightInfo;
+	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_ump::WeightInfo&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="kw">impl </span>parachains_dmp::Config <span class="kw">for </span>Runtime {}
@@ -4063,6 +4068,9 @@
 	pallet_staking::migrations::v13::MigrateToV13&lt;Runtime&gt;,
 	parachains_disputes::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	parachains_configuration::migration::v4::MigrateToV4&lt;Runtime&gt;,
+	<span class="comment">// &quot;Use 2D weights in XCM v3&quot; &lt;https://github.com/paritytech/polkadot/pull/6134&gt;
+	</span>pallet_xcm::migration::v1::MigrateToV1&lt;Runtime&gt;,
+	parachains_ump::migration::v1::MigrateToV1&lt;Runtime&gt;,
 );
 
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
@@ -4134,6 +4142,8 @@
 		[pallet_treasury, Treasury]
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
+		<span class="comment">// XCM
+		</span>[pallet_xcm, XcmPallet]
 	);
 }
 

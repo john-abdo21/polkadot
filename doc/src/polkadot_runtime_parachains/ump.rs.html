@@ -760,6 +760,18 @@
 <a href="#760" id="760">760</a>
 <a href="#761" id="761">761</a>
 <a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -793,9 +805,12 @@
 /// This is used for benchmarking sanely bounding relevant storate items. It is expected from the `configurations`
 /// pallet to check these values before setting.
 </span><span class="kw">pub const </span>MAX_UPWARD_MESSAGE_SIZE_BOUND: u32 = <span class="number">50 </span>* <span class="number">1024</span>;
+<span class="doccomment">/// Maximum amount of overweight messages that can exist in the queue at any given time.
+</span><span class="kw">pub const </span>MAX_OVERWEIGHT_MESSAGES: u32 = <span class="number">1000</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="kw">mod </span>benchmarking;
+<span class="kw">pub mod </span>migration;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tests;
@@ -895,13 +910,11 @@
 			},
 			<span class="prelude-val">Ok</span>((<span class="prelude-val">Ok</span>(xcm_message), weight_used)) =&gt; {
 				<span class="kw">let </span>xcm_junction = Junction::Parachain(origin.into());
-				<span class="kw">let </span>outcome =
-					XcmExecutor::execute_xcm(xcm_junction, xcm_message, max_weight.ref_time());
+				<span class="kw">let </span>outcome = XcmExecutor::execute_xcm(xcm_junction, xcm_message, id, max_weight);
 				<span class="kw">match </span>outcome {
-					Outcome::Error(XcmError::WeightLimitReached(required)) =&gt;
-						<span class="prelude-val">Err</span>((id, Weight::from_ref_time(required))),
+					Outcome::Error(XcmError::WeightLimitReached(required)) =&gt; <span class="prelude-val">Err</span>((id, required)),
 					outcome =&gt; {
-						<span class="kw">let </span>outcome_weight = Weight::from_ref_time(outcome.weight_used());
+						<span class="kw">let </span>outcome_weight = outcome.weight_used();
 						Pallet::&lt;C&gt;::deposit_event(Event::ExecutedUpward(id, outcome));
 						<span class="prelude-val">Ok</span>(weight_used.saturating_add(outcome_weight))
 					},
@@ -977,6 +990,7 @@
 	<span class="attr">#[pallet::pallet]
 	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
 	#[pallet::without_storage_info]
+	#[pallet::storage_version(migration::STORAGE_VERSION)]
 	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
 	<span class="attr">#[pallet::config]
@@ -1090,7 +1104,7 @@
 	/// These messages stay there until manually dispatched.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub type </span>Overweight&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, OverweightIndex, (ParaId, Vec&lt;u8&gt;), OptionQuery&gt;;
+		CountedStorageMap&lt;<span class="kw">_</span>, Twox64Concat, OverweightIndex, (ParaId, Vec&lt;u8&gt;), OptionQuery&gt;;
 
 	<span class="doccomment">/// The number of overweight messages ever recorded in `Overweight` (and thus the lowest free
 	/// index).
@@ -1270,6 +1284,8 @@
 
 	<span class="doccomment">/// Devote some time into dispatching pending upward messages.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_pending_upward_messages() -&gt; Weight {
+		<span class="kw">const </span>MAX_MESSAGES_PER_BLOCK: u8 = <span class="number">10</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>messages_processed = <span class="number">0</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>weight_used = Weight::zero();
 
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
@@ -1277,8 +1293,13 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>queue_cache = QueueCache::new();
 
 		<span class="kw">while let </span><span class="prelude-val">Some</span>(dispatchee) = cursor.peek() {
-			<span class="kw">if </span>weight_used.any_gte(config.ump_service_total_weight) {
-				<span class="comment">// Then check whether we&#39;ve reached or overshoot the
+			<span class="kw">if </span>weight_used.any_gte(config.ump_service_total_weight) ||
+				messages_processed &gt;= MAX_MESSAGES_PER_BLOCK
+			{
+				<span class="comment">// Temporarily allow for processing of a max of 10 messages per block, until we
+				// properly account for proof size weights.
+				//
+				// Then check whether we&#39;ve reached or overshoot the
 				// preferred weight for the dispatching stage.
 				//
 				// if so - bail.
@@ -1299,13 +1320,16 @@
 			// our remaining weight limit, then consume it.
 			</span><span class="kw">let </span>maybe_next = queue_cache.peek_front::&lt;T&gt;(dispatchee);
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(upward_message) = maybe_next {
+				messages_processed += <span class="number">1</span>;
 				<span class="kw">match </span>T::UmpSink::process_upward_message(dispatchee, upward_message, max_weight) {
 					<span class="prelude-val">Ok</span>(used) =&gt; {
 						weight_used += used;
 						<span class="kw">let _ </span>= queue_cache.consume_front::&lt;T&gt;(dispatchee);
 					},
 					<span class="prelude-val">Err</span>((id, required)) =&gt; {
-						<span class="kw">if </span>required.any_gt(config.ump_max_individual_weight) {
+						<span class="kw">let </span>is_under_limit = Overweight::&lt;T&gt;::count() &lt; MAX_OVERWEIGHT_MESSAGES;
+						weight_used.saturating_accrue(T::DbWeight::get().reads(<span class="number">1</span>));
+						<span class="kw">if </span>required.any_gt(config.ump_max_individual_weight) &amp;&amp; is_under_limit {
 							<span class="comment">// overweight - add to overweight queue and continue with message
 							// execution consuming the message.
 							</span><span class="kw">let </span>upward_message = queue_cache.consume_front::&lt;T&gt;(dispatchee).expect(
