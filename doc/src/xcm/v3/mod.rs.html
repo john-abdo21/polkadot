@@ -1433,6 +1433,17 @@
 <a href="#1433" id="1433">1433</a>
 <a href="#1434" id="1434">1434</a>
 <a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Cumulus.
 
@@ -1915,7 +1926,7 @@
 	<span class="doccomment">/// Withdraw asset(s) (`assets`) from the ownership of `origin` and place equivalent assets
 	/// under the ownership of `dest` within this consensus system (i.e. its sovereign account).
 	///
-	/// Send an onward XCM message to `dest` of `ReserveAssetDeposited` with the wantn
+	/// Send an onward XCM message to `dest` of `ReserveAssetDeposited` with the given
 	/// `xcm`.
 	///
 	/// - `assets`: The asset(s) to be withdrawn.
@@ -2023,7 +2034,7 @@
 	/// Errors:
 	</span>DescendOrigin(InteriorMultiLocation),
 
-	<span class="doccomment">/// Immediately report the contents of the Error Register to the wantn destination via XCM.
+	<span class="doccomment">/// Immediately report the contents of the Error Register to the given destination via XCM.
 	///
 	/// A `QueryResponse` message of type `ExecutionOutcome` is sent to the described destination.
 	///
@@ -2049,7 +2060,7 @@
 	/// the ownership of `dest` within this consensus system (i.e. deposit them into its sovereign
 	/// account).
 	///
-	/// Send an onward XCM message to `dest` of `ReserveAssetDeposited` with the wantn `effects`.
+	/// Send an onward XCM message to `dest` of `ReserveAssetDeposited` with the given `effects`.
 	///
 	/// - `assets`: The asset(s) to remove from holding.
 	/// - `dest`: The location whose sovereign account will own the assets and thus the effective
@@ -2087,7 +2098,7 @@
 	/// - `reserve`: A valid location that acts as a reserve for all asset(s) in `assets`. The
 	///   sovereign account of this consensus system *on the reserve location* will have appropriate
 	///   assets withdrawn and `effects` will be executed on them. There will typically be only one
-	///   valid location on any wantn asset/chain combination.
+	///   valid location on any given asset/chain combination.
 	/// - `xcm`: The instructions to execute on the assets once withdrawn *on the reserve
 	///   location*.
 	///
@@ -2112,7 +2123,7 @@
 	/// Errors:
 	</span>InitiateTeleport { assets: MultiAssetFilter, dest: MultiLocation, xcm: Xcm&lt;()&gt; },
 
-	<span class="doccomment">/// Report to a wantn destination the contents of the Holding Register.
+	<span class="doccomment">/// Report to a given destination the contents of the Holding Register.
 	///
 	/// A `QueryResponse` message of type `Assets` is sent to the described destination.
 	///
@@ -2230,7 +2241,7 @@
 	/// Errors: *Fallible*
 	</span>UnsubscribeVersion,
 
-	<span class="doccomment">/// Reduce Holding by up to the wantn assets.
+	<span class="doccomment">/// Reduce Holding by up to the given assets.
 	///
 	/// Holding is reduced by as much as possible up to the assets in the parameter. It is not an
 	/// error if the Holding does not contain the assets (to make this an error, use `ExpectAsset`
@@ -2241,7 +2252,7 @@
 	/// Errors: *Infallible*
 	</span>BurnAsset(MultiAssets),
 
-	<span class="doccomment">/// Throw an error if Holding does not contain at least the wantn assets.
+	<span class="doccomment">/// Throw an error if Holding does not contain at least the given assets.
 	///
 	/// Kind: *Instruction*
 	///
@@ -2249,7 +2260,7 @@
 	/// - `ExpectationFalse`: If Holding Register does not contain the assets in the parameter.
 	</span>ExpectAsset(MultiAssets),
 
-	<span class="doccomment">/// Ensure that the Origin Register equals some wantn value and throw an error if not.
+	<span class="doccomment">/// Ensure that the Origin Register equals some given value and throw an error if not.
 	///
 	/// Kind: *Instruction*
 	///
@@ -2257,13 +2268,22 @@
 	/// - `ExpectationFalse`: If Origin Register is not equal to the parameter.
 	</span>ExpectOrigin(<span class="prelude-ty">Option</span>&lt;MultiLocation&gt;),
 
-	<span class="doccomment">/// Ensure that the Error Register equals some wantn value and throw an error if not.
+	<span class="doccomment">/// Ensure that the Error Register equals some given value and throw an error if not.
 	///
 	/// Kind: *Instruction*
 	///
 	/// Errors:
 	/// - `ExpectationFalse`: If the value of the Error Register is not equal to the parameter.
 	</span>ExpectError(<span class="prelude-ty">Option</span>&lt;(u32, Error)&gt;),
+
+	<span class="doccomment">/// Ensure that the Transact Status Register equals some given value and throw an error if
+	/// not.
+	///
+	/// Kind: *Instruction*
+	///
+	/// Errors:
+	/// - `ExpectationFalse`: If the value of the Transact Status Register is not equal to the parameter.
+	</span>ExpectTransactStatus(MaybeErrorCode),
 
 	<span class="doccomment">/// Query the existence of a particular pallet type.
 	///
@@ -2523,6 +2543,7 @@
 			ExpectAsset(assets) =&gt; ExpectAsset(assets),
 			ExpectOrigin(origin) =&gt; ExpectOrigin(origin),
 			ExpectError(error) =&gt; ExpectError(error),
+			ExpectTransactStatus(transact_status) =&gt; ExpectTransactStatus(transact_status),
 			QueryPallet { module_name, response_info } =&gt;
 				QueryPallet { module_name, response_info },
 			ExpectPallet { index, name, module_name, crate_major, min_crate_minor } =&gt;
@@ -2591,6 +2612,7 @@
 			ExpectAsset(assets) =&gt; W::expect_asset(assets),
 			ExpectOrigin(origin) =&gt; W::expect_origin(origin),
 			ExpectError(error) =&gt; W::expect_error(error),
+			ExpectTransactStatus(transact_status) =&gt; W::expect_transact_status(transact_status),
 			QueryPallet { module_name, response_info } =&gt;
 				W::query_pallet(module_name, response_info),
 			ExpectPallet { index, name, module_name, crate_major, min_crate_minor } =&gt;
