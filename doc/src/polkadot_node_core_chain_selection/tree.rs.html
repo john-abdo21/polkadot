@@ -725,6 +725,43 @@
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
 <a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -974,7 +1011,7 @@
 	stagnant_at: Timestamp,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
 	add_block(backend, block_hash, block_number, parent_hash, weight, stagnant_at)<span class="question-mark">?</span>;
-	apply_reversions(backend, block_hash, block_number, reversion_logs)<span class="question-mark">?</span>;
+	apply_ancestor_reversions(backend, block_hash, block_number, reversion_logs)<span class="question-mark">?</span>;
 
 	<span class="prelude-val">Ok</span>(())
 }
@@ -1074,9 +1111,9 @@
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="comment">// Assuming that a block is already imported, accepts the number of the block
-// as well as a list of reversions triggered by the block in ascending order.
-</span><span class="kw">fn </span>apply_reversions(
+<span class="doccomment">/// Assuming that a block is already imported, accepts the number of the block
+/// as well as a list of reversions triggered by the block in ascending order.
+</span><span class="kw">fn </span>apply_ancestor_reversions(
 	backend: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="kw">impl </span>Backend&gt;,
 	block_hash: Hash,
 	block_number: BlockNumber,
@@ -1085,39 +1122,76 @@
 	<span class="comment">// Note: since revert numbers are  in ascending order, the expensive propagation
 	// of unviability is only heavy on the first log.
 	</span><span class="kw">for </span>revert_number <span class="kw">in </span>reversions {
-		<span class="kw">let </span><span class="kw-2">mut </span>ancestor_entry =
-			<span class="kw">match </span>load_ancestor(backend, block_hash, block_number, revert_number)<span class="question-mark">? </span>{
-				<span class="prelude-val">None </span>=&gt; {
-					<span class="macro">gum::warn!</span>(
-						target: LOG_TARGET,
-						<span class="question-mark">?</span>block_hash,
-						block_number,
-						revert_target = revert_number,
-						<span class="string">&quot;The hammer has dropped. \
-					A block has indicated that its finalized ancestor be reverted. \
-					Please inform an adult.&quot;</span>,
-					);
-
-					<span class="kw">continue
-				</span>},
-				<span class="prelude-val">Some</span>(ancestor_entry) =&gt; {
-					<span class="macro">gum::info!</span>(
-						target: LOG_TARGET,
-						<span class="question-mark">?</span>block_hash,
-						block_number,
-						revert_target = revert_number,
-						revert_hash = <span class="question-mark">?</span>ancestor_entry.block_hash,
-						<span class="string">&quot;A block has signaled that its ancestor be reverted due to a bad parachain block.&quot;</span>,
-					);
-
-					ancestor_entry
-				},
-			};
-
-		ancestor_entry.viability.explicitly_reverted = <span class="bool-val">true</span>;
-		propagate_viability_update(backend, ancestor_entry)<span class="question-mark">?</span>;
+		<span class="kw">let </span>maybe_block_entry = load_ancestor(backend, block_hash, block_number, revert_number)<span class="question-mark">?</span>;
+		revert_single_block_entry_if_present(
+			backend,
+			maybe_block_entry,
+			<span class="prelude-val">None</span>,
+			revert_number,
+			<span class="prelude-val">Some</span>(block_hash),
+			<span class="prelude-val">Some</span>(block_number),
+		)<span class="question-mark">?</span>;
 	}
 
+	<span class="prelude-val">Ok</span>(())
+}
+
+<span class="doccomment">/// Marks a single block as explicitly reverted, then propagates viability updates
+/// to all its children. This is triggered when the disputes subsystem signals that
+/// a dispute has concluded against a candidate.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>apply_single_reversion(
+	backend: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="kw">impl </span>Backend&gt;,
+	revert_hash: Hash,
+	revert_number: BlockNumber,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+	<span class="kw">let </span>maybe_block_entry = backend.load_block_entry(<span class="kw-2">&amp;</span>revert_hash)<span class="question-mark">?</span>;
+	revert_single_block_entry_if_present(
+		backend,
+		maybe_block_entry,
+		<span class="prelude-val">Some</span>(revert_hash),
+		revert_number,
+		<span class="prelude-val">None</span>,
+		<span class="prelude-val">None</span>,
+	)<span class="question-mark">?</span>;
+	<span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn </span>revert_single_block_entry_if_present(
+	backend: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="kw">impl </span>Backend&gt;,
+	maybe_block_entry: <span class="prelude-ty">Option</span>&lt;BlockEntry&gt;,
+	maybe_revert_hash: <span class="prelude-ty">Option</span>&lt;Hash&gt;,
+	revert_number: BlockNumber,
+	maybe_reporting_hash: <span class="prelude-ty">Option</span>&lt;Hash&gt;,
+	maybe_reporting_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+	<span class="kw">match </span>maybe_block_entry {
+		<span class="prelude-val">None </span>=&gt; {
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>maybe_revert_hash,
+				revert_target = revert_number,
+				<span class="question-mark">?</span>maybe_reporting_hash,
+				<span class="question-mark">?</span>maybe_reporting_number,
+				<span class="string">&quot;The hammer has dropped. \
+				The protocol has indicated that a finalized block be reverted. \
+				Please inform an adult.&quot;</span>,
+			);
+		},
+		<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>block_entry) =&gt; {
+			<span class="macro">gum::info!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>maybe_revert_hash,
+				revert_target = revert_number,
+				<span class="question-mark">?</span>maybe_reporting_hash,
+				<span class="question-mark">?</span>maybe_reporting_number,
+				<span class="string">&quot;Unfinalized block reverted due to a bad parachain block.&quot;</span>,
+			);
+
+			block_entry.viability.explicitly_reverted = <span class="bool-val">true</span>;
+			<span class="comment">// Marks children of reverted block as non-viable
+			</span>propagate_viability_update(backend, block_entry)<span class="question-mark">?</span>;
+		},
+	}
 	<span class="prelude-val">Ok</span>(())
 }
 

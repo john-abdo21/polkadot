@@ -720,6 +720,25 @@
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
 <a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1188,6 +1207,10 @@
 
 							</span><span class="kw">let _ </span>= tx.send(best_containing);
 						}
+						ChainSelectionMessage::RevertBlocks(blocks_to_revert) =&gt; {
+							<span class="kw">let </span>write_ops = handle_revert_blocks(backend, blocks_to_revert)<span class="question-mark">?</span>;
+							backend.write(write_ops)<span class="question-mark">?</span>;
+						}
 					}
 				}
 			}
@@ -1398,6 +1421,21 @@
 	};
 
 	backend.write(ops)
+}
+
+<span class="comment">// Here we revert a provided group of blocks. The most common cause for this is that
+// the dispute coordinator has notified chain selection of a dispute which concluded
+// against a candidate.
+</span><span class="kw">fn </span>handle_revert_blocks(
+	backend: <span class="kw-2">&amp;</span><span class="kw">impl </span>Backend,
+	blocks_to_revert: Vec&lt;(BlockNumber, Hash)&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;BackendWriteOp&gt;, Error&gt; {
+	<span class="kw">let </span><span class="kw-2">mut </span>overlay = OverlayedBackend::new(backend);
+	<span class="kw">for </span>(block_number, block_hash) <span class="kw">in </span>blocks_to_revert {
+		tree::apply_single_reversion(<span class="kw-2">&amp;mut </span>overlay, block_hash, block_number)<span class="question-mark">?</span>;
+	}
+
+	<span class="prelude-val">Ok</span>(overlay.into_write_ops().collect())
 }
 
 <span class="kw">fn </span>detect_stagnant(

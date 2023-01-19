@@ -146,6 +146,9 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="kw">use </span>polkadot_primitives::{BlockNumber, CandidateHash};
 <span class="kw">use </span>std::collections::{BTreeMap, HashMap, HashSet};
 
@@ -250,15 +253,18 @@
 	}
 
 	<span class="comment">// Removes all candidates up to a given height. The candidates at the block height are NOT removed.
-	</span><span class="kw">pub fn </span>remove_up_to_height(<span class="kw-2">&amp;mut </span><span class="self">self</span>, height: <span class="kw-2">&amp;</span>BlockNumber) {
+	</span><span class="kw">pub fn </span>remove_up_to_height(<span class="kw-2">&amp;mut </span><span class="self">self</span>, height: <span class="kw-2">&amp;</span>BlockNumber) -&gt; HashSet&lt;CandidateHash&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>candidates_modified: HashSet&lt;CandidateHash&gt; = HashSet::new();
 		<span class="kw">let </span>not_stale = <span class="self">self</span>.candidates_by_block_number.split_off(<span class="kw-2">&amp;</span>height);
 		<span class="kw">let </span>stale = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.candidates_by_block_number);
 		<span class="self">self</span>.candidates_by_block_number = not_stale;
 		<span class="kw">for </span>candidates <span class="kw">in </span>stale.values() {
 			<span class="kw">for </span>c <span class="kw">in </span>candidates {
 				<span class="self">self</span>.candidates.remove(c);
+				candidates_modified.insert(<span class="kw-2">*</span>c);
 			}
 		}
+		candidates_modified
 	}
 
 	<span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_number: BlockNumber, candidate_hash: CandidateHash) {
