@@ -949,6 +949,23 @@
 <a href="#949" id="949">949</a>
 <a href="#950" id="950">950</a>
 <a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1186,7 +1203,7 @@
 }
 
 <span class="doccomment">/// Classification of whether an asset is fungible or not, along with a mandatory amount or instance.
-</span><span class="attr">#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Encode, Decode, TypeInfo, MaxEncodedLen)]
+</span><span class="attr">#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Encode, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
 </span><span class="kw">pub enum </span>Fungibility {
 	<span class="doccomment">/// A fungible asset; we record a number of units, as a `u128` in the inner item.
@@ -1194,6 +1211,23 @@
 	<span class="doccomment">/// A non-fungible asset. We record the instance identifier in the inner item. Only one asset
 	/// of each instance identifier may ever be in existence at once.
 	</span>NonFungible(AssetInstance),
+}
+
+<span class="attr">#[derive(Decode)]
+</span><span class="kw">enum </span>UncheckedFungibility {
+	Fungible(<span class="attr">#[codec(compact)] </span>u128),
+	NonFungible(AssetInstance),
+}
+
+<span class="kw">impl </span>Decode <span class="kw">for </span>Fungibility {
+	<span class="kw">fn </span>decode&lt;I: codec::Input&gt;(input: <span class="kw-2">&amp;mut </span>I) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, parity_scale_codec::Error&gt; {
+		<span class="kw">match </span>UncheckedFungibility::decode(input)<span class="question-mark">? </span>{
+			UncheckedFungibility::Fungible(a) <span class="kw">if </span>a != <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Fungible(a)),
+			UncheckedFungibility::NonFungible(i) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::NonFungible(i)),
+			UncheckedFungibility::Fungible(<span class="kw">_</span>) =&gt;
+				<span class="prelude-val">Err</span>(<span class="string">&quot;Fungible asset of zero amount is not allowed&quot;</span>.into()),
+		}
+	}
 }
 
 <span class="kw">impl </span>Fungibility {
