@@ -1581,6 +1581,13 @@
 <a href="#1581" id="1581">1581</a>
 <a href="#1582" id="1582">1582</a>
 <a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1678,6 +1685,7 @@
 
 <span class="kw">pub use </span>chain_spec::{KusamaChainSpec, PolkadotChainSpec, RococoChainSpec, WestendChainSpec};
 <span class="kw">pub use </span>consensus_common::{block_validation::Chain, Proposal, SelectChain};
+<span class="kw">use </span>frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 <span class="kw">use </span>mmr_gadget::MmrGadget;
 <span class="attr">#[cfg(feature = <span class="string">&quot;full-node&quot;</span>)]
 </span><span class="kw">pub use </span>polkadot_client::{
@@ -2569,6 +2577,12 @@
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(<span class="kw-2">&amp;</span>hwbench);
+		<span class="kw">if </span>!SUBSTRATE_REFERENCE_HARDWARE.check_hardware(<span class="kw-2">&amp;</span>hwbench) &amp;&amp; role.is_authority() {
+			<span class="macro">log::warn!</span>(
+				<span class="string">&quot;⚠️  The hardware does not meet the minimal requirements for role &#39;Authority&#39; find out more at:\n\
+				https://wiki.polkadot.network/docs/maintain-guides-how-to-validate-polkadot#reference-hardware&quot;
+			</span>);
+		}
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>telemetry) = telemetry {
 			<span class="kw">let </span>telemetry_handle = telemetry.handle();
