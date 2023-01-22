@@ -1302,6 +1302,9 @@
 <a href="#1302" id="1302">1302</a>
 <a href="#1303" id="1303">1303</a>
 <a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1502,59 +1505,62 @@
 			<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Waiting for message&quot;</span>);
 			<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(backend);
 			<span class="kw">let </span>default_confirm = Box::new(|| <span class="prelude-val">Ok</span>(()));
-			<span class="kw">let </span>confirm_write =
-				<span class="kw">match </span>MuxedMessage::receive(ctx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.participation_receiver).<span class="kw">await</span><span class="question-mark">? </span>{
-					MuxedMessage::Participation(msg) =&gt; {
-						<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;MuxedMessage::Participation&quot;</span>);
-						<span class="kw">let </span>ParticipationStatement {
-							session,
+			<span class="kw">let </span>confirm_write = <span class="kw">match </span>MuxedMessage::receive(ctx, <span class="kw-2">&amp;mut </span><span class="self">self</span>.participation_receiver)
+				.<span class="kw">await</span><span class="question-mark">?
+			</span>{
+				MuxedMessage::Participation(msg) =&gt; {
+					<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;MuxedMessage::Participation&quot;</span>);
+					<span class="kw">let </span>ParticipationStatement {
+						session,
+						candidate_hash,
+						candidate_receipt,
+						outcome,
+					} = <span class="self">self</span>.participation.get_participation_result(ctx, msg).<span class="kw">await</span><span class="question-mark">?</span>;
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = outcome.validity() {
+						<span class="macro">gum::trace!</span>(
+							target: LOG_TARGET,
+							<span class="question-mark">?</span>session,
+							<span class="question-mark">?</span>candidate_hash,
+							<span class="question-mark">?</span>valid,
+							<span class="string">&quot;Issuing local statement based on participation outcome.&quot;
+						</span>);
+						<span class="self">self</span>.issue_local_statement(
+							ctx,
+							<span class="kw-2">&amp;mut </span>overlay_db,
 							candidate_hash,
 							candidate_receipt,
-							outcome,
-						} = <span class="self">self</span>.participation.get_participation_result(ctx, msg).<span class="kw">await</span><span class="question-mark">?</span>;
-						<span class="kw">if let </span><span class="prelude-val">Some</span>(valid) = outcome.validity() {
-							<span class="macro">gum::trace!</span>(
-								target: LOG_TARGET,
-								<span class="question-mark">?</span>session,
-								<span class="question-mark">?</span>candidate_hash,
-								<span class="question-mark">?</span>valid,
-								<span class="string">&quot;Issuing local statement based on participation outcome.&quot;
-							</span>);
-							<span class="self">self</span>.issue_local_statement(
-								ctx,
-								<span class="kw-2">&amp;mut </span>overlay_db,
-								candidate_hash,
-								candidate_receipt,
-								session,
-								valid,
-								clock.now(),
-							)
-							.<span class="kw">await</span><span class="question-mark">?</span>;
-						}
+							session,
+							valid,
+							clock.now(),
+						)
+						.<span class="kw">await</span><span class="question-mark">?</span>;
+					} <span class="kw">else </span>{
+						<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>outcome, <span class="string">&quot;Dispute participation failed&quot;</span>);
+					}
+					default_confirm
+				},
+				MuxedMessage::Subsystem(msg) =&gt; <span class="kw">match </span>msg {
+					FromOrchestra::Signal(OverseerSignal::Conclude) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
+					FromOrchestra::Signal(OverseerSignal::ActiveLeaves(update)) =&gt; {
+						<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;OverseerSignal::ActiveLeaves&quot;</span>);
+						<span class="self">self</span>.process_active_leaves_update(
+							ctx,
+							<span class="kw-2">&amp;mut </span>overlay_db,
+							update,
+							clock.now(),
+						)
+						.<span class="kw">await</span><span class="question-mark">?</span>;
 						default_confirm
 					},
-					MuxedMessage::Subsystem(msg) =&gt; <span class="kw">match </span>msg {
-						FromOrchestra::Signal(OverseerSignal::Conclude) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
-						FromOrchestra::Signal(OverseerSignal::ActiveLeaves(update)) =&gt; {
-							<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;OverseerSignal::ActiveLeaves&quot;</span>);
-							<span class="self">self</span>.process_active_leaves_update(
-								ctx,
-								<span class="kw-2">&amp;mut </span>overlay_db,
-								update,
-								clock.now(),
-							)
-							.<span class="kw">await</span><span class="question-mark">?</span>;
-							default_confirm
-						},
-						FromOrchestra::Signal(OverseerSignal::BlockFinalized(<span class="kw">_</span>, n)) =&gt; {
-							<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;OverseerSignal::BlockFinalized&quot;</span>);
-							<span class="self">self</span>.scraper.process_finalized_block(<span class="kw-2">&amp;</span>n);
-							default_confirm
-						},
-						FromOrchestra::Communication { msg } =&gt;
-							<span class="self">self</span>.handle_incoming(ctx, <span class="kw-2">&amp;mut </span>overlay_db, msg, clock.now()).<span class="kw">await</span><span class="question-mark">?</span>,
+					FromOrchestra::Signal(OverseerSignal::BlockFinalized(<span class="kw">_</span>, n)) =&gt; {
+						<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;OverseerSignal::BlockFinalized&quot;</span>);
+						<span class="self">self</span>.scraper.process_finalized_block(<span class="kw-2">&amp;</span>n);
+						default_confirm
 					},
-				};
+					FromOrchestra::Communication { msg } =&gt;
+						<span class="self">self</span>.handle_incoming(ctx, <span class="kw-2">&amp;mut </span>overlay_db, msg, clock.now()).<span class="kw">await</span><span class="question-mark">?</span>,
+				},
+			};
 
 			<span class="kw">if </span>!overlay_db.is_empty() {
 				<span class="kw">let </span>ops = overlay_db.into_write_ops();
