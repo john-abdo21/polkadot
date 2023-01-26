@@ -1924,6 +1924,10 @@
 <a href="#1924" id="1924">1924</a>
 <a href="#1925" id="1925">1925</a>
 <a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3776,7 +3780,7 @@
 <span class="attr">#[cfg(all(test, feature = <span class="string">&quot;try-runtime&quot;</span>))]
 </span><span class="kw">mod </span>remote_tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span>frame_try_runtime::runtime_decl_for_TryRuntime::TryRuntime;
+	<span class="kw">use </span>frame_try_runtime::{runtime_decl_for_TryRuntime::TryRuntime, UpgradeCheckSelect};
 	<span class="kw">use </span>remote_externalities::{
 		Builder, Mode, OfflineConfig, OnlineConfig, SnapshotConfig, Transport,
 	};
@@ -3784,6 +3788,10 @@
 
 	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>run_migrations() {
+		<span class="kw">if </span>var(<span class="string">&quot;RUN_MIGRATION_TESTS&quot;</span>).is_err() {
+			<span class="kw">return
+		</span>}
+
 		sp_tracing::try_init_simple();
 		<span class="kw">let </span>transport: Transport =
 			var(<span class="string">&quot;WS&quot;</span>).unwrap_or(<span class="string">&quot;wss://westend-rpc.polkadot.io:443&quot;</span>.to_string()).into();
@@ -3804,7 +3812,7 @@
 			.build()
 			.<span class="kw">await
 			</span>.unwrap();
-		ext.execute_with(|| Runtime::on_runtime_upgrade(<span class="bool-val">true</span>));
+		ext.execute_with(|| Runtime::on_runtime_upgrade(UpgradeCheckSelect::PreAndPost));
 	}
 }
 
