@@ -720,6 +720,8 @@
 <a href="#720" id="720">720</a>
 <a href="#721" id="721">721</a>
 <a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1254,6 +1256,7 @@
 			</span><span class="kw">return </span><span class="prelude-val">Err</span>(ValidationFailed(<span class="string">&quot;Code decompression failed&quot;</span>.to_string()))
 		},
 	};
+	metrics.observe_code_size(raw_validation_code.len());
 
 	<span class="kw">let </span>raw_block_data =
 		<span class="kw">match </span>sp_maybe_compressed_blob::decompress(<span class="kw-2">&amp;</span>pov.block_data.<span class="number">0</span>, POV_BOMB_LIMIT) {
@@ -1265,6 +1268,7 @@
 				</span><span class="kw">return </span><span class="prelude-val">Ok</span>(ValidationResult::Invalid(InvalidCandidate::PoVDecompressionFailure))
 			},
 		};
+	metrics.observe_pov_size(raw_block_data.<span class="number">0</span>.len());
 
 	<span class="kw">let </span>params = ValidationParams {
 		parent_head: persisted_validation_data.parent_head.clone(),
