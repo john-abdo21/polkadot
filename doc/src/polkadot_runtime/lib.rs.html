@@ -2454,6 +2454,54 @@
 <a href="#2454" id="2454">2454</a>
 <a href="#2455" id="2455">2455</a>
 <a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
+<a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
+<a href="#2462" id="2462">2462</a>
+<a href="#2463" id="2463">2463</a>
+<a href="#2464" id="2464">2464</a>
+<a href="#2465" id="2465">2465</a>
+<a href="#2466" id="2466">2466</a>
+<a href="#2467" id="2467">2467</a>
+<a href="#2468" id="2468">2468</a>
+<a href="#2469" id="2469">2469</a>
+<a href="#2470" id="2470">2470</a>
+<a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
+<a href="#2477" id="2477">2477</a>
+<a href="#2478" id="2478">2478</a>
+<a href="#2479" id="2479">2479</a>
+<a href="#2480" id="2480">2480</a>
+<a href="#2481" id="2481">2481</a>
+<a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
+<a href="#2488" id="2488">2488</a>
+<a href="#2489" id="2489">2489</a>
+<a href="#2490" id="2490">2490</a>
+<a href="#2491" id="2491">2491</a>
+<a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3075,14 +3123,17 @@
 <span class="kw">impl </span>pallet_fast_unstake::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
-	<span class="kw">type </span>BatchSize = frame_support::traits::ConstU32&lt;<span class="number">64</span>&gt;;
+	<span class="kw">type </span>BatchSize = frame_support::traits::ConstU32&lt;<span class="number">16</span>&gt;;
 	<span class="kw">type </span>Deposit = frame_support::traits::ConstU128&lt;{ UNITS }&gt;;
 	<span class="kw">type </span>ControlOrigin = EitherOfDiverse&lt;
 		EnsureRoot&lt;AccountId&gt;,
 		pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilCollective, <span class="number">1</span>, <span class="number">2</span>&gt;,
 	&gt;;
-	<span class="kw">type </span>WeightInfo = weights::pallet_fast_unstake::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>Staking = Staking;
+	<span class="kw">type </span>MaxErasToCheckPerBlock = ConstU32&lt;<span class="number">1</span>&gt;;
+	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">type </span>MaxBackersPerValidator = MaxNominatorRewardedPerValidator;
+	<span class="kw">type </span>WeightInfo = weights::pallet_fast_unstake::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -4792,6 +4843,19 @@
 	}
 
 	<span class="attr">#[test]
+	</span><span class="kw">fn </span>fast_unstake_estimate() {
+		<span class="kw">use </span>pallet_fast_unstake::WeightInfo;
+		<span class="kw">let </span>block_time = BlockWeights::get().max_block.ref_time() <span class="kw">as </span>f32;
+		<span class="kw">let </span>on_idle = weights::pallet_fast_unstake::WeightInfo::&lt;Runtime&gt;::on_idle_check(
+			<span class="number">300</span>,
+			&lt;Runtime <span class="kw">as </span>pallet_fast_unstake::Config&gt;::BatchSize::get(),
+		)
+		.ref_time() <span class="kw">as </span>f32;
+		<span class="macro">println!</span>(<span class="string">&quot;ratio of block weight for full batch fast-unstake {}&quot;</span>, on_idle / block_time);
+		<span class="macro">assert!</span>(on_idle / block_time &lt;= <span class="number">0.5f32</span>)
+	}
+
+	<span class="attr">#[test]
 	#[ignore]
 	</span><span class="kw">fn </span>multiplier_growth_simulator() {
 		<span class="comment">// assume the multiplier is initially set to its minimum. We update it with values twice the
@@ -4908,6 +4972,38 @@
 			.<span class="kw">await
 			</span>.unwrap();
 		ext.execute_with(|| Runtime::on_runtime_upgrade(UpgradeCheckSelect::PreAndPost));
+	}
+
+	<span class="attr">#[tokio::test]
+	</span><span class="kw">async fn </span>try_fast_unstake_all() {
+		<span class="kw">if </span>var(<span class="string">&quot;RUN_MIGRATION_TESTS&quot;</span>).is_err() {
+			<span class="kw">return
+		</span>}
+
+		sp_tracing::try_init_simple();
+		<span class="kw">let </span>transport: Transport =
+			var(<span class="string">&quot;WS&quot;</span>).unwrap_or(<span class="string">&quot;wss://rpc.polkadot.io:443&quot;</span>.to_string()).into();
+		<span class="kw">let </span>maybe_state_snapshot: <span class="prelude-ty">Option</span>&lt;SnapshotConfig&gt; = var(<span class="string">&quot;SNAP&quot;</span>).map(|s| s.into()).ok();
+		<span class="kw">let </span><span class="kw-2">mut </span>ext = Builder::&lt;Block&gt;::default()
+			.mode(<span class="kw">if let </span><span class="prelude-val">Some</span>(state_snapshot) = maybe_state_snapshot {
+				Mode::OfflineOrElseOnline(
+					OfflineConfig { state_snapshot: state_snapshot.clone() },
+					OnlineConfig {
+						transport,
+						state_snapshot: <span class="prelude-val">Some</span>(state_snapshot),
+						..Default::default()
+					},
+				)
+			} <span class="kw">else </span>{
+				Mode::Online(OnlineConfig { transport, ..Default::default() })
+			})
+			.build()
+			.<span class="kw">await
+			</span>.unwrap();
+		ext.execute_with(|| {
+			pallet_fast_unstake::ErasToCheckPerBlock::&lt;Runtime&gt;::put(<span class="number">1</span>);
+			runtime_common::try_runtime::migrate_all_inactive_nominators::&lt;Runtime&gt;()
+		});
 	}
 }
 </code></pre></div>
