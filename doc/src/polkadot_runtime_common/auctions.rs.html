@@ -1928,6 +1928,10 @@
 <a href="#1928" id="1928">1928</a>
 <a href="#1929" id="1929">1929</a>
 <a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3660,7 +3664,7 @@
 	<span class="kw">use </span>frame_system::RawOrigin;
 	<span class="kw">use </span>sp_runtime::{traits::Bounded, SaturatedConversion};
 
-	<span class="kw">use </span>frame_benchmarking::{account, benchmarks, whitelisted_caller};
+	<span class="kw">use </span>frame_benchmarking::{account, benchmarks, whitelisted_caller, BenchmarkError};
 
 	<span class="kw">fn </span>assert_last_event&lt;T: Config&gt;(generic_event: &lt;T <span class="kw">as </span>Config&gt;::RuntimeEvent) {
 		<span class="kw">let </span>events = frame_system::Pallet::&lt;T&gt;::events();
@@ -3716,7 +3720,8 @@
 		new_auction {
 			<span class="kw">let </span>duration = T::BlockNumber::max_value();
 			<span class="kw">let </span>lease_period_index = LeasePeriodOf::&lt;T&gt;::max_value();
-			<span class="kw">let </span>origin = T::InitiateOrigin::successful_origin();
+			<span class="kw">let </span>origin =
+				T::InitiateOrigin::try_successful_origin().map_err(|<span class="kw">_</span>| BenchmarkError::Weightless)<span class="question-mark">?</span>;
 		}: <span class="kw">_</span>&lt;T::RuntimeOrigin&gt;(origin, duration, lease_period_index)
 		verify {
 			assert_last_event::&lt;T&gt;(Event::&lt;T&gt;::AuctionStarted {
@@ -3735,7 +3740,8 @@
 			<span class="comment">// Create a new auction
 			</span><span class="kw">let </span>duration = T::BlockNumber::max_value();
 			<span class="kw">let </span>lease_period_index = LeasePeriodOf::&lt;T&gt;::zero();
-			<span class="kw">let </span>origin = T::InitiateOrigin::successful_origin();
+			<span class="kw">let </span>origin = T::InitiateOrigin::try_successful_origin()
+				.expect(<span class="string">&quot;InitiateOrigin has no successful origin required for the benchmark&quot;</span>);
 			Auctions::&lt;T&gt;::new_auction(origin, duration, lease_period_index)<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>para = ParaId::from(<span class="number">0</span>);
@@ -3787,7 +3793,8 @@
 			</span><span class="kw">let </span>duration: T::BlockNumber = lease_length / <span class="number">2u32</span>.into();
 			<span class="kw">let </span>lease_period_index = LeasePeriodOf::&lt;T&gt;::zero();
 			<span class="kw">let </span>now = frame_system::Pallet::&lt;T&gt;::block_number();
-			<span class="kw">let </span>origin = T::InitiateOrigin::successful_origin();
+			<span class="kw">let </span>origin = T::InitiateOrigin::try_successful_origin()
+				.expect(<span class="string">&quot;InitiateOrigin has no successful origin required for the benchmark&quot;</span>);
 			Auctions::&lt;T&gt;::new_auction(origin, duration, lease_period_index)<span class="question-mark">?</span>;
 
 			fill_winners::&lt;T&gt;(lease_period_index);
@@ -3831,7 +3838,8 @@
 			</span><span class="kw">let </span>duration: T::BlockNumber = lease_length / <span class="number">2u32</span>.into();
 			<span class="kw">let </span>lease_period_index = LeasePeriodOf::&lt;T&gt;::zero();
 			<span class="kw">let </span>now = frame_system::Pallet::&lt;T&gt;::block_number();
-			<span class="kw">let </span>origin = T::InitiateOrigin::successful_origin();
+			<span class="kw">let </span>origin = T::InitiateOrigin::try_successful_origin()
+				.expect(<span class="string">&quot;InitiateOrigin has no successful origin required for the benchmark&quot;</span>);
 			Auctions::&lt;T&gt;::new_auction(origin, duration, lease_period_index)<span class="question-mark">?</span>;
 
 			fill_winners::&lt;T&gt;(lease_period_index);
