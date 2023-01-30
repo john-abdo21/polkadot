@@ -2126,6 +2126,15 @@
 <a href="#2126" id="2126">2126</a>
 <a href="#2127" id="2127">2127</a>
 <a href="#2128" id="2128">2128</a>
+<a href="#2129" id="2129">2129</a>
+<a href="#2130" id="2130">2130</a>
+<a href="#2131" id="2131">2131</a>
+<a href="#2132" id="2132">2132</a>
+<a href="#2133" id="2133">2133</a>
+<a href="#2134" id="2134">2134</a>
+<a href="#2135" id="2135">2135</a>
+<a href="#2136" id="2136">2136</a>
+<a href="#2137" id="2137">2137</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2782,6 +2791,10 @@
 	<span class="kw">type </span>MaxPeerDataEncodingSize = MaxPeerDataEncodingSize;
 }
 
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>MaxSetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
+}
+
 <span class="kw">impl </span>pallet_grandpa::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 
@@ -2803,6 +2816,7 @@
 
 	<span class="kw">type </span>WeightInfo = ();
 	<span class="kw">type </span>MaxAuthorities = MaxAuthorities;
+	<span class="kw">type </span>MaxSetIdSessionEntries = MaxSetIdSessionEntries;
 }
 
 <span class="doccomment">/// Submits a transaction with the node&#39;s public and signature type. Adheres to the signed extension
@@ -3609,6 +3623,10 @@
 	<span class="comment">// &quot;Use 2D weights in XCM v3&quot; &lt;https://github.com/paritytech/polkadot/pull/6134&gt;
 	</span>pallet_xcm::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	parachains_ump::migration::v1::MigrateToV1&lt;Runtime&gt;,
+	<span class="comment">// Remove stale entries in the set id -&gt; session index storage map (after
+	// this release they will be properly pruned after the bonding duration has
+	// elapsed)
+	</span>pallet_grandpa::migrations::CleanupSetIdSessionMap&lt;Runtime&gt;,
 );
 
 <span class="doccomment">/// Executive: handles dispatch to the various modules.
