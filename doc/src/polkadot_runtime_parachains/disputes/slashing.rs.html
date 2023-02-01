@@ -738,6 +738,30 @@
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
 <a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -756,32 +780,31 @@
 
 </span><span class="doccomment">//! Dispute slashing pallet.
 //!
-//! Once a dispute is concluded, we want to slash validators
-//! who were on the wrong side of the dispute. The slashing amount
-//! depends on whether the candidate was valid (small) or invalid (big).
-//! In addition to that, we might want to kick out the validators from the
-//! active set.
+//! Once a dispute is concluded, we want to slash validators who were on the
+//! wrong side of the dispute. The slashing amount depends on whether the
+//! candidate was valid (none at the moment) or invalid (big). In addition to
+//! that, we might want to kick out the validators from the active set.
+//! Currently, we limit slashing to the backing group for invalid disputes.
 //!
 //! The `offences` pallet from Substrate provides us with a way to do both.
-//! Currently, the interface expects us to provide staking information
-//! including nominator exposure in order to submit an offence.
+//! Currently, the interface expects us to provide staking information including
+//! nominator exposure in order to submit an offence.
 //!
 //! Normally, we&#39;d able to fetch this information from the runtime as soon as
 //! the dispute is concluded. This is also what `im-online` pallet does.
 //! However, since a dispute can conclude several sessions after the candidate
 //! was backed (see `dispute_period` in `HostConfiguration`), we can&#39;t rely on
-//! this information be available in the context of the current block. The
-//! `babe` and `grandpa` equivocation handlers also have to deal
-//! with this problem.
+//! this information being available in the context of the current block. The
+//! `babe` and `grandpa` equivocation handlers also have to deal with this
+//! problem.
 //!
 //! Our implementation looks like a hybrid of `im-online` and `grandpa`
 //! equivocation handlers. Meaning, we submit an `offence` for the concluded
-//! disputes about the current session candidate directly from the runtime.
-//! If, however, the dispute is about a past session, we record unapplied
-//! slashes on chain, without `FullIdentification` of the offenders.
-//! Later on, a block producer can submit an unsigned transaction with
-//! `KeyOwnershipProof` of an offender and submit it to the runtime
-//! to produce an offence.
+//! disputes about the current session candidate directly from the runtime. If,
+//! however, the dispute is about a past session, we record unapplied slashes on
+//! chain, without `FullIdentification` of the offenders. Later on, a block
+//! producer can submit an unsigned transaction with `KeyOwnershipProof` of an
+//! offender and submit it to the runtime to produce an offence.
 
 </span><span class="kw">use crate</span>::{disputes, initializer::ValidatorSetCount, session_info::IdentificationTuple};
 <span class="kw">use </span>frame_support::{
@@ -804,7 +827,10 @@
 <span class="kw">use </span>sp_session::{GetSessionNumber, GetValidatorCount};
 <span class="kw">use </span>sp_staking::offence::{DisableStrategy, Kind, Offence, OffenceError, ReportOffence};
 <span class="kw">use </span>sp_std::{
-	collections::btree_map::{BTreeMap, Entry},
+	collections::{
+		btree_map::{BTreeMap, Entry},
+		btree_set::BTreeSet,
+	},
 	prelude::<span class="kw-2">*</span>,
 };
 
@@ -813,7 +839,7 @@
 <span class="comment">// These are constants, but we want to make them configurable
 // via `HostConfiguration` in the future.
 </span><span class="kw">const </span>SLASH_FOR_INVALID: Perbill = Perbill::from_percent(<span class="number">100</span>);
-<span class="kw">const </span>SLASH_AGAINST_VALID: Perbill = Perbill::from_perthousand(<span class="number">1</span>);
+<span class="kw">const </span>SLASH_AGAINST_VALID: Perbill = Perbill::zero();
 <span class="kw">const </span>DEFENSIVE_PROOF: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;disputes module should bail on old session&quot;</span>;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
@@ -968,18 +994,30 @@
 		candidate_hash: CandidateHash,
 		kind: SlashingOffenceKind,
 		losers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
+		backers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
 	) {
-		<span class="kw">let </span>losers: Vec&lt;ValidatorIndex&gt; = losers.into_iter().collect();
-		<span class="kw">if </span>losers.is_empty() {
-			<span class="comment">// Nothing to do
-			</span><span class="kw">return
+		<span class="comment">// sanity check for the current implementation
+		</span><span class="kw">if </span>kind == SlashingOffenceKind::AgainstValid {
+			<span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;should only slash ForInvalid disputes&quot;</span>);
+			<span class="kw">return
 		</span>}
+		<span class="kw">let </span>losers: BTreeSet&lt;<span class="kw">_</span>&gt; = losers.into_iter().collect();
+		<span class="kw">if </span>losers.is_empty() {
+			<span class="kw">return
+		</span>}
+		<span class="kw">let </span>backers: BTreeSet&lt;<span class="kw">_</span>&gt; = backers.into_iter().collect();
+		<span class="kw">let </span>to_punish: Vec&lt;ValidatorIndex&gt; = losers.intersection(<span class="kw-2">&amp;</span>backers).cloned().collect();
+		<span class="kw">if </span>to_punish.is_empty() {
+			<span class="kw">return
+		</span>}
+
 		<span class="kw">let </span>session_info = <span class="kw">crate</span>::session_info::Pallet::&lt;T&gt;::session_info(session_index);
 		<span class="kw">let </span>session_info = <span class="kw">match </span>session_info.defensive_proof(DEFENSIVE_PROOF) {
 			<span class="prelude-val">Some</span>(info) =&gt; info,
 			<span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
 		};
-		<span class="kw">let </span>maybe = <span class="self">Self</span>::maybe_identify_validators(session_index, losers.iter().cloned());
+
+		<span class="kw">let </span>maybe = <span class="self">Self</span>::maybe_identify_validators(session_index, to_punish.iter().cloned());
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(offenders) = maybe {
 			<span class="kw">let </span>validator_set_count = session_info.discovery_keys.len() <span class="kw">as </span>ValidatorSetCount;
 			<span class="kw">let </span>offence = SlashingOffence::new(
@@ -995,12 +1033,20 @@
 			<span class="kw">return
 		</span>}
 
-		<span class="kw">let </span>keys = losers
+		<span class="kw">let </span>keys = to_punish
 			.into_iter()
 			.filter_map(|i| session_info.validators.get(i).cloned().map(|id| (i, id)))
 			.collect();
 		<span class="kw">let </span>unapplied = PendingSlashes { keys, kind };
-		&lt;UnappliedSlashes&lt;T&gt;&gt;::insert(session_index, candidate_hash, unapplied);
+
+		<span class="kw">let </span>append = |old: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;PendingSlashes&gt;| {
+			<span class="kw">let </span>old = old
+				.get_or_insert(PendingSlashes { keys: Default::default(), kind: unapplied.kind });
+			<span class="macro">debug_assert_eq!</span>(old.kind, unapplied.kind);
+
+			old.keys.extend(unapplied.keys)
+		};
+		&lt;UnappliedSlashes&lt;T&gt;&gt;::mutate(session_index, candidate_hash, append);
 	}
 }
 
@@ -1012,19 +1058,21 @@
 		session_index: SessionIndex,
 		candidate_hash: CandidateHash,
 		losers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
+		backers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
 	) {
 		<span class="kw">let </span>kind = SlashingOffenceKind::ForInvalid;
-		<span class="self">Self</span>::do_punish(session_index, candidate_hash, kind, losers);
+		<span class="self">Self</span>::do_punish(session_index, candidate_hash, kind, losers, backers);
 	}
 
 	<span class="kw">fn </span>punish_against_valid(
-		session_index: SessionIndex,
-		candidate_hash: CandidateHash,
-		losers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
+		_session_index: SessionIndex,
+		_candidate_hash: CandidateHash,
+		_losers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
+		_backers: <span class="kw">impl </span>IntoIterator&lt;Item = ValidatorIndex&gt;,
 	) {
-		<span class="kw">let </span>kind = SlashingOffenceKind::AgainstValid;
-		<span class="self">Self</span>::do_punish(session_index, candidate_hash, kind, losers);
-	}
+		<span class="comment">// do nothing for now
+		// NOTE: changing that requires modifying `do_punish` implementation
+	</span>}
 
 	<span class="kw">fn </span>initializer_initialize(now: T::BlockNumber) -&gt; Weight {
 		Pallet::&lt;T&gt;::initializer_initialize(now)
