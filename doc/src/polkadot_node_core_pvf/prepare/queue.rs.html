@@ -794,6 +794,20 @@
 <a href="#794" id="794">794</a>
 <a href="#795" id="795">795</a>
 <a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1288,7 +1302,10 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use crate</span>::{error::PrepareError, host::PRECHECK_PREPARATION_TIMEOUT};
+	<span class="kw">use crate</span>::{
+		error::PrepareError,
+		host::{LENIENT_PREPARATION_TIMEOUT, PRECHECK_PREPARATION_TIMEOUT},
+	};
 	<span class="kw">use </span>assert_matches::assert_matches;
 	<span class="kw">use </span>futures::{future::BoxFuture, FutureExt};
 	<span class="kw">use </span>slotmap::SlotMap;
@@ -1424,12 +1441,17 @@
 	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>dont_spawn_over_soft_limit_unless_critical() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">3</span>);
-		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
 
 		<span class="kw">let </span>priority = Priority::Normal;
+		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
 		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), preparation_timeout });
 		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), preparation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), preparation_timeout });
+		<span class="comment">// Start a non-precheck preparation for this one.
+		</span>test.send_queue(ToQueue::Enqueue {
+			priority,
+			pvf: pvf(<span class="number">3</span>),
+			preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
+		});
 
 		<span class="comment">// Receive only two spawns.
 		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1507,10 +1529,16 @@
 	</span><span class="kw">async fn </span>worker_mass_die_out_doesnt_stall_queue() {
 		<span class="kw">let </span><span class="kw-2">mut </span>test = Test::new(<span class="number">2</span>, <span class="number">2</span>);
 
-		<span class="kw">let </span>(priority, preparation_timeout) = (Priority::Normal, PRECHECK_PREPARATION_TIMEOUT);
+		<span class="kw">let </span>priority = Priority::Normal;
+		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
 		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), preparation_timeout });
 		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), preparation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">3</span>), preparation_timeout });
+		<span class="comment">// Start a non-precheck preparation for this one.
+		</span>test.send_queue(ToQueue::Enqueue {
+			priority,
+			pvf: pvf(<span class="number">3</span>),
+			preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
+		});
 
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);

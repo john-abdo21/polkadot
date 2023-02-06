@@ -31,7 +31,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_node_core_dispute_coordinator":["",[["db",[],["mod.rs","v1.rs"]],["participation",[["queues",[],["mod.rs"]]],["mod.rs"]],["scraping",[],["candidates.rs","mod.rs"]]],["backend.rs","error.rs","import.rs","initialized.rs","lib.rs","metrics.rs","spam_slots.rs","status.rs"]],\
 "polkadot_node_core_parachains_inherent":["",[],["lib.rs"]],\
 "polkadot_node_core_provisioner":["",[["disputes",[["prioritized_selection",[],["mod.rs"]],["random_selection",[],["mod.rs"]]],["mod.rs"]]],["error.rs","lib.rs","metrics.rs"]],\
-"polkadot_node_core_pvf":["",[["execute",[],["mod.rs","queue.rs","worker.rs"]],["prepare",[],["mod.rs","pool.rs","queue.rs","worker.rs"]]],["artifacts.rs","error.rs","executor_intf.rs","host.rs","lib.rs","metrics.rs","priority.rs","pvf.rs","testing.rs","worker_common.rs"]],\
+"polkadot_node_core_pvf":["",[["execute",[],["mod.rs","queue.rs","worker.rs"]],["prepare",[],["memory_stats.rs","mod.rs","pool.rs","queue.rs","worker.rs"]]],["artifacts.rs","error.rs","executor_intf.rs","host.rs","lib.rs","metrics.rs","priority.rs","pvf.rs","testing.rs","worker_common.rs"]],\
 "polkadot_node_core_pvf_checker":["",[],["interest_view.rs","lib.rs","metrics.rs","runtime_api.rs"]],\
 "polkadot_node_core_runtime_api":["",[],["cache.rs","lib.rs","metrics.rs"]],\
 "polkadot_node_jaeger":["",[],["config.rs","errors.rs","lib.rs","spans.rs"]],\

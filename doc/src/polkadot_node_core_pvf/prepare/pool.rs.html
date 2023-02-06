@@ -440,6 +440,9 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -662,6 +665,7 @@
 					<span class="kw">let </span>preparation_timer = metrics.time_preparation();
 					mux.push(
 						start_work_task(
+							metrics.clone(),
 							worker,
 							idle,
 							code,
@@ -710,6 +714,7 @@
 }
 
 <span class="kw">async fn </span>start_work_task&lt;Timer&gt;(
+	metrics: Metrics,
 	worker: Worker,
 	idle: IdleWorker,
 	code: Arc&lt;Vec&lt;u8&gt;&gt;,
@@ -719,7 +724,8 @@
 	_preparation_timer: <span class="prelude-ty">Option</span>&lt;Timer&gt;,
 ) -&gt; PoolEvent {
 	<span class="kw">let </span>outcome =
-		worker::start_work(idle, code, <span class="kw-2">&amp;</span>cache_path, artifact_path, preparation_timeout).<span class="kw">await</span>;
+		worker::start_work(<span class="kw-2">&amp;</span>metrics, idle, code, <span class="kw-2">&amp;</span>cache_path, artifact_path, preparation_timeout)
+			.<span class="kw">await</span>;
 	PoolEvent::StartWork(worker, outcome)
 }
 
