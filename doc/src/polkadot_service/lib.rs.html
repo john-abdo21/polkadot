@@ -1588,6 +1588,24 @@
 <a href="#1588" id="1588">1588</a>
 <a href="#1589" id="1589">1589</a>
 <a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2945,32 +2963,36 @@
 &gt; {
 	config.keystore = service::config::KeystoreConfig::InMemory;
 
-	<span class="kw">let </span>telemetry_worker_handle = <span class="prelude-val">None</span>;
-
 	<span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
 	</span><span class="kw">if </span>config.chain_spec.is_rococo() ||
 		config.chain_spec.is_wococo() ||
 		config.chain_spec.is_versi()
 	{
-		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, telemetry_worker_handle; rococo_runtime, RococoExecutorDispatch, Rococo)
+		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, <span class="prelude-val">None</span>; rococo_runtime, RococoExecutorDispatch, Rococo)
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;kusama-native&quot;</span>)]
 	</span><span class="kw">if </span>config.chain_spec.is_kusama() {
-		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, telemetry_worker_handle; kusama_runtime, KusamaExecutorDispatch, Kusama)
+		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, <span class="prelude-val">None</span>; kusama_runtime, KusamaExecutorDispatch, Kusama)
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
 	</span><span class="kw">if </span>config.chain_spec.is_westend() {
-		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, telemetry_worker_handle; westend_runtime, WestendExecutorDispatch, Westend)
+		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, <span class="prelude-val">None</span>; westend_runtime, WestendExecutorDispatch, Westend)
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;polkadot-native&quot;</span>)]
 	</span>{
-		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, telemetry_worker_handle; polkadot_runtime, PolkadotExecutorDispatch, Polkadot)
+		<span class="kw">return </span><span class="macro">chain_ops!</span>(config, jaeger_agent, <span class="prelude-val">None</span>; polkadot_runtime, PolkadotExecutorDispatch, Polkadot)
 	}
+
 	<span class="attr">#[cfg(not(feature = <span class="string">&quot;polkadot-native&quot;</span>))]
-	</span><span class="prelude-val">Err</span>(Error::NoRuntime)
+	</span>{
+		<span class="kw">let _ </span>= config;
+		<span class="kw">let _ </span>= jaeger_agent;
+
+		<span class="prelude-val">Err</span>(Error::NoRuntime)
+	}
 }
 
 <span class="doccomment">/// Build a full node.
@@ -3078,7 +3100,21 @@
 	}
 
 	<span class="attr">#[cfg(not(feature = <span class="string">&quot;polkadot-native&quot;</span>))]
-	</span><span class="prelude-val">Err</span>(Error::NoRuntime)
+	</span>{
+		<span class="kw">let _ </span>= config;
+		<span class="kw">let _ </span>= is_collator;
+		<span class="kw">let _ </span>= grandpa_pause;
+		<span class="kw">let _ </span>= enable_beefy;
+		<span class="kw">let _ </span>= jaeger_agent;
+		<span class="kw">let _ </span>= telemetry_worker_handle;
+		<span class="kw">let _ </span>= overseer_enable_anyways;
+		<span class="kw">let _ </span>= overseer_gen;
+		<span class="kw">let _ </span>= overseer_message_channel_override;
+		<span class="kw">let _ </span>= malus_finality_delay;
+		<span class="kw">let _ </span>= hwbench;
+
+		<span class="prelude-val">Err</span>(Error::NoRuntime)
+	}
 }
 
 <span class="doccomment">/// Reverts the node state down to at most the last finalized block.

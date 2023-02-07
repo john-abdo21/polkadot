@@ -717,6 +717,10 @@
 <a href="#717" id="717">717</a>
 <a href="#718" id="718">718</a>
 <a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -747,7 +751,8 @@
 <span class="kw">use </span>std::net::ToSocketAddrs;
 
 <span class="kw">pub use crate</span>::{error::Error, service::BlockId};
-<span class="kw">pub use </span>polkadot_performance_test::PerfCheckError;
+<span class="attr">#[cfg(feature = <span class="string">&quot;hostperfcheck&quot;</span>)]
+</span><span class="kw">pub use </span>polkadot_performance_test::PerfCheckError;
 
 <span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>Error {
 	<span class="kw">fn </span>from(s: String) -&gt; <span class="self">Self </span>{
@@ -957,7 +962,11 @@
 			<span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
 			</span>polkadot_client::Client::Rococo(<span class="macro-nonterminal">$client</span>) =&gt; <span class="macro-nonterminal">$code</span>,
 			<span class="attr">#[allow(unreachable_patterns)]
-			</span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::CommandNotImplemented),
+			</span><span class="kw">_ </span>=&gt; {
+				<span class="kw">let _ </span>= <span class="macro-nonterminal">$client</span>;
+
+				<span class="prelude-val">Err</span>(Error::CommandNotImplemented)
+			},
 		}
 	};
 }
@@ -965,21 +974,20 @@
 <span class="doccomment">/// Runs performance checks.
 /// Should only be used in release build since the check would take too much time otherwise.
 </span><span class="kw">fn </span>host_perf_check() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-	<span class="attr">#[cfg(not(build_type = <span class="string">&quot;release&quot;</span>))]
+	<span class="attr">#[cfg(not(feature = <span class="string">&quot;hostperfcheck&quot;</span>))]
+	</span>{
+		<span class="kw">return </span><span class="prelude-val">Err</span>(Error::FeatureNotEnabled { feature: <span class="string">&quot;hostperfcheck&quot; </span>}.into())
+	}
+
+	<span class="attr">#[cfg(all(not(build_type = <span class="string">&quot;release&quot;</span>), feature = <span class="string">&quot;hostperfcheck&quot;</span>))]
 	</span>{
 		<span class="kw">return </span><span class="prelude-val">Err</span>(PerfCheckError::WrongBuildType.into())
 	}
-	<span class="attr">#[cfg(build_type = <span class="string">&quot;release&quot;</span>)]
+
+	<span class="attr">#[cfg(all(feature = <span class="string">&quot;hostperfcheck&quot;</span>, build_type = <span class="string">&quot;release&quot;</span>))]
 	</span>{
-		<span class="attr">#[cfg(not(feature = <span class="string">&quot;hostperfcheck&quot;</span>))]
-		</span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(PerfCheckError::FeatureNotEnabled { feature: <span class="string">&quot;hostperfcheck&quot; </span>}.into())
-		}
-		<span class="attr">#[cfg(feature = <span class="string">&quot;hostperfcheck&quot;</span>)]
-		</span>{
-			<span class="kw">crate</span>::host_perf_check::host_perf_check()<span class="question-mark">?</span>;
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-		}
+		<span class="kw">crate</span>::host_perf_check::host_perf_check()<span class="question-mark">?</span>;
+		<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 	}
 }
 
