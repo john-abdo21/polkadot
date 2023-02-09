@@ -67,7 +67,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>tikv_jemalloc_ctl::{epoch, stats, Error};
+</span><span class="kw">use </span>tikv_jemalloc_ctl::stats;
 
 <span class="attr">#[derive(Clone)]
 </span><span class="kw">pub struct </span>MemoryAllocationTracker {
@@ -77,15 +77,15 @@
 }
 
 <span class="kw">impl </span>MemoryAllocationTracker {
-	<span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+	<span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, tikv_jemalloc_ctl::Error&gt; {
 		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-			epoch: epoch::mib()<span class="question-mark">?</span>,
+			epoch: tikv_jemalloc_ctl::epoch::mib()<span class="question-mark">?</span>,
 			allocated: stats::allocated::mib()<span class="question-mark">?</span>,
 			resident: stats::resident::mib()<span class="question-mark">?</span>,
 		})
 	}
 
-	<span class="kw">pub fn </span>snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MemoryAllocationSnapshot, Error&gt; {
+	<span class="kw">pub fn </span>snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MemoryAllocationSnapshot, tikv_jemalloc_ctl::Error&gt; {
 		<span class="comment">// update stats by advancing the allocation epoch
 		</span><span class="self">self</span>.epoch.advance()<span class="question-mark">?</span>;
 

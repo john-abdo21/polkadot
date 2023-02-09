@@ -481,6 +481,9 @@
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -497,10 +500,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span><span class="kw">super</span>::memory_stats::{
-	get_max_rss_thread, get_memory_tracker_loop_stats, memory_tracker_loop, observe_memory_metrics,
-	MemoryStats,
-};
+</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">super</span>::memory_stats::memory_tracker::{get_memory_tracker_loop_stats, memory_tracker_loop};
+<span class="kw">use </span><span class="kw">super</span>::memory_stats::{get_max_rss_thread, observe_memory_metrics, MemoryStats};
 <span class="kw">use crate</span>::{
 	artifacts::CompiledArtifact,
 	error::{PrepareError, PrepareResult},
@@ -856,9 +858,10 @@
 			<span class="kw">let </span>cpu_time_start = ProcessTime::now();
 
 			<span class="comment">// Run the memory tracker.
+			</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
 			</span><span class="kw">let </span>(memory_tracker_tx, memory_tracker_rx) = channel::&lt;()&gt;();
-			<span class="kw">let </span>memory_tracker_fut =
-				rt_handle.spawn_blocking(<span class="kw">move </span>|| memory_tracker_loop(memory_tracker_rx));
+			<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+			</span><span class="kw">let </span>memory_tracker_fut = rt_handle.spawn_blocking(<span class="kw">move </span>|| memory_tracker_loop(memory_tracker_rx));
 
 			<span class="comment">// Spawn a new thread that runs the CPU time monitor.
 			</span><span class="kw">let </span>(cpu_time_monitor_tx, cpu_time_monitor_rx) = channel::&lt;()&gt;();
@@ -914,8 +917,11 @@
 						},
 						(<span class="prelude-val">Ok</span>(compiled_artifact), max_rss) =&gt; {
 							<span class="comment">// Stop the memory stats worker and get its observed memory stats.
+							</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
 							</span><span class="kw">let </span>memory_tracker_stats =
 								get_memory_tracker_loop_stats(memory_tracker_fut, memory_tracker_tx).<span class="kw">await</span>;
+							<span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>)))]
+							</span><span class="kw">let </span>memory_tracker_stats = <span class="prelude-val">None</span>;
 							<span class="kw">let </span>memory_stats = MemoryStats {
 								memory_tracker_stats,
 								max_rss: max_rss.map(|inner| inner.map_err(|e| e.to_string())),

@@ -241,6 +241,13 @@
 <a href="#241" id="241">241</a>
 <a href="#242" id="242">242</a>
 <a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2023 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -272,16 +279,7 @@
 
 </span><span class="kw">use crate</span>::{metrics::Metrics, LOG_TARGET};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
-<span class="kw">use </span>std::{
-	io,
-	sync::mpsc::{Receiver, RecvTimeoutError, Sender},
-	time::Duration,
-};
-<span class="kw">use </span>tikv_jemalloc_ctl::{epoch, stats, Error};
-<span class="kw">use </span>tokio::task::JoinHandle;
-
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-</span><span class="kw">use </span>libc::{getrusage, rusage, timeval, RUSAGE_THREAD};
+<span class="kw">use </span>std::io;
 
 <span class="doccomment">/// Helper struct to contain all the memory stats, including [`MemoryAllocationStats`] and, if
 /// supported by the OS, `ru_maxrss`.
@@ -303,162 +301,15 @@
 	</span><span class="kw">pub </span>allocated: u64,
 }
 
-<span class="attr">#[derive(Clone)]
-</span><span class="kw">struct </span>MemoryAllocationTracker {
-	epoch: tikv_jemalloc_ctl::epoch_mib,
-	allocated: stats::allocated_mib,
-	resident: stats::resident_mib,
-}
-
-<span class="kw">impl </span>MemoryAllocationTracker {
-	<span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
-		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-			epoch: epoch::mib()<span class="question-mark">?</span>,
-			allocated: stats::allocated::mib()<span class="question-mark">?</span>,
-			resident: stats::resident::mib()<span class="question-mark">?</span>,
-		})
-	}
-
-	<span class="kw">pub fn </span>snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, Error&gt; {
-		<span class="comment">// update stats by advancing the allocation epoch
-		</span><span class="self">self</span>.epoch.advance()<span class="question-mark">?</span>;
-
-		<span class="comment">// Convert to `u64`, as `usize` is not `Encode`able.
-		</span><span class="kw">let </span>allocated = <span class="self">self</span>.allocated.read()<span class="question-mark">? </span><span class="kw">as </span>u64;
-		<span class="kw">let </span>resident = <span class="self">self</span>.resident.read()<span class="question-mark">? </span><span class="kw">as </span>u64;
-		<span class="prelude-val">Ok</span>(MemoryAllocationStats { allocated, resident })
-	}
-}
-
-<span class="doccomment">/// Get the rusage stats for the current thread.
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-</span><span class="kw">fn </span>getrusage_thread() -&gt; io::Result&lt;rusage&gt; {
-	<span class="kw">let </span><span class="kw-2">mut </span>result = rusage {
-		ru_utime: timeval { tv_sec: <span class="number">0</span>, tv_usec: <span class="number">0 </span>},
-		ru_stime: timeval { tv_sec: <span class="number">0</span>, tv_usec: <span class="number">0 </span>},
-		ru_maxrss: <span class="number">0</span>,
-		ru_ixrss: <span class="number">0</span>,
-		ru_idrss: <span class="number">0</span>,
-		ru_isrss: <span class="number">0</span>,
-		ru_minflt: <span class="number">0</span>,
-		ru_majflt: <span class="number">0</span>,
-		ru_nswap: <span class="number">0</span>,
-		ru_inblock: <span class="number">0</span>,
-		ru_oublock: <span class="number">0</span>,
-		ru_msgsnd: <span class="number">0</span>,
-		ru_msgrcv: <span class="number">0</span>,
-		ru_nsignals: <span class="number">0</span>,
-		ru_nvcsw: <span class="number">0</span>,
-		ru_nivcsw: <span class="number">0</span>,
-	};
-	<span class="kw">if unsafe </span>{ getrusage(RUSAGE_THREAD, <span class="kw-2">&amp;mut </span>result) } == -<span class="number">1 </span>{
-		<span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error())
-	}
-	<span class="prelude-val">Ok</span>(result)
-}
-
 <span class="doccomment">/// Gets the `ru_maxrss` for the current thread if the OS supports `getrusage`. Otherwise, just
 /// returns `None`.
 </span><span class="kw">pub fn </span>get_max_rss_thread() -&gt; <span class="prelude-ty">Option</span>&lt;io::Result&lt;i64&gt;&gt; {
 	<span class="comment">// `c_long` is either `i32` or `i64` depending on architecture. `i64::from` always works.
 	</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-	</span><span class="kw">let </span>max_rss = <span class="prelude-val">Some</span>(getrusage_thread().map(|rusage| i64::from(rusage.ru_maxrss)));
+	</span><span class="kw">let </span>max_rss = <span class="prelude-val">Some</span>(getrusage::getrusage_thread().map(|rusage| i64::from(rusage.ru_maxrss)));
 	<span class="attr">#[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
 	</span><span class="kw">let </span>max_rss = <span class="prelude-val">None</span>;
 	max_rss
-}
-
-<span class="doccomment">/// Runs a thread in the background that observes memory statistics. The goal is to try to get
-/// accurate stats during preparation.
-///
-/// # Algorithm
-///
-/// 1. Create the memory tracker.
-///
-/// 2. Sleep for some short interval. Whenever we wake up, take a snapshot by updating the
-///    allocation epoch.
-///
-/// 3. When we receive a signal that preparation has completed, take one last snapshot and return
-///    the maximum observed values.
-///
-/// # Errors
-///
-/// For simplicity, any errors are returned as a string. As this is not a critical component, errors
-/// are used for informational purposes (logging) only.
-</span><span class="kw">pub fn </span>memory_tracker_loop(finished_rx: Receiver&lt;()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, String&gt; {
-	<span class="comment">// This doesn&#39;t need to be too fine-grained since preparation currently takes 3-10s or more.
-	// Apart from that, there is not really a science to this number.
-	</span><span class="kw">const </span>POLL_INTERVAL: Duration = Duration::from_millis(<span class="number">100</span>);
-
-	<span class="kw">let </span>tracker = MemoryAllocationTracker::new().map_err(|err| err.to_string())<span class="question-mark">?</span>;
-	<span class="kw">let </span><span class="kw-2">mut </span>max_stats = MemoryAllocationStats::default();
-
-	<span class="kw">let </span><span class="kw-2">mut </span>update_stats = || -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
-		<span class="kw">let </span>current_stats = tracker.snapshot().map_err(|err| err.to_string())<span class="question-mark">?</span>;
-		<span class="kw">if </span>current_stats.resident &gt; max_stats.resident {
-			max_stats.resident = current_stats.resident;
-		}
-		<span class="kw">if </span>current_stats.allocated &gt; max_stats.allocated {
-			max_stats.allocated = current_stats.allocated;
-		}
-		<span class="prelude-val">Ok</span>(())
-	};
-
-	<span class="kw">loop </span>{
-		<span class="comment">// Take a snapshot and update the max stats.
-		</span>update_stats()<span class="question-mark">?</span>;
-
-		<span class="comment">// Sleep.
-		</span><span class="kw">match </span>finished_rx.recv_timeout(POLL_INTERVAL) {
-			<span class="comment">// Received finish signal.
-			</span><span class="prelude-val">Ok</span>(()) =&gt; {
-				update_stats()<span class="question-mark">?</span>;
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(max_stats)
-			},
-			<span class="comment">// Timed out, restart loop.
-			</span><span class="prelude-val">Err</span>(RecvTimeoutError::Timeout) =&gt; <span class="kw">continue</span>,
-			<span class="prelude-val">Err</span>(RecvTimeoutError::Disconnected) =&gt;
-				<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;memory_tracker_loop: finished_rx disconnected&quot;</span>.into()),
-		}
-	}
-}
-
-<span class="doccomment">/// Helper function to terminate the memory tracker thread and get the stats. Helps isolate all this
-/// error handling.
-</span><span class="kw">pub async fn </span>get_memory_tracker_loop_stats(
-	fut: JoinHandle&lt;<span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, String&gt;&gt;,
-	tx: Sender&lt;()&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;MemoryAllocationStats&gt; {
-	<span class="comment">// Signal to the memory tracker thread to terminate.
-	</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = tx.send(()) {
-		<span class="macro">gum::warn!</span>(
-			target: LOG_TARGET,
-			worker_pid = %std::process::id(),
-			<span class="string">&quot;worker: error sending signal to memory tracker_thread: {}&quot;</span>, err
-		);
-		<span class="prelude-val">None
-	</span>} <span class="kw">else </span>{
-		<span class="comment">// Join on the thread handle.
-		</span><span class="kw">match </span>fut.<span class="kw">await </span>{
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(stats)) =&gt; <span class="prelude-val">Some</span>(stats),
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
-				<span class="macro">gum::warn!</span>(
-					target: LOG_TARGET,
-					worker_pid = %std::process::id(),
-					<span class="string">&quot;worker: error occurred in the memory tracker thread: {}&quot;</span>, err
-				);
-				<span class="prelude-val">None
-			</span>},
-			<span class="prelude-val">Err</span>(err) =&gt; {
-				<span class="macro">gum::warn!</span>(
-					target: LOG_TARGET,
-					worker_pid = %std::process::id(),
-					<span class="string">&quot;worker: error joining on memory tracker thread: {}&quot;</span>, err
-				);
-				<span class="prelude-val">None
-			</span>},
-		}
-	}
 }
 
 <span class="doccomment">/// Helper function to send the memory metrics, if available, to prometheus.
@@ -482,6 +333,169 @@
 
 		metrics.observe_preparation_max_resident(resident_kb);
 		metrics.observe_preparation_max_allocated(allocated_kb);
+	}
+}
+
+<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+</span><span class="kw">pub mod </span>memory_tracker {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>std::{
+		sync::mpsc::{Receiver, RecvTimeoutError, Sender},
+		time::Duration,
+	};
+	<span class="kw">use </span>tikv_jemalloc_ctl::{epoch, stats, Error};
+	<span class="kw">use </span>tokio::task::JoinHandle;
+
+	<span class="attr">#[derive(Clone)]
+	</span><span class="kw">struct </span>MemoryAllocationTracker {
+		epoch: tikv_jemalloc_ctl::epoch_mib,
+		allocated: stats::allocated_mib,
+		resident: stats::resident_mib,
+	}
+
+	<span class="kw">impl </span>MemoryAllocationTracker {
+		<span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+			<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+				epoch: epoch::mib()<span class="question-mark">?</span>,
+				allocated: stats::allocated::mib()<span class="question-mark">?</span>,
+				resident: stats::resident::mib()<span class="question-mark">?</span>,
+			})
+		}
+
+		<span class="kw">pub fn </span>snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, Error&gt; {
+			<span class="comment">// update stats by advancing the allocation epoch
+			</span><span class="self">self</span>.epoch.advance()<span class="question-mark">?</span>;
+
+			<span class="comment">// Convert to `u64`, as `usize` is not `Encode`able.
+			</span><span class="kw">let </span>allocated = <span class="self">self</span>.allocated.read()<span class="question-mark">? </span><span class="kw">as </span>u64;
+			<span class="kw">let </span>resident = <span class="self">self</span>.resident.read()<span class="question-mark">? </span><span class="kw">as </span>u64;
+			<span class="prelude-val">Ok</span>(MemoryAllocationStats { allocated, resident })
+		}
+	}
+
+	<span class="doccomment">/// Runs a thread in the background that observes memory statistics. The goal is to try to get
+	/// accurate stats during preparation.
+	///
+	/// # Algorithm
+	///
+	/// 1. Create the memory tracker.
+	///
+	/// 2. Sleep for some short interval. Whenever we wake up, take a snapshot by updating the
+	///    allocation epoch.
+	///
+	/// 3. When we receive a signal that preparation has completed, take one last snapshot and return
+	///    the maximum observed values.
+	///
+	/// # Errors
+	///
+	/// For simplicity, any errors are returned as a string. As this is not a critical component, errors
+	/// are used for informational purposes (logging) only.
+	</span><span class="kw">pub fn </span>memory_tracker_loop(finished_rx: Receiver&lt;()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, String&gt; {
+		<span class="comment">// This doesn&#39;t need to be too fine-grained since preparation currently takes 3-10s or more.
+		// Apart from that, there is not really a science to this number.
+		</span><span class="kw">const </span>POLL_INTERVAL: Duration = Duration::from_millis(<span class="number">100</span>);
+
+		<span class="kw">let </span>tracker = MemoryAllocationTracker::new().map_err(|err| err.to_string())<span class="question-mark">?</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>max_stats = MemoryAllocationStats::default();
+
+		<span class="kw">let </span><span class="kw-2">mut </span>update_stats = || -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+			<span class="kw">let </span>current_stats = tracker.snapshot().map_err(|err| err.to_string())<span class="question-mark">?</span>;
+			<span class="kw">if </span>current_stats.resident &gt; max_stats.resident {
+				max_stats.resident = current_stats.resident;
+			}
+			<span class="kw">if </span>current_stats.allocated &gt; max_stats.allocated {
+				max_stats.allocated = current_stats.allocated;
+			}
+			<span class="prelude-val">Ok</span>(())
+		};
+
+		<span class="kw">loop </span>{
+			<span class="comment">// Take a snapshot and update the max stats.
+			</span>update_stats()<span class="question-mark">?</span>;
+
+			<span class="comment">// Sleep.
+			</span><span class="kw">match </span>finished_rx.recv_timeout(POLL_INTERVAL) {
+				<span class="comment">// Received finish signal.
+				</span><span class="prelude-val">Ok</span>(()) =&gt; {
+					update_stats()<span class="question-mark">?</span>;
+					<span class="kw">return </span><span class="prelude-val">Ok</span>(max_stats)
+				},
+				<span class="comment">// Timed out, restart loop.
+				</span><span class="prelude-val">Err</span>(RecvTimeoutError::Timeout) =&gt; <span class="kw">continue</span>,
+				<span class="prelude-val">Err</span>(RecvTimeoutError::Disconnected) =&gt;
+					<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;memory_tracker_loop: finished_rx disconnected&quot;</span>.into()),
+			}
+		}
+	}
+
+	<span class="doccomment">/// Helper function to terminate the memory tracker thread and get the stats. Helps isolate all this
+	/// error handling.
+	</span><span class="kw">pub async fn </span>get_memory_tracker_loop_stats(
+		fut: JoinHandle&lt;<span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, String&gt;&gt;,
+		tx: Sender&lt;()&gt;,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;MemoryAllocationStats&gt; {
+		<span class="comment">// Signal to the memory tracker thread to terminate.
+		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = tx.send(()) {
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				worker_pid = %std::process::id(),
+				<span class="string">&quot;worker: error sending signal to memory tracker_thread: {}&quot;</span>, err
+			);
+			<span class="prelude-val">None
+		</span>} <span class="kw">else </span>{
+			<span class="comment">// Join on the thread handle.
+			</span><span class="kw">match </span>fut.<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(stats)) =&gt; <span class="prelude-val">Some</span>(stats),
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
+					<span class="macro">gum::warn!</span>(
+						target: LOG_TARGET,
+						worker_pid = %std::process::id(),
+						<span class="string">&quot;worker: error occurred in the memory tracker thread: {}&quot;</span>, err
+					);
+					<span class="prelude-val">None
+				</span>},
+				<span class="prelude-val">Err</span>(err) =&gt; {
+					<span class="macro">gum::warn!</span>(
+						target: LOG_TARGET,
+						worker_pid = %std::process::id(),
+						<span class="string">&quot;worker: error joining on memory tracker thread: {}&quot;</span>, err
+					);
+					<span class="prelude-val">None
+				</span>},
+			}
+		}
+	}
+}
+
+<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="kw">mod </span>getrusage {
+	<span class="kw">use </span>libc::{getrusage, rusage, timeval, RUSAGE_THREAD};
+	<span class="kw">use </span>std::io;
+
+	<span class="doccomment">/// Get the rusage stats for the current thread.
+	</span><span class="kw">pub fn </span>getrusage_thread() -&gt; io::Result&lt;rusage&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>result = rusage {
+			ru_utime: timeval { tv_sec: <span class="number">0</span>, tv_usec: <span class="number">0 </span>},
+			ru_stime: timeval { tv_sec: <span class="number">0</span>, tv_usec: <span class="number">0 </span>},
+			ru_maxrss: <span class="number">0</span>,
+			ru_ixrss: <span class="number">0</span>,
+			ru_idrss: <span class="number">0</span>,
+			ru_isrss: <span class="number">0</span>,
+			ru_minflt: <span class="number">0</span>,
+			ru_majflt: <span class="number">0</span>,
+			ru_nswap: <span class="number">0</span>,
+			ru_inblock: <span class="number">0</span>,
+			ru_oublock: <span class="number">0</span>,
+			ru_msgsnd: <span class="number">0</span>,
+			ru_msgrcv: <span class="number">0</span>,
+			ru_nsignals: <span class="number">0</span>,
+			ru_nvcsw: <span class="number">0</span>,
+			ru_nivcsw: <span class="number">0</span>,
+		};
+		<span class="kw">if unsafe </span>{ getrusage(RUSAGE_THREAD, <span class="kw-2">&amp;mut </span>result) } == -<span class="number">1 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error())
+		}
+		<span class="prelude-val">Ok</span>(result)
 	}
 }
 </code></pre></div>

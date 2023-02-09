@@ -271,6 +271,11 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -292,8 +297,6 @@
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>polkadot_node_metrics::metrics::{<span class="self">self</span>, prometheus, Metrics <span class="kw">as </span>MetricsTrait};
 
-<span class="kw">use </span>memory_stats::MemoryAllocationSnapshot;
-
 <span class="doccomment">/// Overseer Prometheus metrics.
 </span><span class="attr">#[derive(Clone)]
 </span><span class="kw">struct </span>MetricsInner {
@@ -313,8 +316,10 @@
 	signals_sent: prometheus::GaugeVec&lt;prometheus::U64&gt;,
 	signals_received: prometheus::GaugeVec&lt;prometheus::U64&gt;,
 
-	memory_stats_resident: prometheus::Gauge&lt;prometheus::U64&gt;,
-	memory_stats_allocated: prometheus::Gauge&lt;prometheus::U64&gt;,
+	<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+	</span>memory_stats_resident: prometheus::Gauge&lt;prometheus::U64&gt;,
+	<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+	</span>memory_stats_allocated: prometheus::Gauge&lt;prometheus::U64&gt;,
 }
 
 <span class="doccomment">/// A shareable metrics type for usage with the overseer.
@@ -340,7 +345,11 @@
 		}
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>memory_stats_snapshot(<span class="kw-2">&amp;</span><span class="self">self</span>, memory_stats: MemoryAllocationSnapshot) {
+	<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>memory_stats_snapshot(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		memory_stats: memory_stats::MemoryAllocationSnapshot,
+	) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
 			metrics.memory_stats_allocated.set(memory_stats.allocated <span class="kw">as </span>u64);
 			metrics.memory_stats_resident.set(memory_stats.resident <span class="kw">as </span>u64);
@@ -519,15 +528,16 @@
 				)<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
-
-			memory_stats_allocated: prometheus::register(
+			<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+			</span>memory_stats_allocated: prometheus::register(
 				prometheus::Gauge::&lt;prometheus::U64&gt;::new(
 					<span class="string">&quot;polkadot_memory_allocated&quot;</span>,
 					<span class="string">&quot;Total bytes allocated by the node&quot;</span>,
 				)<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
-			memory_stats_resident: prometheus::register(
+			<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+			</span>memory_stats_resident: prometheus::register(
 				prometheus::Gauge::&lt;prometheus::U64&gt;::new(
 					<span class="string">&quot;polkadot_memory_resident&quot;</span>,
 					<span class="string">&quot;Bytes allocated by the node, and held in RAM&quot;</span>,
