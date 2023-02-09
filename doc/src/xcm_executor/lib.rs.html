@@ -997,6 +997,7 @@
 <a href="#997" id="997">997</a>
 <a href="#998" id="998">998</a>
 <a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1772,7 +1773,8 @@
 					})
 					.collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, XcmError&gt;&gt;()<span class="question-mark">?</span>;
 				<span class="kw">let </span>QueryResponseInfo { destination, query_id, max_weight } = response_info;
-				<span class="kw">let </span>response = Response::PalletsInfo(pallets.try_into()<span class="question-mark">?</span>);
+				<span class="kw">let </span>response =
+					Response::PalletsInfo(pallets.try_into().map_err(|<span class="kw">_</span>| XcmError::Overflow)<span class="question-mark">?</span>);
 				<span class="kw">let </span>querier = <span class="self">Self</span>::to_querier(<span class="self">self</span>.cloned_origin(), <span class="kw-2">&amp;</span>destination)<span class="question-mark">?</span>;
 				<span class="kw">let </span>instruction = QueryResponse { query_id, response, max_weight, querier };
 				<span class="kw">let </span>message = Xcm(<span class="macro">vec!</span>[instruction]);

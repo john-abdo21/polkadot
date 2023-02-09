@@ -1409,41 +1409,6 @@
 <a href="#1409" id="1409">1409</a>
 <a href="#1410" id="1410">1410</a>
 <a href="#1411" id="1411">1411</a>
-<a href="#1412" id="1412">1412</a>
-<a href="#1413" id="1413">1413</a>
-<a href="#1414" id="1414">1414</a>
-<a href="#1415" id="1415">1415</a>
-<a href="#1416" id="1416">1416</a>
-<a href="#1417" id="1417">1417</a>
-<a href="#1418" id="1418">1418</a>
-<a href="#1419" id="1419">1419</a>
-<a href="#1420" id="1420">1420</a>
-<a href="#1421" id="1421">1421</a>
-<a href="#1422" id="1422">1422</a>
-<a href="#1423" id="1423">1423</a>
-<a href="#1424" id="1424">1424</a>
-<a href="#1425" id="1425">1425</a>
-<a href="#1426" id="1426">1426</a>
-<a href="#1427" id="1427">1427</a>
-<a href="#1428" id="1428">1428</a>
-<a href="#1429" id="1429">1429</a>
-<a href="#1430" id="1430">1430</a>
-<a href="#1431" id="1431">1431</a>
-<a href="#1432" id="1432">1432</a>
-<a href="#1433" id="1433">1433</a>
-<a href="#1434" id="1434">1434</a>
-<a href="#1435" id="1435">1435</a>
-<a href="#1436" id="1436">1436</a>
-<a href="#1437" id="1437">1437</a>
-<a href="#1438" id="1438">1438</a>
-<a href="#1439" id="1439">1439</a>
-<a href="#1440" id="1440">1440</a>
-<a href="#1441" id="1441">1441</a>
-<a href="#1442" id="1442">1442</a>
-<a href="#1443" id="1443">1443</a>
-<a href="#1444" id="1444">1444</a>
-<a href="#1445" id="1445">1445</a>
-<a href="#1446" id="1446">1446</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Cumulus.
 
@@ -1468,6 +1433,7 @@
 };
 <span class="kw">use crate</span>::{DoubleEncoded, GetWeight};
 <span class="kw">use </span>alloc::{vec, vec::Vec};
+<span class="kw">use </span>bounded_collections::{parameter_types, BoundedVec};
 <span class="kw">use </span>core::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -1646,14 +1612,20 @@
 	}
 }
 
-<span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo)]
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>MaxPalletNameLen: u32 = <span class="number">48</span>;
+	<span class="doccomment">/// Maximum size of the encoded error code coming from a `Dispatch` result, used for
+	/// `MaybeErrorCode`. This is not (yet) enforced, so it&#39;s just an indication of expectation.
+	</span><span class="kw">pub </span>MaxDispatchErrorLen: u32 = <span class="number">128</span>;
+	<span class="kw">pub </span>MaxPalletsInfo: u32 = <span class="number">64</span>;
+}
+
+<span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo, MaxEncodedLen)]
 </span><span class="kw">pub struct </span>PalletInfo {
 	<span class="attr">#[codec(compact)]
 	</span>index: u32,
-	<span class="comment">// TODO: Change to `BoundedVec` so `MaxEncodedLen` derive will work.
-	</span>name: Vec&lt;u8&gt;,
-	<span class="comment">// TODO: Change to `BoundedVec` so `MaxEncodedLen` derive will work.
-	</span>module_name: Vec&lt;u8&gt;,
+	name: BoundedVec&lt;u8, MaxPalletNameLen&gt;,
+	module_name: BoundedVec&lt;u8, MaxPalletNameLen&gt;,
 	<span class="attr">#[codec(compact)]
 	</span>major: u32,
 	<span class="attr">#[codec(compact)]
@@ -1661,8 +1633,6 @@
 	<span class="attr">#[codec(compact)]
 	</span>patch: u32,
 }
-
-<span class="kw">const </span>MAX_NAME_LEN: usize = <span class="number">48</span>;
 
 <span class="kw">impl </span>PalletInfo {
 	<span class="kw">pub fn </span>new(
@@ -1673,44 +1643,25 @@
 		minor: u32,
 		patch: u32,
 	) -&gt; result::Result&lt;<span class="self">Self</span>, Error&gt; {
-		<span class="kw">if </span>name.len() &gt; MAX_NAME_LEN || module_name.len() &gt; MAX_NAME_LEN {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(Error::Overflow)
-		}
+		<span class="kw">let </span>name = BoundedVec::try_from(name).map_err(|<span class="kw">_</span>| Error::Overflow)<span class="question-mark">?</span>;
+		<span class="kw">let </span>module_name = BoundedVec::try_from(module_name).map_err(|<span class="kw">_</span>| Error::Overflow)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{ index, name, module_name, major, minor, patch })
 	}
 }
 
-<span class="kw">impl </span>MaxEncodedLen <span class="kw">for </span>PalletInfo {
-	<span class="kw">fn </span>max_encoded_len() -&gt; usize {
-		parity_scale_codec::Compact::&lt;u32&gt;::max_encoded_len() * <span class="number">4 </span>+ (MAX_NAME_LEN + <span class="number">1</span>) * <span class="number">2
-	</span>}
-}
-
-<span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo)]
+<span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo, MaxEncodedLen)]
 </span><span class="kw">pub enum </span>MaybeErrorCode {
 	Success,
-	<span class="comment">// TODO: Change to a `BoundedVec` so that deriving `MaxEncodedLen` works.
-	</span>Error(Vec&lt;u8&gt;),
-	TruncatedError(Vec&lt;u8&gt;),
-}
-
-<span class="doccomment">/// Maximum size of the encoded error code coming from a `Dispatch` result, used for
-/// `MaybeErrorCode`. This is not (yet) enforced, so it&#39;s just an indication of expectation.
-</span><span class="kw">const </span>MAX_DISPATCH_ERROR_LEN: usize = <span class="number">128</span>;
-
-<span class="kw">impl </span>MaxEncodedLen <span class="kw">for </span>MaybeErrorCode {
-	<span class="kw">fn </span>max_encoded_len() -&gt; usize {
-		MAX_DISPATCH_ERROR_LEN + <span class="number">3
-	</span>}
+	Error(BoundedVec&lt;u8, MaxDispatchErrorLen&gt;),
+	TruncatedError(BoundedVec&lt;u8, MaxDispatchErrorLen&gt;),
 }
 
 <span class="kw">impl </span>From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>MaybeErrorCode {
-	<span class="kw">fn </span>from(<span class="kw-2">mut </span>v: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
-		<span class="kw">if </span>v.len() &lt;= MAX_DISPATCH_ERROR_LEN {
-			MaybeErrorCode::Error(v)
-		} <span class="kw">else </span>{
-			v.truncate(MAX_DISPATCH_ERROR_LEN);
-			MaybeErrorCode::TruncatedError(v)
+	<span class="kw">fn </span>from(v: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>BoundedVec::try_from(v) {
+			<span class="prelude-val">Ok</span>(error) =&gt; MaybeErrorCode::Error(error),
+			<span class="prelude-val">Err</span>(error) =&gt; MaybeErrorCode::TruncatedError(BoundedVec::truncate_from(error)),
 		}
 	}
 }
@@ -1718,26 +1669,6 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>MaybeErrorCode {
 	<span class="kw">fn </span>default() -&gt; MaybeErrorCode {
 		MaybeErrorCode::Success
-	}
-}
-
-<span class="doccomment">/// Maximum number of pallets which we expect to be returned in `PalletsInfo`.
-</span><span class="kw">const </span>MAX_PALLETS_INFO_LEN: usize = <span class="number">64</span>;
-
-<span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug, TypeInfo)]
-</span><span class="kw">pub struct </span>VecPalletInfo(Vec&lt;PalletInfo&gt;);
-<span class="kw">impl </span>TryFrom&lt;Vec&lt;PalletInfo&gt;&gt; <span class="kw">for </span>VecPalletInfo {
-	<span class="kw">type </span>Error = Error;
-	<span class="kw">fn </span>try_from(v: Vec&lt;PalletInfo&gt;) -&gt; result::Result&lt;<span class="self">Self</span>, Error&gt; {
-		<span class="kw">if </span>v.len() &gt; MAX_PALLETS_INFO_LEN {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(Error::Overflow)
-		}
-		<span class="prelude-val">Ok</span>(VecPalletInfo(v))
-	}
-}
-<span class="kw">impl </span>MaxEncodedLen <span class="kw">for </span>VecPalletInfo {
-	<span class="kw">fn </span>max_encoded_len() -&gt; usize {
-		PalletInfo::max_encoded_len() * MAX_PALLETS_INFO_LEN
 	}
 }
 
@@ -1753,8 +1684,7 @@
 	<span class="doccomment">/// An XCM version.
 	</span>Version(<span class="kw">super</span>::Version),
 	<span class="doccomment">/// The index, instance name, pallet name and version of some pallets.
-	</span><span class="comment">// TODO: Change to a `BoundedVec` so that deriving `MaxEncodedLen` works.
-	</span>PalletsInfo(VecPalletInfo),
+	</span>PalletsInfo(BoundedVec&lt;PalletInfo, MaxPalletsInfo&gt;),
 	<span class="doccomment">/// The status of a dispatch attempt using `Transact`.
 	</span>DispatchResult(MaybeErrorCode),
 }
