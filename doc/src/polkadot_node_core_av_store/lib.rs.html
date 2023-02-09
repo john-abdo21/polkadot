@@ -1269,6 +1269,21 @@
 <a href="#1269" id="1269">1269</a>
 <a href="#1270" id="1270">1270</a>
 <a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1301,6 +1316,7 @@
 <span class="kw">use </span>futures_timer::Delay;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, Error <span class="kw">as </span>CodecError, Input};
 <span class="kw">use </span>polkadot_node_subsystem_util::database::{DBTransaction, Database};
+<span class="kw">use </span>sp_consensus::SyncOracle;
 
 <span class="kw">use </span>bitvec::{order::Lsb0 <span class="kw">as </span>BitOrderLsb0, vec::BitVec};
 <span class="kw">use </span>polkadot_node_primitives::{AvailableData, ErasureChunk};
@@ -1722,16 +1738,23 @@
 	finalized_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
 	metrics: Metrics,
 	clock: Box&lt;<span class="kw">dyn </span>Clock&gt;,
+	sync_oracle: Box&lt;<span class="kw">dyn </span>SyncOracle + Send + Sync&gt;,
 }
 
 <span class="kw">impl </span>AvailabilityStoreSubsystem {
 	<span class="doccomment">/// Create a new `AvailabilityStoreSubsystem` with a given config on disk.
-	</span><span class="kw">pub fn </span>new(db: Arc&lt;<span class="kw">dyn </span>Database&gt;, config: Config, metrics: Metrics) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(
+		db: Arc&lt;<span class="kw">dyn </span>Database&gt;,
+		config: Config,
+		sync_oracle: Box&lt;<span class="kw">dyn </span>SyncOracle + Send + Sync&gt;,
+		metrics: Metrics,
+	) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::with_pruning_config_and_clock(
 			db,
 			config,
 			PruningConfig::default(),
 			Box::new(SystemClock),
+			sync_oracle,
 			metrics,
 		)
 	}
@@ -1742,6 +1765,7 @@
 		config: Config,
 		pruning_config: PruningConfig,
 		clock: Box&lt;<span class="kw">dyn </span>Clock&gt;,
+		sync_oracle: Box&lt;<span class="kw">dyn </span>SyncOracle + Send + Sync&gt;,
 		metrics: Metrics,
 	) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
@@ -1751,6 +1775,7 @@
 			metrics,
 			clock,
 			known_blocks: KnownUnfinalizedBlocks::default(),
+			sync_oracle,
 			finalized_number: <span class="prelude-val">None</span>,
 		}
 	}
@@ -1847,7 +1872,12 @@
 						// candidates backed in this finalized block.
 						// Otherwise, we won&#39;t be able to store our chunk
 						// for these candidates.
-						</span>process_block_activated(ctx, subsystem, hash).<span class="kw">await</span><span class="question-mark">?</span>;
+						</span><span class="kw">if </span>!subsystem.sync_oracle.is_major_syncing() {
+							<span class="comment">// If we&#39;re major syncing, processing finalized
+							// blocks might take quite a very long time
+							// and make the subsystem unresponsive.
+							</span>process_block_activated(ctx, subsystem, hash).<span class="kw">await</span><span class="question-mark">?</span>;
+						}
 					}
 					subsystem.finalized_number = <span class="prelude-val">Some</span>(number);
 					subsystem.known_blocks.prune_finalized(number);
