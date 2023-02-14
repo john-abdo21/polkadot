@@ -214,11 +214,11 @@
 				<span class="self">Self</span>::AccountKey20 { network: network.try_into()<span class="question-mark">?</span>, key },
 			PalletInstance(index) =&gt; <span class="self">Self</span>::PalletInstance(index),
 			GeneralIndex(id) =&gt; <span class="self">Self</span>::GeneralIndex(id),
-			GeneralKey(key) =&gt; <span class="self">Self</span>::GeneralKey(
-				key[..]
+			GeneralKey { length, data } =&gt; <span class="self">Self</span>::GeneralKey(
+				data[<span class="number">0</span>..data.len().min(length <span class="kw">as </span>usize)]
 					.to_vec()
 					.try_into()
-					.expect(<span class="string">&quot;array is of size 32 and so will never be out of bounds; qed&quot;</span>),
+					.expect(<span class="string">&quot;key is bounded to 32 and so will never be out of bounds; qed&quot;</span>),
 			),
 			OnlyChild =&gt; <span class="self">Self</span>::OnlyChild,
 			Plurality { id, part } =&gt; <span class="self">Self</span>::Plurality { id: id.into(), part: part.into() },
