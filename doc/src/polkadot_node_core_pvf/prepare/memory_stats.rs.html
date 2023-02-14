@@ -247,7 +247,6 @@
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2023 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -277,18 +276,18 @@
 //! &lt;https://github.com/paritytech/polkadot/issues/6472#issuecomment-1381941762&gt; for more
 //! background.
 
-</span><span class="kw">use crate</span>::{metrics::Metrics, LOG_TARGET};
-<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
-<span class="kw">use </span>std::io;
+</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 
 <span class="doccomment">/// Helper struct to contain all the memory stats, including [`MemoryAllocationStats`] and, if
 /// supported by the OS, `ru_maxrss`.
-</span><span class="attr">#[derive(Encode, Decode)]
+</span><span class="attr">#[derive(Clone, Debug, Default, Encode, Decode)]
 </span><span class="kw">pub struct </span>MemoryStats {
 	<span class="doccomment">/// Memory stats from `tikv_jemalloc_ctl`.
+	</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
 	</span><span class="kw">pub </span>memory_tracker_stats: <span class="prelude-ty">Option</span>&lt;MemoryAllocationStats&gt;,
 	<span class="doccomment">/// `ru_maxrss` from `getrusage`. A string error since `io::Error` is not `Encode`able.
-	</span><span class="kw">pub </span>max_rss: <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;i64, String&gt;&gt;,
+	</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+	</span><span class="kw">pub </span>max_rss: <span class="prelude-ty">Option</span>&lt;i64&gt;,
 }
 
 <span class="doccomment">/// Statistics of collected memory metrics.
@@ -301,44 +300,14 @@
 	</span><span class="kw">pub </span>allocated: u64,
 }
 
-<span class="doccomment">/// Gets the `ru_maxrss` for the current thread if the OS supports `getrusage`. Otherwise, just
-/// returns `None`.
-</span><span class="kw">pub fn </span>get_max_rss_thread() -&gt; <span class="prelude-ty">Option</span>&lt;io::Result&lt;i64&gt;&gt; {
-	<span class="comment">// `c_long` is either `i32` or `i64` depending on architecture. `i64::from` always works.
-	</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-	</span><span class="kw">let </span>max_rss = <span class="prelude-val">Some</span>(getrusage::getrusage_thread().map(|rusage| i64::from(rusage.ru_maxrss)));
-	<span class="attr">#[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
-	</span><span class="kw">let </span>max_rss = <span class="prelude-val">None</span>;
-	max_rss
-}
-
-<span class="doccomment">/// Helper function to send the memory metrics, if available, to prometheus.
-</span><span class="kw">pub fn </span>observe_memory_metrics(metrics: <span class="kw-2">&amp;</span>Metrics, memory_stats: MemoryStats, pid: u32) {
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(max_rss) = memory_stats.max_rss {
-		<span class="kw">match </span>max_rss {
-			<span class="prelude-val">Ok</span>(max_rss) =&gt; metrics.observe_preparation_max_rss(max_rss <span class="kw">as </span>f64),
-			<span class="prelude-val">Err</span>(err) =&gt; <span class="macro">gum::warn!</span>(
-				target: LOG_TARGET,
-				worker_pid = %pid,
-				<span class="string">&quot;error getting `ru_maxrss` in preparation thread: {}&quot;</span>,
-				err
-			),
-		}
-	}
-
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(tracker_stats) = memory_stats.memory_tracker_stats {
-		<span class="comment">// We convert these stats from B to KB to match the unit of `ru_maxrss` from `getrusage`.
-		</span><span class="kw">let </span>resident_kb = (tracker_stats.resident / <span class="number">1024</span>) <span class="kw">as </span>f64;
-		<span class="kw">let </span>allocated_kb = (tracker_stats.allocated / <span class="number">1024</span>) <span class="kw">as </span>f64;
-
-		metrics.observe_preparation_max_resident(resident_kb);
-		metrics.observe_preparation_max_allocated(allocated_kb);
-	}
-}
-
-<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
+<span class="doccomment">/// Module for the memory tracker. The memory tracker runs in its own thread, where it polls memory
+/// usage at an interval.
+///
+/// NOTE: Requires jemalloc enabled.
+</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, feature = <span class="string">&quot;jemalloc-allocator&quot;</span>))]
 </span><span class="kw">pub mod </span>memory_tracker {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::LOG_TARGET;
 	<span class="kw">use </span>std::{
 		sync::mpsc::{Receiver, RecvTimeoutError, Sender},
 		time::Duration,
@@ -433,13 +402,15 @@
 	</span><span class="kw">pub async fn </span>get_memory_tracker_loop_stats(
 		fut: JoinHandle&lt;<span class="prelude-ty">Result</span>&lt;MemoryAllocationStats, String&gt;&gt;,
 		tx: Sender&lt;()&gt;,
+		worker_pid: u32,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;MemoryAllocationStats&gt; {
 		<span class="comment">// Signal to the memory tracker thread to terminate.
 		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = tx.send(()) {
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
-				worker_pid = %std::process::id(),
-				<span class="string">&quot;worker: error sending signal to memory tracker_thread: {}&quot;</span>, err
+				%worker_pid,
+				<span class="string">&quot;worker: error sending signal to memory tracker_thread: {}&quot;</span>,
+				err
 			);
 			<span class="prelude-val">None
 		</span>} <span class="kw">else </span>{
@@ -449,7 +420,7 @@
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) =&gt; {
 					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
-						worker_pid = %std::process::id(),
+						%worker_pid,
 						<span class="string">&quot;worker: error occurred in the memory tracker thread: {}&quot;</span>, err
 					);
 					<span class="prelude-val">None
@@ -457,7 +428,7 @@
 				<span class="prelude-val">Err</span>(err) =&gt; {
 					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
-						worker_pid = %std::process::id(),
+						%worker_pid,
 						<span class="string">&quot;worker: error joining on memory tracker thread: {}&quot;</span>, err
 					);
 					<span class="prelude-val">None
@@ -467,13 +438,19 @@
 	}
 }
 
-<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-</span><span class="kw">mod </span>getrusage {
+<span class="doccomment">/// Module for dealing with the `ru_maxrss` (peak resident memory) stat from `getrusage`.
+///
+/// NOTE: `getrusage` with the `RUSAGE_THREAD` parameter is only supported on Linux. `RUSAGE_SELF`
+/// works on MacOS, but we need to get the max rss only for the preparation thread. Gettng it for
+/// the current process would conflate the stats of previous jobs run by the process.
+</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+</span><span class="kw">pub mod </span>max_rss_stat {
+	<span class="kw">use </span><span class="kw">crate</span>::LOG_TARGET;
 	<span class="kw">use </span>libc::{getrusage, rusage, timeval, RUSAGE_THREAD};
 	<span class="kw">use </span>std::io;
 
 	<span class="doccomment">/// Get the rusage stats for the current thread.
-	</span><span class="kw">pub fn </span>getrusage_thread() -&gt; io::Result&lt;rusage&gt; {
+	</span><span class="kw">fn </span>getrusage_thread() -&gt; io::Result&lt;rusage&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>result = rusage {
 			ru_utime: timeval { tv_sec: <span class="number">0</span>, tv_usec: <span class="number">0 </span>},
 			ru_stime: timeval { tv_sec: <span class="number">0</span>, tv_usec: <span class="number">0 </span>},
@@ -496,6 +473,27 @@
 			<span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::last_os_error())
 		}
 		<span class="prelude-val">Ok</span>(result)
+	}
+
+	<span class="doccomment">/// Gets the `ru_maxrss` for the current thread.
+	</span><span class="kw">pub fn </span>get_max_rss_thread() -&gt; io::Result&lt;i64&gt; {
+		<span class="comment">// `c_long` is either `i32` or `i64` depending on architecture. `i64::from` always works.
+		</span>getrusage_thread().map(|rusage| i64::from(rusage.ru_maxrss))
+	}
+
+	<span class="doccomment">/// Extracts the max_rss stat and logs any error.
+	</span><span class="kw">pub fn </span>extract_max_rss_stat(max_rss: io::Result&lt;i64&gt;, worker_pid: u32) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
+		max_rss
+			.map_err(|err| {
+				<span class="macro">gum::warn!</span>(
+					target: LOG_TARGET,
+					%worker_pid,
+					<span class="string">&quot;error getting `ru_maxrss` in preparation thread: {}&quot;</span>,
+					err
+				);
+				err
+			})
+			.ok()
 	}
 }
 </code></pre></div>

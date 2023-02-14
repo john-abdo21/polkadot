@@ -291,7 +291,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use crate</span>::{error::PrepareError, host::PrepareResultSender};
+</span><span class="kw">use crate</span>::{error::PrepareError, host::PrepareResultSender, prepare::PrepareStats};
 <span class="kw">use </span>always_assert::always;
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationCodeHash;
 <span class="kw">use </span>std::{
@@ -378,8 +378,8 @@
 		/// This is updated when we get the heads up for this artifact or when we just discover
 		/// this file.
 		</span>last_time_needed: SystemTime,
-		<span class="doccomment">/// The CPU time that was taken preparing this artifact.
-		</span>cpu_time_elapsed: Duration,
+		<span class="doccomment">/// Stats produced by successful preparation.
+		</span>prepare_stats: PrepareStats,
 	},
 	<span class="doccomment">/// A task to prepare this artifact is scheduled.
 	</span>Preparing {
@@ -454,12 +454,12 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		artifact_id: ArtifactId,
 		last_time_needed: SystemTime,
-		cpu_time_elapsed: Duration,
+		prepare_stats: PrepareStats,
 	) {
 		<span class="comment">// See the precondition.
 		</span><span class="macro">always!</span>(<span class="self">self
 			</span>.artifacts
-			.insert(artifact_id, ArtifactState::Prepared { last_time_needed, cpu_time_elapsed })
+			.insert(artifact_id, ArtifactState::Prepared { last_time_needed, prepare_stats })
 			.is_none());
 	}
 

@@ -808,6 +808,7 @@
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1305,6 +1306,7 @@
 	<span class="kw">use crate</span>::{
 		error::PrepareError,
 		host::{LENIENT_PREPARATION_TIMEOUT, PRECHECK_PREPARATION_TIMEOUT},
+		prepare::PrepareStats,
 	};
 	<span class="kw">use </span>assert_matches::assert_matches;
 	<span class="kw">use </span>futures::{future::BoxFuture, FutureExt};
@@ -1432,7 +1434,7 @@
 		test.send_from_pool(pool::FromPool::Concluded {
 			worker: w,
 			rip: <span class="bool-val">false</span>,
-			result: <span class="prelude-val">Ok</span>(Duration::default()),
+			result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 		});
 
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
@@ -1470,7 +1472,7 @@
 		test.send_from_pool(pool::FromPool::Concluded {
 			worker: w1,
 			rip: <span class="bool-val">false</span>,
-			result: <span class="prelude-val">Ok</span>(Duration::default()),
+			result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 		});
 
 		<span class="macro">assert_matches!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::StartWork { .. });
@@ -1520,7 +1522,7 @@
 		</span>test.send_from_pool(pool::FromPool::Concluded {
 			worker: w1,
 			rip: <span class="bool-val">false</span>,
-			result: <span class="prelude-val">Ok</span>(Duration::default()),
+			result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Kill(w1));
 	}
@@ -1556,7 +1558,7 @@
 		</span>test.send_from_pool(pool::FromPool::Concluded {
 			worker: w1,
 			rip: <span class="bool-val">true</span>,
-			result: <span class="prelude-val">Ok</span>(Duration::default()),
+			result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 		});
 
 		<span class="comment">// Since there is still work, the queue requested one extra worker to spawn to handle the

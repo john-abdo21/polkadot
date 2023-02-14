@@ -1640,6 +1640,10 @@
 <a href="#1640" id="1640">1640</a>
 <a href="#1641" id="1641">1641</a>
 <a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2098,9 +2102,9 @@
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
 		<span class="kw">match </span>state {
-			ArtifactState::Prepared { last_time_needed, cpu_time_elapsed } =&gt; {
+			ArtifactState::Prepared { last_time_needed, prepare_stats } =&gt; {
 				<span class="kw-2">*</span>last_time_needed = SystemTime::now();
-				<span class="kw">let _ </span>= result_sender.send(<span class="prelude-val">Ok</span>(<span class="kw-2">*</span>cpu_time_elapsed));
+				<span class="kw">let _ </span>= result_sender.send(<span class="prelude-val">Ok</span>(prepare_stats.clone()));
 			},
 			ArtifactState::Preparing { waiting_for_response, num_failures: <span class="kw">_ </span>} =&gt;
 				waiting_for_response.push(result_sender),
@@ -2367,8 +2371,8 @@
 	}
 
 	<span class="kw-2">*</span>state = <span class="kw">match </span>result {
-		<span class="prelude-val">Ok</span>(cpu_time_elapsed) =&gt;
-			ArtifactState::Prepared { last_time_needed: SystemTime::now(), cpu_time_elapsed },
+		<span class="prelude-val">Ok</span>(prepare_stats) =&gt;
+			ArtifactState::Prepared { last_time_needed: SystemTime::now(), prepare_stats },
 		<span class="prelude-val">Err</span>(error) =&gt; {
 			<span class="kw">let </span>last_time_failed = SystemTime::now();
 			<span class="kw">let </span>num_failures = <span class="kw-2">*</span>num_failures + <span class="number">1</span>;
@@ -2476,7 +2480,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use crate</span>::{InvalidCandidate, PrepareError};
+	<span class="kw">use crate</span>::{prepare::PrepareStats, InvalidCandidate, PrepareError};
 	<span class="kw">use </span>assert_matches::assert_matches;
 	<span class="kw">use </span>futures::future::BoxFuture;
 
@@ -2698,8 +2702,12 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::default();
 		builder.cleanup_pulse_interval = Duration::from_millis(<span class="number">100</span>);
 		builder.artifact_ttl = Duration::from_millis(<span class="number">500</span>);
-		builder.artifacts.insert_prepared(artifact_id(<span class="number">1</span>), mock_now, Duration::default());
-		builder.artifacts.insert_prepared(artifact_id(<span class="number">2</span>), mock_now, Duration::default());
+		builder
+			.artifacts
+			.insert_prepared(artifact_id(<span class="number">1</span>), mock_now, PrepareStats::default());
+		builder
+			.artifacts
+			.insert_prepared(artifact_id(<span class="number">2</span>), mock_now, PrepareStats::default());
 		<span class="kw">let </span><span class="kw-2">mut </span>test = builder.build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
@@ -2771,7 +2779,7 @@
 		test.from_prepare_queue_tx
 			.send(prepare::FromQueue {
 				artifact_id: artifact_id(<span class="number">1</span>),
-				result: <span class="prelude-val">Ok</span>(Duration::default()),
+				result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 			})
 			.<span class="kw">await
 			</span>.unwrap();
@@ -2787,7 +2795,7 @@
 		test.from_prepare_queue_tx
 			.send(prepare::FromQueue {
 				artifact_id: artifact_id(<span class="number">2</span>),
-				result: <span class="prelude-val">Ok</span>(Duration::default()),
+				result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 			})
 			.<span class="kw">await
 			</span>.unwrap();
@@ -2839,7 +2847,7 @@
 		</span>test.from_prepare_queue_tx
 			.send(prepare::FromQueue {
 				artifact_id: artifact_id(<span class="number">1</span>),
-				result: <span class="prelude-val">Ok</span>(Duration::default()),
+				result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 			})
 			.<span class="kw">await
 			</span>.unwrap();
@@ -2946,7 +2954,7 @@
 		test.from_prepare_queue_tx
 			.send(prepare::FromQueue {
 				artifact_id: artifact_id(<span class="number">2</span>),
-				result: <span class="prelude-val">Ok</span>(Duration::default()),
+				result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 			})
 			.<span class="kw">await
 			</span>.unwrap();
@@ -3096,7 +3104,7 @@
 		test.from_prepare_queue_tx
 			.send(prepare::FromQueue {
 				artifact_id: artifact_id(<span class="number">1</span>),
-				result: <span class="prelude-val">Ok</span>(Duration::default()),
+				result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 			})
 			.<span class="kw">await
 			</span>.unwrap();
@@ -3272,7 +3280,7 @@
 		test.from_prepare_queue_tx
 			.send(prepare::FromQueue {
 				artifact_id: artifact_id(<span class="number">1</span>),
-				result: <span class="prelude-val">Ok</span>(Duration::default()),
+				result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 			})
 			.<span class="kw">await
 			</span>.unwrap();
