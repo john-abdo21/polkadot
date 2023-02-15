@@ -828,6 +828,11 @@
 <a href="#828" id="828">828</a>
 <a href="#829" id="829">829</a>
 <a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -869,11 +874,11 @@
 	SignedDisputeStatement, SignedFullStatement, ValidationResult,
 };
 <span class="kw">use </span>polkadot_primitives::{
-	AuthorityDiscoveryId, BackedCandidate, BlockNumber, CandidateEvent, CandidateHash,
-	CandidateIndex, CandidateReceipt, CollatorId, CommittedCandidateReceipt, CoreState,
-	DisputeState, GroupIndex, GroupRotationInfo, Hash, Header <span class="kw">as </span>BlockHeader, Id <span class="kw">as </span>ParaId,
-	InboundDownwardMessage, InboundHrmpMessage, MultiDisputeStatementSet, OccupiedCoreAssumption,
-	PersistedValidationData, PvfCheckStatement, SessionIndex, SessionInfo,
+	vstaging::ExecutorParams, AuthorityDiscoveryId, BackedCandidate, BlockNumber, CandidateEvent,
+	CandidateHash, CandidateIndex, CandidateReceipt, CollatorId, CommittedCandidateReceipt,
+	CoreState, DisputeState, GroupIndex, GroupRotationInfo, Hash, Header <span class="kw">as </span>BlockHeader,
+	Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, MultiDisputeStatementSet,
+	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, SessionIndex, SessionInfo,
 	SignedAvailabilityBitfield, SignedAvailabilityBitfields, ValidationCode, ValidationCodeHash,
 	ValidatorId, ValidatorIndex, ValidatorSignature,
 };
@@ -1404,6 +1409,8 @@
 	<span class="doccomment">/// Get all events concerning candidates (backing, inclusion, time-out) in the parent of
 	/// the block in whose state this request is executed.
 	</span>CandidateEvents(RuntimeApiSender&lt;Vec&lt;CandidateEvent&gt;&gt;),
+	<span class="doccomment">/// Get the execution environment parameter set by session index
+	</span>SessionExecutorParams(SessionIndex, RuntimeApiSender&lt;<span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;&gt;),
 	<span class="doccomment">/// Get the session info for the given session, if stored.
 	</span>SessionInfo(SessionIndex, RuntimeApiSender&lt;<span class="prelude-ty">Option</span>&lt;SessionInfo&gt;&gt;),
 	<span class="doccomment">/// Get all the pending inbound messages in the downward message queue for a para.
@@ -1438,6 +1445,9 @@
 
 	/// `Disputes`
 	</span><span class="kw">pub const </span>DISPUTES_RUNTIME_REQUIREMENT: u32 = <span class="number">3</span>;
+
+	<span class="doccomment">/// `ExecutorParams`
+	</span><span class="kw">pub const </span>EXECUTOR_PARAMS_RUNTIME_REQUIREMENT: u32 = <span class="number">4</span>;
 }
 
 <span class="doccomment">/// A message to the Runtime API subsystem.

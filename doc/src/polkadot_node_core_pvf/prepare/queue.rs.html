@@ -809,6 +809,39 @@
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
 <a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -828,7 +861,10 @@
 </span><span class="doccomment">//! A queue that handles requests for PVF preparation.
 
 </span><span class="kw">use </span><span class="kw">super</span>::pool::{<span class="self">self</span>, Worker};
-<span class="kw">use crate</span>::{artifacts::ArtifactId, metrics::Metrics, PrepareResult, Priority, Pvf, LOG_TARGET};
+<span class="kw">use crate</span>::{
+	artifacts::ArtifactId, metrics::Metrics, PrepareResult, Priority, PvfWithExecutorParams,
+	LOG_TARGET,
+};
 <span class="kw">use </span>always_assert::{always, never};
 <span class="kw">use </span>futures::{channel::mpsc, stream::StreamExt <span class="kw">as _</span>, Future, SinkExt};
 <span class="kw">use </span>std::{
@@ -844,7 +880,11 @@
 	///
 	/// Note that it is incorrect to enqueue the same PVF again without first receiving the
 	/// [`FromQueue`] response.
-	</span>Enqueue { priority: Priority, pvf: Pvf, preparation_timeout: Duration },
+	</span>Enqueue {
+		priority: Priority,
+		pvf_with_params: PvfWithExecutorParams,
+		preparation_timeout: Duration,
+	},
 }
 
 <span class="doccomment">/// A response from queue.
@@ -889,7 +929,7 @@
 <span class="kw">struct </span>JobData {
 	<span class="doccomment">/// The priority of this job. Can be bumped.
 	</span>priority: Priority,
-	pvf: Pvf,
+	pvf_with_params: PvfWithExecutorParams,
 	<span class="doccomment">/// The timeout for the preparation job.
 	</span>preparation_timeout: Duration,
 	worker: <span class="prelude-ty">Option</span>&lt;Worker&gt;,
@@ -1019,8 +1059,8 @@
 
 <span class="kw">async fn </span>handle_to_queue(queue: <span class="kw-2">&amp;mut </span>Queue, to_queue: ToQueue) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">match </span>to_queue {
-		ToQueue::Enqueue { priority, pvf, preparation_timeout } =&gt; {
-			handle_enqueue(queue, priority, pvf, preparation_timeout).<span class="kw">await</span><span class="question-mark">?</span>;
+		ToQueue::Enqueue { priority, pvf_with_params, preparation_timeout } =&gt; {
+			handle_enqueue(queue, priority, pvf_with_params, preparation_timeout).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
 	}
 	<span class="prelude-val">Ok</span>(())
@@ -1029,19 +1069,19 @@
 <span class="kw">async fn </span>handle_enqueue(
 	queue: <span class="kw-2">&amp;mut </span>Queue,
 	priority: Priority,
-	pvf: Pvf,
+	pvf_with_params: PvfWithExecutorParams,
 	preparation_timeout: Duration,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="macro">gum::debug!</span>(
 		target: LOG_TARGET,
-		validation_code_hash = <span class="question-mark">?</span>pvf.code_hash,
+		validation_code_hash = <span class="question-mark">?</span>pvf_with_params.code_hash(),
 		<span class="question-mark">?</span>priority,
 		<span class="question-mark">?</span>preparation_timeout,
 		<span class="string">&quot;PVF is enqueued for preparation.&quot;</span>,
 	);
 	queue.metrics.prepare_enqueued();
 
-	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_id = pvf_with_params.as_artifact_id();
 	<span class="kw">if </span><span class="macro">never!</span>(
 		queue.artifact_id_to_job.contains_key(<span class="kw-2">&amp;</span>artifact_id),
 		<span class="string">&quot;second Enqueue sent for a known artifact&quot;
@@ -1058,7 +1098,10 @@
 		<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">let </span>job = queue.jobs.insert(JobData { priority, pvf, preparation_timeout, worker: <span class="prelude-val">None </span>});
+	<span class="kw">let </span>job =
+		queue
+			.jobs
+			.insert(JobData { priority, pvf_with_params, preparation_timeout, worker: <span class="prelude-val">None </span>});
 	queue.artifact_id_to_job.insert(artifact_id, job);
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(available) = find_idle_worker(queue) {
@@ -1149,7 +1192,7 @@
 	// this can&#39;t be None;
 	// qed.
 	</span><span class="kw">let </span>job_data = <span class="macro">never_none!</span>(queue.jobs.remove(job));
-	<span class="kw">let </span>artifact_id = job_data.pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_id = job_data.pvf_with_params.as_artifact_id();
 
 	queue.artifact_id_to_job.remove(<span class="kw-2">&amp;</span>artifact_id);
 
@@ -1235,7 +1278,7 @@
 </span><span class="kw">async fn </span>assign(queue: <span class="kw-2">&amp;mut </span>Queue, worker: Worker, job: Job) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">let </span>job_data = <span class="kw-2">&amp;mut </span>queue.jobs[job];
 
-	<span class="kw">let </span>artifact_id = job_data.pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_id = job_data.pvf_with_params.as_artifact_id();
 	<span class="kw">let </span>artifact_path = artifact_id.path(<span class="kw-2">&amp;</span>queue.cache_path);
 
 	job_data.worker = <span class="prelude-val">Some</span>(worker);
@@ -1246,8 +1289,9 @@
 		<span class="kw-2">&amp;mut </span>queue.to_pool_tx,
 		pool::ToPool::StartWork {
 			worker,
-			code: job_data.pvf.code.clone(),
+			code: job_data.pvf_with_params.code(),
 			artifact_path,
+			executor_params: job_data.pvf_with_params.executor_params(),
 			preparation_timeout: job_data.preparation_timeout,
 		},
 	)
@@ -1314,8 +1358,8 @@
 	<span class="kw">use </span>std::task::Poll;
 
 	<span class="doccomment">/// Creates a new PVF which artifact id can be uniquely identified by the given number.
-	</span><span class="kw">fn </span>pvf(descriminator: u32) -&gt; Pvf {
-		Pvf::from_discriminator(descriminator)
+	</span><span class="kw">fn </span>pvf_with_params(descriminator: u32) -&gt; PvfWithExecutorParams {
+		PvfWithExecutorParams::from_discriminator(descriminator)
 	}
 
 	<span class="kw">async fn </span>run_until&lt;R&gt;(
@@ -1424,7 +1468,7 @@
 
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
-			pvf: pvf(<span class="number">1</span>),
+			pvf_with_params: pvf_with_params(<span class="number">1</span>),
 			preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1437,7 +1481,10 @@
 			result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 		});
 
-		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
+		<span class="macro">assert_eq!</span>(
+			test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id,
+			pvf_with_params(<span class="number">1</span>).as_artifact_id()
+		);
 	}
 
 	<span class="attr">#[tokio::test]
@@ -1446,12 +1493,20 @@
 
 		<span class="kw">let </span>priority = Priority::Normal;
 		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), preparation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), preparation_timeout });
+		test.send_queue(ToQueue::Enqueue {
+			priority,
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			preparation_timeout,
+		});
+		test.send_queue(ToQueue::Enqueue {
+			priority,
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">2</span>),
+			preparation_timeout,
+		});
 		<span class="comment">// Start a non-precheck preparation for this one.
 		</span>test.send_queue(ToQueue::Enqueue {
 			priority,
-			pvf: pvf(<span class="number">3</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">3</span>),
 			preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
 		});
 
@@ -1480,7 +1535,7 @@
 		<span class="comment">// Enqueue a critical job.
 		</span>test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Critical,
-			pvf: pvf(<span class="number">4</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">4</span>),
 			preparation_timeout,
 		});
 
@@ -1496,7 +1551,7 @@
 
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
-			pvf: pvf(<span class="number">1</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
 			preparation_timeout,
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1507,7 +1562,7 @@
 		<span class="comment">// Enqueue a critical job, which warrants spawning over the soft limit.
 		</span>test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Critical,
-			pvf: pvf(<span class="number">2</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">2</span>),
 			preparation_timeout,
 		});
 		<span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
@@ -1533,12 +1588,20 @@
 
 		<span class="kw">let </span>priority = Priority::Normal;
 		<span class="kw">let </span>preparation_timeout = PRECHECK_PREPARATION_TIMEOUT;
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">1</span>), preparation_timeout });
-		test.send_queue(ToQueue::Enqueue { priority, pvf: pvf(<span class="number">2</span>), preparation_timeout });
+		test.send_queue(ToQueue::Enqueue {
+			priority,
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			preparation_timeout,
+		});
+		test.send_queue(ToQueue::Enqueue {
+			priority,
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">2</span>),
+			preparation_timeout,
+		});
 		<span class="comment">// Start a non-precheck preparation for this one.
 		</span>test.send_queue(ToQueue::Enqueue {
 			priority,
-			pvf: pvf(<span class="number">3</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">3</span>),
 			preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
 		});
 
@@ -1564,7 +1627,10 @@
 		<span class="comment">// Since there is still work, the queue requested one extra worker to spawn to handle the
 		// remaining enqueued work items.
 		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
-		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
+		<span class="macro">assert_eq!</span>(
+			test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id,
+			pvf_with_params(<span class="number">1</span>).as_artifact_id()
+		);
 	}
 
 	<span class="attr">#[tokio::test]
@@ -1573,7 +1639,7 @@
 
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
-			pvf: pvf(<span class="number">1</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
 			preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
 		});
 
@@ -1598,7 +1664,7 @@
 
 		test.send_queue(ToQueue::Enqueue {
 			priority: Priority::Normal,
-			pvf: pvf(<span class="number">1</span>),
+			pvf_with_params: PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
 			preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
 		});
 

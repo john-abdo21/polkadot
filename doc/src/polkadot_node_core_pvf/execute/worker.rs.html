@@ -315,6 +315,46 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -345,7 +385,9 @@
 <span class="kw">use </span>futures::{pin_mut, select_biased, FutureExt};
 <span class="kw">use </span>futures_timer::Delay;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
+<span class="kw">use </span>polkadot_primitives::vstaging::ExecutorParams;
 <span class="kw">use </span>std::{
 	path::{Path, PathBuf},
 	sync::{mpsc::channel, Arc},
@@ -354,14 +396,30 @@
 <span class="kw">use </span>tokio::{io, net::UnixStream};
 
 <span class="doccomment">/// Spawns a new worker with the given program path that acts as the worker and the spawn timeout.
+/// Sends a handshake message to the worker as soon as it is spawned.
 ///
 /// The program should be able to handle `&lt;program-path&gt; execute-worker &lt;socket-path&gt;` invocation.
 </span><span class="kw">pub async fn </span>spawn(
 	program_path: <span class="kw-2">&amp;</span>Path,
+	executor_params: ExecutorParams,
 	spawn_timeout: Duration,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(IdleWorker, WorkerHandle), SpawnErr&gt; {
-	spawn_with_program_path(<span class="string">&quot;execute&quot;</span>, program_path, <span class="kw-2">&amp;</span>[<span class="string">&quot;execute-worker&quot;</span>], spawn_timeout).<span class="kw">await
-</span>}
+	<span class="kw">let </span>(<span class="kw-2">mut </span>idle_worker, worker_handle) =
+		spawn_with_program_path(<span class="string">&quot;execute&quot;</span>, program_path, <span class="kw-2">&amp;</span>[<span class="string">&quot;execute-worker&quot;</span>], spawn_timeout)
+			.<span class="kw">await</span><span class="question-mark">?</span>;
+	send_handshake(<span class="kw-2">&amp;mut </span>idle_worker.stream, Handshake { executor_params })
+		.<span class="kw">await
+		</span>.map_err(|error| {
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				worker_pid = %idle_worker.pid,
+				<span class="question-mark">?</span>error,
+				<span class="string">&quot;failed to send a handshake to the spawned worker&quot;</span>,
+			);
+			SpawnErr::Handshake
+		})<span class="question-mark">?</span>;
+	<span class="prelude-val">Ok</span>((idle_worker, worker_handle))
+}
 
 <span class="doccomment">/// Outcome of PVF execution.
 </span><span class="kw">pub enum </span>Outcome {
@@ -476,6 +534,21 @@
 	}
 }
 
+<span class="kw">async fn </span>send_handshake(stream: <span class="kw-2">&amp;mut </span>UnixStream, handshake: Handshake) -&gt; io::Result&lt;()&gt; {
+	framed_send(stream, <span class="kw-2">&amp;</span>handshake.encode()).<span class="kw">await
+</span>}
+
+<span class="kw">async fn </span>recv_handshake(stream: <span class="kw-2">&amp;mut </span>UnixStream) -&gt; io::Result&lt;Handshake&gt; {
+	<span class="kw">let </span>handshake_enc = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">let </span>handshake = Handshake::decode(<span class="kw-2">&amp;mut &amp;</span>handshake_enc[..]).map_err(|<span class="kw">_</span>| {
+		io::Error::new(
+			io::ErrorKind::Other,
+			<span class="string">&quot;execute pvf recv_handshake: failed to decode Handshake&quot;</span>.to_owned(),
+		)
+	})<span class="question-mark">?</span>;
+	<span class="prelude-val">Ok</span>(handshake)
+}
+
 <span class="kw">async fn </span>send_request(
 	stream: <span class="kw-2">&amp;mut </span>UnixStream,
 	artifact_path: <span class="kw-2">&amp;</span>Path,
@@ -521,6 +594,11 @@
 }
 
 <span class="attr">#[derive(Encode, Decode)]
+</span><span class="kw">struct </span>Handshake {
+	executor_params: ExecutorParams,
+}
+
+<span class="attr">#[derive(Encode, Decode)]
 </span><span class="kw">pub enum </span>Response {
 	<span class="prelude-val">Ok </span>{ result_descriptor: ValidationResult, duration: Duration },
 	InvalidCandidate(String),
@@ -542,7 +620,9 @@
 /// the path to the socket used to communicate with the host.
 </span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str) {
 	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
-		<span class="kw">let </span>executor = Arc::new(Executor::new().map_err(|e| {
+		<span class="kw">let </span>handshake = recv_handshake(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
+
+		<span class="kw">let </span>executor = Arc::new(Executor::new(handshake.executor_params).map_err(|e| {
 			io::Error::new(io::ErrorKind::Other, <span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, e))
 		})<span class="question-mark">?</span>);
 

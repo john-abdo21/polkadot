@@ -405,6 +405,25 @@
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -427,11 +446,12 @@
 <span class="kw">use </span>sp_consensus_babe::Epoch;
 
 <span class="kw">use </span>polkadot_primitives::{
-	AuthorityDiscoveryId, BlockNumber, CandidateCommitments, CandidateEvent, CandidateHash,
-	CommittedCandidateReceipt, CoreState, DisputeState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId,
-	InboundDownwardMessage, InboundHrmpMessage, OccupiedCoreAssumption, PersistedValidationData,
-	PvfCheckStatement, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidationCode,
-	ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
+	vstaging::ExecutorParams, AuthorityDiscoveryId, BlockNumber, CandidateCommitments,
+	CandidateEvent, CandidateHash, CommittedCandidateReceipt, CoreState, DisputeState,
+	GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage,
+	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes,
+	SessionIndex, SessionInfo, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
+	ValidatorSignature,
 };
 
 <span class="doccomment">/// For consistency we have the same capacity for all caches. We use 128 as we&#39;ll only need that
@@ -458,6 +478,7 @@
 	validation_code_by_hash: LruCache&lt;ValidationCodeHash, <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;&gt;,
 	candidate_pending_availability: LruCache&lt;(Hash, ParaId), <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;&gt;,
 	candidate_events: LruCache&lt;Hash, Vec&lt;CandidateEvent&gt;&gt;,
+	session_executor_params: LruCache&lt;SessionIndex, <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;&gt;,
 	session_info: LruCache&lt;SessionIndex, SessionInfo&gt;,
 	dmq_contents: LruCache&lt;(Hash, ParaId), Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;&gt;,
 	inbound_hrmp_channels_contents:
@@ -486,6 +507,7 @@
 			validation_code_by_hash: LruCache::new(DEFAULT_CACHE_CAP),
 			candidate_pending_availability: LruCache::new(DEFAULT_CACHE_CAP),
 			candidate_events: LruCache::new(DEFAULT_CACHE_CAP),
+			session_executor_params: LruCache::new(DEFAULT_CACHE_CAP),
 			session_info: LruCache::new(DEFAULT_CACHE_CAP),
 			dmq_contents: LruCache::new(DEFAULT_CACHE_CAP),
 			inbound_hrmp_channels_contents: LruCache::new(DEFAULT_CACHE_CAP),
@@ -670,6 +692,21 @@
 		<span class="self">self</span>.session_info.put(key, value);
 	}
 
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>session_executor_params(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		session_index: SessionIndex,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;&gt; {
+		<span class="self">self</span>.session_executor_params.get(<span class="kw-2">&amp;</span>session_index)
+	}
+
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>cache_session_executor_params(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		session_index: SessionIndex,
+		value: <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;,
+	) {
+		<span class="self">self</span>.session_executor_params.put(session_index, value);
+	}
+
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		key: (Hash, ParaId),
@@ -796,6 +833,7 @@
 	ValidationCodeByHash(Hash, ValidationCodeHash, <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;),
 	CandidatePendingAvailability(Hash, ParaId, <span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&gt;),
 	CandidateEvents(Hash, Vec&lt;CandidateEvent&gt;),
+	SessionExecutorParams(Hash, SessionIndex, <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;),
 	SessionInfo(Hash, SessionIndex, <span class="prelude-ty">Option</span>&lt;SessionInfo&gt;),
 	DmqContents(Hash, ParaId, Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;),
 	InboundHrmpChannelsContents(

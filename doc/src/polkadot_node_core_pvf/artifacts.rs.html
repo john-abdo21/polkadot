@@ -275,6 +275,14 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -294,6 +302,7 @@
 </span><span class="kw">use crate</span>::{error::PrepareError, host::PrepareResultSender, prepare::PrepareStats};
 <span class="kw">use </span>always_assert::always;
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationCodeHash;
+<span class="kw">use </span>polkadot_primitives::vstaging::ExecutorParamsHash;
 <span class="kw">use </span>std::{
 	collections::HashMap,
 	path::{Path, PathBuf},
@@ -314,19 +323,19 @@
 	}
 }
 
-<span class="doccomment">/// Identifier of an artifact. Right now it only encodes a code hash of the PVF. But if we get to
-/// multiple engine implementations the artifact ID should include the engine type as well.
+<span class="doccomment">/// Identifier of an artifact. Encodes a code hash of the PVF and a hash of executor parameter set.
 </span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub struct </span>ArtifactId {
 	<span class="kw">pub</span>(<span class="kw">crate</span>) code_hash: ValidationCodeHash,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) executor_params_hash: ExecutorParamsHash,
 }
 
 <span class="kw">impl </span>ArtifactId {
 	<span class="kw">const </span>PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;wasmtime_&quot;</span>;
 
 	<span class="doccomment">/// Creates a new artifact ID with the given hash.
-	</span><span class="kw">pub fn </span>new(code_hash: ValidationCodeHash) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ code_hash }
+	</span><span class="kw">pub fn </span>new(code_hash: ValidationCodeHash, executor_params_hash: ExecutorParamsHash) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ code_hash, executor_params_hash }
 	}
 
 	<span class="doccomment">/// Tries to recover the artifact id from the given file name.
@@ -336,14 +345,18 @@
 		<span class="kw">use </span>std::str::FromStr <span class="kw">as _</span>;
 
 		<span class="kw">let </span>file_name = file_name.strip_prefix(<span class="self">Self</span>::PREFIX)<span class="question-mark">?</span>;
-		<span class="kw">let </span>code_hash = Hash::from_str(file_name).ok()<span class="question-mark">?</span>.into();
+		<span class="kw">let </span>(code_hash_str, executor_params_hash_str) = file_name.split_once(<span class="string">&#39;_&#39;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>code_hash = Hash::from_str(code_hash_str).ok()<span class="question-mark">?</span>.into();
+		<span class="kw">let </span>executor_params_hash =
+			ExecutorParamsHash::from_hash(Hash::from_str(executor_params_hash_str).ok()<span class="question-mark">?</span>);
 
-		<span class="prelude-val">Some</span>(<span class="self">Self </span>{ code_hash })
+		<span class="prelude-val">Some</span>(<span class="self">Self </span>{ code_hash, executor_params_hash })
 	}
 
 	<span class="doccomment">/// Returns the expected path to this artifact given the root of the cache.
 	</span><span class="kw">pub fn </span>path(<span class="kw-2">&amp;</span><span class="self">self</span>, cache_path: <span class="kw-2">&amp;</span>Path) -&gt; PathBuf {
-		<span class="kw">let </span>file_name = <span class="macro">format!</span>(<span class="string">&quot;{}{:#x}&quot;</span>, <span class="self">Self</span>::PREFIX, <span class="self">self</span>.code_hash);
+		<span class="kw">let </span>file_name =
+			<span class="macro">format!</span>(<span class="string">&quot;{}{:#x}_{:#x}&quot;</span>, <span class="self">Self</span>::PREFIX, <span class="self">self</span>.code_hash, <span class="self">self</span>.executor_params_hash);
 		cache_path.join(file_name)
 	}
 }
@@ -491,6 +504,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::{ArtifactId, Artifacts};
+	<span class="kw">use </span>polkadot_primitives::vstaging::ExecutorParamsHash;
 	<span class="kw">use </span>sp_core::H256;
 	<span class="kw">use </span>std::{path::Path, str::FromStr};
 
@@ -501,13 +515,16 @@
 
 		<span class="macro">assert_eq!</span>(
 			ArtifactId::from_file_name(
-				<span class="string">&quot;wasmtime_0x0022800000000000000000000000000000000000000000000000000000000000&quot;
+				<span class="string">&quot;wasmtime_0x0022800000000000000000000000000000000000000000000000000000000000_0x0033900000000000000000000000000000000000000000000000000000000000&quot;
 			</span>),
 			<span class="prelude-val">Some</span>(ArtifactId::new(
 				<span class="macro">hex_literal::hex!</span>[
 					<span class="string">&quot;0022800000000000000000000000000000000000000000000000000000000000&quot;
 				</span>]
-				.into()
+				.into(),
+				ExecutorParamsHash::from_hash(sp_core::H256(<span class="macro">hex_literal::hex!</span>[
+					<span class="string">&quot;0033900000000000000000000000000000000000000000000000000000000000&quot;
+				</span>])),
 			)),
 		);
 	}
@@ -517,13 +534,12 @@
 		<span class="kw">let </span>path = Path::new(<span class="string">&quot;/test&quot;</span>);
 		<span class="kw">let </span>hash =
 			H256::from_str(<span class="string">&quot;1234567890123456789012345678901234567890123456789012345678901234&quot;</span>)
-				.unwrap()
-				.into();
+				.unwrap();
 
 		<span class="macro">assert_eq!</span>(
-			ArtifactId::new(hash).path(path).to_str(),
+			ArtifactId::new(hash.into(), ExecutorParamsHash::from_hash(hash)).path(path).to_str(),
 			<span class="prelude-val">Some</span>(
-				<span class="string">&quot;/test/wasmtime_0x1234567890123456789012345678901234567890123456789012345678901234&quot;
+				<span class="string">&quot;/test/wasmtime_0x1234567890123456789012345678901234567890123456789012345678901234_0x1234567890123456789012345678901234567890123456789012345678901234&quot;
 			</span>),
 		);
 	}

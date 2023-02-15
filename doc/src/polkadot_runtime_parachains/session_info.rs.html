@@ -218,6 +218,24 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -247,7 +265,10 @@
 	pallet_prelude::<span class="kw-2">*</span>,
 	traits::{OneSessionHandler, ValidatorSet, ValidatorSetWithIdentification},
 };
-<span class="kw">use </span>primitives::{AssignmentId, AuthorityDiscoveryId, SessionIndex, SessionInfo};
+<span class="kw">use </span>primitives::{
+	vstaging::{ExecutorParam, ExecutorParams},
+	AssignmentId, AuthorityDiscoveryId, SessionIndex, SessionInfo,
+};
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
@@ -256,6 +277,10 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+
+<span class="comment">// The order of parameters should be deterministic, that is, one should not reorder them when
+// changing the array contents to avoid creating excessive pressure to PVF execution subsys.
+</span><span class="kw">const </span>EXECUTOR_PARAMS: [ExecutorParam; <span class="number">0</span>] = [];
 
 <span class="doccomment">/// A type for representing the validator account id in a session.
 </span><span class="kw">pub type </span>AccountId&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::ValidatorSet <span class="kw">as </span>ValidatorSet&lt;
@@ -322,6 +347,12 @@
 	#[pallet::getter(<span class="kw">fn </span>account_keys)]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>AccountKeys&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Identity, SessionIndex, Vec&lt;AccountId&lt;T&gt;&gt;&gt;;
+
+	<span class="doccomment">/// Executor parameter set for a given session index
+	</span><span class="attr">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>session_executor_params)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SessionExecutorParams&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Identity, SessionIndex, ExecutorParams&gt;;
 }
 
 <span class="doccomment">/// An abstraction for the authority discovery pallet
@@ -373,6 +404,7 @@
 				<span class="comment">// Idx will be missing for a few sessions after the runtime upgrade.
 				// But it shouldn&#39;be be a problem.
 				</span>AccountKeys::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>idx);
+				SessionExecutorParams::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>idx);
 			}
 			<span class="comment">// update `EarliestStoredSession` based on `config.dispute_period`
 			</span>EarliestStoredSession::&lt;T&gt;::set(new_earliest_stored_session);
@@ -404,6 +436,10 @@
 			dispute_period,
 		};
 		Sessions::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_session_index, <span class="kw-2">&amp;</span>new_session_info);
+		SessionExecutorParams::&lt;T&gt;::insert(
+			<span class="kw-2">&amp;</span>new_session_index,
+			ExecutorParams::from(<span class="kw-2">&amp;</span>EXECUTOR_PARAMS[..]),
+		);
 	}
 
 	<span class="doccomment">/// Called by the initializer to initialize the session info pallet.

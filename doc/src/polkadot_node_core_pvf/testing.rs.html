@@ -81,6 +81,8 @@
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -102,7 +104,9 @@
 //! N.B. This is not guarded with some feature flag. Overexposing items here may affect the final
 //!      artifact even for production builds.
 
-</span><span class="kw">pub mod </span>worker_common {
+</span><span class="kw">use </span>polkadot_primitives::vstaging::ExecutorParams;
+
+<span class="kw">pub mod </span>worker_common {
 	<span class="kw">pub use </span><span class="kw">crate</span>::worker_common::{spawn_with_program_path, SpawnErr};
 }
 
@@ -118,12 +122,12 @@
 		.expect(<span class="string">&quot;Decompressing code failed&quot;</span>);
 
 	<span class="kw">let </span>blob = prevalidate(<span class="kw-2">&amp;</span>code)<span class="question-mark">?</span>;
-	<span class="kw">let </span>artifact = prepare(blob)<span class="question-mark">?</span>;
+	<span class="kw">let </span>artifact = prepare(blob, ExecutorParams::default())<span class="question-mark">?</span>;
 	<span class="kw">let </span>tmpdir = tempfile::tempdir()<span class="question-mark">?</span>;
 	<span class="kw">let </span>artifact_path = tmpdir.path().join(<span class="string">&quot;blob&quot;</span>);
 	std::fs::write(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>artifact)<span class="question-mark">?</span>;
 
-	<span class="kw">let </span>executor = Executor::new()<span class="question-mark">?</span>;
+	<span class="kw">let </span>executor = Executor::new(ExecutorParams::default())<span class="question-mark">?</span>;
 	<span class="kw">let </span>result = <span class="kw">unsafe </span>{
 		<span class="comment">// SAFETY: This is trivially safe since the artifact is obtained by calling `prepare`
 		//         and is written into a temporary directory in an unmodified state.
