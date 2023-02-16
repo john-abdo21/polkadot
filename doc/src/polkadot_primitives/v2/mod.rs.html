@@ -1881,8 +1881,8 @@
 
 <span class="comment">// Export some polkadot-parachain primitives
 </span><span class="kw">pub use </span>polkadot_parachain::primitives::{
-	HeadData, HrmpChannelId, Id, UpwardMessage, ValidationCode, ValidationCodeHash,
-	LOWEST_PUBLIC_ID, LOWEST_USER_ID,
+	HeadData, HorizontalMessages, HrmpChannelId, Id, UpwardMessage, UpwardMessages, ValidationCode,
+	ValidationCodeHash, LOWEST_PUBLIC_ID, LOWEST_USER_ID,
 };
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
@@ -2431,12 +2431,12 @@
 
 <span class="doccomment">/// Commitments made in a `CandidateReceipt`. Many of these are outputs of validation.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Hash, Default))]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Default, Hash))]
 </span><span class="kw">pub struct </span>CandidateCommitments&lt;N = BlockNumber&gt; {
 	<span class="doccomment">/// Messages destined to be interpreted by the Relay chain itself.
-	</span><span class="kw">pub </span>upward_messages: Vec&lt;UpwardMessage&gt;,
+	</span><span class="kw">pub </span>upward_messages: UpwardMessages,
 	<span class="doccomment">/// Horizontal messages sent by the parachain.
-	</span><span class="kw">pub </span>horizontal_messages: Vec&lt;OutboundHrmpMessage&lt;Id&gt;&gt;,
+	</span><span class="kw">pub </span>horizontal_messages: HorizontalMessages,
 	<span class="doccomment">/// New validation code.
 	</span><span class="kw">pub </span>new_validation_code: <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;,
 	<span class="doccomment">/// The head-data produced as a result of execution.

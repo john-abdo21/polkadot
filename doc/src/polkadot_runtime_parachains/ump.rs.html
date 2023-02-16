@@ -770,8 +770,6 @@
 <a href="#770" id="770">770</a>
 <a href="#771" id="771">771</a>
 <a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -794,6 +792,7 @@
 };
 <span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, traits::EnsureOrigin};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>polkadot_parachain::primitives::UpwardMessages;
 <span class="kw">use </span>primitives::{Id <span class="kw">as </span>ParaId, UpwardMessage};
 <span class="kw">use </span>sp_std::{collections::btree_map::BTreeMap, fmt, marker::PhantomData, mem, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>xcm::latest::Outcome;
@@ -802,7 +801,7 @@
 
 <span class="doccomment">/// Maximum value that `config.max_upward_message_size` can be set to
 ///
-/// This is used for benchmarking sanely bounding relevant storate items. It is expected from the `configurations`
+/// This is used for benchmarking sanely bounding relevant storage items. It is expected from the `configurations`
 /// pallet to check these values before setting.
 </span><span class="kw">pub const </span>MAX_UPWARD_MESSAGE_SIZE_BOUND: u32 = <span class="number">50 </span>* <span class="number">1024</span>;
 <span class="doccomment">/// Maximum amount of overweight messages that can exist in the queue at any given time.
@@ -1244,10 +1243,7 @@
 	}
 
 	<span class="doccomment">/// Enqueues `upward_messages` from a `para`&#39;s accepted candidate block.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>receive_upward_messages(
-		para: ParaId,
-		upward_messages: Vec&lt;UpwardMessage&gt;,
-	) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>receive_upward_messages(para: ParaId, upward_messages: UpwardMessages) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 
 		<span class="kw">if </span>!upward_messages.is_empty() {

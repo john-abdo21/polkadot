@@ -381,6 +381,23 @@
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -402,6 +419,7 @@
 
 </span><span class="kw">use </span>sp_std::vec::Vec;
 
+<span class="kw">use </span>bounded_collections::{BoundedVec, ConstU32};
 <span class="kw">use </span>frame_support::weights::Weight;
 <span class="kw">use </span>parity_scale_codec::{CompactAs, Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
@@ -744,6 +762,22 @@
 	</span><span class="kw">pub </span>relay_parent_storage_root: Hash,
 }
 
+<span class="doccomment">/// Maximum number of HRMP messages allowed per candidate.
+///
+/// We also use this as a generous limit, which still prevents possible memory exhaustion, from
+/// malicious parachains that may otherwise return a huge amount of messages in `ValidationResult`.
+</span><span class="kw">pub const </span>MAX_HORIZONTAL_MESSAGE_NUM: u32 = <span class="number">16 </span>* <span class="number">1024</span>;
+<span class="doccomment">/// Maximum number of UMP messages allowed per candidate.
+///
+/// We also use this as a generous limit, which still prevents possible memory exhaustion, from
+/// malicious parachains that may otherwise return a huge amount of messages in `ValidationResult`.
+</span><span class="kw">pub const </span>MAX_UPWARD_MESSAGE_NUM: u32 = <span class="number">16 </span>* <span class="number">1024</span>;
+
+<span class="kw">pub type </span>UpwardMessages = BoundedVec&lt;UpwardMessage, ConstU32&lt;MAX_UPWARD_MESSAGE_NUM&gt;&gt;;
+
+<span class="kw">pub type </span>HorizontalMessages =
+	BoundedVec&lt;OutboundHrmpMessage&lt;Id&gt;, ConstU32&lt;MAX_HORIZONTAL_MESSAGE_NUM&gt;&gt;;
+
 <span class="doccomment">/// The result of parachain validation.
 </span><span class="comment">// TODO: balance uploads (https://github.com/paritytech/polkadot/issues/220)
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode)]
@@ -754,9 +788,9 @@
 	<span class="doccomment">/// An update to the validation code that should be scheduled in the relay chain.
 	</span><span class="kw">pub </span>new_validation_code: <span class="prelude-ty">Option</span>&lt;ValidationCode&gt;,
 	<span class="doccomment">/// Upward messages send by the Parachain.
-	</span><span class="kw">pub </span>upward_messages: Vec&lt;UpwardMessage&gt;,
+	</span><span class="kw">pub </span>upward_messages: UpwardMessages,
 	<span class="doccomment">/// Outbound horizontal messages sent by the parachain.
-	</span><span class="kw">pub </span>horizontal_messages: Vec&lt;OutboundHrmpMessage&lt;Id&gt;&gt;,
+	</span><span class="kw">pub </span>horizontal_messages: HorizontalMessages,
 	<span class="doccomment">/// Number of downward messages that were processed by the Parachain.
 	///
 	/// It is expected that the Parachain processes them from first to last.
