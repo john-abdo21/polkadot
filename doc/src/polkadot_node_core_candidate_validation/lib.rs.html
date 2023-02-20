@@ -814,8 +814,8 @@
 #![warn(missing_docs)]
 
 </span><span class="kw">use </span>polkadot_node_core_pvf::{
-	InvalidCandidate <span class="kw">as </span>WasmInvalidCandidate, PrepareError, PrepareStats, Pvf,
-	PvfWithExecutorParams, ValidationError, ValidationHost,
+	InvalidCandidate <span class="kw">as </span>WasmInvalidCandidate, PrepareError, PrepareStats, PvfWithExecutorParams,
+	ValidationError, ValidationHost,
 };
 <span class="kw">use </span>polkadot_node_primitives::{
 	BlockData, InvalidCandidate, PoV, ValidationResult, POV_BOMB_LIMIT, VALIDATION_CODE_BOMB_LIMIT,
@@ -1124,7 +1124,7 @@
 		<span class="kw-2">&amp;</span>validation_code.<span class="number">0</span>,
 		VALIDATION_CODE_BOMB_LIMIT,
 	) {
-		<span class="prelude-val">Ok</span>(code) =&gt; PvfWithExecutorParams::new(Pvf::from_code(code.into_owned()), executor_params),
+		<span class="prelude-val">Ok</span>(code) =&gt; PvfWithExecutorParams::from_code(code.into_owned(), executor_params),
 		<span class="prelude-val">Err</span>(e) =&gt; {
 			<span class="macro">gum::debug!</span>(target: LOG_TARGET, err=<span class="question-mark">?</span>e, <span class="string">&quot;precheck: cannot decompress validation code&quot;</span>);
 			<span class="kw">return </span>PreCheckOutcome::Invalid
@@ -1473,7 +1473,7 @@
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt; {
 		<span class="comment">// Construct the PVF a single time, since it is an expensive operation. Cloning it is cheap.
 		</span><span class="kw">let </span>pvf_with_params =
-			PvfWithExecutorParams::new(Pvf::from_code(raw_validation_code), executor_params);
+			PvfWithExecutorParams::from_code(raw_validation_code, executor_params);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>validation_result =
 			<span class="self">self</span>.validate_candidate(pvf_with_params.clone(), timeout, params.encode()).<span class="kw">await</span>;

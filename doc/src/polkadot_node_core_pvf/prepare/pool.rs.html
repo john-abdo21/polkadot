@@ -449,11 +449,6 @@
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -474,6 +469,7 @@
 <span class="kw">use crate</span>::{
 	error::{PrepareError, PrepareResult},
 	metrics::Metrics,
+	pvf::PvfWithExecutorParams,
 	worker_common::{IdleWorker, WorkerHandle},
 	LOG_TARGET,
 };
@@ -481,12 +477,10 @@
 <span class="kw">use </span>futures::{
 	channel::mpsc, future::BoxFuture, stream::FuturesUnordered, Future, FutureExt, StreamExt,
 };
-<span class="kw">use </span>polkadot_primitives::vstaging::ExecutorParams;
 <span class="kw">use </span>slotmap::HopSlotMap;
 <span class="kw">use </span>std::{
 	fmt,
 	path::{Path, PathBuf},
-	sync::Arc,
 	task::Poll,
 	time::Duration,
 };
@@ -524,9 +518,8 @@
 	/// sent until either `Concluded` or `Rip` message is received.
 	</span>StartWork {
 		worker: Worker,
-		code: Arc&lt;Vec&lt;u8&gt;&gt;,
+		pvf_with_params: PvfWithExecutorParams,
 		artifact_path: PathBuf,
-		executor_params: ExecutorParams,
 		preparation_timeout: Duration,
 	},
 }
@@ -672,7 +665,7 @@
 			metrics.prepare_worker().on_begin_spawn();
 			mux.push(spawn_worker_task(program_path.to_owned(), spawn_timeout).boxed());
 		},
-		ToPool::StartWork { worker, code, artifact_path, executor_params, preparation_timeout } =&gt; {
+		ToPool::StartWork { worker, pvf_with_params, artifact_path, preparation_timeout } =&gt; {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(data) = spawned.get_mut(worker) {
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(idle) = data.idle.take() {
 					<span class="kw">let </span>preparation_timer = metrics.time_preparation();
@@ -681,10 +674,9 @@
 							metrics.clone(),
 							worker,
 							idle,
-							code,
+							pvf_with_params,
 							cache_path.to_owned(),
 							artifact_path,
-							executor_params,
 							preparation_timeout,
 							preparation_timer,
 						)
@@ -731,20 +723,18 @@
 	metrics: Metrics,
 	worker: Worker,
 	idle: IdleWorker,
-	code: Arc&lt;Vec&lt;u8&gt;&gt;,
+	pvf_with_params: PvfWithExecutorParams,
 	cache_path: PathBuf,
 	artifact_path: PathBuf,
-	executor_params: ExecutorParams,
 	preparation_timeout: Duration,
 	_preparation_timer: <span class="prelude-ty">Option</span>&lt;Timer&gt;,
 ) -&gt; PoolEvent {
 	<span class="kw">let </span>outcome = worker::start_work(
 		<span class="kw-2">&amp;</span>metrics,
 		idle,
-		code,
+		pvf_with_params,
 		<span class="kw-2">&amp;</span>cache_path,
 		artifact_path,
-		executor_params,
 		preparation_timeout,
 	)
 	.<span class="kw">await</span>;

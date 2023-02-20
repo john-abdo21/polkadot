@@ -486,10 +486,6 @@
 <a href="#486" id="486">486</a>
 <a href="#487" id="487">487</a>
 <a href="#488" id="488">488</a>
-<a href="#489" id="489">489</a>
-<a href="#490" id="490">490</a>
-<a href="#491" id="491">491</a>
-<a href="#492" id="492">492</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -516,6 +512,7 @@
 	error::{PrepareError, PrepareResult},
 	metrics::Metrics,
 	prepare::PrepareStats,
+	pvf::PvfWithExecutorParams,
 	worker_common::{
 		bytes_to_path, cpu_time_monitor_loop, framed_recv, framed_send, path_to_bytes,
 		spawn_with_program_path, tmpfile_in, worker_event_loop, IdleWorker, SpawnErr, WorkerHandle,
@@ -526,12 +523,12 @@
 <span class="kw">use </span>cpu_time::ProcessTime;
 <span class="kw">use </span>futures::{pin_mut, select_biased, FutureExt};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
-<span class="kw">use </span>polkadot_primitives::vstaging::ExecutorParams;
+
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
 <span class="kw">use </span>std::{
 	panic,
 	path::{Path, PathBuf},
-	sync::{mpsc::channel, Arc},
+	sync::mpsc::channel,
 	time::Duration,
 };
 <span class="kw">use </span>tokio::{io, net::UnixStream};
@@ -575,10 +572,9 @@
 </span><span class="kw">pub async fn </span>start_work(
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	worker: IdleWorker,
-	code: Arc&lt;Vec&lt;u8&gt;&gt;,
+	pvf_with_params: PvfWithExecutorParams,
 	cache_path: <span class="kw-2">&amp;</span>Path,
 	artifact_path: PathBuf,
-	executor_params: ExecutorParams,
 	preparation_timeout: Duration,
 ) -&gt; Outcome {
 	<span class="kw">let </span>IdleWorker { stream, pid } = worker;
@@ -592,7 +588,7 @@
 
 	with_tmp_file(stream, pid, cache_path, |tmp_file, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) =
-			send_request(<span class="kw-2">&amp;mut </span>stream, code, <span class="kw-2">&amp;</span>tmp_file, <span class="kw-2">&amp;</span>executor_params, preparation_timeout).<span class="kw">await
+			send_request(<span class="kw-2">&amp;mut </span>stream, pvf_with_params, <span class="kw-2">&amp;</span>tmp_file, preparation_timeout).<span class="kw">await
 		</span>{
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
@@ -765,34 +761,32 @@
 
 <span class="kw">async fn </span>send_request(
 	stream: <span class="kw-2">&amp;mut </span>UnixStream,
-	code: Arc&lt;Vec&lt;u8&gt;&gt;,
+	pvf_with_params: PvfWithExecutorParams,
 	tmp_file: <span class="kw-2">&amp;</span>Path,
-	executor_params: <span class="kw-2">&amp;</span>ExecutorParams,
 	preparation_timeout: Duration,
 ) -&gt; io::Result&lt;()&gt; {
-	framed_send(stream, <span class="kw-2">&amp;</span>code).<span class="kw">await</span><span class="question-mark">?</span>;
+	framed_send(stream, <span class="kw-2">&amp;</span>pvf_with_params.encode()).<span class="kw">await</span><span class="question-mark">?</span>;
 	framed_send(stream, path_to_bytes(tmp_file)).<span class="kw">await</span><span class="question-mark">?</span>;
-	framed_send(stream, <span class="kw-2">&amp;</span>executor_params.encode()).<span class="kw">await</span><span class="question-mark">?</span>;
 	framed_send(stream, <span class="kw-2">&amp;</span>preparation_timeout.encode()).<span class="kw">await</span><span class="question-mark">?</span>;
 	<span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">async fn </span>recv_request(
 	stream: <span class="kw-2">&amp;mut </span>UnixStream,
-) -&gt; io::Result&lt;(Vec&lt;u8&gt;, PathBuf, ExecutorParams, Duration)&gt; {
-	<span class="kw">let </span>code = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+) -&gt; io::Result&lt;(PvfWithExecutorParams, PathBuf, Duration)&gt; {
+	<span class="kw">let </span>pvf_with_params = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">let </span>pvf_with_params =
+		PvfWithExecutorParams::decode(<span class="kw-2">&amp;mut &amp;</span>pvf_with_params[..]).map_err(|e| {
+			io::Error::new(
+				io::ErrorKind::Other,
+				<span class="macro">format!</span>(<span class="string">&quot;prepare pvf recv_request: failed to decode PvfWithExecutorParams: {}&quot;</span>, e),
+			)
+		})<span class="question-mark">?</span>;
 	<span class="kw">let </span>tmp_file = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
 	<span class="kw">let </span>tmp_file = bytes_to_path(<span class="kw-2">&amp;</span>tmp_file).ok_or_else(|| {
 		io::Error::new(
 			io::ErrorKind::Other,
 			<span class="string">&quot;prepare pvf recv_request: non utf-8 artifact path&quot;</span>.to_string(),
-		)
-	})<span class="question-mark">?</span>;
-	<span class="kw">let </span>executor_params_enc = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
-	<span class="kw">let </span>executor_params = ExecutorParams::decode(<span class="kw-2">&amp;mut &amp;</span>executor_params_enc[..]).map_err(|<span class="kw">_</span>| {
-		io::Error::new(
-			io::ErrorKind::Other,
-			<span class="string">&quot;prepare pvf recv_request: failed to decode ExecutorParams&quot;</span>.to_string(),
 		)
 	})<span class="question-mark">?</span>;
 	<span class="kw">let </span>preparation_timeout = framed_recv(stream).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -802,7 +796,7 @@
 			<span class="macro">format!</span>(<span class="string">&quot;prepare pvf recv_request: failed to decode duration: {:?}&quot;</span>, e),
 		)
 	})<span class="question-mark">?</span>;
-	<span class="prelude-val">Ok</span>((code, tmp_file, executor_params, preparation_timeout))
+	<span class="prelude-val">Ok</span>((pvf_with_params, tmp_file, preparation_timeout))
 }
 
 <span class="kw">async fn </span>send_response(stream: <span class="kw-2">&amp;mut </span>UnixStream, result: PrepareResult) -&gt; io::Result&lt;()&gt; {
@@ -854,8 +848,7 @@
 	worker_event_loop(<span class="string">&quot;prepare&quot;</span>, socket_path, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>worker_pid = std::process::id();
-			<span class="kw">let </span>(code, dest, executor_params, preparation_timeout) =
-				recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let </span>(pvf_with_params, dest, preparation_timeout) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
 			<span class="macro">gum::debug!</span>(
 				target: LOG_TARGET,
 				%worker_pid,
@@ -880,7 +873,7 @@
 			<span class="comment">// Spawn another thread for preparation.
 			</span><span class="kw">let </span>prepare_fut = rt_handle
 				.spawn_blocking(<span class="kw">move </span>|| {
-					<span class="kw">let </span>result = prepare_artifact(<span class="kw-2">&amp;</span>code, executor_params);
+					<span class="kw">let </span>result = prepare_artifact(pvf_with_params);
 
 					<span class="comment">// Get the `ru_maxrss` stat. If supported, call getrusage for the thread.
 					</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
@@ -963,16 +956,15 @@
 }
 
 <span class="kw">fn </span>prepare_artifact(
-	code: <span class="kw-2">&amp;</span>[u8],
-	executor_params: ExecutorParams,
+	pvf_with_params: PvfWithExecutorParams,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;CompiledArtifact, PrepareError&gt; {
 	panic::catch_unwind(|| {
-		<span class="kw">let </span>blob = <span class="kw">match </span><span class="kw">crate</span>::executor_intf::prevalidate(code) {
+		<span class="kw">let </span>blob = <span class="kw">match </span><span class="kw">crate</span>::executor_intf::prevalidate(<span class="kw-2">&amp;</span>pvf_with_params.code()) {
 			<span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(PrepareError::Prevalidation(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err))),
 			<span class="prelude-val">Ok</span>(b) =&gt; b,
 		};
 
-		<span class="kw">match </span><span class="kw">crate</span>::executor_intf::prepare(blob, executor_params) {
+		<span class="kw">match </span><span class="kw">crate</span>::executor_intf::prepare(blob, <span class="kw-2">&amp;</span>pvf_with_params.executor_params()) {
 			<span class="prelude-val">Ok</span>(compiled_artifact) =&gt; <span class="prelude-val">Ok</span>(CompiledArtifact::new(compiled_artifact)),
 			<span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(PrepareError::Preparation(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err))),
 		}
