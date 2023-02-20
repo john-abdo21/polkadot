@@ -721,6 +721,11 @@
 <a href="#721" id="721">721</a>
 <a href="#722" id="722">722</a>
 <a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1372,6 +1377,9 @@
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 		</span><span class="prelude-val">Some</span>(Subcommand::TryRuntime(cmd)) =&gt; {
 			<span class="kw">use </span>sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
+			<span class="kw">use </span>sc_service::TaskManager;
+			<span class="kw">use </span>try_runtime_cli::block_building_info::timestamp_with_babe_info;
+
 			<span class="kw">let </span>runner = cli.create_runner(cmd)<span class="question-mark">?</span>;
 			<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 			set_default_ss58_version(chain_spec);
@@ -1380,7 +1388,6 @@
 				&lt;E <span class="kw">as </span>NativeExecutionDispatch&gt;::ExtendHostFunctions,
 			&gt;;
 
-			<span class="kw">use </span>sc_service::TaskManager;
 			<span class="kw">let </span>registry = <span class="kw-2">&amp;</span>runner.config().prometheus_config.as_ref().map(|cfg| <span class="kw-2">&amp;</span>cfg.registry);
 			<span class="kw">let </span>task_manager = TaskManager::new(runner.config().tokio_handle.clone(), <span class="kw-2">*</span>registry)
 				.map_err(|e| Error::SubstrateService(sc_service::Error::Prometheus(e)))<span class="question-mark">?</span>;
@@ -1391,7 +1398,8 @@
 			</span><span class="kw">if </span>chain_spec.is_kusama() {
 				<span class="kw">return </span>runner.async_run(|<span class="kw">_</span>| {
 					<span class="prelude-val">Ok</span>((
-						cmd.run::&lt;service::kusama_runtime::Block, HostFunctionsOf&lt;service::KusamaExecutorDispatch&gt;&gt;(
+						cmd.run::&lt;service::kusama_runtime::Block, HostFunctionsOf&lt;service::KusamaExecutorDispatch&gt;, <span class="kw">_</span>&gt;(
+							<span class="prelude-val">Some</span>(timestamp_with_babe_info(service::kusama_runtime_constants::time::MILLISECS_PER_BLOCK))
 						)
 						.map_err(Error::SubstrateCli),
 						task_manager,
@@ -1403,7 +1411,8 @@
 			</span><span class="kw">if </span>chain_spec.is_westend() {
 				<span class="kw">return </span>runner.async_run(|<span class="kw">_</span>| {
 					<span class="prelude-val">Ok</span>((
-						cmd.run::&lt;service::westend_runtime::Block, HostFunctionsOf&lt;service::WestendExecutorDispatch&gt;&gt;(
+						cmd.run::&lt;service::westend_runtime::Block, HostFunctionsOf&lt;service::WestendExecutorDispatch&gt;, <span class="kw">_</span>&gt;(
+							<span class="prelude-val">Some</span>(timestamp_with_babe_info(service::westend_runtime_constants::time::MILLISECS_PER_BLOCK))
 						)
 						.map_err(Error::SubstrateCli),
 						task_manager,
@@ -1415,7 +1424,8 @@
 			</span>{
 				<span class="kw">return </span>runner.async_run(|<span class="kw">_</span>| {
 					<span class="prelude-val">Ok</span>((
-						cmd.run::&lt;service::polkadot_runtime::Block, HostFunctionsOf&lt;service::PolkadotExecutorDispatch&gt;&gt;(
+						cmd.run::&lt;service::polkadot_runtime::Block, HostFunctionsOf&lt;service::PolkadotExecutorDispatch&gt;, <span class="kw">_</span>&gt;(
+							<span class="prelude-val">Some</span>(timestamp_with_babe_info(service::polkadot_runtime_constants::time::MILLISECS_PER_BLOCK))
 						)
 						.map_err(Error::SubstrateCli),
 						task_manager,
