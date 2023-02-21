@@ -375,9 +375,6 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -396,9 +393,9 @@
 
 </span><span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>polkadot_primitives::{
-	runtime_api::ParachainHost, vstaging::ExecutorParams, Block, BlockId, BlockNumber,
-	CandidateCommitments, CandidateEvent, CandidateHash, CommittedCandidateReceipt, CoreState,
-	DisputeState, GroupRotationInfo, Hash, Id, InboundDownwardMessage, InboundHrmpMessage,
+	runtime_api::ParachainHost, vstaging::ExecutorParams, Block, BlockNumber, CandidateCommitments,
+	CandidateEvent, CandidateHash, CommittedCandidateReceipt, CoreState, DisputeState,
+	GroupRotationInfo, Hash, Id, InboundDownwardMessage, InboundHrmpMessage,
 	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes,
 	SessionIndex, SessionInfo, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
 	ValidatorSignature,
@@ -590,21 +587,21 @@
 	T::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
 {
 	<span class="kw">async fn </span>validators(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ValidatorId&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().validators(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().validators(at)
 	}
 
 	<span class="kw">async fn </span>validator_groups(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		at: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo&lt;BlockNumber&gt;), ApiError&gt; {
-		<span class="self">self</span>.runtime_api().validator_groups(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().validator_groups(at)
 	}
 
 	<span class="kw">async fn </span>availability_cores(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		at: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;CoreState&lt;Hash, BlockNumber&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().availability_cores(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().availability_cores(at)
 	}
 
 	<span class="kw">async fn </span>persisted_validation_data(
@@ -613,8 +610,7 @@
 		para_id: Id,
 		assumption: OccupiedCoreAssumption,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;PersistedValidationData&lt;Hash, BlockNumber&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api()
-			.persisted_validation_data(<span class="kw-2">&amp;</span>BlockId::Hash(at), para_id, assumption)
+		<span class="self">self</span>.runtime_api().persisted_validation_data(at, para_id, assumption)
 	}
 
 	<span class="kw">async fn </span>assumed_validation_data(
@@ -625,7 +621,7 @@
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(PersistedValidationData&lt;Hash, BlockNumber&gt;, ValidationCodeHash)&gt;, ApiError&gt;
 	{
 		<span class="self">self</span>.runtime_api().assumed_validation_data(
-			<span class="kw-2">&amp;</span>BlockId::Hash(at),
+			at,
 			para_id,
 			expected_persisted_validation_data_hash,
 		)
@@ -637,12 +633,11 @@
 		para_id: Id,
 		outputs: CandidateCommitments,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ApiError&gt; {
-		<span class="self">self</span>.runtime_api()
-			.check_validation_outputs(<span class="kw-2">&amp;</span>BlockId::Hash(at), para_id, outputs)
+		<span class="self">self</span>.runtime_api().check_validation_outputs(at, para_id, outputs)
 	}
 
 	<span class="kw">async fn </span>session_index_for_child(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;SessionIndex, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().session_index_for_child(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().session_index_for_child(at)
 	}
 
 	<span class="kw">async fn </span>validation_code(
@@ -651,7 +646,7 @@
 		para_id: Id,
 		assumption: OccupiedCoreAssumption,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValidationCode&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().validation_code(<span class="kw-2">&amp;</span>BlockId::Hash(at), para_id, assumption)
+		<span class="self">self</span>.runtime_api().validation_code(at, para_id, assumption)
 	}
 
 	<span class="kw">async fn </span>candidate_pending_availability(
@@ -659,11 +654,11 @@
 		at: Hash,
 		para_id: Id,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;CommittedCandidateReceipt&lt;Hash&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().candidate_pending_availability(<span class="kw-2">&amp;</span>BlockId::Hash(at), para_id)
+		<span class="self">self</span>.runtime_api().candidate_pending_availability(at, para_id)
 	}
 
 	<span class="kw">async fn </span>candidate_events(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;CandidateEvent&lt;Hash&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().candidate_events(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().candidate_events(at)
 	}
 
 	<span class="kw">async fn </span>dmq_contents(
@@ -671,7 +666,7 @@
 		at: Hash,
 		recipient: Id,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().dmq_contents(<span class="kw-2">&amp;</span>BlockId::Hash(at), recipient)
+		<span class="self">self</span>.runtime_api().dmq_contents(at, recipient)
 	}
 
 	<span class="kw">async fn </span>inbound_hrmp_channels_contents(
@@ -679,7 +674,7 @@
 		at: Hash,
 		recipient: Id,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;BTreeMap&lt;Id, Vec&lt;InboundHrmpMessage&lt;BlockNumber&gt;&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().inbound_hrmp_channels_contents(<span class="kw-2">&amp;</span>BlockId::Hash(at), recipient)
+		<span class="self">self</span>.runtime_api().inbound_hrmp_channels_contents(at, recipient)
 	}
 
 	<span class="kw">async fn </span>validation_code_by_hash(
@@ -687,14 +682,14 @@
 		at: Hash,
 		hash: ValidationCodeHash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValidationCode&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().validation_code_by_hash(<span class="kw-2">&amp;</span>BlockId::Hash(at), hash)
+		<span class="self">self</span>.runtime_api().validation_code_by_hash(at, hash)
 	}
 
 	<span class="kw">async fn </span>on_chain_votes(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		at: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ScrapedOnChainVotes&lt;Hash&gt;&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().on_chain_votes(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().on_chain_votes(at)
 	}
 
 	<span class="kw">async fn </span>session_executor_params(
@@ -702,7 +697,7 @@
 		at: Hash,
 		session_index: SessionIndex,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().session_executor_params(<span class="kw-2">&amp;</span>BlockId::Hash(at), session_index)
+		<span class="self">self</span>.runtime_api().session_executor_params(at, session_index)
 	}
 
 	<span class="kw">async fn </span>session_info(
@@ -710,7 +705,7 @@
 		at: Hash,
 		index: SessionIndex,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SessionInfo&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().session_info(<span class="kw-2">&amp;</span>BlockId::Hash(at), index)
+		<span class="self">self</span>.runtime_api().session_info(at, index)
 	}
 
 	<span class="kw">async fn </span>submit_pvf_check_statement(
@@ -719,12 +714,11 @@
 		stmt: PvfCheckStatement,
 		signature: ValidatorSignature,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ApiError&gt; {
-		<span class="self">self</span>.runtime_api()
-			.submit_pvf_check_statement(<span class="kw-2">&amp;</span>BlockId::Hash(at), stmt, signature)
+		<span class="self">self</span>.runtime_api().submit_pvf_check_statement(at, stmt, signature)
 	}
 
 	<span class="kw">async fn </span>pvfs_require_precheck(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ValidationCodeHash&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().pvfs_require_precheck(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().pvfs_require_precheck(at)
 	}
 
 	<span class="kw">async fn </span>validation_code_hash(
@@ -733,29 +727,29 @@
 		para_id: Id,
 		assumption: OccupiedCoreAssumption,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().validation_code_hash(<span class="kw-2">&amp;</span>BlockId::Hash(at), para_id, assumption)
+		<span class="self">self</span>.runtime_api().validation_code_hash(at, para_id, assumption)
 	}
 
 	<span class="kw">async fn </span>current_epoch(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;Epoch, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().current_epoch(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().current_epoch(at)
 	}
 
 	<span class="kw">async fn </span>authorities(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		at: Hash,
 	) -&gt; std::result::Result&lt;Vec&lt;sp_authority_discovery::AuthorityId&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().authorities(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().authorities(at)
 	}
 
 	<span class="kw">async fn </span>api_version_parachain_host(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().api_version::&lt;<span class="kw">dyn </span>ParachainHost&lt;Block&gt;&gt;(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().api_version::&lt;<span class="kw">dyn </span>ParachainHost&lt;Block&gt;&gt;(at)
 	}
 
 	<span class="kw">async fn </span>disputes(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		at: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;, ApiError&gt; {
-		<span class="self">self</span>.runtime_api().disputes(<span class="kw-2">&amp;</span>BlockId::Hash(at))
+		<span class="self">self</span>.runtime_api().disputes(at)
 	}
 }
 </code></pre></div>

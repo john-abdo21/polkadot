@@ -153,7 +153,6 @@
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -212,9 +211,8 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 	) -&gt; BlockBuilder&lt;Block, Client, FullBackend&gt; {
-		<span class="kw">let </span>at = BlockId::Hash(hash);
 		<span class="kw">let </span>last_timestamp =
-			<span class="self">self</span>.runtime_api().get_last_timestamp(<span class="kw-2">&amp;</span>at).expect(<span class="string">&quot;Get last timestamp&quot;</span>);
+			<span class="self">self</span>.runtime_api().get_last_timestamp(hash).expect(<span class="string">&quot;Get last timestamp&quot;</span>);
 
 		<span class="comment">// `MinimumPeriod` is a storage parameter type that requires externalities to access the value.
 		</span><span class="kw">let </span>minimum_period = BasicExternalities::new_empty()
@@ -244,7 +242,7 @@
 		};
 
 		<span class="kw">let </span><span class="kw-2">mut </span>block_builder = <span class="self">self
-			</span>.new_block_at(<span class="kw-2">&amp;</span>at, digest, <span class="bool-val">false</span>)
+			</span>.new_block_at(<span class="kw-2">&amp;</span>BlockId::Hash(hash), digest, <span class="bool-val">false</span>)
 			.expect(<span class="string">&quot;Creates new block builder for test runtime&quot;</span>);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>inherent_data = sp_inherents::InherentData::new();
