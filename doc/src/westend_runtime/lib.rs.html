@@ -1968,6 +1968,20 @@
 <a href="#1968" id="1968">1968</a>
 <a href="#1969" id="1969">1969</a>
 <a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3670,7 +3684,21 @@
 		Balance,
 	&gt; <span class="kw">for </span>Runtime {
 		<span class="kw">fn </span>pending_rewards(member: AccountId) -&gt; Balance {
-			NominationPools::pending_rewards(member).unwrap_or_default()
+			NominationPools::api_pending_rewards(member).unwrap_or_default()
+		}
+
+		<span class="kw">fn </span>points_to_balance(pool_id: pallet_nomination_pools::PoolId, points: Balance) -&gt; Balance {
+			NominationPools::api_points_to_balance(pool_id, points)
+		}
+
+		<span class="kw">fn </span>balance_to_points(pool_id: pallet_nomination_pools::PoolId, new_funds: Balance) -&gt; Balance {
+			NominationPools::api_balance_to_points(pool_id, new_funds)
+		}
+	}
+
+	<span class="kw">impl </span>pallet_staking_runtime_api::StakingApi&lt;Block, Balance&gt; <span class="kw">for </span>Runtime {
+		<span class="kw">fn </span>nominations_quota(balance: Balance) -&gt; u32 {
+			Staking::api_nominations_quota(balance)
 		}
 	}
 
