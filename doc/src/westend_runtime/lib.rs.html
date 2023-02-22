@@ -1970,18 +1970,6 @@
 <a href="#1970" id="1970">1970</a>
 <a href="#1971" id="1971">1971</a>
 <a href="#1972" id="1972">1972</a>
-<a href="#1973" id="1973">1973</a>
-<a href="#1974" id="1974">1974</a>
-<a href="#1975" id="1975">1975</a>
-<a href="#1976" id="1976">1976</a>
-<a href="#1977" id="1977">1977</a>
-<a href="#1978" id="1978">1978</a>
-<a href="#1979" id="1979">1979</a>
-<a href="#1980" id="1980">1980</a>
-<a href="#1981" id="1981">1981</a>
-<a href="#1982" id="1982">1982</a>
-<a href="#1983" id="1983">1983</a>
-<a href="#1984" id="1984">1984</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3081,19 +3069,6 @@
 	<span class="kw">pub const </span>MigrationMaxKeyLen: u32 = <span class="number">512</span>;
 }
 
-<span class="kw">impl </span>pallet_state_trie_migration::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>Currency = Balances;
-	<span class="kw">type </span>SignedDepositPerItem = MigrationSignedDepositPerItem;
-	<span class="kw">type </span>SignedDepositBase = MigrationSignedDepositBase;
-	<span class="kw">type </span>ControlOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="kw">type </span>SignedFilter = frame_support::traits::NeverEnsureOrigin&lt;AccountId&gt;;
-
-	<span class="comment">// Use same weights as substrate ones.
-	</span><span class="kw">type </span>WeightInfo = pallet_state_trie_migration::weights::SubstrateWeight&lt;Runtime&gt;;
-	<span class="kw">type </span>MaxKeyLen = MigrationMaxKeyLen;
-}
-
 <span class="macro">construct_runtime! </span>{
 	<span class="kw">pub enum </span>Runtime <span class="kw">where
 		</span>Block = Block,
@@ -3162,9 +3137,6 @@
 		<span class="comment">// Fast unstake pallet: extension to staking.
 		</span>FastUnstake: pallet_fast_unstake = <span class="number">30</span>,
 
-		<span class="comment">// State trie migration pallet, only temporary.
-		</span>StateTrieMigration: pallet_state_trie_migration = <span class="number">35</span>,
-
 		<span class="comment">// Parachains pallets. Start indices at 40 to leave room.
 		</span>ParachainsOrigin: parachains_origin::{Pallet, Origin} = <span class="number">41</span>,
 		Configuration: parachains_configuration::{Pallet, Call, Storage, Config&lt;T&gt;} = <span class="number">42</span>,
@@ -3227,7 +3199,7 @@
 ///
 /// Should be cleared after every release.
 </span><span class="kw">pub type </span>Migrations = (
-	init_state_migration::InitMigrate,
+	clean_state_migration::CleanMigrate,
 	<span class="comment">// &quot;Use 2D weights in XCM v3&quot; &lt;https://github.com/paritytech/polkadot/pull/6134&gt;
 	</span>pallet_xcm::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	parachains_ump::migration::v1::MigrateToV1&lt;Runtime&gt;,
@@ -3924,44 +3896,48 @@
 	}
 }
 
-<span class="kw">mod </span>init_state_migration {
+<span class="kw">mod </span>clean_state_migration {
 	<span class="kw">use </span><span class="kw">super</span>::Runtime;
-	<span class="kw">use </span>frame_support::traits::OnRuntimeUpgrade;
-	<span class="kw">use </span>pallet_state_trie_migration::{AutoLimits, MigrationLimits, MigrationProcess};
+	<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, storage_alias, traits::OnRuntimeUpgrade};
+	<span class="kw">use </span>pallet_state_trie_migration::MigrationLimits;
+
 	<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
 	</span><span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 
+	<span class="attr">#[storage_alias]
+	</span><span class="kw">type </span>AutoLimits = StorageValue&lt;StateTrieMigration, <span class="prelude-ty">Option</span>&lt;MigrationLimits&gt;, ValueQuery&gt;;
+
+	<span class="comment">// Actual type of value is `MigrationTask&lt;T&gt;`, putting a dummy
+	// one to avoid the trait constraint on T.
+	// Since we only use `kill` it is fine.
+	</span><span class="attr">#[storage_alias]
+	</span><span class="kw">type </span>MigrationProcess = StorageValue&lt;StateTrieMigration, u32, ValueQuery&gt;;
+
+	<span class="attr">#[storage_alias]
+	</span><span class="kw">type </span>SignedMigrationMaxLimits = StorageValue&lt;StateTrieMigration, MigrationLimits, OptionQuery&gt;;
+
 	<span class="doccomment">/// Initialize an automatic migration process.
-	</span><span class="kw">pub struct </span>InitMigrate;
-	<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>InitMigrate {
+	</span><span class="kw">pub struct </span>CleanMigrate;
+
+	<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>CleanMigrate {
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-			<span class="macro">frame_support::ensure!</span>(
-				AutoLimits::&lt;Runtime&gt;::get().is_none(),
-				<span class="string">&quot;Automigration already started.&quot;
-			</span>);
 			<span class="prelude-val">Ok</span>(Default::default())
 		}
 
 		<span class="kw">fn </span>on_runtime_upgrade() -&gt; frame_support::weights::Weight {
-			<span class="kw">if </span>MigrationProcess::&lt;Runtime&gt;::get() == Default::default() &amp;&amp;
-				AutoLimits::&lt;Runtime&gt;::get().is_none()
-			{
-				AutoLimits::&lt;Runtime&gt;::put(<span class="prelude-val">Some</span>(MigrationLimits { item: <span class="number">160</span>, size: <span class="number">204800 </span>}));
-				<span class="macro">log::info!</span>(<span class="string">&quot;Automatic trie migration started.&quot;</span>);
-				&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">1</span>)
-			} <span class="kw">else </span>{
-				<span class="macro">log::info!</span>(<span class="string">&quot;Automatic trie migration not started.&quot;</span>);
-				&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">2</span>)
-			}
+			MigrationProcess::kill();
+			AutoLimits::kill();
+			SignedMigrationMaxLimits::kill();
+			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().writes(<span class="number">3</span>)
 		}
 
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 		</span><span class="kw">fn </span>post_upgrade(_state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 			<span class="macro">frame_support::ensure!</span>(
-				AutoLimits::&lt;Runtime&gt;::get().is_some(),
-				<span class="string">&quot;Automigration started.&quot;
-			</span>);
+				!AutoLimits::exists() &amp;&amp; !SignedMigrationMaxLimits::exists(),
+				<span class="string">&quot;State migration clean.&quot;</span>,
+			);
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
