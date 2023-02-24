@@ -749,6 +749,25 @@
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
 <a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1075,7 +1094,26 @@
 				.with_para_id(backed_candidate.descriptor().para_id);
 			per_relay_parent.backed_candidates.push(backed_candidate)
 		},
-		<span class="kw">_ </span>=&gt; {},
+		<span class="comment">// We choose not to punish these forms of misbehavior for the time being.
+		// Risks from misbehavior are sufficiently mitigated at the protocol level
+		// via reputation changes. Punitive actions here may become desirable
+		// enough to dedicate time to in the future.
+		</span>ProvisionableData::MisbehaviorReport(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {},
+		<span class="comment">// We wait and do nothing here, preferring to initiate a dispute after the
+		// parablock candidate is included for the following reasons:
+		//
+		// 1. A dispute for a candidate triggered at any point before the candidate
+		// has been made available, including the backing stage, can&#39;t be
+		// guaranteed to conclude. Non-concluding disputes are unacceptable.
+		// 2. Candidates which haven&#39;t been made available don&#39;t pose a security
+		// risk as they can not be included, approved, or finalized.
+		//
+		// Currently we rely on approval checkers to trigger disputes for bad
+		// parablocks once they are included. But we can do slightly better by
+		// allowing disagreeing backers to record their disagreement and initiate a
+		// dispute once the parablock in question has been included. This potential
+		// change is tracked by: https://github.com/paritytech/polkadot/issues/3232
+		</span>ProvisionableData::Dispute(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {},
 	}
 }
 
