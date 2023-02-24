@@ -21,22 +21,20 @@ malloc in the wasm module to reserve space for the output you can do that.</p>
 <p>Host functions which want access to <a href="struct.Store.html"><code>Store</code></a>-level state are
 recommended to use this type.</p>
 </div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor"></a></h2><div id="implementations-list"><details class="rustdoc-toggle implementors-toggle" open><summary><section id="impl-Caller%3C%27_%2C%20T%3E" class="impl has-srclink"><a href="#impl-Caller%3C%27_%2C%20T%3E" class="anchor"></a><h3 class="code-header">impl&lt;T&gt; <a class="struct" href="struct.Caller.html" title="struct polkadot_test_client::sc_executor::sp_wasm_interface::wasmtime::Caller">Caller</a>&lt;'_, T&gt;</h3></section></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><section id="method.get_export" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.get_export" class="fnname">get_export</a>(&amp;mut self, name: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="enum.Extern.html" title="enum polkadot_test_client::sc_executor::sp_wasm_interface::wasmtime::Extern">Extern</a>&gt;</h4></section></summary><div class="docblock"><p>Looks up an export from the caller’s module by the <code>name</code> given.</p>
-<p>Note that when accessing and calling exported functions, one should
-adhere to the guidelines of the interface types proposal.  This method
-is a temporary mechanism for accessing the caller’s information until
-interface types has been fully standardized and implemented. The
-interface types proposal will obsolete this type and this will be
-removed in the future at some point after interface types is
-implemented. If you’re relying on this method type it’s recommended to
-become familiar with interface types to ensure that your use case is
-covered by the proposal.</p>
+<p>This is a low-level function that’s typically used to implement passing
+of pointers or indices between core Wasm instances, where the callee
+needs to consult the caller’s exports to perform memory management and
+resolve the references.</p>
+<p>For comparison, in components, the component model handles translating
+arguments from one component instance to another and managing memory, so
+that callees don’t need to be aware of their callers, which promotes
+virtualizability of APIs.</p>
 <h5 id="return"><a href="#return">Return</a></h5>
-<p>If a memory or function export with the <code>name</code> provided was found, then it is
-returned as a <code>Memory</code>. There are a number of situations, however, where
-the memory or function may not be available:</p>
+<p>If an export with the <code>name</code> provided was found, then it is returned as an
+<code>Extern</code>. There are a number of situations, however, where the export may not
+be available:</p>
 <ul>
 <li>The caller instance may not have an export named <code>name</code></li>
-<li>The export named <code>name</code> may not be an exported memory</li>
 <li>There may not be a caller available, for example if <code>Func</code> was called
 directly from host code.</li>
 </ul>
