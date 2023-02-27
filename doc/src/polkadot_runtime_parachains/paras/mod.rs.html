@@ -2162,9 +2162,6 @@
 <a href="#2162" id="2162">2162</a>
 <a href="#2163" id="2163">2163</a>
 <a href="#2164" id="2164">2164</a>
-<a href="#2165" id="2165">2165</a>
-<a href="#2166" id="2166">2166</a>
-<a href="#2167" id="2167">2167</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2289,7 +2286,7 @@
 	traits::{AppVerify, One, Saturating},
 	DispatchResult, SaturatedConversion,
 };
-<span class="kw">use </span>sp_std::{cmp, mem, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>sp_std::{cmp, collections::btree_set::BTreeSet, mem, prelude::<span class="kw-2">*</span>};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -4294,7 +4291,7 @@
 /// or removing parachains in bulk.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParachainsCache&lt;T: Config&gt; {
 	<span class="comment">// `None` here means the parachains list has not been accessed yet, nevermind modified.
-	</span>parachains: <span class="prelude-ty">Option</span>&lt;Vec&lt;ParaId&gt;&gt;,
+	</span>parachains: <span class="prelude-ty">Option</span>&lt;BTreeSet&lt;ParaId&gt;&gt;,
 	_config: PhantomData&lt;T&gt;,
 }
 
@@ -4303,32 +4300,29 @@
 		<span class="self">Self </span>{ parachains: <span class="prelude-val">None</span>, _config: PhantomData }
 	}
 
-	<span class="kw">fn </span>ensure_initialized(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;ParaId&gt; {
-		<span class="self">self</span>.parachains.get_or_insert_with(|| Parachains::&lt;T&gt;::get())
+	<span class="kw">fn </span>ensure_initialized(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>BTreeSet&lt;ParaId&gt; {
+		<span class="self">self</span>.parachains
+			.get_or_insert_with(|| Parachains::&lt;T&gt;::get().into_iter().collect())
 	}
 
 	<span class="doccomment">/// Adds the given para id to the list.
 	</span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: ParaId) {
 		<span class="kw">let </span>parachains = <span class="self">self</span>.ensure_initialized();
-		<span class="kw">if let </span><span class="prelude-val">Err</span>(i) = parachains.binary_search(<span class="kw-2">&amp;</span>id) {
-			parachains.insert(i, id);
-		}
+		parachains.insert(id);
 	}
 
 	<span class="doccomment">/// Removes the given para id from the list of parachains. Does nothing if the id is not in the
 	/// list.
 	</span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: ParaId) {
 		<span class="kw">let </span>parachains = <span class="self">self</span>.ensure_initialized();
-		<span class="kw">if let </span><span class="prelude-val">Ok</span>(i) = parachains.binary_search(<span class="kw-2">&amp;</span>id) {
-			parachains.remove(i);
-		}
+		parachains.remove(<span class="kw-2">&amp;</span>id);
 	}
 }
 
 <span class="kw">impl</span>&lt;T: Config&gt; Drop <span class="kw">for </span>ParachainsCache&lt;T&gt; {
 	<span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(parachains) = <span class="self">self</span>.parachains.take() {
-			Parachains::&lt;T&gt;::put(<span class="kw-2">&amp;</span>parachains);
+			Parachains::&lt;T&gt;::put(parachains.into_iter().collect::&lt;Vec&lt;ParaId&gt;&gt;());
 		}
 	}
 }
