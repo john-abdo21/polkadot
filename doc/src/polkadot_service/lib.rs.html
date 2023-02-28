@@ -1607,8 +1607,6 @@
 <a href="#1607" id="1607">1607</a>
 <a href="#1608" id="1608">1608</a>
 <a href="#1609" id="1609">1609</a>
-<a href="#1610" id="1610">1610</a>
-<a href="#1611" id="1611">1611</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1962,7 +1960,7 @@
 	&gt;;
 <span class="attr">#[cfg(feature = <span class="string">&quot;full-node&quot;</span>)]
 </span><span class="kw">type </span>FullBeefyBlockImport&lt;RuntimeApi, ExecutorDispatch, InnerBlockImport&gt; =
-	beefy_gadget::import::BeefyBlockImport&lt;
+	beefy::import::BeefyBlockImport&lt;
 		Block,
 		FullBackend,
 		FullClient&lt;RuntimeApi, ExecutorDispatch&gt;,
@@ -2082,7 +2080,7 @@
 				&gt;,
 				grandpa::LinkHalf&lt;Block, FullClient&lt;RuntimeApi, ExecutorDispatch&gt;, ChainSelection&gt;,
 				babe::BabeLink&lt;Block&gt;,
-				beefy_gadget::BeefyVoterLinks&lt;Block&gt;,
+				beefy::BeefyVoterLinks&lt;Block&gt;,
 			),
 			grandpa::SharedVoterState,
 			sp_consensus_babe::SlotDuration,
@@ -2125,7 +2123,7 @@
 	<span class="kw">let </span>justification_import = grandpa_block_import.clone();
 
 	<span class="kw">let </span>(beefy_block_import, beefy_voter_links, beefy_rpc_links) =
-		beefy_gadget::beefy_block_import_and_links(
+		beefy::beefy_block_import_and_links(
 			grandpa_block_import,
 			backend.clone(),
 			client.clone(),
@@ -2463,11 +2461,11 @@
 		.push(grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone()));
 
 	<span class="kw">let </span>beefy_gossip_proto_name =
-		beefy_gadget::gossip_protocol_name(<span class="kw-2">&amp;</span>genesis_hash, config.chain_spec.fork_id());
+		beefy::gossip_protocol_name(<span class="kw-2">&amp;</span>genesis_hash, config.chain_spec.fork_id());
 	<span class="comment">// `beefy_on_demand_justifications_handler` is given to `beefy-gadget` task to be run,
 	// while `beefy_req_resp_cfg` is added to `config.network.request_response_protocols`.
 	</span><span class="kw">let </span>(beefy_on_demand_justifications_handler, beefy_req_resp_cfg) =
-		beefy_gadget::communication::request_response::BeefyJustifsRequestHandler::new(
+		beefy::communication::request_response::BeefyJustifsRequestHandler::new(
 			<span class="kw-2">&amp;</span>genesis_hash,
 			config.chain_spec.fork_id(),
 			client.clone(),
@@ -2477,9 +2475,7 @@
 		config
 			.network
 			.extra_sets
-			.push(beefy_gadget::communication::beefy_peers_set_config(
-				beefy_gossip_proto_name.clone(),
-			));
+			.push(beefy::communication::beefy_peers_set_config(beefy_gossip_proto_name.clone()));
 		config.network.request_response_protocols.push(beefy_req_resp_cfg);
 	}
 
@@ -2809,14 +2805,14 @@
 
 	<span class="kw">if </span>enable_beefy {
 		<span class="kw">let </span>justifications_protocol_name = beefy_on_demand_justifications_handler.protocol_name();
-		<span class="kw">let </span>network_params = beefy_gadget::BeefyNetworkParams {
+		<span class="kw">let </span>network_params = beefy::BeefyNetworkParams {
 			network: network.clone(),
 			gossip_protocol_name: beefy_gossip_proto_name,
 			justifications_protocol_name,
 			_phantom: core::marker::PhantomData::&lt;Block&gt;,
 		};
 		<span class="kw">let </span>payload_provider = beefy_primitives::mmr::MmrRootProvider::new(client.clone());
-		<span class="kw">let </span>beefy_params = beefy_gadget::BeefyParams {
+		<span class="kw">let </span>beefy_params = beefy::BeefyParams {
 			client: client.clone(),
 			backend: backend.clone(),
 			payload_provider,
@@ -2829,7 +2825,7 @@
 			on_demand_justifications_handler: beefy_on_demand_justifications_handler,
 		};
 
-		<span class="kw">let </span>gadget = beefy_gadget::start_beefy_gadget::&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(beefy_params);
+		<span class="kw">let </span>gadget = beefy::start_beefy_gadget::&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(beefy_params);
 
 		<span class="comment">// Wococo&#39;s purpose is to be a testbed for BEEFY, so if it fails we&#39;ll
 		// bring the node down with it to make sure it is noticed.
