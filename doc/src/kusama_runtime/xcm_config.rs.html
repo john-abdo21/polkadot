@@ -457,6 +457,22 @@
 <a href="#457" id="457">457</a>
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -915,6 +931,22 @@
 	<span class="kw">type </span>WeightInfo = <span class="kw">crate</span>::weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
 	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 	</span><span class="kw">type </span>ReachableDest = ReachableDest;
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>karura_liquid_staking_xcm_has_sane_weight_upper_limt() {
+	<span class="kw">use </span>parity_scale_codec::Decode;
+	<span class="kw">use </span>xcm::VersionedXcm;
+	<span class="kw">use </span>xcm_executor::traits::WeightBounds;
+	<span class="kw">let </span>blob = <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;02140004000000000700e40b540213000000000700e40b54020006010700c817a804341801000006010b00c490bf4302140d010003ffffffff000100411f&quot;</span>);
+	<span class="kw">let </span><span class="prelude-val">Ok</span>(VersionedXcm::V2(old_xcm)) =
+		VersionedXcm::&lt;<span class="kw">super</span>::RuntimeCall&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>blob[..]) <span class="kw">else </span>{ <span class="macro">panic!</span>(<span class="string">&quot;can&#39;t decode XCM blob&quot;</span>) };
+	<span class="kw">let </span><span class="kw-2">mut </span>xcm: Xcm&lt;<span class="kw">super</span>::RuntimeCall&gt; =
+		old_xcm.try_into().expect(<span class="string">&quot;conversion from v2 to v3 failed&quot;</span>);
+	<span class="kw">let </span>weight = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Weigher::weight(<span class="kw-2">&amp;mut </span>xcm)
+		.expect(<span class="string">&quot;weighing XCM failed&quot;</span>);
+
+	<span class="macro">assert_eq!</span>(weight, Weight::from_parts(<span class="number">20_313_281_000</span>, <span class="number">65536</span>));
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="kusama_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

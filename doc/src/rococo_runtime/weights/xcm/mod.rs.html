@@ -275,6 +275,17 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2023 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -325,7 +336,7 @@
 }
 
 <span class="comment">// Rococo only knows about one asset, the balances pallet.
-</span><span class="kw">const </span>MAX_ASSETS: u32 = <span class="number">1</span>;
+</span><span class="kw">const </span>MAX_ASSETS: u64 = <span class="number">1</span>;
 
 <span class="kw">impl </span>WeighMultiAssets <span class="kw">for </span>MultiAssetFilter {
 	<span class="kw">fn </span>weigh_multi_assets(<span class="kw-2">&amp;</span><span class="self">self</span>, balances_weight: Weight) -&gt; Weight {
@@ -339,9 +350,12 @@
 					AssetTypes::Unknown =&gt; Weight::MAX,
 				})
 				.fold(Weight::zero(), |acc, x| acc.saturating_add(x)),
-			<span class="self">Self</span>::Wild(AllOf { .. } | AllOfCounted { .. }) =&gt; balances_weight,
-			<span class="self">Self</span>::Wild(AllCounted(count)) =&gt; balances_weight.saturating_mul(<span class="kw-2">*</span>count <span class="kw">as </span>u64),
-			<span class="self">Self</span>::Wild(All) =&gt; balances_weight.saturating_mul(MAX_ASSETS <span class="kw">as </span>u64),
+			<span class="comment">// We don&#39;t support any NFTs on Rococo, so these two variants will always match
+			// only 1 kind of fungible asset.
+			</span><span class="self">Self</span>::Wild(AllOf { .. } | AllOfCounted { .. }) =&gt; balances_weight,
+			<span class="self">Self</span>::Wild(AllCounted(count)) =&gt;
+				balances_weight.saturating_mul(MAX_ASSETS.min(<span class="kw-2">*</span>count <span class="kw">as </span>u64)),
+			<span class="self">Self</span>::Wild(All) =&gt; balances_weight.saturating_mul(MAX_ASSETS),
 		}
 	}
 }
@@ -551,6 +565,14 @@
 	<span class="kw">fn </span>unpaid_execution(<span class="kw">_</span>: <span class="kw-2">&amp;</span>WeightLimit, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;MultiLocation&gt;) -&gt; Weight {
 		XcmGeneric::&lt;Runtime&gt;::unpaid_execution()
 	}
+}
+
+<span class="attr">#[test]
+</span><span class="kw">fn </span>all_counted_has_a_sane_weight_upper_limit() {
+	<span class="kw">let </span>assets = MultiAssetFilter::Wild(AllCounted(<span class="number">4294967295</span>));
+	<span class="kw">let </span>weight = Weight::from_parts(<span class="number">1000</span>, <span class="number">1000</span>);
+
+	<span class="macro">assert_eq!</span>(assets.weigh_multi_assets(weight), weight * MAX_ASSETS);
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rococo_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
