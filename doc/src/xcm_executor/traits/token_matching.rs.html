@@ -104,6 +104,7 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -154,9 +155,10 @@
 }
 
 <span class="doccomment">/// Errors associated with [`MatchesFungibles`] operation.
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>Error {
-	<span class="doccomment">/// Asset not found.
-	</span>AssetNotFound,
+	<span class="doccomment">/// The given asset is not handled. (According to [`XcmError::AssetNotFound`])
+	</span>AssetNotHandled,
 	<span class="doccomment">/// `MultiLocation` to `AccountId` conversion failed.
 	</span>AccountIdConversionFailed,
 	<span class="doccomment">/// `u128` amount to currency `Balance` conversion failed.
@@ -171,7 +173,7 @@
 	<span class="kw">fn </span>from(e: Error) -&gt; <span class="self">Self </span>{
 		<span class="kw">use </span>XcmError::FailedToTransactAsset;
 		<span class="kw">match </span>e {
-			Error::AssetNotFound =&gt; XcmError::AssetNotFound,
+			Error::AssetNotHandled =&gt; XcmError::AssetNotFound,
 			Error::AccountIdConversionFailed =&gt; FailedToTransactAsset(<span class="string">&quot;AccountIdConversionFailed&quot;</span>),
 			Error::AmountToBalanceConversionFailed =&gt;
 				FailedToTransactAsset(<span class="string">&quot;AmountToBalanceConversionFailed&quot;</span>),
@@ -192,7 +194,7 @@
 			<span class="kw">match </span>Tuple::matches_fungibles(a) { o @ <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>o, <span class="kw">_ </span>=&gt; () }
 		)* );
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::matches_fungibles&quot;</span>, <span class="string">&quot;did not match fungibles asset: {:?}&quot;</span>, <span class="kw-2">&amp;</span>a);
-		<span class="prelude-val">Err</span>(Error::AssetNotFound)
+		<span class="prelude-val">Err</span>(Error::AssetNotHandled)
 	}
 }
 
@@ -207,7 +209,7 @@
 			<span class="kw">match </span>Tuple::matches_nonfungibles(a) { o @ <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>o, <span class="kw">_ </span>=&gt; () }
 		)* );
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::matches_non_fungibles&quot;</span>, <span class="string">&quot;did not match fungibles asset: {:?}&quot;</span>, <span class="kw-2">&amp;</span>a);
-		<span class="prelude-val">Err</span>(Error::AssetNotFound)
+		<span class="prelude-val">Err</span>(Error::AssetNotHandled)
 	}
 }
 </code></pre></div>

@@ -263,8 +263,8 @@
 
 <span class="doccomment">/// Asset transaction errors.
 </span><span class="kw">enum </span>Error {
-	<span class="doccomment">/// Asset not found.
-	</span>AssetNotFound,
+	<span class="doccomment">/// The given asset is not handled. (According to [`XcmError::AssetNotFound`])
+	</span>AssetNotHandled,
 	<span class="doccomment">/// `MultiLocation` to `AccountId` conversion failed.
 	</span>AccountIdConversionFailed,
 }
@@ -273,7 +273,7 @@
 	<span class="kw">fn </span>from(e: Error) -&gt; <span class="self">Self </span>{
 		<span class="kw">use </span>XcmError::FailedToTransactAsset;
 		<span class="kw">match </span>e {
-			Error::AssetNotFound =&gt; XcmError::AssetNotFound,
+			Error::AssetNotHandled =&gt; XcmError::AssetNotFound,
 			Error::AccountIdConversionFailed =&gt; FailedToTransactAsset(<span class="string">&quot;AccountIdConversionFailed&quot;</span>),
 		}
 	}
@@ -378,7 +378,7 @@
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;can_check_in origin: {:?}, what: {:?}&quot;</span>, _origin, what);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>amount: Currency::Balance =
-			Matcher::matches_fungible(what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
+			Matcher::matches_fungible(what).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">match </span>CheckedAccount::get() {
 			<span class="prelude-val">Some</span>((checked_account, MintLocation::Local)) =&gt;
 				<span class="self">Self</span>::can_reduce_checked(checked_account, amount),
@@ -403,7 +403,7 @@
 
 	<span class="kw">fn </span>can_check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Result </span>{
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;check_out dest: {:?}, what: {:?}&quot;</span>, _dest, what);
-		<span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">match </span>CheckedAccount::get() {
 			<span class="prelude-val">Some</span>((checked_account, MintLocation::Local)) =&gt;
 				<span class="self">Self</span>::can_accrue_checked(checked_account, amount),
@@ -429,7 +429,7 @@
 	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation, _context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Result </span>{
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;deposit_asset what: {:?}, who: {:?}&quot;</span>, what, who);
 		<span class="comment">// Check we handle this asset.
-		</span><span class="kw">let </span>amount = Matcher::matches_fungible(<span class="kw-2">&amp;</span>what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
+		</span><span class="kw">let </span>amount = Matcher::matches_fungible(<span class="kw-2">&amp;</span>what).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">let </span>who =
 			AccountIdConverter::convert_ref(who).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		<span class="kw">let </span>_imbalance = Currency::deposit_creating(<span class="kw-2">&amp;</span>who, amount);
@@ -443,7 +443,7 @@
 	) -&gt; result::Result&lt;Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;withdraw_asset what: {:?}, who: {:?}&quot;</span>, what, who);
 		<span class="comment">// Check we handle this asset.
-		</span><span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
+		</span><span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">let </span>who =
 			AccountIdConverter::convert_ref(who).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Currency::withdraw(<span class="kw-2">&amp;</span>who, amount, WithdrawReasons::TRANSFER, AllowDeath)
@@ -458,7 +458,7 @@
 		_context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; result::Result&lt;Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;internal_transfer_asset asset: {:?}, from: {:?}, to: {:?}&quot;</span>, asset, from, to);
-		<span class="kw">let </span>amount = Matcher::matches_fungible(asset).ok_or(Error::AssetNotFound)<span class="question-mark">?</span>;
+		<span class="kw">let </span>amount = Matcher::matches_fungible(asset).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">let </span>from =
 			AccountIdConverter::convert_ref(from).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		<span class="kw">let </span>to =
