@@ -1120,11 +1120,6 @@
 <a href="#1120" id="1120">1120</a>
 <a href="#1121" id="1121">1121</a>
 <a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-<a href="#1126" id="1126">1126</a>
-<a href="#1127" id="1127">1127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Cumulus.
 
@@ -2039,78 +2034,73 @@
 	<span class="kw">fn </span>weight(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; sp_weights::Weight {
 		<span class="kw">use </span>Instruction::<span class="kw-2">*</span>;
 		<span class="kw">match </span><span class="self">self </span>{
-			WithdrawAsset(assets) =&gt; sp_weights::Weight::from_ref_time(W::withdraw_asset(assets)),
+			WithdrawAsset(assets) =&gt; sp_weights::Weight::from_parts(W::withdraw_asset(assets), <span class="number">0</span>),
 			ReserveAssetDeposited(assets) =&gt;
-				sp_weights::Weight::from_ref_time(W::reserve_asset_deposited(assets)),
+				sp_weights::Weight::from_parts(W::reserve_asset_deposited(assets), <span class="number">0</span>),
 			ReceiveTeleportedAsset(assets) =&gt;
-				sp_weights::Weight::from_ref_time(W::receive_teleported_asset(assets)),
+				sp_weights::Weight::from_parts(W::receive_teleported_asset(assets), <span class="number">0</span>),
 			QueryResponse { query_id, response, max_weight } =&gt;
-				sp_weights::Weight::from_ref_time(W::query_response(query_id, response, max_weight)),
+				sp_weights::Weight::from_parts(W::query_response(query_id, response, max_weight), <span class="number">0</span>),
 			TransferAsset { assets, beneficiary } =&gt;
-				sp_weights::Weight::from_ref_time(W::transfer_asset(assets, beneficiary)),
+				sp_weights::Weight::from_parts(W::transfer_asset(assets, beneficiary), <span class="number">0</span>),
 			TransferReserveAsset { assets, dest, xcm } =&gt;
-				sp_weights::Weight::from_ref_time(W::transfer_reserve_asset(<span class="kw-2">&amp;</span>assets, dest, xcm)),
+				sp_weights::Weight::from_parts(W::transfer_reserve_asset(<span class="kw-2">&amp;</span>assets, dest, xcm), <span class="number">0</span>),
 			Transact { origin_type, require_weight_at_most, call } =&gt;
-				sp_weights::Weight::from_ref_time(W::transact(
-					origin_type,
-					require_weight_at_most,
-					call,
-				)),
+				sp_weights::Weight::from_parts(
+					W::transact(origin_type, require_weight_at_most, call),
+					<span class="number">0</span>,
+				),
 			HrmpNewChannelOpenRequest { sender, max_message_size, max_capacity } =&gt;
-				sp_weights::Weight::from_ref_time(W::hrmp_new_channel_open_request(
-					sender,
-					max_message_size,
-					max_capacity,
-				)),
+				sp_weights::Weight::from_parts(
+					W::hrmp_new_channel_open_request(sender, max_message_size, max_capacity),
+					<span class="number">0</span>,
+				),
 			HrmpChannelAccepted { recipient } =&gt;
-				sp_weights::Weight::from_ref_time(W::hrmp_channel_accepted(recipient)),
-			HrmpChannelClosing { initiator, sender, recipient } =&gt;
-				sp_weights::Weight::from_ref_time(W::hrmp_channel_closing(
-					initiator, sender, recipient,
-				)),
-			ClearOrigin =&gt; sp_weights::Weight::from_ref_time(W::clear_origin()),
-			DescendOrigin(who) =&gt; sp_weights::Weight::from_ref_time(W::descend_origin(who)),
-			ReportError { query_id, dest, max_response_weight } =&gt;
-				sp_weights::Weight::from_ref_time(W::report_error(
-					query_id,
-					dest,
-					max_response_weight,
-				)),
+				sp_weights::Weight::from_parts(W::hrmp_channel_accepted(recipient), <span class="number">0</span>),
+			HrmpChannelClosing { initiator, sender, recipient } =&gt; sp_weights::Weight::from_parts(
+				W::hrmp_channel_closing(initiator, sender, recipient),
+				<span class="number">0</span>,
+			),
+			ClearOrigin =&gt; sp_weights::Weight::from_parts(W::clear_origin(), <span class="number">0</span>),
+			DescendOrigin(who) =&gt; sp_weights::Weight::from_parts(W::descend_origin(who), <span class="number">0</span>),
+			ReportError { query_id, dest, max_response_weight } =&gt; sp_weights::Weight::from_parts(
+				W::report_error(query_id, dest, max_response_weight),
+				<span class="number">0</span>,
+			),
 			DepositAsset { assets, max_assets, beneficiary } =&gt;
-				sp_weights::Weight::from_ref_time(W::deposit_asset(assets, max_assets, beneficiary)),
+				sp_weights::Weight::from_parts(W::deposit_asset(assets, max_assets, beneficiary), <span class="number">0</span>),
 			DepositReserveAsset { assets, max_assets, dest, xcm } =&gt;
-				sp_weights::Weight::from_ref_time(W::deposit_reserve_asset(
-					assets, max_assets, dest, xcm,
-				)),
+				sp_weights::Weight::from_parts(
+					W::deposit_reserve_asset(assets, max_assets, dest, xcm),
+					<span class="number">0</span>,
+				),
 			ExchangeAsset { give, receive } =&gt;
-				sp_weights::Weight::from_ref_time(W::exchange_asset(give, receive)),
-			InitiateReserveWithdraw { assets, reserve, xcm } =&gt; sp_weights::Weight::from_ref_time(
+				sp_weights::Weight::from_parts(W::exchange_asset(give, receive), <span class="number">0</span>),
+			InitiateReserveWithdraw { assets, reserve, xcm } =&gt; sp_weights::Weight::from_parts(
 				W::initiate_reserve_withdraw(assets, reserve, xcm),
+				<span class="number">0</span>,
 			),
 			InitiateTeleport { assets, dest, xcm } =&gt;
-				sp_weights::Weight::from_ref_time(W::initiate_teleport(assets, dest, xcm)),
+				sp_weights::Weight::from_parts(W::initiate_teleport(assets, dest, xcm), <span class="number">0</span>),
 			QueryHolding { query_id, dest, assets, max_response_weight } =&gt;
-				sp_weights::Weight::from_ref_time(W::query_holding(
-					query_id,
-					dest,
-					assets,
-					max_response_weight,
-				)),
+				sp_weights::Weight::from_parts(
+					W::query_holding(query_id, dest, assets, max_response_weight),
+					<span class="number">0</span>,
+				),
 			BuyExecution { fees, weight_limit } =&gt;
-				sp_weights::Weight::from_ref_time(W::buy_execution(fees, weight_limit)),
-			RefundSurplus =&gt; sp_weights::Weight::from_ref_time(W::refund_surplus()),
-			SetErrorHandler(xcm) =&gt; sp_weights::Weight::from_ref_time(W::set_error_handler(xcm)),
-			SetAppendix(xcm) =&gt; sp_weights::Weight::from_ref_time(W::set_appendix(xcm)),
-			ClearError =&gt; sp_weights::Weight::from_ref_time(W::clear_error()),
+				sp_weights::Weight::from_parts(W::buy_execution(fees, weight_limit), <span class="number">0</span>),
+			RefundSurplus =&gt; sp_weights::Weight::from_parts(W::refund_surplus(), <span class="number">0</span>),
+			SetErrorHandler(xcm) =&gt; sp_weights::Weight::from_parts(W::set_error_handler(xcm), <span class="number">0</span>),
+			SetAppendix(xcm) =&gt; sp_weights::Weight::from_parts(W::set_appendix(xcm), <span class="number">0</span>),
+			ClearError =&gt; sp_weights::Weight::from_parts(W::clear_error(), <span class="number">0</span>),
 			ClaimAsset { assets, ticket } =&gt;
-				sp_weights::Weight::from_ref_time(W::claim_asset(assets, ticket)),
-			Trap(code) =&gt; sp_weights::Weight::from_ref_time(W::trap(code)),
-			SubscribeVersion { query_id, max_response_weight } =&gt;
-				sp_weights::Weight::from_ref_time(W::subscribe_version(
-					query_id,
-					max_response_weight,
-				)),
-			UnsubscribeVersion =&gt; sp_weights::Weight::from_ref_time(W::unsubscribe_version()),
+				sp_weights::Weight::from_parts(W::claim_asset(assets, ticket), <span class="number">0</span>),
+			Trap(code) =&gt; sp_weights::Weight::from_parts(W::trap(code), <span class="number">0</span>),
+			SubscribeVersion { query_id, max_response_weight } =&gt; sp_weights::Weight::from_parts(
+				W::subscribe_version(query_id, max_response_weight),
+				<span class="number">0</span>,
+			),
+			UnsubscribeVersion =&gt; sp_weights::Weight::from_parts(W::unsubscribe_version(), <span class="number">0</span>),
 		}
 	}
 }
