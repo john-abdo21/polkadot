@@ -680,7 +680,6 @@
 <a href="#680" id="680">680</a>
 <a href="#681" id="681">681</a>
 <a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -700,7 +699,6 @@
 </span><span class="doccomment">//! `V1` database for the dispute coordinator.
 
 </span><span class="kw">use </span>polkadot_node_primitives::DisputeStatus;
-<span class="kw">use </span>polkadot_node_subsystem::{SubsystemError, SubsystemResult};
 <span class="kw">use </span>polkadot_node_subsystem_util::database::{DBTransaction, Database};
 <span class="kw">use </span>polkadot_primitives::{
 	CandidateHash, CandidateReceipt, Hash, InvalidDisputeStatementKind, SessionIndex,
@@ -792,12 +790,12 @@
 
 <span class="kw">impl </span>Backend <span class="kw">for </span>DbBackend {
 	<span class="doccomment">/// Load the earliest session, if any.
-	</span><span class="kw">fn </span>load_earliest_session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
+	</span><span class="kw">fn </span>load_earliest_session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
 		load_earliest_session(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config)
 	}
 
 	<span class="doccomment">/// Load the recent disputes, if any.
-	</span><span class="kw">fn </span>load_recent_disputes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;RecentDisputes&gt;&gt; {
+	</span><span class="kw">fn </span>load_recent_disputes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;RecentDisputes&gt;&gt; {
 		load_recent_disputes(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config)
 	}
 
@@ -806,7 +804,7 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		session: SessionIndex,
 		candidate_hash: <span class="kw-2">&amp;</span>CandidateHash,
-	) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
+	) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
 		load_candidate_votes(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span><span class="self">self</span>.config, session, candidate_hash)
 	}
 
@@ -970,27 +968,27 @@
 	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
 	session: SessionIndex,
 	candidate_hash: <span class="kw-2">&amp;</span>CandidateHash,
-) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
+) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;CandidateVotes&gt;&gt; {
 	load_decode(db, config.col_dispute_data, <span class="kw-2">&amp;</span>candidate_votes_key(session, candidate_hash))
-		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
+		.map_err(|e| FatalError::DbReadFailed(e))
 }
 
 <span class="doccomment">/// Load the earliest session, if any.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_earliest_session(
 	db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
 	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
-) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
+) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;SessionIndex&gt;&gt; {
 	load_decode(db, config.col_dispute_data, EARLIEST_SESSION_KEY)
-		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
+		.map_err(|e| FatalError::DbReadFailed(e))
 }
 
 <span class="doccomment">/// Load the recent disputes, if any.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>load_recent_disputes(
 	db: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Database,
 	config: <span class="kw-2">&amp;</span>ColumnConfiguration,
-) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;RecentDisputes&gt;&gt; {
+) -&gt; FatalResult&lt;<span class="prelude-ty">Option</span>&lt;RecentDisputes&gt;&gt; {
 	load_decode(db, config.col_dispute_data, RECENT_DISPUTES_KEY)
-		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;dispute-coordinator&quot;</span>, e))
+		.map_err(|e| FatalError::DbReadFailed(e))
 }
 
 <span class="doccomment">/// Maybe prune data in the DB based on the provided session index.
@@ -1004,7 +1002,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>note_earliest_session(
 	overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
 	new_earliest_session: SessionIndex,
-) -&gt; SubsystemResult&lt;()&gt; {
+) -&gt; FatalResult&lt;()&gt; {
 	<span class="kw">match </span>overlay_db.load_earliest_session()<span class="question-mark">? </span>{
 		<span class="prelude-val">None </span>=&gt; {
 			<span class="comment">// First launch - write new-earliest.

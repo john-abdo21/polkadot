@@ -1291,6 +1291,10 @@
 <a href="#1291" id="1291">1291</a>
 <a href="#1292" id="1292">1292</a>
 <a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1987,7 +1991,11 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">async fn </span>handle_import_statements&lt;Context&gt;(
+	<span class="comment">// We use fatal result rather than result here. Reason being, We for example increase
+	// spam slots in this function. If then the import fails for some non fatal and
+	// unrelated reason, we should likely actually decrement previously incremented spam
+	// slots again, for non fatal errors - which is cumbersome and actually not needed
+	</span><span class="kw">async fn </span>handle_import_statements&lt;Context&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
@@ -1995,7 +2003,7 @@
 		session: SessionIndex,
 		statements: Vec&lt;(SignedDisputeStatement, ValidatorIndex)&gt;,
 		now: Timestamp,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;ImportStatementsResult&gt; {
+	) -&gt; FatalResult&lt;ImportStatementsResult&gt; {
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>statements, <span class="string">&quot;In handle import statements&quot;</span>);
 		<span class="kw">if </span>!<span class="self">self</span>.rolling_session_window.contains(session) {
 			<span class="comment">// It is not valid to participate in an ancient dispute (spam?) or too new.
