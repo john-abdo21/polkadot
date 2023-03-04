@@ -308,6 +308,20 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -331,13 +345,16 @@
 	traits::{Contains, Get},
 };
 <span class="kw">use </span>polkadot_parachain::primitives::IsSystem;
-<span class="kw">use </span>sp_std::{marker::PhantomData, result::Result};
-<span class="kw">use </span>xcm::latest::{
-	Instruction::{<span class="self">self</span>, <span class="kw-2">*</span>},
-	InteriorMultiLocation, Junction, Junctions,
-	Junctions::X1,
-	MultiLocation, Weight,
-	WeightLimit::<span class="kw-2">*</span>,
+<span class="kw">use </span>sp_std::{cell::Cell, marker::PhantomData, ops::ControlFlow, result::Result};
+<span class="kw">use </span>xcm::{
+	latest::{
+		Instruction::{<span class="self">self</span>, <span class="kw-2">*</span>},
+		InteriorMultiLocation, Junction, Junctions,
+		Junctions::X1,
+		MultiLocation, Weight,
+		WeightLimit::<span class="kw-2">*</span>,
+	},
+	CreateMatcher, MatchXcm,
 };
 <span class="kw">use </span>xcm_executor::traits::{OnResponse, ShouldExecute};
 
@@ -387,32 +404,31 @@
 		<span class="comment">// We will read up to 5 instructions. This allows up to 3 `ClearOrigin` instructions. We
 		// allow for more than one since anything beyond the first is a no-op and it&#39;s conceivable
 		// that composition of operations might result in more than one being appended.
-		</span><span class="kw">let </span><span class="kw-2">mut </span>iter = instructions.iter_mut().take(<span class="number">5</span>);
-		<span class="kw">let </span>i = iter.next().ok_or(())<span class="question-mark">?</span>;
-		<span class="kw">match </span>i {
-			ReceiveTeleportedAsset(..) |
-			WithdrawAsset(..) |
-			ReserveAssetDeposited(..) |
-			ClaimAsset { .. } =&gt; (),
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(()),
-		}
-		<span class="kw">let </span><span class="kw-2">mut </span>i = iter.next().ok_or(())<span class="question-mark">?</span>;
-		<span class="kw">while let </span>ClearOrigin = i {
-			i = iter.next().ok_or(())<span class="question-mark">?</span>;
-		}
-		<span class="kw">match </span>i {
-			BuyExecution { weight_limit: Limited(<span class="kw-2">ref mut </span>weight), .. }
-				<span class="kw">if </span>weight.all_gte(max_weight) =&gt;
-			{
-				<span class="kw-2">*</span>weight = max_weight;
-				<span class="prelude-val">Ok</span>(())
-			},
-			BuyExecution { <span class="kw-2">ref mut </span>weight_limit, .. } <span class="kw">if </span>weight_limit == <span class="kw-2">&amp;</span>Unlimited =&gt; {
-				<span class="kw-2">*</span>weight_limit = Limited(max_weight);
-				<span class="prelude-val">Ok</span>(())
-			},
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
-		}
+		</span><span class="kw">let </span>end = instructions.len().min(<span class="number">5</span>);
+		instructions[..end]
+			.matcher()
+			.match_next_inst(|inst| <span class="kw">match </span>inst {
+				ReceiveTeleportedAsset(..) |
+				WithdrawAsset(..) |
+				ReserveAssetDeposited(..) |
+				ClaimAsset { .. } =&gt; <span class="prelude-val">Ok</span>(()),
+				<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
+			})<span class="question-mark">?
+			</span>.skip_inst_while(|inst| <span class="macro">matches!</span>(inst, ClearOrigin))<span class="question-mark">?
+			</span>.match_next_inst(|inst| <span class="kw">match </span>inst {
+				BuyExecution { weight_limit: Limited(<span class="kw-2">ref mut </span>weight), .. }
+					<span class="kw">if </span>weight.all_gte(max_weight) =&gt;
+				{
+					<span class="kw-2">*</span>weight = max_weight;
+					<span class="prelude-val">Ok</span>(())
+				},
+				BuyExecution { <span class="kw-2">ref mut </span>weight_limit, .. } <span class="kw">if </span>weight_limit == <span class="kw-2">&amp;</span>Unlimited =&gt; {
+					<span class="kw-2">*</span>weight_limit = Limited(max_weight);
+					<span class="prelude-val">Ok</span>(())
+				},
+				<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
+			})<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 
@@ -482,29 +498,34 @@
 			origin, instructions, max_weight, weight_credit,
 		);
 		<span class="kw">let </span><span class="kw-2">mut </span>actual_origin = <span class="kw-2">*</span>origin;
-		<span class="kw">let </span><span class="kw-2">mut </span>skipped = <span class="number">0</span>;
+		<span class="kw">let </span>skipped = Cell::new(<span class="number">0usize</span>);
 		<span class="comment">// NOTE: We do not check the validity of `UniversalOrigin` here, meaning that a malicious
 		// origin could place a `UniversalOrigin` in order to spoof some location which gets free
 		// execution. This technical could get it past the barrier condition, but the execution
 		// would instantly fail since the first instruction would cause an error with the
 		// invalid UniversalOrigin.
-		</span><span class="kw">while </span>skipped &lt; MaxPrefixes::get() <span class="kw">as </span>usize {
-			<span class="kw">match </span>instructions.get(skipped) {
-				<span class="prelude-val">Some</span>(UniversalOrigin(new_global)) =&gt; {
-					<span class="comment">// Note the origin is *relative to local consensus*! So we need to escape local
-					// consensus with the `parents` before diving in into the `universal_location`.
-					</span>actual_origin = X1(<span class="kw-2">*</span>new_global).relative_to(<span class="kw-2">&amp;</span>LocalUniversal::get());
-				},
-				<span class="prelude-val">Some</span>(DescendOrigin(j)) =&gt; {
-					actual_origin.append_with(<span class="kw-2">*</span>j).map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
-				},
-				<span class="kw">_ </span>=&gt; <span class="kw">break</span>,
-			}
-			skipped += <span class="number">1</span>;
-		}
+		</span>instructions.matcher().match_next_inst_while(
+			|<span class="kw">_</span>| skipped.get() &lt; MaxPrefixes::get() <span class="kw">as </span>usize,
+			|inst| {
+				<span class="kw">match </span>inst {
+					UniversalOrigin(new_global) =&gt; {
+						<span class="comment">// Note the origin is *relative to local consensus*! So we need to escape
+						// local consensus with the `parents` before diving in into the
+						// `universal_location`.
+						</span>actual_origin = X1(<span class="kw-2">*</span>new_global).relative_to(<span class="kw-2">&amp;</span>LocalUniversal::get());
+					},
+					DescendOrigin(j) =&gt; {
+						<span class="kw">let </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) = actual_origin.append_with(<span class="kw-2">*</span>j) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(()) };
+					},
+					<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(ControlFlow::Break(())),
+				};
+				skipped.set(skipped.get() + <span class="number">1</span>);
+				<span class="prelude-val">Ok</span>(ControlFlow::Continue(()))
+			},
+		)<span class="question-mark">?</span>;
 		InnerBarrier::should_execute(
 			<span class="kw-2">&amp;</span>actual_origin,
-			<span class="kw-2">&amp;mut </span>instructions[skipped..],
+			<span class="kw-2">&amp;mut </span>instructions[skipped.get()..],
 			max_weight,
 			weight_credit,
 		)
@@ -551,12 +572,12 @@
 			origin, instructions, max_weight, _weight_credit,
 		);
 		<span class="macro">ensure!</span>(T::contains(origin), ());
-		<span class="kw">match </span>instructions.first() {
-			<span class="prelude-val">Some</span>(UnpaidExecution { weight_limit: Limited(m), .. }) <span class="kw">if </span>m.all_gte(max_weight) =&gt;
-				<span class="prelude-val">Ok</span>(()),
-			<span class="prelude-val">Some</span>(UnpaidExecution { weight_limit: Unlimited, .. }) =&gt; <span class="prelude-val">Ok</span>(()),
+		instructions.matcher().match_next_inst(|inst| <span class="kw">match </span>inst {
+			UnpaidExecution { weight_limit: Limited(m), .. } <span class="kw">if </span>m.all_gte(max_weight) =&gt; <span class="prelude-val">Ok</span>(()),
+			UnpaidExecution { weight_limit: Unlimited, .. } =&gt; <span class="prelude-val">Ok</span>(()),
 			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
-		}
+		})<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 
@@ -586,13 +607,16 @@
 			<span class="string">&quot;AllowKnownQueryResponses origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
 			origin, instructions, _max_weight, _weight_credit,
 		);
-		<span class="macro">ensure!</span>(instructions.len() == <span class="number">1</span>, ());
-		<span class="kw">match </span>instructions.first() {
-			<span class="prelude-val">Some</span>(QueryResponse { query_id, querier, .. })
-				<span class="kw">if </span>ResponseHandler::expecting_response(origin, <span class="kw-2">*</span>query_id, querier.as_ref()) =&gt;
-				<span class="prelude-val">Ok</span>(()),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
-		}
+		instructions
+			.matcher()
+			.assert_remaining_insts(<span class="number">1</span>)<span class="question-mark">?
+			</span>.match_next_inst(|inst| <span class="kw">match </span>inst {
+				QueryResponse { query_id, querier, .. }
+					<span class="kw">if </span>ResponseHandler::expecting_response(origin, <span class="kw-2">*</span>query_id, querier.as_ref()) =&gt;
+					<span class="prelude-val">Ok</span>(()),
+				<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
+			})<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 
@@ -612,10 +636,14 @@
 			origin, instructions, _max_weight, _weight_credit,
 		);
 		<span class="macro">ensure!</span>(T::contains(origin), ());
-		<span class="kw">match </span>instructions {
-			<span class="kw-2">&amp;mut </span>[SubscribeVersion { .. } | UnsubscribeVersion] =&gt; <span class="prelude-val">Ok</span>(()),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
-		}
+		instructions
+			.matcher()
+			.assert_remaining_insts(<span class="number">1</span>)<span class="question-mark">?
+			</span>.match_next_inst(|inst| <span class="kw">match </span>inst {
+				SubscribeVersion { .. } | UnsubscribeVersion =&gt; <span class="prelude-val">Ok</span>(()),
+				<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
+			})<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>
