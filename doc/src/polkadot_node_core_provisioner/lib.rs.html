@@ -768,6 +768,14 @@
 <a href="#768" id="768">768</a>
 <a href="#769" id="769">769</a>
 <a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -949,11 +957,13 @@
 	per_relay_parent: <span class="kw-2">&amp;mut </span>HashMap&lt;Hash, PerRelayParent&gt;,
 	inherent_delays: <span class="kw-2">&amp;mut </span>InherentDelays,
 ) {
+	<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Handle ActiveLeavesUpdate&quot;</span>);
 	<span class="kw">for </span>deactivated <span class="kw">in </span><span class="kw-2">&amp;</span>update.deactivated {
 		per_relay_parent.remove(deactivated);
 	}
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(leaf) = update.activated {
+		<span class="macro">gum::trace!</span>(target: LOG_TARGET, leaf_hash=<span class="question-mark">?</span>leaf.hash, <span class="string">&quot;Adding delay&quot;</span>);
 		<span class="kw">let </span>delay_fut = Delay::new(PRE_PROPOSE_TIMEOUT).map(<span class="kw">move </span>|<span class="kw">_</span>| leaf.hash).boxed();
 		per_relay_parent.insert(leaf.hash, PerRelayParent::new(leaf));
 		inherent_delays.push(delay_fut);
@@ -1379,6 +1389,10 @@
 		}
 	}
 
+	<span class="macro">gum::trace!</span>(target: LOG_TARGET,
+		leaf_hash=<span class="question-mark">?</span>relay_parent,
+		<span class="string">&quot;before GetBackedCandidates&quot;</span>);
+
 	<span class="comment">// now get the backed candidates corresponding to these candidate receipts
 	</span><span class="kw">let </span>(tx, rx) = oneshot::channel();
 	sender.send_unbounded_message(CandidateBackingMessage::GetBackedCandidates(
@@ -1387,6 +1401,8 @@
 		tx,
 	));
 	<span class="kw">let </span><span class="kw-2">mut </span>candidates = rx.<span class="kw">await</span>.map_err(|err| Error::CanceledBackedCandidates(err))<span class="question-mark">?</span>;
+	<span class="macro">gum::trace!</span>(target: LOG_TARGET, leaf_hash=<span class="question-mark">?</span>relay_parent,
+				<span class="string">&quot;Got {} backed candidates&quot;</span>, candidates.len());
 
 	<span class="comment">// `selected_candidates` is generated in ascending order by core index, and `GetBackedCandidates`
 	// _should_ preserve that property, but let&#39;s just make sure.
