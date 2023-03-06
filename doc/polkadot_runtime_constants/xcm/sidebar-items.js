@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["body","Pluralistic bodies existing within the consensus."]]};

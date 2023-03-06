@@ -366,14 +366,6 @@
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -410,8 +402,8 @@
 	HeadSupportsParachains,
 };
 <span class="kw">use </span>polkadot_overseer::{
-	metrics::Metrics <span class="kw">as </span>OverseerMetrics, BlockInfo, InitializedOverseerBuilder, MetricsTrait,
-	Overseer, OverseerConnector, OverseerHandle, SpawnGlue,
+	metrics::Metrics <span class="kw">as </span>OverseerMetrics, InitializedOverseerBuilder, MetricsTrait, Overseer,
+	OverseerConnector, OverseerHandle, SpawnGlue,
 };
 
 <span class="kw">use </span>polkadot_primitives::runtime_api::ParachainHost;
@@ -457,8 +449,6 @@
 	RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
 	Spawner: <span class="lifetime">&#39;static </span>+ SpawnNamed + Clone + Unpin,
 {
-	<span class="doccomment">/// Set of initial relay chain leaves to track.
-	</span><span class="kw">pub </span>leaves: Vec&lt;BlockInfo&gt;,
 	<span class="doccomment">/// The keystore to use for i.e. validator keys.
 	</span><span class="kw">pub </span>keystore: Arc&lt;LocalKeystore&gt;,
 	<span class="doccomment">/// Runtime client generic, providing the `ProvieRuntimeApi` trait besides others.
@@ -507,7 +497,6 @@
 /// with all default values.
 </span><span class="kw">pub fn </span>prepared_overseer_builder&lt;Spawner, RuntimeClient&gt;(
 	OverseerGenArgs {
-		leaves,
 		keystore,
 		runtime_client,
 		parachains_db,
@@ -685,11 +674,6 @@
 			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
 		.chain_selection(ChainSelectionSubsystem::new(chain_selection_config, parachains_db))
-		.leaves(Vec::from_iter(
-			leaves
-				.into_iter()
-				.map(|BlockInfo { hash, parent_hash: <span class="kw">_</span>, number }| (hash, number)),
-		))
 		.activation_external_listeners(Default::default())
 		.span_per_active_leaf(Default::default())
 		.active_leaves(Default::default())
