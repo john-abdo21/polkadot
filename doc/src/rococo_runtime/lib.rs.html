@@ -2171,26 +2171,6 @@
 <a href="#2171" id="2171">2171</a>
 <a href="#2172" id="2172">2172</a>
 <a href="#2173" id="2173">2173</a>
-<a href="#2174" id="2174">2174</a>
-<a href="#2175" id="2175">2175</a>
-<a href="#2176" id="2176">2176</a>
-<a href="#2177" id="2177">2177</a>
-<a href="#2178" id="2178">2178</a>
-<a href="#2179" id="2179">2179</a>
-<a href="#2180" id="2180">2180</a>
-<a href="#2181" id="2181">2181</a>
-<a href="#2182" id="2182">2182</a>
-<a href="#2183" id="2183">2183</a>
-<a href="#2184" id="2184">2184</a>
-<a href="#2185" id="2185">2185</a>
-<a href="#2186" id="2186">2186</a>
-<a href="#2187" id="2187">2187</a>
-<a href="#2188" id="2188">2188</a>
-<a href="#2189" id="2189">2189</a>
-<a href="#2190" id="2190">2190</a>
-<a href="#2191" id="2191">2191</a>
-<a href="#2192" id="2192">2192</a>
-<a href="#2193" id="2193">2193</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2444,24 +2424,15 @@
 
 	<span class="kw">type </span>DisabledValidators = Session;
 
-	<span class="kw">type </span>KeyOwnerProof = &lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(
-		KeyTypeId,
-		pallet_babe::AuthorityId,
-	)&gt;&gt;::Proof;
-
-	<span class="kw">type </span>KeyOwnerIdentification = &lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(
-		KeyTypeId,
-		pallet_babe::AuthorityId,
-	)&gt;&gt;::IdentificationTuple;
-
-	<span class="kw">type </span>KeyOwnerProofSystem = Historical;
-
-	<span class="kw">type </span>HandleEquivocation =
-		pallet_babe::EquivocationHandler&lt;<span class="self">Self</span>::KeyOwnerIdentification, Offences, ReportLongevity&gt;;
-
 	<span class="kw">type </span>WeightInfo = ();
 
 	<span class="kw">type </span>MaxAuthorities = MaxAuthorities;
+
+	<span class="kw">type </span>KeyOwnerProof =
+		&lt;Historical <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, pallet_babe::AuthorityId)&gt;&gt;::Proof;
+
+	<span class="kw">type </span>EquivocationReportSystem =
+		pallet_babe::EquivocationReportSystem&lt;<span class="self">Self</span>, Offences, Historical, ReportLongevity&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2862,25 +2833,14 @@
 <span class="kw">impl </span>pallet_grandpa::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 
-	<span class="kw">type </span>KeyOwnerProof =
-		&lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, GrandpaId)&gt;&gt;::Proof;
-
-	<span class="kw">type </span>KeyOwnerIdentification = &lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(
-		KeyTypeId,
-		GrandpaId,
-	)&gt;&gt;::IdentificationTuple;
-
-	<span class="kw">type </span>KeyOwnerProofSystem = Historical;
-
-	<span class="kw">type </span>HandleEquivocation = pallet_grandpa::EquivocationHandler&lt;
-		<span class="self">Self</span>::KeyOwnerIdentification,
-		Offences,
-		ReportLongevity,
-	&gt;;
-
 	<span class="kw">type </span>WeightInfo = ();
 	<span class="kw">type </span>MaxAuthorities = MaxAuthorities;
 	<span class="kw">type </span>MaxSetIdSessionEntries = MaxSetIdSessionEntries;
+
+	<span class="kw">type </span>KeyOwnerProof = &lt;Historical <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, GrandpaId)&gt;&gt;::Proof;
+
+	<span class="kw">type </span>EquivocationReportSystem =
+		pallet_grandpa::EquivocationReportSystem&lt;<span class="self">Self</span>, Offences, Historical, ReportLongevity&gt;;
 }
 
 <span class="doccomment">/// Submits a transaction with the node&#39;s public and signature type. Adheres to the signed extension
