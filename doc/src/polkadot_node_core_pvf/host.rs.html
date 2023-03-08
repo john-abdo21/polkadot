@@ -1634,56 +1634,6 @@
 <a href="#1634" id="1634">1634</a>
 <a href="#1635" id="1635">1635</a>
 <a href="#1636" id="1636">1636</a>
-<a href="#1637" id="1637">1637</a>
-<a href="#1638" id="1638">1638</a>
-<a href="#1639" id="1639">1639</a>
-<a href="#1640" id="1640">1640</a>
-<a href="#1641" id="1641">1641</a>
-<a href="#1642" id="1642">1642</a>
-<a href="#1643" id="1643">1643</a>
-<a href="#1644" id="1644">1644</a>
-<a href="#1645" id="1645">1645</a>
-<a href="#1646" id="1646">1646</a>
-<a href="#1647" id="1647">1647</a>
-<a href="#1648" id="1648">1648</a>
-<a href="#1649" id="1649">1649</a>
-<a href="#1650" id="1650">1650</a>
-<a href="#1651" id="1651">1651</a>
-<a href="#1652" id="1652">1652</a>
-<a href="#1653" id="1653">1653</a>
-<a href="#1654" id="1654">1654</a>
-<a href="#1655" id="1655">1655</a>
-<a href="#1656" id="1656">1656</a>
-<a href="#1657" id="1657">1657</a>
-<a href="#1658" id="1658">1658</a>
-<a href="#1659" id="1659">1659</a>
-<a href="#1660" id="1660">1660</a>
-<a href="#1661" id="1661">1661</a>
-<a href="#1662" id="1662">1662</a>
-<a href="#1663" id="1663">1663</a>
-<a href="#1664" id="1664">1664</a>
-<a href="#1665" id="1665">1665</a>
-<a href="#1666" id="1666">1666</a>
-<a href="#1667" id="1667">1667</a>
-<a href="#1668" id="1668">1668</a>
-<a href="#1669" id="1669">1669</a>
-<a href="#1670" id="1670">1670</a>
-<a href="#1671" id="1671">1671</a>
-<a href="#1672" id="1672">1672</a>
-<a href="#1673" id="1673">1673</a>
-<a href="#1674" id="1674">1674</a>
-<a href="#1675" id="1675">1675</a>
-<a href="#1676" id="1676">1676</a>
-<a href="#1677" id="1677">1677</a>
-<a href="#1678" id="1678">1678</a>
-<a href="#1679" id="1679">1679</a>
-<a href="#1680" id="1680">1680</a>
-<a href="#1681" id="1681">1681</a>
-<a href="#1682" id="1682">1682</a>
-<a href="#1683" id="1683">1683</a>
-<a href="#1684" id="1684">1684</a>
-<a href="#1685" id="1685">1685</a>
-<a href="#1686" id="1686">1686</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1711,7 +1661,7 @@
 	error::PrepareError,
 	execute,
 	metrics::Metrics,
-	prepare, PrepareResult, Priority, PvfWithExecutorParams, ValidationError, LOG_TARGET,
+	prepare, PrepareResult, Priority, PvfPrepData, ValidationError, LOG_TARGET,
 };
 <span class="kw">use </span>always_assert::never;
 <span class="kw">use </span>futures::{
@@ -1725,17 +1675,6 @@
 	path::{Path, PathBuf},
 	time::{Duration, SystemTime},
 };
-
-<span class="doccomment">/// For prechecking requests, the time period after which the preparation worker is considered
-/// unresponsive and will be killed.
-</span><span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.
-</span><span class="kw">pub const </span>PRECHECK_PREPARATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">60</span>);
-
-<span class="doccomment">/// For execution and heads-up requests, the time period after which the preparation worker is
-/// considered unresponsive and will be killed. More lenient than the timeout for prechecking to
-/// prevent honest validators from timing out on valid PVFs.
-</span><span class="comment">// NOTE: If you change this make sure to fix the buckets of `pvf_preparation_time` metric.
-</span><span class="kw">pub const </span>LENIENT_PREPARATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">360</span>);
 
 <span class="doccomment">/// The time period after which a failed preparation artifact is considered ready to be retried.
 /// Note that we will only retry if another request comes in after this cooldown has passed.
@@ -1770,11 +1709,11 @@
 	/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.
 	</span><span class="kw">pub async fn </span>precheck_pvf(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		pvf_with_params: PvfWithExecutorParams,
+		pvf: PvfPrepData,
 		result_tx: PrepareResultSender,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
 		<span class="self">self</span>.to_host_tx
-			.send(ToHost::PrecheckPvf { pvf_with_params, result_tx })
+			.send(ToHost::PrecheckPvf { pvf, result_tx })
 			.<span class="kw">await
 			</span>.map_err(|<span class="kw">_</span>| <span class="string">&quot;the inner loop hung up&quot;</span>.to_string())
 	}
@@ -1788,16 +1727,16 @@
 	/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.
 	</span><span class="kw">pub async fn </span>execute_pvf(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		pvf_with_params: PvfWithExecutorParams,
-		execution_timeout: Duration,
+		pvf: PvfPrepData,
+		exec_timeout: Duration,
 		params: Vec&lt;u8&gt;,
 		priority: Priority,
 		result_tx: ResultSender,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
 		<span class="self">self</span>.to_host_tx
 			.send(ToHost::ExecutePvf(ExecutePvfInputs {
-				pvf_with_params,
-				execution_timeout,
+				pvf,
+				exec_timeout,
 				params,
 				priority,
 				result_tx,
@@ -1812,10 +1751,7 @@
 	/// situations this function should return immediately.
 	///
 	/// Returns an error if the request cannot be sent to the validation host, i.e. if it shut down.
-	</span><span class="kw">pub async fn </span>heads_up(
-		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		active_pvfs: Vec&lt;PvfWithExecutorParams&gt;,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+	</span><span class="kw">pub async fn </span>heads_up(<span class="kw-2">&amp;mut </span><span class="self">self</span>, active_pvfs: Vec&lt;PvfPrepData&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
 		<span class="self">self</span>.to_host_tx
 			.send(ToHost::HeadsUp { active_pvfs })
 			.<span class="kw">await
@@ -1824,14 +1760,14 @@
 }
 
 <span class="kw">enum </span>ToHost {
-	PrecheckPvf { pvf_with_params: PvfWithExecutorParams, result_tx: PrepareResultSender },
+	PrecheckPvf { pvf: PvfPrepData, result_tx: PrepareResultSender },
 	ExecutePvf(ExecutePvfInputs),
-	HeadsUp { active_pvfs: Vec&lt;PvfWithExecutorParams&gt; },
+	HeadsUp { active_pvfs: Vec&lt;PvfPrepData&gt; },
 }
 
 <span class="kw">struct </span>ExecutePvfInputs {
-	pvf_with_params: PvfWithExecutorParams,
-	execution_timeout: Duration,
+	pvf: PvfPrepData,
+	exec_timeout: Duration,
 	params: Vec&lt;u8&gt;,
 	priority: Priority,
 	result_tx: ResultSender,
@@ -1953,7 +1889,7 @@
 /// to the given result sender.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>PendingExecutionRequest {
-	execution_timeout: Duration,
+	exec_timeout: Duration,
 	params: Vec&lt;u8&gt;,
 	executor_params: ExecutorParams,
 	result_tx: ResultSender,
@@ -1968,13 +1904,13 @@
 	<span class="kw">fn </span>add(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		artifact_id: ArtifactId,
-		execution_timeout: Duration,
+		exec_timeout: Duration,
 		params: Vec&lt;u8&gt;,
 		executor_params: ExecutorParams,
 		result_tx: ResultSender,
 	) {
 		<span class="self">self</span>.<span class="number">0</span>.entry(artifact_id).or_default().push(PendingExecutionRequest {
-			execution_timeout,
+			exec_timeout,
 			params,
 			executor_params,
 			result_tx,
@@ -2113,8 +2049,8 @@
 	to_host: ToHost,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">match </span>to_host {
-		ToHost::PrecheckPvf { pvf_with_params, result_tx } =&gt; {
-			handle_precheck_pvf(artifacts, prepare_queue, pvf_with_params, result_tx).<span class="kw">await</span><span class="question-mark">?</span>;
+		ToHost::PrecheckPvf { pvf, result_tx } =&gt; {
+			handle_precheck_pvf(artifacts, prepare_queue, pvf, result_tx).<span class="kw">await</span><span class="question-mark">?</span>;
 		},
 		ToHost::ExecutePvf(inputs) =&gt; {
 			handle_execute_pvf(
@@ -2136,16 +2072,17 @@
 
 <span class="doccomment">/// Handles PVF prechecking requests.
 ///
-/// This tries to prepare the PVF by compiling the WASM blob within a given timeout ([`PRECHECK_PREPARATION_TIMEOUT`]).
+/// This tries to prepare the PVF by compiling the WASM blob within a timeout set in
+/// `PvfPrepData`.
 ///
 /// If the prepare job failed previously, we may retry it under certain conditions.
 </span><span class="kw">async fn </span>handle_precheck_pvf(
 	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
 	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
-	pvf_with_params: PvfWithExecutorParams,
+	pvf: PvfPrepData,
 	result_sender: PrepareResultSender,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
-	<span class="kw">let </span>artifact_id = pvf_with_params.as_artifact_id();
+	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
 		<span class="kw">match </span>state {
@@ -2163,15 +2100,8 @@
 		}
 	} <span class="kw">else </span>{
 		artifacts.insert_preparing(artifact_id, <span class="macro">vec!</span>[result_sender]);
-		send_prepare(
-			prepare_queue,
-			prepare::ToQueue::Enqueue {
-				priority: Priority::Normal,
-				pvf_with_params,
-				preparation_timeout: PRECHECK_PREPARATION_TIMEOUT,
-			},
-		)
-		.<span class="kw">await</span><span class="question-mark">?</span>;
+		send_prepare(prepare_queue, prepare::ToQueue::Enqueue { priority: Priority::Normal, pvf })
+			.<span class="kw">await</span><span class="question-mark">?</span>;
 	}
 	<span class="prelude-val">Ok</span>(())
 }
@@ -2193,9 +2123,8 @@
 	awaiting_prepare: <span class="kw-2">&amp;mut </span>AwaitingPrepare,
 	inputs: ExecutePvfInputs,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
-	<span class="kw">let </span>ExecutePvfInputs { pvf_with_params, execution_timeout, params, priority, result_tx } =
-		inputs;
-	<span class="kw">let </span>artifact_id = pvf_with_params.as_artifact_id();
+	<span class="kw">let </span>ExecutePvfInputs { pvf, exec_timeout, params, priority, result_tx } = inputs;
+	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
 		<span class="kw">match </span>state {
@@ -2207,9 +2136,9 @@
 					execute_queue,
 					execute::ToQueue::Enqueue {
 						artifact: ArtifactPathId::new(artifact_id, cache_path),
-						execution_timeout,
+						exec_timeout,
 						params,
-						executor_params: (<span class="kw-2">*</span>pvf_with_params.executor_params()).clone(),
+						executor_params: (<span class="kw-2">*</span>pvf.executor_params()).clone(),
 						result_tx,
 					},
 				)
@@ -2218,9 +2147,9 @@
 			ArtifactState::Preparing { .. } =&gt; {
 				awaiting_prepare.add(
 					artifact_id,
-					execution_timeout,
+					exec_timeout,
 					params,
-					(<span class="kw-2">*</span>pvf_with_params.executor_params()).clone(),
+					(<span class="kw-2">*</span>pvf.executor_params()).clone(),
 					result_tx,
 				);
 			},
@@ -2228,7 +2157,7 @@
 				<span class="kw">if </span>can_retry_prepare_after_failure(<span class="kw-2">*</span>last_time_failed, <span class="kw-2">*</span>num_failures, error) {
 					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
-						<span class="question-mark">?</span>pvf_with_params,
+						<span class="question-mark">?</span>pvf,
 						<span class="question-mark">?</span>artifact_id,
 						<span class="question-mark">?</span>last_time_failed,
 						%num_failures,
@@ -2242,22 +2171,15 @@
 						waiting_for_response: Vec::new(),
 						num_failures: <span class="kw-2">*</span>num_failures,
 					};
-					<span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf_with_params.executor_params()).clone();
-					send_prepare(
-						prepare_queue,
-						prepare::ToQueue::Enqueue {
-							priority,
-							pvf_with_params,
-							preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
-						},
-					)
-					.<span class="kw">await</span><span class="question-mark">?</span>;
+					<span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf.executor_params()).clone();
+					send_prepare(prepare_queue, prepare::ToQueue::Enqueue { priority, pvf })
+						.<span class="kw">await</span><span class="question-mark">?</span>;
 
 					<span class="comment">// Add an execution request that will wait to run after this prepare job has
 					// finished.
 					</span>awaiting_prepare.add(
 						artifact_id,
-						execution_timeout,
+						exec_timeout,
 						params,
 						executor_params,
 						result_tx,
@@ -2270,20 +2192,12 @@
 	} <span class="kw">else </span>{
 		<span class="comment">// Artifact is unknown: register it and enqueue a job with the corresponding priority and
 		// PVF.
-		</span><span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf_with_params.executor_params()).clone();
+		</span><span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf.executor_params()).clone();
 		artifacts.insert_preparing(artifact_id.clone(), Vec::new());
-		send_prepare(
-			prepare_queue,
-			prepare::ToQueue::Enqueue {
-				priority,
-				pvf_with_params,
-				preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
-			},
-		)
-		.<span class="kw">await</span><span class="question-mark">?</span>;
+		send_prepare(prepare_queue, prepare::ToQueue::Enqueue { priority, pvf }).<span class="kw">await</span><span class="question-mark">?</span>;
 
 		<span class="comment">// Add an execution request that will wait to run after this prepare job has finished.
-		</span>awaiting_prepare.add(artifact_id, execution_timeout, params, executor_params, result_tx);
+		</span>awaiting_prepare.add(artifact_id, exec_timeout, params, executor_params, result_tx);
 	}
 
 	<span class="prelude-val">Ok</span>(())
@@ -2292,7 +2206,7 @@
 <span class="kw">async fn </span>handle_heads_up(
 	artifacts: <span class="kw-2">&amp;mut </span>Artifacts,
 	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
-	active_pvfs: Vec&lt;PvfWithExecutorParams&gt;,
+	active_pvfs: Vec&lt;PvfPrepData&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">let </span>now = SystemTime::now();
 
@@ -2328,8 +2242,7 @@
 							prepare_queue,
 							prepare::ToQueue::Enqueue {
 								priority: Priority::Normal,
-								pvf_with_params: active_pvf,
-								preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
+								pvf: active_pvf,
 							},
 						)
 						.<span class="kw">await</span><span class="question-mark">?</span>;
@@ -2342,11 +2255,7 @@
 
 			send_prepare(
 				prepare_queue,
-				prepare::ToQueue::Enqueue {
-					priority: Priority::Normal,
-					pvf_with_params: active_pvf,
-					preparation_timeout: LENIENT_PREPARATION_TIMEOUT,
-				},
+				prepare::ToQueue::Enqueue { priority: Priority::Normal, pvf: active_pvf },
 			)
 			.<span class="kw">await</span><span class="question-mark">?</span>;
 		}
@@ -2408,7 +2317,7 @@
 	<span class="comment">// It&#39;s finally time to dispatch all the execution requests that were waiting for this artifact
 	// to be prepared.
 	</span><span class="kw">let </span>pending_requests = awaiting_prepare.take(<span class="kw-2">&amp;</span>artifact_id);
-	<span class="kw">for </span>PendingExecutionRequest { execution_timeout, params, executor_params, result_tx } <span class="kw">in
+	<span class="kw">for </span>PendingExecutionRequest { exec_timeout, params, executor_params, result_tx } <span class="kw">in
 		</span>pending_requests
 	{
 		<span class="kw">if </span>result_tx.is_canceled() {
@@ -2427,7 +2336,7 @@
 			execute_queue,
 			execute::ToQueue::Enqueue {
 				artifact: ArtifactPathId::new(artifact_id.clone(), cache_path),
-				execution_timeout,
+				exec_timeout,
 				params,
 				executor_params,
 				result_tx,
@@ -2544,13 +2453,14 @@
 }
 
 <span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use crate</span>::{prepare::PrepareStats, InvalidCandidate, PrepareError};
 	<span class="kw">use </span>assert_matches::assert_matches;
 	<span class="kw">use </span>futures::future::BoxFuture;
 
 	<span class="kw">const </span>TEST_EXECUTION_TIMEOUT: Duration = Duration::from_secs(<span class="number">3</span>);
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>TEST_PREPARATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">30</span>);
 
 	<span class="attr">#[tokio::test]
 	</span><span class="kw">async fn </span>pulse_test() {
@@ -2568,7 +2478,7 @@
 
 	<span class="doccomment">/// Creates a new PVF which artifact id can be uniquely identified by the given number.
 	</span><span class="kw">fn </span>artifact_id(descriminator: u32) -&gt; ArtifactId {
-		PvfWithExecutorParams::from_discriminator(descriminator).as_artifact_id()
+		PvfPrepData::from_discriminator(descriminator).as_artifact_id()
 	}
 
 	<span class="kw">fn </span>artifact_path(descriminator: u32) -&gt; PathBuf {
@@ -2777,7 +2687,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>test = builder.build();
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
-		host.heads_up(<span class="macro">vec!</span>[PvfWithExecutorParams::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
+		host.heads_up(<span class="macro">vec!</span>[PvfPrepData::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
 
 		<span class="kw">let </span>to_sweeper_rx = <span class="kw-2">&amp;mut </span>test.to_sweeper_rx;
 		run_until(
@@ -2791,7 +2701,7 @@
 
 		<span class="comment">// Extend TTL for the first artifact and make sure we don&#39;t receive another file removal
 		// request.
-		</span>host.heads_up(<span class="macro">vec!</span>[PvfWithExecutorParams::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
+		</span>host.heads_up(<span class="macro">vec!</span>[PvfPrepData::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
 		test.poll_ensure_to_sweeper_is_empty().<span class="kw">await</span>;
 	}
 
@@ -2802,7 +2712,7 @@
 
 		<span class="kw">let </span>(result_tx, result_rx_pvf_1_1) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf1&quot;</span>.to_vec(),
 			Priority::Normal,
@@ -2813,7 +2723,7 @@
 
 		<span class="kw">let </span>(result_tx, result_rx_pvf_1_2) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf1&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -2824,7 +2734,7 @@
 
 		<span class="kw">let </span>(result_tx, result_rx_pvf_2) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">2</span>),
+			PvfPrepData::from_discriminator(<span class="number">2</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf2&quot;</span>.to_vec(),
 			Priority::Normal,
@@ -2902,9 +2812,7 @@
 
 		<span class="comment">// First, test a simple precheck request.
 		</span><span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
-		host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">1</span>), result_tx)
-			.<span class="kw">await
-			</span>.unwrap();
+		host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">1</span>), result_tx).<span class="kw">await</span>.unwrap();
 
 		<span class="comment">// The queue received the prepare request.
 		</span><span class="macro">assert_matches!</span>(
@@ -2928,9 +2836,7 @@
 		</span><span class="kw">let </span><span class="kw-2">mut </span>precheck_receivers = Vec::new();
 		<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
 			<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
-			host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">2</span>), result_tx)
-				.<span class="kw">await
-				</span>.unwrap();
+			host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">2</span>), result_tx).<span class="kw">await</span>.unwrap();
 			precheck_receivers.push(result_rx);
 		}
 		<span class="comment">// Received prepare request.
@@ -2965,7 +2871,7 @@
 		// Send PVF for the execution and request the prechecking for it.
 		</span><span class="kw">let </span>(result_tx, result_rx_execute) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf2&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -2980,9 +2886,7 @@
 		);
 
 		<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
-		host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">1</span>), result_tx)
-			.<span class="kw">await
-			</span>.unwrap();
+		host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">1</span>), result_tx).<span class="kw">await</span>.unwrap();
 
 		<span class="comment">// Suppose the preparation failed, the execution queue is empty and both
 		// &quot;clients&quot; receive their results.
@@ -3004,15 +2908,13 @@
 		</span><span class="kw">let </span><span class="kw-2">mut </span>precheck_receivers = Vec::new();
 		<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">3 </span>{
 			<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
-			host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">2</span>), result_tx)
-				.<span class="kw">await
-				</span>.unwrap();
+			host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">2</span>), result_tx).<span class="kw">await</span>.unwrap();
 			precheck_receivers.push(result_rx);
 		}
 
 		<span class="kw">let </span>(result_tx, _result_rx_execute) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">2</span>),
+			PvfPrepData::from_discriminator(<span class="number">2</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf2&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3052,9 +2954,7 @@
 
 		<span class="comment">// Submit a precheck request that fails.
 		</span><span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
-		host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">1</span>), result_tx)
-			.<span class="kw">await
-			</span>.unwrap();
+		host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">1</span>), result_tx).<span class="kw">await</span>.unwrap();
 
 		<span class="comment">// The queue received the prepare request.
 		</span><span class="macro">assert_matches!</span>(
@@ -3076,7 +2976,7 @@
 
 		<span class="comment">// Submit another precheck request.
 		</span><span class="kw">let </span>(result_tx_2, result_rx_2) = oneshot::channel();
-		host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">1</span>), result_tx_2)
+		host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">1</span>), result_tx_2)
 			.<span class="kw">await
 			</span>.unwrap();
 
@@ -3092,7 +2992,7 @@
 
 		<span class="comment">// Submit another precheck request.
 		</span><span class="kw">let </span>(result_tx_3, result_rx_3) = oneshot::channel();
-		host.precheck_pvf(PvfWithExecutorParams::from_discriminator(<span class="number">1</span>), result_tx_3)
+		host.precheck_pvf(PvfPrepData::from_discriminator(<span class="number">1</span>), result_tx_3)
 			.<span class="kw">await
 			</span>.unwrap();
 
@@ -3114,7 +3014,7 @@
 		<span class="comment">// Submit a execute request that fails.
 		</span><span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3144,7 +3044,7 @@
 		<span class="comment">// Submit another execute request. We shouldn&#39;t try to prepare again, yet.
 		</span><span class="kw">let </span>(result_tx_2, result_rx_2) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3166,7 +3066,7 @@
 		<span class="comment">// Submit another execute request.
 		</span><span class="kw">let </span>(result_tx_3, result_rx_3) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3216,7 +3116,7 @@
 		<span class="comment">// Submit an execute request that fails.
 		</span><span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3249,7 +3149,7 @@
 		<span class="comment">// Submit another execute request.
 		</span><span class="kw">let </span>(result_tx_2, result_rx_2) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3274,7 +3174,7 @@
 		<span class="comment">// Submit another execute request.
 		</span><span class="kw">let </span>(result_tx_3, result_rx_3) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf&quot;</span>.to_vec(),
 			Priority::Critical,
@@ -3301,7 +3201,7 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>host = test.host_handle();
 
 		<span class="comment">// Submit a heads-up request that fails.
-		</span>host.heads_up(<span class="macro">vec!</span>[PvfWithExecutorParams::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
+		</span>host.heads_up(<span class="macro">vec!</span>[PvfPrepData::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
 
 		<span class="comment">// The queue received the prepare request.
 		</span><span class="macro">assert_matches!</span>(
@@ -3318,7 +3218,7 @@
 			</span>.unwrap();
 
 		<span class="comment">// Submit another heads-up request.
-		</span>host.heads_up(<span class="macro">vec!</span>[PvfWithExecutorParams::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
+		</span>host.heads_up(<span class="macro">vec!</span>[PvfPrepData::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
 
 		<span class="comment">// Assert the prepare queue is empty.
 		</span>test.poll_ensure_to_prepare_queue_is_empty().<span class="kw">await</span>;
@@ -3327,7 +3227,7 @@
 		</span>futures_timer::Delay::new(PREPARE_FAILURE_COOLDOWN).<span class="kw">await</span>;
 
 		<span class="comment">// Submit another heads-up request.
-		</span>host.heads_up(<span class="macro">vec!</span>[PvfWithExecutorParams::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
+		</span>host.heads_up(<span class="macro">vec!</span>[PvfPrepData::from_discriminator(<span class="number">1</span>)]).<span class="kw">await</span>.unwrap();
 
 		<span class="comment">// Assert the prepare queue contains the request.
 		</span><span class="macro">assert_matches!</span>(
@@ -3343,7 +3243,7 @@
 
 		<span class="kw">let </span>(result_tx, result_rx) = oneshot::channel();
 		host.execute_pvf(
-			PvfWithExecutorParams::from_discriminator(<span class="number">1</span>),
+			PvfPrepData::from_discriminator(<span class="number">1</span>),
 			TEST_EXECUTION_TIMEOUT,
 			<span class="string">b&quot;pvf1&quot;</span>.to_vec(),
 			Priority::Normal,

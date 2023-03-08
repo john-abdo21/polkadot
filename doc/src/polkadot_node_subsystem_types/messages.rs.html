@@ -833,7 +833,6 @@
 <a href="#833" id="833">833</a>
 <a href="#834" id="834">834</a>
 <a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -879,15 +878,14 @@
 	CandidateHash, CandidateIndex, CandidateReceipt, CollatorId, CommittedCandidateReceipt,
 	CoreState, DisputeState, GroupIndex, GroupRotationInfo, Hash, Header <span class="kw">as </span>BlockHeader,
 	Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, MultiDisputeStatementSet,
-	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, SessionIndex, SessionInfo,
-	SignedAvailabilityBitfield, SignedAvailabilityBitfields, ValidationCode, ValidationCodeHash,
-	ValidatorId, ValidatorIndex, ValidatorSignature,
+	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, PvfExecTimeoutKind,
+	SessionIndex, SessionInfo, SignedAvailabilityBitfield, SignedAvailabilityBitfields,
+	ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex, ValidatorSignature,
 };
 <span class="kw">use </span>polkadot_statement_table::v2::Misbehavior;
 <span class="kw">use </span>std::{
 	collections::{BTreeMap, HashMap, HashSet},
 	sync::Arc,
-	time::Duration,
 };
 
 <span class="doccomment">/// Network events as transmitted to other subsystems, wrapped in their message types.
@@ -957,7 +955,7 @@
 		CandidateReceipt,
 		Arc&lt;PoV&gt;,
 		<span class="doccomment">/// Execution timeout
-		</span>Duration,
+		</span>PvfExecTimeoutKind,
 		oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;ValidationResult, ValidationFailed&gt;&gt;,
 	),
 	<span class="doccomment">/// Validate a candidate with provided, exhaustive parameters for validation.
@@ -975,7 +973,7 @@
 		CandidateReceipt,
 		Arc&lt;PoV&gt;,
 		<span class="doccomment">/// Execution timeout
-		</span>Duration,
+		</span>PvfExecTimeoutKind,
 		oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;ValidationResult, ValidationFailed&gt;&gt;,
 	),
 	<span class="doccomment">/// Try to compile the given validation code and send back

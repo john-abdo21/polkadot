@@ -1767,6 +1767,33 @@
 <a href="#1767" id="1767">1767</a>
 <a href="#1768" id="1768">1768</a>
 <a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
+<a href="#1784" id="1784">1784</a>
+<a href="#1785" id="1785">1785</a>
+<a href="#1786" id="1786">1786</a>
+<a href="#1787" id="1787">1787</a>
+<a href="#1788" id="1788">1788</a>
+<a href="#1789" id="1789">1789</a>
+<a href="#1790" id="1790">1790</a>
+<a href="#1791" id="1791">1791</a>
+<a href="#1792" id="1792">1792</a>
+<a href="#1793" id="1793">1793</a>
+<a href="#1794" id="1794">1794</a>
+<a href="#1795" id="1795">1795</a>
+<a href="#1796" id="1796">1796</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3456,6 +3483,33 @@
 		<span class="kw">const </span>MAGIC: [u8; <span class="number">4</span>] = <span class="kw-2">*</span><span class="string">b&quot;VCPC&quot;</span>; <span class="comment">// for &quot;validation code pre-checking&quot;
 		</span>(MAGIC, <span class="self">self</span>.accept, <span class="self">self</span>.subject, <span class="self">self</span>.session_index, <span class="self">self</span>.validator_index).encode()
 	}
+}
+
+<span class="doccomment">/// Type discriminator for PVF preparation timeouts
+</span><span class="attr">#[derive(Encode, Decode, TypeInfo, Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>PvfPrepTimeoutKind {
+	<span class="doccomment">/// For prechecking requests, the time period after which the preparation worker is considered
+	/// unresponsive and will be killed.
+	</span>Precheck,
+
+	<span class="doccomment">/// For execution and heads-up requests, the time period after which the preparation worker is
+	/// considered unresponsive and will be killed. More lenient than the timeout for prechecking
+	/// to prevent honest validators from timing out on valid PVFs.
+	</span>Lenient,
+}
+
+<span class="doccomment">/// Type discriminator for PVF execution timeouts
+</span><span class="attr">#[derive(Encode, Decode, TypeInfo, Clone, Copy, Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>PvfExecTimeoutKind {
+	<span class="doccomment">/// The amount of time to spend on execution during backing.
+	</span>Backing,
+
+	<span class="doccomment">/// The amount of time to spend on execution during approval or disputes.
+	///
+	/// This should be much longer than the backing execution timeout to ensure that in the
+	/// absence of extremely large disparities between hardware, blocks that pass backing are
+	/// considered executable by approval checkers or dispute participants.
+	</span>Approval,
 }
 
 <span class="attr">#[cfg(test)]

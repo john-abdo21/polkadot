@@ -788,6 +788,27 @@
 <a href="#788" id="788">788</a>
 <a href="#789" id="789">789</a>
 <a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -814,7 +835,7 @@
 #![warn(missing_docs)]
 
 </span><span class="kw">use </span>polkadot_node_core_pvf::{
-	InvalidCandidate <span class="kw">as </span>WasmInvalidCandidate, PrepareError, PrepareStats, PvfWithExecutorParams,
+	InvalidCandidate <span class="kw">as </span>WasmInvalidCandidate, PrepareError, PrepareStats, PvfPrepData,
 	ValidationError, ValidationHost,
 };
 <span class="kw">use </span>polkadot_node_primitives::{
@@ -833,7 +854,8 @@
 <span class="kw">use </span>polkadot_parachain::primitives::{ValidationParams, ValidationResult <span class="kw">as </span>WasmValidationResult};
 <span class="kw">use </span>polkadot_primitives::{
 	vstaging::ExecutorParams, CandidateCommitments, CandidateDescriptor, CandidateReceipt, Hash,
-	OccupiedCoreAssumption, PersistedValidationData, ValidationCode, ValidationCodeHash,
+	OccupiedCoreAssumption, PersistedValidationData, PvfExecTimeoutKind, PvfPrepTimeoutKind,
+	ValidationCode, ValidationCodeHash,
 };
 
 <span class="kw">use </span>parity_scale_codec::Encode;
@@ -857,6 +879,13 @@
 </span><span class="kw">const </span>PVF_EXECUTION_RETRY_DELAY: Duration = Duration::from_secs(<span class="number">3</span>);
 <span class="attr">#[cfg(test)]
 </span><span class="kw">const </span>PVF_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">200</span>);
+
+<span class="comment">// Default PVF timeouts. Must never be changed! Use executor environment parameters in
+// `session_info` pallet to adjust them. See also `PvfTimeoutKind` docs.
+</span><span class="kw">const </span>DEFAULT_PRECHECK_PREPARATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">60</span>);
+<span class="kw">const </span>DEFAULT_LENIENT_PREPARATION_TIMEOUT: Duration = Duration::from_secs(<span class="number">360</span>);
+<span class="kw">const </span>DEFAULT_BACKING_EXECUTION_TIMEOUT: Duration = Duration::from_secs(<span class="number">2</span>);
+<span class="kw">const </span>DEFAULT_APPROVAL_EXECUTION_TIMEOUT: Duration = Duration::from_secs(<span class="number">12</span>);
 
 <span class="doccomment">/// Configuration for the candidate validation subsystem
 </span><span class="attr">#[derive(Clone)]
@@ -1120,18 +1149,20 @@
 			<span class="kw">return </span>PreCheckOutcome::Invalid
 		};
 
-	<span class="kw">let </span>pvf_with_params = <span class="kw">match </span>sp_maybe_compressed_blob::decompress(
+	<span class="kw">let </span>timeout = pvf_prep_timeout(<span class="kw-2">&amp;</span>executor_params, PvfPrepTimeoutKind::Precheck);
+
+	<span class="kw">let </span>pvf = <span class="kw">match </span>sp_maybe_compressed_blob::decompress(
 		<span class="kw-2">&amp;</span>validation_code.<span class="number">0</span>,
 		VALIDATION_CODE_BOMB_LIMIT,
 	) {
-		<span class="prelude-val">Ok</span>(code) =&gt; PvfWithExecutorParams::from_code(code.into_owned(), executor_params),
+		<span class="prelude-val">Ok</span>(code) =&gt; PvfPrepData::from_code(code.into_owned(), executor_params, timeout),
 		<span class="prelude-val">Err</span>(e) =&gt; {
 			<span class="macro">gum::debug!</span>(target: LOG_TARGET, err=<span class="question-mark">?</span>e, <span class="string">&quot;precheck: cannot decompress validation code&quot;</span>);
 			<span class="kw">return </span>PreCheckOutcome::Invalid
 		},
 	};
 
-	<span class="kw">match </span>validation_backend.precheck_pvf(pvf_with_params).<span class="kw">await </span>{
+	<span class="kw">match </span>validation_backend.precheck_pvf(pvf).<span class="kw">await </span>{
 		<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; PreCheckOutcome::Valid,
 		<span class="prelude-val">Err</span>(prepare_err) =&gt;
 			<span class="kw">if </span>prepare_err.is_deterministic() {
@@ -1255,7 +1286,7 @@
 	validation_host: ValidationHost,
 	candidate_receipt: CandidateReceipt,
 	pov: Arc&lt;PoV&gt;,
-	timeout: Duration,
+	exec_timeout_kind: PvfExecTimeoutKind,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ValidationResult, ValidationFailed&gt;
 <span class="kw">where
@@ -1275,7 +1306,7 @@
 		validation_code,
 		candidate_receipt.clone(),
 		pov,
-		timeout,
+		exec_timeout_kind,
 		metrics,
 	)
 	.<span class="kw">await</span>;
@@ -1311,7 +1342,7 @@
 	validation_code: ValidationCode,
 	candidate_receipt: CandidateReceipt,
 	pov: Arc&lt;PoV&gt;,
-	timeout: Duration,
+	exec_timeout_kind: PvfExecTimeoutKind,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ValidationResult, ValidationFailed&gt;
 <span class="kw">where
@@ -1396,7 +1427,7 @@
 	<span class="kw">let </span>result = validation_backend
 		.validate_candidate_with_retry(
 			raw_validation_code.to_vec(),
-			timeout,
+			pvf_exec_timeout(<span class="kw-2">&amp;</span>executor_params, exec_timeout_kind),
 			params,
 			executor_params,
 		)
@@ -1457,8 +1488,8 @@
 	<span class="doccomment">/// Tries executing a PVF a single time (no retries).
 	</span><span class="kw">async fn </span>validate_candidate(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		pvf_with_params: PvfWithExecutorParams,
-		timeout: Duration,
+		pvf: PvfPrepData,
+		exec_timeout: Duration,
 		encoded_params: Vec&lt;u8&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt;;
 
@@ -1467,16 +1498,16 @@
 	</span><span class="kw">async fn </span>validate_candidate_with_retry(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		raw_validation_code: Vec&lt;u8&gt;,
-		timeout: Duration,
+		exec_timeout: Duration,
 		params: ValidationParams,
 		executor_params: ExecutorParams,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt; {
 		<span class="comment">// Construct the PVF a single time, since it is an expensive operation. Cloning it is cheap.
-		</span><span class="kw">let </span>pvf_with_params =
-			PvfWithExecutorParams::from_code(raw_validation_code, executor_params);
+		</span><span class="kw">let </span>prep_timeout = pvf_prep_timeout(<span class="kw-2">&amp;</span>executor_params, PvfPrepTimeoutKind::Lenient);
+		<span class="kw">let </span>pvf = PvfPrepData::from_code(raw_validation_code, executor_params, prep_timeout);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>validation_result =
-			<span class="self">self</span>.validate_candidate(pvf_with_params.clone(), timeout, params.encode()).<span class="kw">await</span>;
+			<span class="self">self</span>.validate_candidate(pvf.clone(), exec_timeout, params.encode()).<span class="kw">await</span>;
 
 		<span class="comment">// If we get an AmbiguousWorkerDeath error, retry once after a brief delay, on the
 		// assumption that the conditions that caused this error may have been transient. Note that
@@ -1489,23 +1520,19 @@
 
 			<span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
-				<span class="question-mark">?</span>pvf_with_params,
+				<span class="question-mark">?</span>pvf,
 				<span class="string">&quot;Re-trying failed candidate validation due to AmbiguousWorkerDeath.&quot;
 			</span>);
 
 			<span class="comment">// Encode the params again when re-trying. We expect the retry case to be relatively
 			// rare, and we want to avoid unconditionally cloning data.
-			</span>validation_result =
-				<span class="self">self</span>.validate_candidate(pvf_with_params, timeout, params.encode()).<span class="kw">await</span>;
+			</span>validation_result = <span class="self">self</span>.validate_candidate(pvf, exec_timeout, params.encode()).<span class="kw">await</span>;
 		}
 
 		validation_result
 	}
 
-	<span class="kw">async fn </span>precheck_pvf(
-		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		pvf_with_params: PvfWithExecutorParams,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;PrepareStats, PrepareError&gt;;
+	<span class="kw">async fn </span>precheck_pvf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pvf: PvfPrepData) -&gt; <span class="prelude-ty">Result</span>&lt;PrepareStats, PrepareError&gt;;
 }
 
 <span class="attr">#[async_trait]
@@ -1513,16 +1540,14 @@
 	<span class="doccomment">/// Tries executing a PVF a single time (no retries).
 	</span><span class="kw">async fn </span>validate_candidate(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		pvf_with_params: PvfWithExecutorParams,
-		timeout: Duration,
+		pvf: PvfPrepData,
+		exec_timeout: Duration,
 		encoded_params: Vec&lt;u8&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt; {
 		<span class="kw">let </span>priority = polkadot_node_core_pvf::Priority::Normal;
 
 		<span class="kw">let </span>(tx, rx) = oneshot::channel();
-		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) =
-			<span class="self">self</span>.execute_pvf(pvf_with_params, timeout, encoded_params, priority, tx).<span class="kw">await
-		</span>{
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.execute_pvf(pvf, exec_timeout, encoded_params, priority, tx).<span class="kw">await </span>{
 			<span class="kw">return </span><span class="prelude-val">Err</span>(ValidationError::InternalError(<span class="macro">format!</span>(
 				<span class="string">&quot;cannot send pvf to the validation host: {:?}&quot;</span>,
 				err
@@ -1533,12 +1558,9 @@
 			</span>.map_err(|<span class="kw">_</span>| ValidationError::InternalError(<span class="string">&quot;validation was cancelled&quot;</span>.into()))<span class="question-mark">?
 	</span>}
 
-	<span class="kw">async fn </span>precheck_pvf(
-		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		pvf_with_params: PvfWithExecutorParams,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;PrepareStats, PrepareError&gt; {
+	<span class="kw">async fn </span>precheck_pvf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pvf: PvfPrepData) -&gt; <span class="prelude-ty">Result</span>&lt;PrepareStats, PrepareError&gt; {
 		<span class="kw">let </span>(tx, rx) = oneshot::channel();
-		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.precheck_pvf(pvf_with_params, tx).<span class="kw">await </span>{
+		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.precheck_pvf(pvf, tx).<span class="kw">await </span>{
 			<span class="comment">// Return an IO error if there was an error communicating with the host.
 			</span><span class="kw">return </span><span class="prelude-val">Err</span>(PrepareError::IoErr(err))
 		}
@@ -1577,6 +1599,26 @@
 	}
 
 	<span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">fn </span>pvf_prep_timeout(executor_params: <span class="kw-2">&amp;</span>ExecutorParams, kind: PvfPrepTimeoutKind) -&gt; Duration {
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = executor_params.pvf_prep_timeout(kind) {
+		<span class="kw">return </span>timeout
+	}
+	<span class="kw">match </span>kind {
+		PvfPrepTimeoutKind::Precheck =&gt; DEFAULT_PRECHECK_PREPARATION_TIMEOUT,
+		PvfPrepTimeoutKind::Lenient =&gt; DEFAULT_LENIENT_PREPARATION_TIMEOUT,
+	}
+}
+
+<span class="kw">fn </span>pvf_exec_timeout(executor_params: <span class="kw-2">&amp;</span>ExecutorParams, kind: PvfExecTimeoutKind) -&gt; Duration {
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = executor_params.pvf_exec_timeout(kind) {
+		<span class="kw">return </span>timeout
+	}
+	<span class="kw">match </span>kind {
+		PvfExecTimeoutKind::Backing =&gt; DEFAULT_BACKING_EXECUTION_TIMEOUT,
+		PvfExecTimeoutKind::Approval =&gt; DEFAULT_APPROVAL_EXECUTION_TIMEOUT,
+	}
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polkadot_node_core_candidate_validation" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
