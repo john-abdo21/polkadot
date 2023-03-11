@@ -367,6 +367,52 @@
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -383,7 +429,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>std::{cmp::Ordering, collections::BTreeMap};
+</span><span class="kw">use </span>std::{cmp::Ordering, collections::BTreeMap, sync::Arc};
 
 <span class="kw">use </span>futures::channel::oneshot;
 <span class="kw">use </span>polkadot_node_subsystem::{messages::ChainApiMessage, overseer};
@@ -393,6 +439,9 @@
 	error::{FatalError, FatalResult, <span class="prelude-ty">Result</span>},
 	LOG_TARGET,
 };
+
+<span class="kw">use </span><span class="kw">crate</span>::metrics::Metrics;
+<span class="kw">use </span>polkadot_node_subsystem_util::metrics::prometheus::prometheus;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -425,15 +474,19 @@
 
 	<span class="doccomment">/// Priority queue.
 	</span>priority: BTreeMap&lt;CandidateComparator, ParticipationRequest&gt;,
+
+	<span class="doccomment">/// Handle for recording queues data in metrics
+	</span>metrics: Metrics,
 }
 
 <span class="doccomment">/// A dispute participation request that can be queued.
-</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>ParticipationRequest {
 	candidate_hash: CandidateHash,
 	candidate_receipt: CandidateReceipt,
 	session: SessionIndex,
-}
+	_request_timer: Arc&lt;<span class="prelude-ty">Option</span>&lt;prometheus::HistogramTimer&gt;&gt;, <span class="comment">// Sends metric data when request is dropped
+</span>}
 
 <span class="doccomment">/// Whether a `ParticipationRequest` should be put on best-effort or the priority queue.
 </span><span class="attr">#[derive(Debug)]
@@ -476,8 +529,17 @@
 
 <span class="kw">impl </span>ParticipationRequest {
 	<span class="doccomment">/// Create a new `ParticipationRequest` to be queued.
-	</span><span class="kw">pub fn </span>new(candidate_receipt: CandidateReceipt, session: SessionIndex) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ candidate_hash: candidate_receipt.hash(), candidate_receipt, session }
+	</span><span class="kw">pub fn </span>new(
+		candidate_receipt: CandidateReceipt,
+		session: SessionIndex,
+		request_timer: Arc&lt;<span class="prelude-ty">Option</span>&lt;prometheus::HistogramTimer&gt;&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			candidate_hash: candidate_receipt.hash(),
+			candidate_receipt,
+			session,
+			_request_timer: request_timer,
+		}
 	}
 
 	<span class="kw">pub fn </span>candidate_receipt(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span>CandidateReceipt {
@@ -495,10 +557,29 @@
 	}
 }
 
+<span class="comment">// We want to compare participation requests in unit tests, so we
+// only implement Eq for tests.
+</span><span class="attr">#[cfg(test)]
+</span><span class="kw">impl </span>PartialEq <span class="kw">for </span>ParticipationRequest {
+	<span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+		<span class="kw">let </span>ParticipationRequest {
+			candidate_receipt,
+			candidate_hash,
+			session: _session,
+			_request_timer,
+		} = <span class="self">self</span>;
+		candidate_receipt == other.candidate_receipt() &amp;&amp;
+			candidate_hash == other.candidate_hash() &amp;&amp;
+			<span class="self">self</span>.session == other.session()
+	}
+}
+<span class="attr">#[cfg(test)]
+</span><span class="kw">impl </span>Eq <span class="kw">for </span>ParticipationRequest {}
+
 <span class="kw">impl </span>Queues {
 	<span class="doccomment">/// Create new `Queues`.
-	</span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ best_effort: BTreeMap::new(), priority: BTreeMap::new() }
+	</span><span class="kw">pub fn </span>new(metrics: Metrics) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ best_effort: BTreeMap::new(), priority: BTreeMap::new(), metrics }
 	}
 
 	<span class="doccomment">/// Will put message in queue, either priority or best effort depending on priority.
@@ -523,10 +604,15 @@
 	/// First the priority queue is considered and then the best effort one.
 	</span><span class="kw">pub fn </span>dequeue(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ParticipationRequest&gt; {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(req) = <span class="self">self</span>.pop_priority() {
+			<span class="self">self</span>.metrics.report_priority_queue_size(<span class="self">self</span>.priority.len() <span class="kw">as </span>u64);
 			<span class="kw">return </span><span class="prelude-val">Some</span>(req.<span class="number">1</span>)
 		}
-		<span class="self">self</span>.pop_best_effort().map(|d| d.<span class="number">1</span>)
-	}
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(req) = <span class="self">self</span>.pop_best_effort() {
+			<span class="self">self</span>.metrics.report_best_effort_queue_size(<span class="self">self</span>.best_effort.len() <span class="kw">as </span>u64);
+			<span class="kw">return </span><span class="prelude-val">Some</span>(req.<span class="number">1</span>)
+		}
+		<span class="prelude-val">None
+	</span>}
 
 	<span class="doccomment">/// Reprioritizes any participation requests pertaining to the
 	/// passed candidates from best effort to priority.
@@ -549,6 +635,9 @@
 		}
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(request) = <span class="self">self</span>.best_effort.remove(<span class="kw-2">&amp;</span>comparator) {
 			<span class="self">self</span>.priority.insert(comparator, request);
+			<span class="comment">// Report changes to both queue sizes
+			</span><span class="self">self</span>.metrics.report_priority_queue_size(<span class="self">self</span>.priority.len() <span class="kw">as </span>u64);
+			<span class="self">self</span>.metrics.report_best_effort_queue_size(<span class="self">self</span>.best_effort.len() <span class="kw">as </span>u64);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -566,6 +655,8 @@
 			<span class="comment">// Remove any best effort entry:
 			</span><span class="self">self</span>.best_effort.remove(<span class="kw-2">&amp;</span>comparator);
 			<span class="self">self</span>.priority.insert(comparator, req);
+			<span class="self">self</span>.metrics.report_priority_queue_size(<span class="self">self</span>.priority.len() <span class="kw">as </span>u64);
+			<span class="self">self</span>.metrics.report_best_effort_queue_size(<span class="self">self</span>.best_effort.len() <span class="kw">as </span>u64);
 		} <span class="kw">else </span>{
 			<span class="kw">if </span><span class="self">self</span>.priority.contains_key(<span class="kw-2">&amp;</span>comparator) {
 				<span class="comment">// The candidate is already in priority queue - don&#39;t
@@ -576,6 +667,7 @@
 				<span class="kw">return </span><span class="prelude-val">Err</span>(QueueError::BestEffortFull)
 			}
 			<span class="self">self</span>.best_effort.insert(comparator, req);
+			<span class="self">self</span>.metrics.report_best_effort_queue_size(<span class="self">self</span>.best_effort.len() <span class="kw">as </span>u64);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}

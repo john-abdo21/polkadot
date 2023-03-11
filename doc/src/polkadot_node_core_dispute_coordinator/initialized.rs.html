@@ -1304,6 +1304,11 @@
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1402,7 +1407,7 @@
 		<span class="kw">let </span>DisputeCoordinatorSubsystem { config: <span class="kw">_</span>, store: <span class="kw">_</span>, keystore, metrics } = subsystem;
 
 		<span class="kw">let </span>(participation_sender, participation_receiver) = mpsc::channel(<span class="number">1</span>);
-		<span class="kw">let </span>participation = Participation::new(participation_sender);
+		<span class="kw">let </span>participation = Participation::new(participation_sender, metrics.clone());
 		<span class="kw">let </span>highest_session = rolling_session_window.latest_session();
 
 		<span class="self">Self </span>{
@@ -2222,12 +2227,17 @@
 			} <span class="kw">else </span>{
 				<span class="self">self</span>.metrics.on_queued_best_effort_participation();
 			}
+			<span class="kw">let </span>request_timer = Arc::new(<span class="self">self</span>.metrics.time_participation_pipeline());
 			<span class="kw">let </span>r = <span class="self">self
 				</span>.participation
 				.queue_participation(
 					ctx,
 					priority,
-					ParticipationRequest::new(new_state.candidate_receipt().clone(), session),
+					ParticipationRequest::new(
+						new_state.candidate_receipt().clone(),
+						session,
+						request_timer,
+					),
 				)
 				.<span class="kw">await</span>;
 			log_error(r)<span class="question-mark">?</span>;
