@@ -761,15 +761,6 @@
 <a href="#761" id="761">761</a>
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -987,7 +978,6 @@
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 	<span class="attr">#[pallet::pallet]
-	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
 	#[pallet::without_storage_info]
 	#[pallet::storage_version(migration::STORAGE_VERSION)]
 	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
@@ -1174,22 +1164,20 @@
 
 	<span class="doccomment">/// Remove all relevant storage items for an outgoing parachain.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clean_ump_after_outgoing(outgoing_para: <span class="kw-2">&amp;</span>ParaId) -&gt; Weight {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::RelayDispatchQueueSize::remove(outgoing_para);
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::RelayDispatchQueues::remove(outgoing_para);
+		RelayDispatchQueueSize::&lt;T&gt;::remove(outgoing_para);
+		RelayDispatchQueues::&lt;T&gt;::remove(outgoing_para);
 
 		<span class="comment">// Remove the outgoing para from the `NeedsDispatch` list and from
 		// `NextDispatchRoundStartWith`.
 		//
 		// That&#39;s needed for maintaining invariant that `NextDispatchRoundStartWith` points to an
 		// existing item in `NeedsDispatch`.
-		</span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::NeedsDispatch::mutate(|v| {
+		</span>NeedsDispatch::&lt;T&gt;::mutate(|v| {
 			<span class="kw">if let </span><span class="prelude-val">Ok</span>(i) = v.binary_search(outgoing_para) {
 				v.remove(i);
 			}
 		});
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::NextDispatchRoundStartWith::mutate(|v| {
-			<span class="kw-2">*</span>v = v.filter(|p| p == outgoing_para)
-		});
+		NextDispatchRoundStartWith::&lt;T&gt;::mutate(|v| <span class="kw-2">*</span>v = v.filter(|p| p == outgoing_para));
 
 		&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::clean_ump_after_outgoing()
 	}
@@ -1208,8 +1196,7 @@
 			})
 		}
 
-		<span class="kw">let </span>(<span class="kw-2">mut </span>para_queue_count, <span class="kw-2">mut </span>para_queue_size) =
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::RelayDispatchQueueSize::get(<span class="kw-2">&amp;</span>para);
+		<span class="kw">let </span>(<span class="kw-2">mut </span>para_queue_count, <span class="kw-2">mut </span>para_queue_size) = RelayDispatchQueueSize::&lt;T&gt;::get(<span class="kw-2">&amp;</span>para);
 
 		<span class="kw">for </span>(idx, msg) <span class="kw">in </span>upward_messages.into_iter().enumerate() {
 			<span class="kw">let </span>msg_size = msg.len() <span class="kw">as </span>u32;
@@ -1251,19 +1238,14 @@
 				.iter()
 				.fold((<span class="number">0</span>, <span class="number">0</span>), |(cnt, size), d| (cnt + <span class="number">1</span>, size + d.len() <span class="kw">as </span>u32));
 
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::RelayDispatchQueues::mutate(<span class="kw-2">&amp;</span>para, |v| {
-				v.extend(upward_messages.into_iter())
+			RelayDispatchQueues::&lt;T&gt;::mutate(<span class="kw-2">&amp;</span>para, |v| v.extend(upward_messages.into_iter()));
+
+			RelayDispatchQueueSize::&lt;T&gt;::mutate(<span class="kw-2">&amp;</span>para, |(<span class="kw-2">ref mut </span>cnt, <span class="kw-2">ref mut </span>size)| {
+				<span class="kw-2">*</span>cnt += extra_count;
+				<span class="kw-2">*</span>size += extra_size;
 			});
 
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::RelayDispatchQueueSize::mutate(
-				<span class="kw-2">&amp;</span>para,
-				|(<span class="kw-2">ref mut </span>cnt, <span class="kw-2">ref mut </span>size)| {
-					<span class="kw-2">*</span>cnt += extra_count;
-					<span class="kw-2">*</span>size += extra_size;
-				},
-			);
-
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::NeedsDispatch::mutate(|v| {
+			NeedsDispatch::&lt;T&gt;::mutate(|v| {
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(i) = v.binary_search(<span class="kw-2">&amp;</span>para) {
 					v.insert(i, para);
 				}
@@ -1364,13 +1346,13 @@
 	<span class="doccomment">/// Puts a given upward message into the list of overweight messages allowing it to be executed
 	/// later.
 	</span><span class="kw">fn </span>stash_overweight(sender: ParaId, upward_message: Vec&lt;u8&gt;) -&gt; OverweightIndex {
-		<span class="kw">let </span>index = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::OverweightCount::mutate(|count| {
+		<span class="kw">let </span>index = OverweightCount::&lt;T&gt;::mutate(|count| {
 			<span class="kw">let </span>index = <span class="kw-2">*</span>count;
 			<span class="kw-2">*</span>count += <span class="number">1</span>;
 			index
 		});
 
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::Overweight::insert(index, (sender, upward_message));
+		Overweight::&lt;T&gt;::insert(index, (sender, upward_message));
 		index
 	}
 }
@@ -1486,8 +1468,8 @@
 
 <span class="kw">impl </span>NeedsDispatchCursor {
 	<span class="kw">fn </span>new&lt;T: Config&gt;() -&gt; <span class="self">Self </span>{
-		<span class="kw">let </span>needs_dispatch: Vec&lt;ParaId&gt; = &lt;Pallet&lt;T&gt; <span class="kw">as </span>Store&gt;::NeedsDispatch::get();
-		<span class="kw">let </span>start_with = &lt;Pallet&lt;T&gt; <span class="kw">as </span>Store&gt;::NextDispatchRoundStartWith::get();
+		<span class="kw">let </span>needs_dispatch: Vec&lt;ParaId&gt; = NeedsDispatch::&lt;T&gt;::get();
+		<span class="kw">let </span>start_with = NextDispatchRoundStartWith::&lt;T&gt;::get();
 
 		<span class="kw">let </span>initial_index = <span class="kw">match </span>start_with {
 			<span class="prelude-val">Some</span>(para) =&gt; <span class="kw">match </span>needs_dispatch.binary_search(<span class="kw-2">&amp;</span>para) {
@@ -1538,8 +1520,8 @@
 	<span class="doccomment">/// Flushes the dispatcher state into the persistent storage.
 	</span><span class="kw">fn </span>flush&lt;T: Config&gt;(<span class="self">self</span>) {
 		<span class="kw">let </span>next_one = <span class="self">self</span>.peek();
-		&lt;Pallet&lt;T&gt; <span class="kw">as </span>Store&gt;::NextDispatchRoundStartWith::set(next_one);
-		&lt;Pallet&lt;T&gt; <span class="kw">as </span>Store&gt;::NeedsDispatch::put(<span class="self">self</span>.needs_dispatch);
+		NextDispatchRoundStartWith::&lt;T&gt;::set(next_one);
+		NeedsDispatch::&lt;T&gt;::put(<span class="self">self</span>.needs_dispatch);
 	}
 }
 </code></pre></div>

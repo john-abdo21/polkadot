@@ -2156,12 +2156,6 @@
 <a href="#2156" id="2156">2156</a>
 <a href="#2157" id="2157">2157</a>
 <a href="#2158" id="2158">2158</a>
-<a href="#2159" id="2159">2159</a>
-<a href="#2160" id="2160">2160</a>
-<a href="#2161" id="2161">2161</a>
-<a href="#2162" id="2162">2162</a>
-<a href="#2163" id="2163">2163</a>
-<a href="#2164" id="2164">2164</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2697,7 +2691,6 @@
 	};
 
 	<span class="attr">#[pallet::pallet]
-	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
 	#[pallet::without_storage_info]
 	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
@@ -2963,10 +2956,10 @@
 			new_code: ValidationCode,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="kw">let </span>maybe_prior_code_hash = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CurrentCodeHash::get(<span class="kw-2">&amp;</span>para);
+			<span class="kw">let </span>maybe_prior_code_hash = CurrentCodeHash::&lt;T&gt;::get(<span class="kw-2">&amp;</span>para);
 			<span class="kw">let </span>new_code_hash = new_code.hash();
 			<span class="self">Self</span>::increase_code_ref(<span class="kw-2">&amp;</span>new_code_hash, <span class="kw-2">&amp;</span>new_code);
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CurrentCodeHash::insert(<span class="kw-2">&amp;</span>para, new_code_hash);
+			CurrentCodeHash::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, new_code_hash);
 
 			<span class="kw">let </span>now = frame_system::Pallet::&lt;T&gt;::block_number();
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(prior_code_hash) = maybe_prior_code_hash {
@@ -3065,7 +3058,7 @@
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>code_hash = validation_code.hash();
 
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(vote) = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PvfActiveVoteMap::get(<span class="kw-2">&amp;</span>code_hash) {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(vote) = PvfActiveVoteMap::&lt;T&gt;::get(<span class="kw-2">&amp;</span>code_hash) {
 				<span class="comment">// Remove the existing vote.
 				</span>PvfActiveVoteMap::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>code_hash);
 				PvfActiveVoteList::&lt;T&gt;::mutate(|l| {
@@ -3085,7 +3078,7 @@
 				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 			}
 
-			<span class="kw">if </span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHash::contains_key(<span class="kw-2">&amp;</span>code_hash) {
+			<span class="kw">if </span>CodeByHash::&lt;T&gt;::contains_key(<span class="kw-2">&amp;</span>code_hash) {
 				<span class="comment">// There is no vote, but the code exists. Nothing to do here.
 				</span><span class="kw">return </span><span class="prelude-val">Ok</span>(())
 			}
@@ -3095,7 +3088,7 @@
 			//
 			// NOTE That we do not use `increase_code_ref` here, because the code is not yet used
 			// by any parachain.
-			</span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHash::insert(code_hash, <span class="kw-2">&amp;</span>validation_code);
+			</span>CodeByHash::&lt;T&gt;::insert(code_hash, <span class="kw-2">&amp;</span>validation_code);
 
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -3112,8 +3105,8 @@
 			validation_code_hash: ValidationCodeHash,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="kw">if </span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHashRefs::get(<span class="kw-2">&amp;</span>validation_code_hash) == <span class="number">0 </span>{
-				&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHash::remove(<span class="kw-2">&amp;</span>validation_code_hash);
+			<span class="kw">if </span>CodeByHashRefs::&lt;T&gt;::get(<span class="kw-2">&amp;</span>validation_code_hash) == <span class="number">0 </span>{
+				CodeByHash::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>validation_code_hash);
 			}
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -3315,7 +3308,7 @@
 
 	<span class="doccomment">/// Set the current head of a parachain.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_current_head(para: ParaId, new_head: HeadData) {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::Heads::insert(<span class="kw-2">&amp;</span>para, new_head);
+		Heads::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, new_head);
 		<span class="self">Self</span>::deposit_event(Event::CurrentHeadUpdated(para));
 	}
 
@@ -3376,7 +3369,7 @@
 				<span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(ParaLifecycle::Parathread) | <span class="prelude-val">Some</span>(ParaLifecycle::Parachain) =&gt; { <span class="comment">/* Nothing to do... */
 				</span>},
 				<span class="prelude-val">Some</span>(ParaLifecycle::Onboarding) =&gt; {
-					<span class="kw">if let </span><span class="prelude-val">Some</span>(genesis_data) = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpcomingParasGenesis::take(<span class="kw-2">&amp;</span>para) {
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(genesis_data) = UpcomingParasGenesis::&lt;T&gt;::take(<span class="kw-2">&amp;</span>para) {
 						<span class="self">Self</span>::initialize_para_now(<span class="kw-2">&amp;mut </span>parachains, para, <span class="kw-2">&amp;</span>genesis_data);
 					}
 				},
@@ -3395,17 +3388,17 @@
 				<span class="prelude-val">Some</span>(ParaLifecycle::OffboardingParathread) =&gt; {
 					parachains.remove(para);
 
-					&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::Heads::remove(<span class="kw-2">&amp;</span>para);
-					&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::FutureCodeUpgrades::remove(<span class="kw-2">&amp;</span>para);
-					&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeGoAheadSignal::remove(<span class="kw-2">&amp;</span>para);
-					&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeRestrictionSignal::remove(<span class="kw-2">&amp;</span>para);
+					Heads::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
+					FutureCodeUpgrades::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
+					UpgradeGoAheadSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
+					UpgradeRestrictionSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
 					ParaLifecycles::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
-					<span class="kw">let </span>removed_future_code_hash = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::FutureCodeHash::take(<span class="kw-2">&amp;</span>para);
+					<span class="kw">let </span>removed_future_code_hash = FutureCodeHash::&lt;T&gt;::take(<span class="kw-2">&amp;</span>para);
 					<span class="kw">if let </span><span class="prelude-val">Some</span>(removed_future_code_hash) = removed_future_code_hash {
 						<span class="self">Self</span>::decrease_code_ref(<span class="kw-2">&amp;</span>removed_future_code_hash);
 					}
 
-					<span class="kw">let </span>removed_code_hash = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CurrentCodeHash::take(<span class="kw-2">&amp;</span>para);
+					<span class="kw">let </span>removed_code_hash = CurrentCodeHash::&lt;T&gt;::take(<span class="kw-2">&amp;</span>para);
 					<span class="kw">if let </span><span class="prelude-val">Some</span>(removed_code_hash) = removed_code_hash {
 						<span class="self">Self</span>::note_past_code(para, now, now, removed_code_hash);
 					}
@@ -3422,13 +3415,13 @@
 			//
 			// NOTE both of those iterates over the list and the outgoing. We do not expect either
 			//      of these to be large. Thus should be fine.
-			</span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpcomingUpgrades::mutate(|upcoming_upgrades| {
+			</span>UpcomingUpgrades::&lt;T&gt;::mutate(|upcoming_upgrades| {
 				<span class="kw-2">*</span>upcoming_upgrades = mem::take(upcoming_upgrades)
 					.into_iter()
 					.filter(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>para, <span class="kw">_</span>)| !outgoing.contains(para))
 					.collect();
 			});
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeCooldowns::mutate(|upgrade_cooldowns| {
+			UpgradeCooldowns::&lt;T&gt;::mutate(|upgrade_cooldowns| {
 				<span class="kw-2">*</span>upgrade_cooldowns = mem::take(upgrade_cooldowns)
 					.into_iter()
 					.filter(|<span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>para, <span class="kw">_</span>)| !outgoing.contains(para))
@@ -3454,15 +3447,15 @@
 		now: T::BlockNumber,
 		old_code_hash: ValidationCodeHash,
 	) -&gt; Weight {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodeMeta::mutate(<span class="kw-2">&amp;</span>id, |past_meta| {
+		PastCodeMeta::&lt;T&gt;::mutate(<span class="kw-2">&amp;</span>id, |past_meta| {
 			past_meta.note_replacement(at, now);
 		});
 
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodeHash::insert(<span class="kw-2">&amp;</span>(id, at), old_code_hash);
+		PastCodeHash::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>(id, at), old_code_hash);
 
 		<span class="comment">// Schedule pruning for this past-code to be removed as soon as it
 		// exits the slashing window.
-		</span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodePruning::mutate(|pruning| {
+		</span>PastCodePruning::&lt;T&gt;::mutate(|pruning| {
 			<span class="kw">let </span>insert_idx =
 				pruning.binary_search_by_key(<span class="kw-2">&amp;</span>now, |<span class="kw-2">&amp;</span>(<span class="kw">_</span>, b)| b).unwrap_or_else(|idx| idx);
 			pruning.insert(insert_idx, (id, now));
@@ -3484,8 +3477,8 @@
 		<span class="comment">// The height of any changes we no longer should keep around.
 		</span><span class="kw">let </span>pruning_height = now - (code_retention_period + One::one());
 
-		<span class="kw">let </span>pruning_tasks_done = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodePruning::mutate(
-			|pruning_tasks: <span class="kw-2">&amp;mut </span>Vec&lt;(<span class="kw">_</span>, T::BlockNumber)&gt;| {
+		<span class="kw">let </span>pruning_tasks_done =
+			PastCodePruning::&lt;T&gt;::mutate(|pruning_tasks: <span class="kw-2">&amp;mut </span>Vec&lt;(<span class="kw">_</span>, T::BlockNumber)&gt;| {
 				<span class="kw">let </span>(pruning_tasks_done, pruning_tasks_to_do) = {
 					<span class="comment">// find all past code that has just exited the pruning window.
 					</span><span class="kw">let </span>up_to_idx =
@@ -3494,10 +3487,10 @@
 				};
 
 				<span class="kw">for </span>(para_id, <span class="kw">_</span>) <span class="kw">in </span>pruning_tasks_to_do {
-					<span class="kw">let </span>full_deactivate = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodeMeta::mutate(<span class="kw-2">&amp;</span>para_id, |meta| {
+					<span class="kw">let </span>full_deactivate = PastCodeMeta::&lt;T&gt;::mutate(<span class="kw-2">&amp;</span>para_id, |meta| {
 						<span class="kw">for </span>pruned_repl_at <span class="kw">in </span>meta.prune_up_to(pruning_height) {
 							<span class="kw">let </span>removed_code_hash =
-								&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodeHash::take(<span class="kw-2">&amp;</span>(para_id, pruned_repl_at));
+								PastCodeHash::&lt;T&gt;::take(<span class="kw-2">&amp;</span>(para_id, pruned_repl_at));
 
 							<span class="kw">if let </span><span class="prelude-val">Some</span>(removed_code_hash) = removed_code_hash {
 								<span class="self">Self</span>::decrease_code_ref(<span class="kw-2">&amp;</span>removed_code_hash);
@@ -3516,13 +3509,12 @@
 					<span class="comment">// This parachain has been removed and now the vestigial code
 					// has been removed from the state. clean up meta as well.
 					</span><span class="kw">if </span>full_deactivate {
-						&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::PastCodeMeta::remove(<span class="kw-2">&amp;</span>para_id);
+						PastCodeMeta::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para_id);
 					}
 				}
 
 				pruning_tasks_done <span class="kw">as </span>u64
-			},
-		);
+			});
 
 		<span class="comment">// 1 read for the meta for each pruning task, 1 read for the config
 		// 2 writes: updating the meta and pruning the code
@@ -3537,11 +3529,11 @@
 	</span><span class="kw">fn </span>process_scheduled_upgrade_changes(now: T::BlockNumber) -&gt; Weight {
 		<span class="comment">// account weight for `UpcomingUpgrades::mutate`.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>);
-		<span class="kw">let </span>upgrades_signaled = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpcomingUpgrades::mutate(
+		<span class="kw">let </span>upgrades_signaled = UpcomingUpgrades::&lt;T&gt;::mutate(
 			|upcoming_upgrades: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, T::BlockNumber)&gt;| {
 				<span class="kw">let </span>num = upcoming_upgrades.iter().take_while(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, at)| at &lt;= <span class="kw-2">&amp;</span>now).count();
 				<span class="kw">for </span>(para, <span class="kw">_</span>) <span class="kw">in </span>upcoming_upgrades.drain(..num) {
-					&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeGoAheadSignal::insert(<span class="kw-2">&amp;</span>para, UpgradeGoAhead::GoAhead);
+					UpgradeGoAheadSignal::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, UpgradeGoAhead::GoAhead);
 				}
 				num
 			},
@@ -3550,10 +3542,8 @@
 
 		<span class="comment">// account weight for `UpgradeCooldowns::get`.
 		</span>weight += T::DbWeight::get().reads(<span class="number">1</span>);
-		<span class="kw">let </span>cooldowns_expired = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeCooldowns::get()
-			.iter()
-			.take_while(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, at)| at &lt;= <span class="kw-2">&amp;</span>now)
-			.count();
+		<span class="kw">let </span>cooldowns_expired =
+			UpgradeCooldowns::&lt;T&gt;::get().iter().take_while(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, at)| at &lt;= <span class="kw-2">&amp;</span>now).count();
 
 		<span class="comment">// reserve weight for `initializer_finalize`:
 		// - 1 read and 1 write for `UpgradeCooldowns::mutate`.
@@ -3568,13 +3558,11 @@
 	///
 	/// See `process_scheduled_upgrade_changes` for more details.
 	</span><span class="kw">fn </span>process_scheduled_upgrade_cooldowns(now: T::BlockNumber) {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeCooldowns::mutate(
-			|upgrade_cooldowns: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, T::BlockNumber)&gt;| {
-				<span class="kw">for </span><span class="kw-2">&amp;</span>(para, <span class="kw">_</span>) <span class="kw">in </span>upgrade_cooldowns.iter().take_while(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, at)| at &lt;= <span class="kw-2">&amp;</span>now) {
-					&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeRestrictionSignal::remove(<span class="kw-2">&amp;</span>para);
-				}
-			},
-		);
+		UpgradeCooldowns::&lt;T&gt;::mutate(|upgrade_cooldowns: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, T::BlockNumber)&gt;| {
+			<span class="kw">for </span><span class="kw-2">&amp;</span>(para, <span class="kw">_</span>) <span class="kw">in </span>upgrade_cooldowns.iter().take_while(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, at)| at &lt;= <span class="kw-2">&amp;</span>now) {
+				UpgradeRestrictionSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
+			}
+		});
 	}
 
 	<span class="doccomment">/// Goes over all PVF votes in progress, reinitializes ballots, increments ages and prunes the
@@ -3703,7 +3691,7 @@
 		weight += T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">4</span>);
 		FutureCodeUpgrades::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, expected_at);
 
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpcomingUpgrades::mutate(|upcoming_upgrades| {
+		UpcomingUpgrades::&lt;T&gt;::mutate(|upcoming_upgrades| {
 			<span class="kw">let </span>insert_idx = upcoming_upgrades
 				.binary_search_by_key(<span class="kw-2">&amp;</span>expected_at, |<span class="kw-2">&amp;</span>(<span class="kw">_</span>, b)| b)
 				.unwrap_or_else(|idx| idx);
@@ -3817,7 +3805,7 @@
 			mem::replace(<span class="kw-2">&amp;mut </span>genesis_data.validation_code, ValidationCode(Vec::new()));
 		UpcomingParasGenesis::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, genesis_data);
 		<span class="kw">let </span>validation_code_hash = validation_code.hash();
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CurrentCodeHash::insert(<span class="kw-2">&amp;</span>id, validation_code_hash);
+		CurrentCodeHash::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, validation_code_hash);
 
 		<span class="kw">let </span>cfg = configuration::Pallet::&lt;T&gt;::config();
 		<span class="self">Self</span>::kick_off_pvf_check(
@@ -3978,7 +3966,7 @@
 
 		weight += T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>);
 		<span class="kw">let </span>next_possible_upgrade_at = relay_parent_number + cfg.validation_upgrade_cooldown;
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeCooldowns::mutate(|upgrade_cooldowns| {
+		UpgradeCooldowns::&lt;T&gt;::mutate(|upgrade_cooldowns| {
 			<span class="kw">let </span>insert_idx = upgrade_cooldowns
 				.binary_search_by_key(<span class="kw-2">&amp;</span>next_possible_upgrade_at, |<span class="kw-2">&amp;</span>(<span class="kw">_</span>, b)| b)
 				.unwrap_or_else(|idx| idx);
@@ -4090,10 +4078,10 @@
 	) -&gt; Weight {
 		Heads::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, new_head);
 
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(expected_at) = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::FutureCodeUpgrades::get(<span class="kw-2">&amp;</span>id) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(expected_at) = FutureCodeUpgrades::&lt;T&gt;::get(<span class="kw-2">&amp;</span>id) {
 			<span class="kw">if </span>expected_at &lt;= execution_context {
-				&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::FutureCodeUpgrades::remove(<span class="kw-2">&amp;</span>id);
-				&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::UpgradeGoAheadSignal::remove(<span class="kw-2">&amp;</span>id);
+				FutureCodeUpgrades::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>id);
+				UpgradeGoAheadSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>id);
 
 				<span class="comment">// Both should always be `Some` in this case, since a code upgrade is scheduled.
 				</span><span class="kw">let </span>new_code_hash = <span class="kw">if let </span><span class="prelude-val">Some</span>(new_code_hash) = FutureCodeHash::&lt;T&gt;::take(<span class="kw-2">&amp;</span>id) {
@@ -4212,10 +4200,10 @@
 	/// Returns the weight consumed.
 	</span><span class="kw">fn </span>increase_code_ref(code_hash: <span class="kw-2">&amp;</span>ValidationCodeHash, code: <span class="kw-2">&amp;</span>ValidationCode) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>);
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHashRefs::mutate(code_hash, |refs| {
+		CodeByHashRefs::&lt;T&gt;::mutate(code_hash, |refs| {
 			<span class="kw">if </span><span class="kw-2">*</span>refs == <span class="number">0 </span>{
 				weight += T::DbWeight::get().writes(<span class="number">1</span>);
-				&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHash::insert(code_hash, code);
+				CodeByHash::&lt;T&gt;::insert(code_hash, code);
 			}
 			<span class="kw-2">*</span>refs += <span class="number">1</span>;
 		});
@@ -4228,18 +4216,18 @@
 	/// Returns the weight consumed.
 	</span><span class="kw">fn </span>decrease_code_ref(code_hash: <span class="kw-2">&amp;</span>ValidationCodeHash) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
-		<span class="kw">let </span>refs = &lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHashRefs::get(code_hash);
+		<span class="kw">let </span>refs = CodeByHashRefs::&lt;T&gt;::get(code_hash);
 		<span class="kw">if </span>refs == <span class="number">0 </span>{
 			<span class="macro">log::error!</span>(target: LOG_TARGET, <span class="string">&quot;Code refs is already zero for {:?}&quot;</span>, code_hash);
 			<span class="kw">return </span>weight
 		}
 		<span class="kw">if </span>refs &lt;= <span class="number">1 </span>{
 			weight += T::DbWeight::get().writes(<span class="number">2</span>);
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHash::remove(code_hash);
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHashRefs::remove(code_hash);
+			CodeByHash::&lt;T&gt;::remove(code_hash);
+			CodeByHashRefs::&lt;T&gt;::remove(code_hash);
 		} <span class="kw">else </span>{
 			weight += T::DbWeight::get().writes(<span class="number">1</span>);
-			&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::CodeByHashRefs::insert(code_hash, refs - <span class="number">1</span>);
+			CodeByHashRefs::&lt;T&gt;::insert(code_hash, refs - <span class="number">1</span>);
 		}
 		weight
 	}

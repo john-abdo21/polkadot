@@ -255,11 +255,6 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -337,7 +332,6 @@
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 	<span class="attr">#[pallet::pallet]
-	#[pallet::generate_store(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>Store)]
 	#[pallet::without_storage_info]
 	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
 
@@ -397,8 +391,8 @@
 
 	<span class="doccomment">/// Remove all relevant storage items for an outgoing parachain.
 	</span><span class="kw">fn </span>clean_dmp_after_outgoing(outgoing_para: <span class="kw-2">&amp;</span>ParaId) {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::remove(outgoing_para);
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueueHeads::remove(outgoing_para);
+		DownwardMessageQueues::&lt;T&gt;::remove(outgoing_para);
+		DownwardMessageQueueHeads::&lt;T&gt;::remove(outgoing_para);
 	}
 
 	<span class="doccomment">/// Determine whether enqueuing a downward message to a specific recipient para would result
@@ -414,9 +408,7 @@
 			<span class="kw">return </span><span class="prelude-val">Err</span>(QueueDownwardMessageError::ExceedsMaxMessageSize)
 		}
 
-		<span class="kw">if </span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::decode_len(para).unwrap_or(<span class="number">0</span>) &gt;
-			MAX_MESSAGE_QUEUE_SIZE
-		{
+		<span class="kw">if </span>DownwardMessageQueues::&lt;T&gt;::decode_len(para).unwrap_or(<span class="number">0</span>) &gt; MAX_MESSAGE_QUEUE_SIZE {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(QueueDownwardMessageError::ExceedsMaxMessageSize)
 		}
 
@@ -441,9 +433,7 @@
 			<span class="kw">return </span><span class="prelude-val">Err</span>(QueueDownwardMessageError::ExceedsMaxMessageSize)
 		}
 
-		<span class="kw">if </span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::decode_len(para).unwrap_or(<span class="number">0</span>) &gt;
-			MAX_MESSAGE_QUEUE_SIZE
-		{
+		<span class="kw">if </span>DownwardMessageQueues::&lt;T&gt;::decode_len(para).unwrap_or(<span class="number">0</span>) &gt; MAX_MESSAGE_QUEUE_SIZE {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(QueueDownwardMessageError::ExceedsMaxMessageSize)
 		}
 
@@ -451,13 +441,13 @@
 			InboundDownwardMessage { msg, sent_at: &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number() };
 
 		<span class="comment">// obtain the new link in the MQC and update the head.
-		</span>&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueueHeads::mutate(para, |head| {
+		</span>DownwardMessageQueueHeads::&lt;T&gt;::mutate(para, |head| {
 			<span class="kw">let </span>new_head =
 				BlakeTwo256::hash_of(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span>head, inbound.sent_at, T::Hashing::hash_of(<span class="kw-2">&amp;</span>inbound.msg)));
 			<span class="kw-2">*</span>head = new_head;
 		});
 
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::mutate(para, |v| {
+		DownwardMessageQueues::&lt;T&gt;::mutate(para, |v| {
 			v.push(inbound);
 		});
 
@@ -486,7 +476,7 @@
 
 	<span class="doccomment">/// Prunes the specified number of messages from the downward message queue of the given para.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prune_dmq(para: ParaId, processed_downward_messages: u32) -&gt; Weight {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::mutate(para, |q| {
+		DownwardMessageQueues::&lt;T&gt;::mutate(para, |q| {
 			<span class="kw">let </span>processed_downward_messages = processed_downward_messages <span class="kw">as </span>usize;
 			<span class="kw">if </span>processed_downward_messages &gt; q.len() {
 				<span class="comment">// reaching this branch is unexpected due to the constraint established by
@@ -503,14 +493,14 @@
 	/// associated with it.
 	</span><span class="attr">#[cfg(test)]
 	</span><span class="kw">fn </span>dmq_mqc_head(para: ParaId) -&gt; Hash {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueueHeads::get(<span class="kw-2">&amp;</span>para)
+		DownwardMessageQueueHeads::&lt;T&gt;::get(<span class="kw-2">&amp;</span>para)
 	}
 
 	<span class="doccomment">/// Returns the number of pending downward messages addressed to the given para.
 	///
 	/// Returns 0 if the para doesn&#39;t have an associated downward message queue.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_length(para: ParaId) -&gt; u32 {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::decode_len(<span class="kw-2">&amp;</span>para)
+		DownwardMessageQueues::&lt;T&gt;::decode_len(<span class="kw-2">&amp;</span>para)
 			.unwrap_or(<span class="number">0</span>)
 			.saturated_into::&lt;u32&gt;()
 	}
@@ -519,7 +509,7 @@
 	///
 	/// The most recent messages are the latest in the vector.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(recipient: ParaId) -&gt; Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt; {
-		&lt;<span class="self">Self </span><span class="kw">as </span>Store&gt;::DownwardMessageQueues::get(<span class="kw-2">&amp;</span>recipient)
+		DownwardMessageQueues::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient)
 	}
 }
 </code></pre></div>
