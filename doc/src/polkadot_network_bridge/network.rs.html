@@ -232,9 +232,6 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -259,13 +256,9 @@
 <span class="kw">use </span>parity_scale_codec::Encode;
 
 <span class="kw">use </span>sc_network::{
-	multiaddr::Multiaddr, Event <span class="kw">as </span>NetworkEvent, IfDisconnected, NetworkService, OutboundFailure,
-	RequestFailure,
-};
-<span class="kw">use </span>sc_network_common::{
-	config::parse_addr,
-	protocol::ProtocolName,
-	service::{NetworkEventStream, NetworkNotification, NetworkPeers, NetworkRequest},
+	config::parse_addr, multiaddr::Multiaddr, types::ProtocolName, Event <span class="kw">as </span>NetworkEvent,
+	IfDisconnected, NetworkEventStream, NetworkNotification, NetworkPeers, NetworkRequest,
+	NetworkService, OutboundFailure, RequestFailure,
 };
 
 <span class="kw">use </span>polkadot_node_network_protocol::{
@@ -430,8 +423,9 @@
 				<span class="kw">match </span>pending_response
 					.send(<span class="prelude-val">Err</span>(RequestFailure::Network(OutboundFailure::DialFailure)))
 				{
-					<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt;
-						<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Sending failed request response failed.&quot;</span>),
+					<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+						<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Sending failed request response failed.&quot;</span>)
+					},
 					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {},
 				}
 				<span class="kw">return

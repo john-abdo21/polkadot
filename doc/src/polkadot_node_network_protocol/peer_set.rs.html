@@ -557,9 +557,9 @@
 
 </span><span class="kw">use </span>derive_more::Display;
 <span class="kw">use </span>polkadot_primitives::Hash;
-<span class="kw">use </span>sc_network_common::{
+<span class="kw">use </span>sc_network::{
 	config::{NonDefaultSetConfig, SetConfig},
-	protocol::ProtocolName,
+	types::ProtocolName,
 };
 <span class="kw">use </span>std::{
 	collections::{hash_map::Entry, HashMap},
@@ -620,7 +620,7 @@
 				fallback_names,
 				max_notification_size,
 				handshake: <span class="prelude-val">None</span>,
-				set_config: sc_network_common::config::SetConfig {
+				set_config: SetConfig {
 					<span class="comment">// we allow full nodes to connect to validators for gossip
 					// to ensure any `MIN_GOSSIP_PEERS` always include reserved peers
 					// we limit the amount of non-reserved slots to be less
@@ -628,7 +628,7 @@
 					</span>in_peers: <span class="kw">super</span>::MIN_GOSSIP_PEERS <span class="kw">as </span>u32 / <span class="number">2 </span>- <span class="number">1</span>,
 					out_peers: <span class="kw">super</span>::MIN_GOSSIP_PEERS <span class="kw">as </span>u32 / <span class="number">2 </span>- <span class="number">1</span>,
 					reserved_nodes: Vec::new(),
-					non_reserved_mode: sc_network_common::config::NonReservedPeerMode::Accept,
+					non_reserved_mode: sc_network::config::NonReservedPeerMode::Accept,
 				},
 			},
 			PeerSet::Collation =&gt; NonDefaultSetConfig {
@@ -642,9 +642,9 @@
 					out_peers: <span class="number">0</span>,
 					reserved_nodes: Vec::new(),
 					non_reserved_mode: <span class="kw">if </span>is_authority == IsAuthority::Yes {
-						sc_network_common::config::NonReservedPeerMode::Accept
+						sc_network::config::NonReservedPeerMode::Accept
 					} <span class="kw">else </span>{
-						sc_network_common::config::NonReservedPeerMode::Deny
+						sc_network::config::NonReservedPeerMode::Deny
 					},
 				},
 			},
@@ -729,7 +729,7 @@
 </span><span class="kw">pub fn </span>peer_sets_info(
 	is_authority: IsAuthority,
 	peerset_protocol_names: <span class="kw-2">&amp;</span>PeerSetProtocolNames,
-) -&gt; Vec&lt;sc_network_common::config::NonDefaultSetConfig&gt; {
+) -&gt; Vec&lt;NonDefaultSetConfig&gt; {
 	PeerSet::iter()
 		.map(|s| s.get_info(is_authority, <span class="kw-2">&amp;</span>peerset_protocol_names))
 		.collect()
