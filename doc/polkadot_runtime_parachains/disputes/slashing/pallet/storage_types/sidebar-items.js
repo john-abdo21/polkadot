@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["UnappliedSlashes","Validators pending dispute slashes."],["ValidatorSetCounts","`ValidatorSetCount` per session."]]};

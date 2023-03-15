@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Included","Whether the paras inherent was included within this block."],["OnChainVotes","Scraped on chain data for extracting resolved disputes as well as backing votes."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BufferedSessionChanges","Buffered session changes along with the block number at which they should be applied."],["HasInitialized","Whether the parachains modules have been initialized within this block."]]};

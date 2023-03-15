@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["enter","Enter the paras inherent. This will process bitfields and backed candidates."]]};

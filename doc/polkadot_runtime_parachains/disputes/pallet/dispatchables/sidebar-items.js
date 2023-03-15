@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["force_unfreeze","NOTE: This function is an automatically generated, doc only, uncallable stub. designed to document the [`force_unfreeze`][`Call::force_unfreeze`] variant of the pallet [`Call`] enum. You should not attempt to call this function directly."]]};

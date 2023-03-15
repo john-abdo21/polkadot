@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["report_dispute_lost_unsigned","NOTE: This function is an automatically generated, doc only, uncallable stub. designed to document the [`report_dispute_lost_unsigned`][`Call::report_dispute_lost_unsigned`] variant of the pallet [`Call`] enum. You should not attempt to call this function directly."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ActiveConfig","The active configuration for the current session."],["BypassConsistencyCheck","If this is set, then the configuration setters will bypass the consistency checks. This is meant to be used only as the last resort."],["PendingConfigs","Pending configuration changes."]]};

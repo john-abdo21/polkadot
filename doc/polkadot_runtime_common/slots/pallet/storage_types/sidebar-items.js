@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Leases","Amounts held on deposit for each (possibly future) leased parachain."]]};

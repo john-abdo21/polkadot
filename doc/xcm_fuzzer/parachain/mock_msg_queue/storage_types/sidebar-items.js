@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ParachainId",""],["ReceivedDmp","A queue of received DMP messages"]]};
