@@ -2526,6 +2526,14 @@
 <a href="#2526" id="2526">2526</a>
 <a href="#2527" id="2527">2527</a>
 <a href="#2528" id="2528">2528</a>
+<a href="#2529" id="2529">2529</a>
+<a href="#2530" id="2530">2530</a>
+<a href="#2531" id="2531">2531</a>
+<a href="#2532" id="2532">2532</a>
+<a href="#2533" id="2533">2533</a>
+<a href="#2534" id="2534">2534</a>
+<a href="#2535" id="2535">2535</a>
+<a href="#2536" id="2536">2536</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2569,13 +2577,13 @@
 <span class="kw">use </span>frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		ConstU32, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem, LockIdentifier,
+		ConstU32, EitherOf, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem, LockIdentifier,
 		PrivilegeCmp, WithdrawReasons,
 	},
 	weights::ConstantMultiplier,
 	PalletId, RuntimeDebug,
 };
-<span class="kw">use </span>frame_system::EnsureRoot;
+<span class="kw">use </span>frame_system::{EnsureRoot, EnsureWithSuccess};
 <span class="kw">use </span>pallet_grandpa::{fg_primitives, AuthorityId <span class="kw">as </span>GrandpaId};
 <span class="kw">use </span>pallet_im_online::sr25519::AuthorityId <span class="kw">as </span>ImOnlineId;
 <span class="kw">use </span>pallet_session::historical <span class="kw">as </span>session_historical;
@@ -3354,6 +3362,7 @@
 	<span class="kw">pub const </span>MaxPeerInHeartbeats: u32 = <span class="number">10_000</span>;
 	<span class="kw">pub const </span>MaxPeerDataEncodingSize: u32 = <span class="number">1_000</span>;
 	<span class="kw">pub const </span>RootSpendOriginMaxAmount: Balance = Balance::MAX;
+	<span class="kw">pub const </span>CouncilSpendOriginMaxAmount: Balance = Balance::MAX;
 }
 
 <span class="kw">type </span>ApproveOrigin = EitherOfDiverse&lt;
@@ -3377,7 +3386,14 @@
 	<span class="kw">type </span>SpendFunds = Bounties;
 	<span class="kw">type </span>MaxApprovals = MaxApprovals;
 	<span class="kw">type </span>WeightInfo = weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
-	<span class="kw">type </span>SpendOrigin = frame_system::EnsureRootWithSuccess&lt;AccountId, RootSpendOriginMaxAmount&gt;;
+	<span class="kw">type </span>SpendOrigin = EitherOf&lt;
+		frame_system::EnsureRootWithSuccess&lt;AccountId, RootSpendOriginMaxAmount&gt;,
+		EnsureWithSuccess&lt;
+			pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilCollective, <span class="number">3</span>, <span class="number">5</span>&gt;,
+			AccountId,
+			CouncilSpendOriginMaxAmount,
+		&gt;,
+	&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
