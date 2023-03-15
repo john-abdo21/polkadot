@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["v2","A module exporting runtime API implementation functions for all runtime APIs using v2 primitives."],["vstaging","Put implementations of functions from staging APIs here."]]};
+window.SIDEBAR_ITEMS = {"mod":[["v4","A module exporting runtime API implementation functions for all runtime APIs using v2 primitives."],["vstaging","Put implementations of functions from staging APIs here."]]};

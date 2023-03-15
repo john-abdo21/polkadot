@@ -2540,6 +2540,14 @@
 <a href="#2540" id="2540">2540</a>
 <a href="#2541" id="2541">2541</a>
 <a href="#2542" id="2542">2542</a>
+<a href="#2543" id="2543">2543</a>
+<a href="#2544" id="2544">2544</a>
+<a href="#2545" id="2545">2545</a>
+<a href="#2546" id="2546">2546</a>
+<a href="#2547" id="2547">2547</a>
+<a href="#2548" id="2548">2548</a>
+<a href="#2549" id="2549">2549</a>
+<a href="#2550" id="2550">2550</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2573,7 +2581,7 @@
 	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
 	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent, reward_points <span class="kw">as </span>parachains_reward_points,
-	runtime_api_impl::v2 <span class="kw">as </span>parachains_runtime_api_impl, scheduler <span class="kw">as </span>parachains_scheduler,
+	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl, scheduler <span class="kw">as </span>parachains_scheduler,
 	session_info <span class="kw">as </span>parachains_session_info, shared <span class="kw">as </span>parachains_shared, ump <span class="kw">as </span>parachains_ump,
 };
 
@@ -2596,11 +2604,11 @@
 <span class="kw">use </span>pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>primitives::{
-	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CommittedCandidateReceipt,
-	CoreState, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage,
-	Moment, Nonce, OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
-	SessionInfo, Signature, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
-	LOWEST_PUBLIC_ID,
+	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
+	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo, Hash,
+	Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, Moment, Nonce,
+	OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes, SessionInfo, Signature,
+	ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex, LOWEST_PUBLIC_ID,
 };
 <span class="kw">use </span>sp_core::OpaqueMetadata;
 <span class="kw">use </span>sp_mmr_primitives <span class="kw">as </span>mmr;
@@ -4364,6 +4372,10 @@
 			parachains_runtime_api_impl::session_info::&lt;Runtime&gt;(index)
 		}
 
+		<span class="kw">fn </span>session_executor_params(session_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt; {
+			parachains_runtime_api_impl::session_executor_params::&lt;Runtime&gt;(session_index)
+		}
+
 		<span class="kw">fn </span>dmq_contents(recipient: ParaId) -&gt; Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt; {
 			parachains_runtime_api_impl::dmq_contents::&lt;Runtime&gt;(recipient)
 		}
@@ -4397,6 +4409,10 @@
 			-&gt; <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;
 		{
 			parachains_runtime_api_impl::validation_code_hash::&lt;Runtime&gt;(para_id, assumption)
+		}
+
+		<span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt; {
+			parachains_runtime_api_impl::get_session_disputes::&lt;Runtime&gt;()
 		}
 	}
 

@@ -220,10 +220,6 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2022 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -337,8 +333,8 @@
 //! from the stable primitives.
 
 </span><span class="kw">use crate</span>::{
-	vstaging, BlockNumber, CandidateCommitments, CandidateEvent, CandidateHash,
-	CommittedCandidateReceipt, CoreState, DisputeState, GroupRotationInfo, OccupiedCoreAssumption,
+	BlockNumber, CandidateCommitments, CandidateEvent, CandidateHash, CommittedCandidateReceipt,
+	CoreState, DisputeState, ExecutorParams, GroupRotationInfo, OccupiedCoreAssumption,
 	PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes, SessionIndex, SessionInfo,
 	ValidatorId, ValidatorIndex, ValidatorSignature,
 };
@@ -349,7 +345,7 @@
 
 <span class="macro">sp_api::decl_runtime_apis! </span>{
 	<span class="doccomment">/// The API for querying the state of parachains on-chain.
-	</span><span class="attr">#[api_version(<span class="number">2</span>)]
+	</span><span class="attr">#[api_version(<span class="number">4</span>)]
 	</span><span class="kw">pub trait </span>ParachainHost&lt;H: Encode + Decode = pcp::v2::Hash, N: Encode + Decode = pcp::v2::BlockNumber&gt; {
 		<span class="doccomment">/// Get the current validators.
 		</span><span class="kw">fn </span>validators() -&gt; Vec&lt;ValidatorId&gt;;
@@ -439,15 +435,11 @@
 		</span><span class="kw">fn </span>validation_code_hash(para_id: ppp::Id, assumption: OccupiedCoreAssumption)
 			-&gt; <span class="prelude-ty">Option</span>&lt;ppp::ValidationCodeHash&gt;;
 
-		<span class="comment">/***** STAGING *****/
-
-		</span><span class="doccomment">/// Returns all onchain disputes.
-		</span><span class="attr">#[api_version(<span class="number">3</span>)]
+		<span class="doccomment">/// Returns all onchain disputes.
 		</span><span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;;
 
 		<span class="doccomment">/// Returns execution parameters for the session.
-		</span><span class="attr">#[api_version(<span class="number">4</span>)]
-		</span><span class="kw">fn </span>session_executor_params(session_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;vstaging::ExecutorParams&gt;;
+		</span><span class="kw">fn </span>session_executor_params(session_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;;
 	}
 }
 </code></pre></div>

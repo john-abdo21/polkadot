@@ -1062,6 +1062,15 @@
 <a href="#1062" id="1062">1062</a>
 <a href="#1063" id="1063">1063</a>
 <a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1092,7 +1101,7 @@
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
 	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
 	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
-	paras_inherent <span class="kw">as </span>parachains_paras_inherent, runtime_api_impl::v2 <span class="kw">as </span>runtime_impl,
+	paras_inherent <span class="kw">as </span>parachains_paras_inherent, runtime_api_impl::v4 <span class="kw">as </span>runtime_impl,
 	scheduler <span class="kw">as </span>parachains_scheduler, session_info <span class="kw">as </span>parachains_session_info,
 	shared <span class="kw">as </span>parachains_shared, ump <span class="kw">as </span>parachains_ump,
 };
@@ -1109,11 +1118,12 @@
 <span class="kw">use </span>pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
 <span class="kw">use </span>polkadot_runtime_parachains::reward_points::RewardValidatorsWithEraPoints;
 <span class="kw">use </span>primitives::{
-	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CommittedCandidateReceipt,
-	CoreState, GroupRotationInfo, Hash <span class="kw">as </span>HashT, Id <span class="kw">as </span>ParaId, InboundDownwardMessage,
-	InboundHrmpMessage, Moment, Nonce, OccupiedCoreAssumption, PersistedValidationData,
-	ScrapedOnChainVotes, SessionInfo <span class="kw">as </span>SessionInfoData, Signature, ValidationCode,
-	ValidationCodeHash, ValidatorId, ValidatorIndex,
+	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
+	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo,
+	Hash <span class="kw">as </span>HashT, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, Moment, Nonce,
+	OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
+	SessionInfo <span class="kw">as </span>SessionInfoData, Signature, ValidationCode, ValidationCodeHash, ValidatorId,
+	ValidatorIndex,
 };
 <span class="kw">use </span>runtime_common::{
 	claims, impl_runtime_weights, paras_sudo_wrapper, BlockHashCount, BlockLength,
@@ -1901,6 +1911,10 @@
 			runtime_impl::session_info::&lt;Runtime&gt;(index)
 		}
 
+		<span class="kw">fn </span>session_executor_params(session_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt; {
+			runtime_impl::session_executor_params::&lt;Runtime&gt;(session_index)
+		}
+
 		<span class="kw">fn </span>dmq_contents(
 			recipient: ParaId,
 		) -&gt; Vec&lt;InboundDownwardMessage&lt;BlockNumber&gt;&gt; {
@@ -1936,6 +1950,10 @@
 			-&gt; <span class="prelude-ty">Option</span>&lt;ValidationCodeHash&gt;
 		{
 			runtime_impl::validation_code_hash::&lt;Runtime&gt;(para_id, assumption)
+		}
+
+		<span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt; {
+			runtime_impl::get_session_disputes::&lt;Runtime&gt;()
 		}
 	}
 
