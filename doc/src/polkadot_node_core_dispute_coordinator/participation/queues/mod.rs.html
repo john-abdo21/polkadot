@@ -429,7 +429,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>std::{cmp::Ordering, collections::BTreeMap, sync::Arc};
+</span><span class="kw">use </span>std::{cmp::Ordering, collections::BTreeMap};
 
 <span class="kw">use </span>futures::channel::oneshot;
 <span class="kw">use </span>polkadot_node_subsystem::{messages::ChainApiMessage, overseer};
@@ -480,12 +480,12 @@
 }
 
 <span class="doccomment">/// A dispute participation request that can be queued.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ParticipationRequest {
 	candidate_hash: CandidateHash,
 	candidate_receipt: CandidateReceipt,
 	session: SessionIndex,
-	_request_timer: Arc&lt;<span class="prelude-ty">Option</span>&lt;prometheus::HistogramTimer&gt;&gt;, <span class="comment">// Sends metric data when request is dropped
+	_request_timer: <span class="prelude-ty">Option</span>&lt;prometheus::HistogramTimer&gt;, <span class="comment">// Sends metric data when request is dropped
 </span>}
 
 <span class="doccomment">/// Whether a `ParticipationRequest` should be put on best-effort or the priority queue.
@@ -532,7 +532,7 @@
 	</span><span class="kw">pub fn </span>new(
 		candidate_receipt: CandidateReceipt,
 		session: SessionIndex,
-		request_timer: Arc&lt;<span class="prelude-ty">Option</span>&lt;prometheus::HistogramTimer&gt;&gt;,
+		request_timer: <span class="prelude-ty">Option</span>&lt;prometheus::HistogramTimer&gt;,
 	) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
 			candidate_hash: candidate_receipt.hash(),
@@ -557,8 +557,8 @@
 	}
 }
 
-<span class="comment">// We want to compare participation requests in unit tests, so we
-// only implement Eq for tests.
+<span class="comment">// We want to compare and clone participation requests in unit tests, so we
+// only implement Eq and Clone for tests.
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">impl </span>PartialEq <span class="kw">for </span>ParticipationRequest {
 	<span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
