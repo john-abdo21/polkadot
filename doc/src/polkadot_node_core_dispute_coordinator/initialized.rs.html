@@ -1309,6 +1309,15 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2345,6 +2354,15 @@
 		// will need to mark the candidate&#39;s relay parent as reverted.
 		</span><span class="kw">if </span>import_result.is_freshly_concluded_against() {
 			<span class="kw">let </span>blocks_including = <span class="self">self</span>.scraper.get_blocks_including_candidate(<span class="kw-2">&amp;</span>candidate_hash);
+			<span class="kw">for </span>(parent_block_number, parent_block_hash) <span class="kw">in </span><span class="kw-2">&amp;</span>blocks_including {
+				<span class="macro">gum::trace!</span>(
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>candidate_hash,
+					<span class="question-mark">?</span>parent_block_number,
+					<span class="question-mark">?</span>parent_block_hash,
+					<span class="string">&quot;Dispute has just concluded against the candidate hash noted. Its parent will be marked as reverted.&quot;
+				</span>);
+			}
 			<span class="kw">if </span>blocks_including.len() &gt; <span class="number">0 </span>{
 				ctx.send_message(ChainSelectionMessage::RevertBlocks(blocks_including)).<span class="kw">await</span>;
 			} <span class="kw">else </span>{

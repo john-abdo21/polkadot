@@ -1315,9 +1315,6 @@
 <a href="#1315" id="1315">1315</a>
 <a href="#1316" id="1316">1316</a>
 <a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1732,8 +1729,7 @@
 			<span class="comment">// Note that `process_checked_multi_dispute_data` will iterate and import each
 			// dispute; so the input here must be reasonably bounded,
 			// which is guaranteed by the checks and weight limitation above.
-			</span><span class="kw">let _ </span>=
-				T::DisputesHandler::process_checked_multi_dispute_data(checked_disputes.clone())<span class="question-mark">?</span>;
+			</span><span class="kw">let _ </span>= T::DisputesHandler::process_checked_multi_dispute_data(<span class="kw-2">&amp;</span>checked_disputes)<span class="question-mark">?</span>;
 			METRICS.on_disputes_imported(checked_disputes.len() <span class="kw">as </span>u64);
 
 			<span class="kw">if </span>T::DisputesHandler::is_frozen() {
@@ -1945,13 +1941,11 @@
 			<span class="comment">// we don&#39;t care about fresh or not disputes
 			// this writes them to storage, so let&#39;s query it via those means
 			// if this fails for whatever reason, that&#39;s ok
-			</span><span class="kw">let _ </span>= T::DisputesHandler::process_checked_multi_dispute_data(
-				checked_disputes_sets.clone(),
-			)
-			.map_err(|e| {
-				<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;MultiDisputesData failed to update: {:?}&quot;</span>, e);
-				e
-			});
+			</span><span class="kw">let _ </span>= T::DisputesHandler::process_checked_multi_dispute_data(<span class="kw-2">&amp;</span>checked_disputes_sets)
+				.map_err(|e| {
+					<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;MultiDisputesData failed to update: {:?}&quot;</span>, e);
+					e
+				});
 
 			<span class="comment">// Contains the disputes that are concluded in the current session only,
 			// since these are the only ones that are relevant for the occupied cores

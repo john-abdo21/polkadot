@@ -1642,7 +1642,7 @@
 	<span class="doccomment">/// Handle sets of dispute statements corresponding to 0 or more candidates.
 	/// Returns a vector of freshly created disputes.
 	</span><span class="kw">fn </span>process_checked_multi_dispute_data(
-		statement_sets: CheckedMultiDisputeStatementSet,
+		statement_sets: <span class="kw-2">&amp;</span>CheckedMultiDisputeStatementSet,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash)&gt;, DispatchError&gt;;
 
 	<span class="doccomment">/// Note that the given candidate has been included.
@@ -1690,7 +1690,7 @@
 	</span>}
 
 	<span class="kw">fn </span>process_checked_multi_dispute_data(
-		_statement_sets: CheckedMultiDisputeStatementSet,
+		_statement_sets: <span class="kw-2">&amp;</span>CheckedMultiDisputeStatementSet,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash)&gt;, DispatchError&gt; {
 		<span class="prelude-val">Ok</span>(Vec::new())
 	}
@@ -1744,7 +1744,7 @@
 	}
 
 	<span class="kw">fn </span>process_checked_multi_dispute_data(
-		statement_sets: CheckedMultiDisputeStatementSet,
+		statement_sets: <span class="kw-2">&amp;</span>CheckedMultiDisputeStatementSet,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash)&gt;, DispatchError&gt; {
 		pallet::Pallet::&lt;T&gt;::process_checked_multi_dispute_data(statement_sets)
 	}
@@ -2348,14 +2348,14 @@
 	/// and to fail the extrinsic on error. As invalid inherents are not allowed, the dirty state
 	/// is not committed.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_checked_multi_dispute_data(
-		statement_sets: CheckedMultiDisputeStatementSet,
+		statement_sets: <span class="kw-2">&amp;</span>CheckedMultiDisputeStatementSet,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash)&gt;, DispatchError&gt; {
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
 		<span class="kw">let </span><span class="kw-2">mut </span>fresh = Vec::with_capacity(statement_sets.len());
 		<span class="kw">for </span>statement_set <span class="kw">in </span>statement_sets {
 			<span class="kw">let </span>dispute_target = {
-				<span class="kw">let </span>statement_set: <span class="kw-2">&amp;</span>DisputeStatementSet = statement_set.as_ref();
+				<span class="kw">let </span>statement_set = statement_set.as_ref();
 				(statement_set.session, statement_set.candidate_hash)
 			};
 			<span class="kw">if </span><span class="self">Self</span>::process_checked_dispute_data(
@@ -2491,7 +2491,7 @@
 	/// Fails if the dispute data is invalid. Returns a Boolean indicating whether the
 	/// dispute is fresh.
 	</span><span class="kw">fn </span>process_checked_dispute_data(
-		set: CheckedDisputeStatementSet,
+		set: <span class="kw-2">&amp;</span>CheckedDisputeStatementSet,
 		dispute_post_conclusion_acceptance_period: T::BlockNumber,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, DispatchError&gt; {
 		<span class="comment">// Dispute statement sets on any dispute which concluded
