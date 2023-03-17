@@ -629,7 +629,7 @@
 
 <span class="kw">use </span>sc_network::Multiaddr;
 <span class="kw">use </span>sp_application_crypto::{AppKey, ByteArray};
-<span class="kw">use </span>sp_keystore::{CryptoStore, SyncCryptoStorePtr};
+<span class="kw">use </span>sp_keystore::{Keystore, KeystorePtr};
 
 <span class="kw">use </span>polkadot_node_network_protocol::{
 	authority_discovery::AuthorityDiscovery, peer_set::PeerSet, GossipSupportNetworkMessage,
@@ -671,7 +671,7 @@
 
 <span class="doccomment">/// The Gossip Support subsystem.
 </span><span class="kw">pub struct </span>GossipSupport&lt;AD&gt; {
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 
 	last_session_index: <span class="prelude-ty">Option</span>&lt;SessionIndex&gt;,
 	<span class="comment">// Some(timestamp) if we failed to resolve
@@ -710,7 +710,7 @@
 	</span>AD: AuthorityDiscovery,
 {
 	<span class="doccomment">/// Create a new instance of the [`GossipSupport`] subsystem.
-	</span><span class="kw">pub fn </span>new(keystore: SyncCryptoStorePtr, authority_discovery: AD, metrics: Metrics) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(keystore: KeystorePtr, authority_discovery: AD, metrics: Metrics) -&gt; <span class="self">Self </span>{
 		<span class="comment">// Initialize metrics to `0`.
 		</span>metrics.on_is_not_authority();
 		metrics.on_is_not_parachain_validator();
@@ -840,7 +840,7 @@
 
 					<span class="comment">// Remove all of our locally controlled validator indices so we don&#39;t connect to ourself.
 					</span><span class="kw">let </span>connections =
-						<span class="kw">if </span>remove_all_controlled(<span class="kw-2">&amp;</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;mut </span>connections).<span class="kw">await </span>!= <span class="number">0 </span>{
+						<span class="kw">if </span>remove_all_controlled(<span class="kw-2">&amp;</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;mut </span>connections) != <span class="number">0 </span>{
 							connections
 						} <span class="kw">else </span>{
 							<span class="comment">// If we control none of them, issue an empty connection request
@@ -852,7 +852,7 @@
 
 				<span class="kw">if </span>is_new_session {
 					<span class="comment">// Gossip topology is only relevant for authorities in the current session.
-					</span><span class="kw">let </span>our_index = <span class="self">self</span>.get_key_index_and_update_metrics(<span class="kw-2">&amp;</span>session_info).<span class="kw">await</span><span class="question-mark">?</span>;
+					</span><span class="kw">let </span>our_index = <span class="self">self</span>.get_key_index_and_update_metrics(<span class="kw-2">&amp;</span>session_info)<span class="question-mark">?</span>;
 
 					update_gossip_topology(
 						sender,
@@ -871,12 +871,12 @@
 	<span class="comment">// Checks if the node is an authority and also updates `polkadot_node_is_authority` and
 	// `polkadot_node_is_parachain_validator` metrics accordingly.
 	// On success, returns the index of our keys in `session_info.discovery_keys`.
-	</span><span class="kw">async fn </span>get_key_index_and_update_metrics(
+	</span><span class="kw">fn </span>get_key_index_and_update_metrics(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		session_info: <span class="kw-2">&amp;</span>SessionInfo,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;usize, util::Error&gt; {
 		<span class="kw">let </span>authority_check_result =
-			ensure_i_am_an_authority(<span class="kw-2">&amp;</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;</span>session_info.discovery_keys).<span class="kw">await</span>;
+			ensure_i_am_an_authority(<span class="kw-2">&amp;</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;</span>session_info.discovery_keys);
 
 		<span class="kw">match </span>authority_check_result.as_ref() {
 			<span class="prelude-val">Ok</span>(index) =&gt; {
@@ -1049,12 +1049,12 @@
 
 <span class="doccomment">/// Return an error if we&#39;re not a validator in the given set (do not have keys).
 /// Otherwise, returns the index of our keys in `authorities`.
-</span><span class="kw">async fn </span>ensure_i_am_an_authority(
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+</span><span class="kw">fn </span>ensure_i_am_an_authority(
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	authorities: <span class="kw-2">&amp;</span>[AuthorityDiscoveryId],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;usize, util::Error&gt; {
 	<span class="kw">for </span>(i, v) <span class="kw">in </span>authorities.iter().enumerate() {
-		<span class="kw">if </span>CryptoStore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), AuthorityDiscoveryId::ID)]).<span class="kw">await </span>{
+		<span class="kw">if </span>Keystore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), AuthorityDiscoveryId::ID)]) {
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(i)
 		}
 	}
@@ -1062,13 +1062,13 @@
 }
 
 <span class="doccomment">/// Filter out all controlled keys in the given set. Returns the number of keys removed.
-</span><span class="kw">async fn </span>remove_all_controlled(
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+</span><span class="kw">fn </span>remove_all_controlled(
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	authorities: <span class="kw-2">&amp;mut </span>Vec&lt;AuthorityDiscoveryId&gt;,
 ) -&gt; usize {
 	<span class="kw">let </span><span class="kw-2">mut </span>to_remove = Vec::new();
 	<span class="kw">for </span>(i, v) <span class="kw">in </span>authorities.iter().enumerate() {
-		<span class="kw">if </span>CryptoStore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), AuthorityDiscoveryId::ID)]).<span class="kw">await </span>{
+		<span class="kw">if </span>Keystore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), AuthorityDiscoveryId::ID)]) {
 			to_remove.push(i);
 		}
 	}

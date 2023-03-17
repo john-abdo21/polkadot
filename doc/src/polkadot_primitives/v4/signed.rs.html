@@ -344,7 +344,6 @@
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -367,7 +366,7 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">use </span>application_crypto::AppKey;
 <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span>sp_keystore::{CryptoStore, Error <span class="kw">as </span>KeystoreError, SyncCryptoStorePtr};
+</span><span class="kw">use </span>sp_keystore::{Error <span class="kw">as </span>KeystoreError, Keystore, KeystorePtr};
 <span class="kw">use </span>sp_std::prelude::Vec;
 
 <span class="kw">use </span>primitives::RuntimeDebug;
@@ -433,14 +432,14 @@
 
 	<span class="doccomment">/// Create a new `Signed` by signing data.
 	</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-	</span><span class="kw">pub async fn </span>sign&lt;H: Encode&gt;(
-		keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	</span><span class="kw">pub fn </span>sign&lt;H: Encode&gt;(
+		keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 		payload: Payload,
 		context: <span class="kw-2">&amp;</span>SigningContext&lt;H&gt;,
 		validator_index: ValidatorIndex,
 		key: <span class="kw-2">&amp;</span>ValidatorId,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, KeystoreError&gt; {
-		<span class="kw">let </span>r = UncheckedSigned::sign(keystore, payload, context, validator_index, key).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">let </span>r = UncheckedSigned::sign(keystore, payload, context, validator_index, key)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(r.map(<span class="self">Self</span>))
 	}
 
@@ -591,16 +590,15 @@
 
 	<span class="doccomment">/// Sign this payload with the given context and key, storing the validator index.
 	</span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-	</span><span class="kw">async fn </span>sign&lt;H: Encode&gt;(
-		keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	</span><span class="kw">fn </span>sign&lt;H: Encode&gt;(
+		keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 		payload: Payload,
 		context: <span class="kw-2">&amp;</span>SigningContext&lt;H&gt;,
 		validator_index: ValidatorIndex,
 		key: <span class="kw-2">&amp;</span>ValidatorId,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;, KeystoreError&gt; {
 		<span class="kw">let </span>data = <span class="self">Self</span>::payload_data(<span class="kw-2">&amp;</span>payload, context);
-		<span class="kw">let </span>signature =
-			CryptoStore::sign_with(<span class="kw-2">&amp;**</span>keystore, ValidatorId::ID, <span class="kw-2">&amp;</span>key.into(), <span class="kw-2">&amp;</span>data).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">let </span>signature = Keystore::sign_with(<span class="kw-2">&amp;**</span>keystore, ValidatorId::ID, <span class="kw-2">&amp;</span>key.into(), <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>signature = <span class="kw">match </span>signature {
 			<span class="prelude-val">Some</span>(sig) =&gt;

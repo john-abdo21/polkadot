@@ -368,7 +368,7 @@
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>sp_application_crypto::AppKey;
 <span class="kw">use </span>sp_core::crypto::ByteArray;
-<span class="kw">use </span>sp_keystore::{CryptoStore, SyncCryptoStorePtr};
+<span class="kw">use </span>sp_keystore::{Keystore, KeystorePtr};
 
 <span class="kw">use </span>polkadot_node_subsystem::{messages::RuntimeApiMessage, overseer, SubsystemSender};
 <span class="kw">use </span>polkadot_primitives::{
@@ -394,7 +394,7 @@
 	<span class="doccomment">/// Needed for retrieval of `ValidatorInfo`
 	///
 	/// Pass `None` if you are not interested.
-	</span><span class="kw">pub </span>keystore: <span class="prelude-ty">Option</span>&lt;SyncCryptoStorePtr&gt;,
+	</span><span class="kw">pub </span>keystore: <span class="prelude-ty">Option</span>&lt;KeystorePtr&gt;,
 
 	<span class="doccomment">/// How many sessions should we keep in the cache?
 	</span><span class="kw">pub </span>session_cache_lru_size: NonZeroUsize,
@@ -414,7 +414,7 @@
 	</span>session_info_cache: LruCache&lt;SessionIndex, ExtendedSessionInfo&gt;,
 
 	<span class="doccomment">/// Key store for determining whether we are a validator and what `ValidatorIndex` we have.
-	</span>keystore: <span class="prelude-ty">Option</span>&lt;SyncCryptoStorePtr&gt;,
+	</span>keystore: <span class="prelude-ty">Option</span>&lt;KeystorePtr&gt;,
 }
 
 <span class="doccomment">/// `SessionInfo` with additional useful data for validator nodes.
@@ -447,7 +447,7 @@
 
 <span class="kw">impl </span>RuntimeInfo {
 	<span class="doccomment">/// Create a new `RuntimeInfo` for convenient runtime fetches.
-	</span><span class="kw">pub fn </span>new(keystore: <span class="prelude-ty">Option</span>&lt;SyncCryptoStorePtr&gt;) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(keystore: <span class="prelude-ty">Option</span>&lt;KeystorePtr&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::new_with_config(Config { keystore, ..Default::default() })
 	}
 
@@ -516,7 +516,7 @@
 				recv_runtime(request_session_info(parent, session_index, sender).<span class="kw">await</span>)
 					.<span class="kw">await</span><span class="question-mark">?
 					</span>.ok_or(JfyiError::NoSuchSession(session_index))<span class="question-mark">?</span>;
-			<span class="kw">let </span>validator_info = <span class="self">self</span>.get_validator_info(<span class="kw-2">&amp;</span>session_info).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let </span>validator_info = <span class="self">self</span>.get_validator_info(<span class="kw-2">&amp;</span>session_info)<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>full_info = ExtendedSessionInfo { session_info, validator_info };
 
@@ -551,8 +551,8 @@
 	///
 	///
 	/// Returns: `None` if not a parachain validator.
-	</span><span class="kw">async fn </span>get_validator_info(<span class="kw-2">&amp;</span><span class="self">self</span>, session_info: <span class="kw-2">&amp;</span>SessionInfo) -&gt; <span class="prelude-ty">Result</span>&lt;ValidatorInfo&gt; {
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(our_index) = <span class="self">self</span>.get_our_index(<span class="kw-2">&amp;</span>session_info.validators).<span class="kw">await </span>{
+	</span><span class="kw">fn </span>get_validator_info(<span class="kw-2">&amp;</span><span class="self">self</span>, session_info: <span class="kw-2">&amp;</span>SessionInfo) -&gt; <span class="prelude-ty">Result</span>&lt;ValidatorInfo&gt; {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(our_index) = <span class="self">self</span>.get_our_index(<span class="kw-2">&amp;</span>session_info.validators) {
 			<span class="comment">// Get our group index:
 			</span><span class="kw">let </span>our_group =
 				session_info.validator_groups.iter().enumerate().find_map(|(i, g)| {
@@ -573,13 +573,13 @@
 	<span class="doccomment">/// Get our `ValidatorIndex`.
 	///
 	/// Returns: None if we are not a validator.
-	</span><span class="kw">async fn </span>get_our_index(
+	</span><span class="kw">fn </span>get_our_index(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		validators: <span class="kw-2">&amp;</span>IndexedVec&lt;ValidatorIndex, ValidatorId&gt;,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorIndex&gt; {
 		<span class="kw">let </span>keystore = <span class="self">self</span>.keystore.as_ref()<span class="question-mark">?</span>;
 		<span class="kw">for </span>(i, v) <span class="kw">in </span>validators.iter().enumerate() {
-			<span class="kw">if </span>CryptoStore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), ValidatorId::ID)]).<span class="kw">await </span>{
+			<span class="kw">if </span>Keystore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), ValidatorId::ID)]) {
 				<span class="kw">return </span><span class="prelude-val">Some</span>(ValidatorIndex(i <span class="kw">as </span>u32))
 			}
 		}

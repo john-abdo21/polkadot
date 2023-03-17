@@ -885,9 +885,6 @@
 <a href="#885" id="885">885</a>
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1447,17 +1444,14 @@
 	<span class="kw">use </span>sp_application_crypto::sr25519;
 	<span class="kw">use </span>sp_core::crypto::Pair <span class="kw">as </span>PairT;
 	<span class="kw">use </span>sp_keyring::sr25519::Keyring <span class="kw">as </span>Sr25519Keyring;
-	<span class="kw">use </span>sp_keystore::CryptoStore;
+	<span class="kw">use </span>sp_keystore::Keystore;
 
 	<span class="comment">// sets up a keystore with the given keyring accounts.
-	</span><span class="kw">async fn </span>make_keystore(accounts: <span class="kw-2">&amp;</span>[Sr25519Keyring]) -&gt; LocalKeystore {
+	</span><span class="kw">fn </span>make_keystore(accounts: <span class="kw-2">&amp;</span>[Sr25519Keyring]) -&gt; LocalKeystore {
 		<span class="kw">let </span>store = LocalKeystore::in_memory();
 
 		<span class="kw">for </span>s <span class="kw">in </span>accounts.iter().copied().map(|k| k.to_seed()) {
-			store
-				.sr25519_generate_new(ASSIGNMENT_KEY_TYPE_ID, <span class="prelude-val">Some</span>(s.as_str()))
-				.<span class="kw">await
-				</span>.unwrap();
+			store.sr25519_generate_new(ASSIGNMENT_KEY_TYPE_ID, <span class="prelude-val">Some</span>(s.as_str())).unwrap();
 		}
 
 		store
@@ -1510,7 +1504,7 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>assignments_produced_for_non_backing() {
-		<span class="kw">let </span>keystore = futures::executor::block_on(make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]));
+		<span class="kw">let </span>keystore = make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]);
 
 		<span class="kw">let </span>c_a = CandidateHash(Hash::repeat_byte(<span class="number">0</span>));
 		<span class="kw">let </span>c_b = CandidateHash(Hash::repeat_byte(<span class="number">1</span>));
@@ -1545,7 +1539,7 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>assign_to_nonzero_core() {
-		<span class="kw">let </span>keystore = futures::executor::block_on(make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]));
+		<span class="kw">let </span>keystore = make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]);
 
 		<span class="kw">let </span>c_a = CandidateHash(Hash::repeat_byte(<span class="number">0</span>));
 		<span class="kw">let </span>c_b = CandidateHash(Hash::repeat_byte(<span class="number">1</span>));
@@ -1578,7 +1572,7 @@
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>succeeds_empty_for_0_cores() {
-		<span class="kw">let </span>keystore = futures::executor::block_on(make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]));
+		<span class="kw">let </span>keystore = make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]);
 
 		<span class="kw">let </span>relay_vrf_story = RelayVRFStory([<span class="number">42u8</span>; <span class="number">32</span>]);
 		<span class="kw">let </span>assignments = compute_assignments(
@@ -1618,7 +1612,7 @@
 		rotation_offset: usize,
 		f: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span>MutatedAssignment) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt;, <span class="comment">// None = skip
 	</span>) {
-		<span class="kw">let </span>keystore = futures::executor::block_on(make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]));
+		<span class="kw">let </span>keystore = make_keystore(<span class="kw-2">&amp;</span>[Sr25519Keyring::Alice]);
 
 		<span class="kw">let </span>group_for_core = |i| GroupIndex(((i + rotation_offset) % n_cores) <span class="kw">as _</span>);
 

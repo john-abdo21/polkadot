@@ -1340,9 +1340,6 @@
 <a href="#1340" id="1340">1340</a>
 <a href="#1341" id="1341">1341</a>
 <a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1397,7 +1394,7 @@
 	CommittedCandidateReceipt, CoreIndex, CoreState, Hash, Id <span class="kw">as </span>ParaId, PvfExecTimeoutKind,
 	SigningContext, ValidatorId, ValidatorIndex, ValidatorSignature, ValidityAttestation,
 };
-<span class="kw">use </span>sp_keystore::SyncCryptoStorePtr;
+<span class="kw">use </span>sp_keystore::KeystorePtr;
 <span class="kw">use </span>statement_table::{
 	generic::AttestedCandidate <span class="kw">as </span>TableAttestedCandidate,
 	v2::{
@@ -1463,13 +1460,13 @@
 
 <span class="doccomment">/// The candidate backing subsystem.
 </span><span class="kw">pub struct </span>CandidateBackingSubsystem {
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 }
 
 <span class="kw">impl </span>CandidateBackingSubsystem {
 	<span class="doccomment">/// Create a new instance of the `CandidateBackingSubsystem`.
-	</span><span class="kw">pub fn </span>new(keystore: SyncCryptoStorePtr, metrics: Metrics) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(keystore: KeystorePtr, metrics: Metrics) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ keystore, metrics }
 	}
 }
@@ -1494,7 +1491,7 @@
 <span class="attr">#[overseer::contextbounds(CandidateBacking, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>run&lt;Context&gt;(
 	<span class="kw-2">mut </span>ctx: Context,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 ) -&gt; FatalResult&lt;()&gt; {
 	<span class="kw">let </span>(background_validation_tx, <span class="kw-2">mut </span>background_validation_rx) = mpsc::channel(<span class="number">16</span>);
@@ -1523,7 +1520,7 @@
 <span class="attr">#[overseer::contextbounds(CandidateBacking, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>run_iteration&lt;Context&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	jobs: <span class="kw-2">&amp;mut </span>HashMap&lt;Hash, JobAndSpan&lt;Context&gt;&gt;,
 	background_validation_tx: mpsc::Sender&lt;(Hash, ValidatedCandidateCommand)&gt;,
@@ -1610,7 +1607,7 @@
 	ctx: <span class="kw-2">&amp;mut </span>Context,
 	update: ActiveLeavesUpdate,
 	jobs: <span class="kw-2">&amp;mut </span>HashMap&lt;Hash, JobAndSpan&lt;Context&gt;&gt;,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	background_validation_tx: <span class="kw-2">&amp;</span>mpsc::Sender&lt;(Hash, ValidatedCandidateCommand)&gt;,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
@@ -1668,7 +1665,7 @@
 
 	<span class="kw">let </span>signing_context = SigningContext { parent_hash: parent, session_index };
 	<span class="kw">let </span>validator =
-		<span class="kw">match </span>Validator::construct(<span class="kw-2">&amp;</span>validators, signing_context.clone(), keystore.clone()).<span class="kw">await </span>{
+		<span class="kw">match </span>Validator::construct(<span class="kw-2">&amp;</span>validators, signing_context.clone(), keystore.clone()) {
 			<span class="prelude-val">Ok</span>(v) =&gt; <span class="prelude-val">Some</span>(v),
 			<span class="prelude-val">Err</span>(util::Error::NotAValidator) =&gt; <span class="prelude-val">None</span>,
 			<span class="prelude-val">Err</span>(e) =&gt; {
@@ -1771,7 +1768,7 @@
 	<span class="doccomment">/// The candidates that are includable, by hash. Each entry here indicates
 	/// that we&#39;ve sent the provisioner the backed candidate.
 	</span>backed: HashSet&lt;CandidateHash&gt;,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	table: Table&lt;TableContext&gt;,
 	table_context: TableContext,
 	background_validation_tx: mpsc::Sender&lt;(Hash, ValidatedCandidateCommand)&gt;,
@@ -2159,8 +2156,7 @@
 								commitments,
 							});
 							<span class="kw">if let </span><span class="prelude-val">Some</span>(stmt) = <span class="self">self
-								</span>.sign_import_and_distribute_statement(ctx, statement, root_span)
-								.<span class="kw">await</span><span class="question-mark">?
+								</span>.sign_import_and_distribute_statement(ctx, statement, root_span)<span class="question-mark">?
 							</span>{
 								<span class="comment">// Break cycle - bounded as there is only one candidate to
 								// second per block.
@@ -2188,8 +2184,7 @@
 				</span><span class="kw">if </span>!<span class="self">self</span>.issued_statements.contains(<span class="kw-2">&amp;</span>candidate_hash) {
 					<span class="kw">if </span>res.is_ok() {
 						<span class="kw">let </span>statement = Statement::Valid(candidate_hash);
-						<span class="self">self</span>.sign_import_and_distribute_statement(ctx, statement, <span class="kw-2">&amp;</span>root_span)
-							.<span class="kw">await</span><span class="question-mark">?</span>;
+						<span class="self">self</span>.sign_import_and_distribute_statement(ctx, statement, <span class="kw-2">&amp;</span>root_span)<span class="question-mark">?</span>;
 					}
 					<span class="self">self</span>.issued_statements.insert(candidate_hash);
 				}
@@ -2311,14 +2306,14 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">async fn </span>sign_import_and_distribute_statement(
+	<span class="kw">fn </span>sign_import_and_distribute_statement(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		statement: Statement,
 		root_span: <span class="kw-2">&amp;</span>jaeger::Span,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SignedFullStatement&gt;, Error&gt; {
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(signed_statement) = <span class="self">self</span>.sign_statement(statement).<span class="kw">await </span>{
-			<span class="self">self</span>.import_statement(ctx, <span class="kw-2">&amp;</span>signed_statement, root_span).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(signed_statement) = <span class="self">self</span>.sign_statement(statement) {
+			<span class="self">self</span>.import_statement(ctx, <span class="kw-2">&amp;</span>signed_statement, root_span)<span class="question-mark">?</span>;
 			<span class="kw">let </span>smsg = StatementDistributionMessage::Share(<span class="self">self</span>.parent, signed_statement.clone());
 			ctx.send_unbounded_message(smsg);
 
@@ -2346,7 +2341,7 @@
 	}
 
 	<span class="doccomment">/// Import a statement into the statement table and return the summary of the import.
-	</span><span class="kw">async fn </span>import_statement(
+	</span><span class="kw">fn </span>import_statement(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		statement: <span class="kw-2">&amp;</span>SignedFullStatement,
@@ -2567,7 +2562,7 @@
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		statement: SignedFullStatement,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(summary) = <span class="self">self</span>.import_statement(ctx, <span class="kw-2">&amp;</span>statement, root_span).<span class="kw">await</span><span class="question-mark">? </span>{
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(summary) = <span class="self">self</span>.import_statement(ctx, <span class="kw-2">&amp;</span>statement, root_span)<span class="question-mark">? </span>{
 			<span class="kw">if </span><span class="prelude-val">Some</span>(summary.group_id) != <span class="self">self</span>.assignment {
 				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 			}
@@ -2622,14 +2617,13 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">async fn </span>sign_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: Statement) -&gt; <span class="prelude-ty">Option</span>&lt;SignedFullStatement&gt; {
+	<span class="kw">fn </span>sign_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: Statement) -&gt; <span class="prelude-ty">Option</span>&lt;SignedFullStatement&gt; {
 		<span class="kw">let </span>signed = <span class="self">self
 			</span>.table_context
 			.validator
 			.as_ref()<span class="question-mark">?
 			</span>.sign(<span class="self">self</span>.keystore.clone(), statement)
-			.<span class="kw">await
-			</span>.ok()
+			.ok()
 			.flatten()<span class="question-mark">?</span>;
 		<span class="self">self</span>.metrics.on_statement_signed();
 		<span class="prelude-val">Some</span>(signed)

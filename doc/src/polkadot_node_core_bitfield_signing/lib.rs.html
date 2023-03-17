@@ -371,7 +371,7 @@
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::{<span class="self">self </span><span class="kw">as </span>util, Validator};
 <span class="kw">use </span>polkadot_primitives::{AvailabilityBitfield, CoreState, Hash, ValidatorIndex};
-<span class="kw">use </span>sp_keystore::{Error <span class="kw">as </span>KeystoreError, SyncCryptoStorePtr};
+<span class="kw">use </span>sp_keystore::{Error <span class="kw">as </span>KeystoreError, KeystorePtr};
 <span class="kw">use </span>std::{collections::HashMap, iter::FromIterator, time::Duration};
 <span class="kw">use </span>wasm_timer::{Delay, Instant};
 
@@ -515,13 +515,13 @@
 
 <span class="doccomment">/// The bitfield signing subsystem.
 </span><span class="kw">pub struct </span>BitfieldSigningSubsystem {
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 }
 
 <span class="kw">impl </span>BitfieldSigningSubsystem {
 	<span class="doccomment">/// Create a new instance of the `BitfieldSigningSubsystem`.
-	</span><span class="kw">pub fn </span>new(keystore: SyncCryptoStorePtr, metrics: Metrics) -&gt; <span class="self">Self </span>{
+	</span><span class="kw">pub fn </span>new(keystore: KeystorePtr, metrics: Metrics) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ keystore, metrics }
 	}
 }
@@ -543,7 +543,7 @@
 <span class="attr">#[overseer::contextbounds(BitfieldSigning, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>run&lt;Context&gt;(
 	<span class="kw-2">mut </span>ctx: Context,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 ) -&gt; SubsystemResult&lt;()&gt; {
 	<span class="comment">// Track spawned jobs per active leaf.
@@ -585,7 +585,7 @@
 <span class="kw">async fn </span>handle_active_leaves_update&lt;Sender&gt;(
 	<span class="kw-2">mut </span>sender: Sender,
 	leaf: ActivatedLeaf,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
@@ -644,7 +644,7 @@
 	<span class="kw">let </span>span_signing = span.child(<span class="string">&quot;signing&quot;</span>);
 
 	<span class="kw">let </span>signed_bitfield =
-		<span class="kw">match </span>validator.sign(keystore, bitfield).<span class="kw">await</span>.map_err(|e| Error::Keystore(e))<span class="question-mark">? </span>{
+		<span class="kw">match </span>validator.sign(keystore, bitfield).map_err(|e| Error::Keystore(e))<span class="question-mark">? </span>{
 			<span class="prelude-val">Some</span>(b) =&gt; b,
 			<span class="prelude-val">None </span>=&gt; {
 				<span class="macro">gum::error!</span>(

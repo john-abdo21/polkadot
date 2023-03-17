@@ -425,14 +425,6 @@
 <a href="#425" id="425">425</a>
 <a href="#426" id="426">426</a>
 <a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -486,7 +478,7 @@
 <span class="kw">pub use </span>rand;
 <span class="kw">use </span>sp_application_crypto::AppKey;
 <span class="kw">use </span>sp_core::ByteArray;
-<span class="kw">use </span>sp_keystore::{CryptoStore, Error <span class="kw">as </span>KeystoreError, SyncCryptoStorePtr};
+<span class="kw">use </span>sp_keystore::{Error <span class="kw">as </span>KeystoreError, Keystore, KeystorePtr};
 <span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>thiserror::Error;
 
@@ -700,21 +692,18 @@
 }
 
 <span class="doccomment">/// From the given set of validators, find the first key we can sign with, if any.
-</span><span class="kw">pub async fn </span>signing_key(
-	validators: <span class="kw-2">&amp;</span>[ValidatorId],
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
-) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorId&gt; {
-	signing_key_and_index(validators, keystore).<span class="kw">await</span>.map(|(k, <span class="kw">_</span>)| k)
+</span><span class="kw">pub fn </span>signing_key(validators: <span class="kw-2">&amp;</span>[ValidatorId], keystore: <span class="kw-2">&amp;</span>KeystorePtr) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorId&gt; {
+	signing_key_and_index(validators, keystore).map(|(k, <span class="kw">_</span>)| k)
 }
 
 <span class="doccomment">/// From the given set of validators, find the first key we can sign with, if any, and return it
 /// along with the validator index.
-</span><span class="kw">pub async fn </span>signing_key_and_index(
+</span><span class="kw">pub fn </span>signing_key_and_index(
 	validators: <span class="kw-2">&amp;</span>[ValidatorId],
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(ValidatorId, ValidatorIndex)&gt; {
 	<span class="kw">for </span>(i, v) <span class="kw">in </span>validators.iter().enumerate() {
-		<span class="kw">if </span>CryptoStore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), ValidatorId::ID)]).<span class="kw">await </span>{
+		<span class="kw">if </span>Keystore::has_keys(<span class="kw-2">&amp;**</span>keystore, <span class="kw-2">&amp;</span>[(v.to_raw_vec(), ValidatorId::ID)]) {
 			<span class="kw">return </span><span class="prelude-val">Some</span>((v.clone(), ValidatorIndex(i <span class="kw">as _</span>)))
 		}
 	}
@@ -725,13 +714,12 @@
 ///
 /// Returns `Ok(None)` if the private key that correponds to that validator ID is not found in the
 /// given keystore. Returns an error if the key could not be used for signing.
-</span><span class="kw">pub async fn </span>sign(
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+</span><span class="kw">pub fn </span>sign(
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	key: <span class="kw-2">&amp;</span>ValidatorId,
 	data: <span class="kw-2">&amp;</span>[u8],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValidatorSignature&gt;, KeystoreError&gt; {
-	<span class="kw">let </span>signature =
-		CryptoStore::sign_with(<span class="kw-2">&amp;**</span>keystore, ValidatorId::ID, <span class="kw-2">&amp;</span>key.into(), <span class="kw-2">&amp;</span>data).<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">let </span>signature = Keystore::sign_with(<span class="kw-2">&amp;**</span>keystore, ValidatorId::ID, <span class="kw-2">&amp;</span>key.into(), <span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>;
 
 	<span class="kw">match </span>signature {
 		<span class="prelude-val">Some</span>(sig) =&gt;
@@ -807,11 +795,7 @@
 
 <span class="kw">impl </span>Validator {
 	<span class="doccomment">/// Get a struct representing this node&#39;s validator if this node is in fact a validator in the context of the given block.
-	</span><span class="kw">pub async fn </span>new&lt;S&gt;(
-		parent: Hash,
-		keystore: SyncCryptoStorePtr,
-		sender: <span class="kw-2">&amp;mut </span>S,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;
+	</span><span class="kw">pub async fn </span>new&lt;S&gt;(parent: Hash, keystore: KeystorePtr, sender: <span class="kw-2">&amp;mut </span>S) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;
 	<span class="kw">where
 		</span>S: SubsystemSender&lt;RuntimeApiMessage&gt;,
 	{
@@ -827,19 +811,19 @@
 
 		<span class="kw">let </span>validators = validators<span class="question-mark">?</span>;
 
-		<span class="self">Self</span>::construct(<span class="kw-2">&amp;</span>validators, signing_context, keystore).<span class="kw">await
-	</span>}
+		<span class="self">Self</span>::construct(<span class="kw-2">&amp;</span>validators, signing_context, keystore)
+	}
 
 	<span class="doccomment">/// Construct a validator instance without performing runtime fetches.
 	///
 	/// This can be useful if external code also needs the same data.
-	</span><span class="kw">pub async fn </span>construct(
+	</span><span class="kw">pub fn </span>construct(
 		validators: <span class="kw-2">&amp;</span>[ValidatorId],
 		signing_context: SigningContext,
-		keystore: SyncCryptoStorePtr,
+		keystore: KeystorePtr,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
 		<span class="kw">let </span>(key, index) =
-			signing_key_and_index(validators, <span class="kw-2">&amp;</span>keystore).<span class="kw">await</span>.ok_or(Error::NotAValidator)<span class="question-mark">?</span>;
+			signing_key_and_index(validators, <span class="kw-2">&amp;</span>keystore).ok_or(Error::NotAValidator)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(Validator { signing_context, key, index })
 	}
@@ -860,13 +844,13 @@
 	}
 
 	<span class="doccomment">/// Sign a payload with this validator
-	</span><span class="kw">pub async fn </span>sign&lt;Payload: EncodeAs&lt;RealPayload&gt;, RealPayload: Encode&gt;(
+	</span><span class="kw">pub fn </span>sign&lt;Payload: EncodeAs&lt;RealPayload&gt;, RealPayload: Encode&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		keystore: SyncCryptoStorePtr,
+		keystore: KeystorePtr,
 		payload: Payload,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Signed&lt;Payload, RealPayload&gt;&gt;, KeystoreError&gt; {
-		Signed::sign(<span class="kw-2">&amp;</span>keystore, payload, <span class="kw-2">&amp;</span><span class="self">self</span>.signing_context, <span class="self">self</span>.index, <span class="kw-2">&amp;</span><span class="self">self</span>.key).<span class="kw">await
-	</span>}
+		Signed::sign(<span class="kw-2">&amp;</span>keystore, payload, <span class="kw-2">&amp;</span><span class="self">self</span>.signing_context, <span class="self">self</span>.index, <span class="kw-2">&amp;</span><span class="self">self</span>.key)
+	}
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polkadot_node_subsystem_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

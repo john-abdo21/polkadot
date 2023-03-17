@@ -1560,7 +1560,6 @@
 <a href="#1560" id="1560">1560</a>
 <a href="#1561" id="1561">1561</a>
 <a href="#1562" id="1562">1562</a>
-<a href="#1563" id="1563">1563</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2123,7 +2122,7 @@
 
 	<span class="kw">let </span>rpc_extensions_builder = {
 		<span class="kw">let </span>client = client.clone();
-		<span class="kw">let </span>keystore = keystore_container.sync_keystore();
+		<span class="kw">let </span>keystore = keystore_container.keystore();
 		<span class="kw">let </span>transaction_pool = transaction_pool.clone();
 		<span class="kw">let </span>select_chain = select_chain.clone();
 		<span class="kw">let </span>chain_spec = config.chain_spec.cloned_box();
@@ -2487,7 +2486,7 @@
 		config,
 		backend: backend.clone(),
 		client: client.clone(),
-		keystore: keystore_container.sync_keystore(),
+		keystore: keystore_container.keystore(),
 		network: network.clone(),
 		sync_service: sync_service.clone(),
 		rpc_builder: Box::new(rpc_extensions_builder),
@@ -2654,7 +2653,7 @@
 			overseer_handle.as_ref().ok_or(Error::AuthoritiesRequireRealOverseer)<span class="question-mark">?</span>.clone();
 		<span class="kw">let </span>slot_duration = babe_link.config().slot_duration();
 		<span class="kw">let </span>babe_config = babe::BabeParams {
-			keystore: keystore_container.sync_keystore(),
+			keystore: keystore_container.keystore(),
 			client: client.clone(),
 			select_chain,
 			block_import,
@@ -2698,8 +2697,7 @@
 
 	<span class="comment">// if the node isn&#39;t actively participating in consensus then it doesn&#39;t
 	// need a keystore, regardless of which protocol we use below.
-	</span><span class="kw">let </span>keystore_opt =
-		<span class="kw">if </span>role.is_authority() { <span class="prelude-val">Some</span>(keystore_container.sync_keystore()) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
+	</span><span class="kw">let </span>keystore_opt = <span class="kw">if </span>role.is_authority() { <span class="prelude-val">Some</span>(keystore_container.keystore()) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
 
 	<span class="kw">if </span>enable_beefy {
 		<span class="kw">let </span>justifications_protocol_name = beefy_on_demand_justifications_handler.protocol_name();

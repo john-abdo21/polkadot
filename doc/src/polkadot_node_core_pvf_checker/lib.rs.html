@@ -558,11 +558,6 @@
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -595,7 +590,7 @@
 	BlockNumber, Hash, PvfCheckStatement, SessionIndex, ValidationCodeHash, ValidatorId,
 	ValidatorIndex,
 };
-<span class="kw">use </span>sp_keystore::SyncCryptoStorePtr;
+<span class="kw">use </span>sp_keystore::KeystorePtr;
 <span class="kw">use </span>std::collections::HashSet;
 
 <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;parachain::pvf-checker&quot;</span>;
@@ -615,12 +610,12 @@
 <span class="doccomment">/// PVF pre-checking subsystem.
 </span><span class="kw">pub struct </span>PvfCheckerSubsystem {
 	enabled: bool,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 }
 
 <span class="kw">impl </span>PvfCheckerSubsystem {
-	<span class="kw">pub fn </span>new(enabled: bool, keystore: SyncCryptoStorePtr, metrics: Metrics) -&gt; <span class="self">Self </span>{
+	<span class="kw">pub fn </span>new(enabled: bool, keystore: KeystorePtr, metrics: Metrics) -&gt; <span class="self">Self </span>{
 		PvfCheckerSubsystem { enabled, keystore, metrics }
 	}
 }
@@ -688,7 +683,7 @@
 <span class="attr">#[overseer::contextbounds(PvfChecker, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>run&lt;Context&gt;(
 	<span class="kw-2">mut </span>ctx: Context,
-	keystore: SyncCryptoStorePtr,
+	keystore: KeystorePtr,
 	metrics: Metrics,
 ) -&gt; SubsystemResult&lt;()&gt; {
 	<span class="kw">let </span><span class="kw-2">mut </span>state = State {
@@ -739,7 +734,7 @@
 </span><span class="kw">async fn </span>handle_pvf_check(
 	state: <span class="kw-2">&amp;mut </span>State,
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::PvfCheckerSenderTrait,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	outcome: PreCheckOutcome,
 	validation_code_hash: ValidationCodeHash,
@@ -809,7 +804,7 @@
 <span class="kw">async fn </span>handle_from_overseer(
 	state: <span class="kw-2">&amp;mut </span>State,
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::PvfCheckerSenderTrait,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	from_overseer: FromOrchestra&lt;PvfCheckerMessage&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;Conclude&gt; {
@@ -835,7 +830,7 @@
 <span class="kw">async fn </span>handle_leaves_update(
 	state: <span class="kw-2">&amp;mut </span>State,
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::PvfCheckerSenderTrait,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	update: ActiveLeavesUpdate,
 ) {
@@ -917,7 +912,7 @@
 </span><span class="kw">async fn </span>examine_activation(
 	state: <span class="kw-2">&amp;mut </span>State,
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::PvfCheckerSenderTrait,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	leaf_hash: Hash,
 	leaf_number: BlockNumber,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;ActivationEffect&gt; {
@@ -976,7 +971,7 @@
 /// returns the [`SigningCredentials`].
 </span><span class="kw">async fn </span>check_signing_credentials(
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>SubsystemSender&lt;RuntimeApiMessage&gt;,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	leaf: Hash,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;SigningCredentials&gt; {
 	<span class="kw">let </span>validators = <span class="kw">match </span>runtime_api::validators(sender, leaf).<span class="kw">await </span>{
@@ -992,12 +987,9 @@
 		</span>},
 	};
 
-	polkadot_node_subsystem_util::signing_key_and_index(<span class="kw-2">&amp;</span>validators, keystore)
-		.<span class="kw">await
-		</span>.map(|(validator_key, validator_index)| SigningCredentials {
-			validator_key,
-			validator_index,
-		})
+	polkadot_node_subsystem_util::signing_key_and_index(<span class="kw-2">&amp;</span>validators, keystore).map(
+		|(validator_key, validator_index)| SigningCredentials { validator_key, validator_index },
+	)
 }
 
 <span class="doccomment">/// Signs and submits a vote for or against a given validation code.
@@ -1005,7 +997,7 @@
 /// If the validator already voted for the given code, this function does nothing.
 </span><span class="kw">async fn </span>sign_and_submit_pvf_check_statement(
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::PvfCheckerSenderTrait,
-	keystore: <span class="kw-2">&amp;</span>SyncCryptoStorePtr,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 	voted: <span class="kw-2">&amp;mut </span>HashSet&lt;ValidationCodeHash&gt;,
 	credentials: <span class="kw-2">&amp;</span>SigningCredentials,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
@@ -1047,9 +1039,7 @@
 		keystore,
 		<span class="kw-2">&amp;</span>credentials.validator_key,
 		<span class="kw-2">&amp;</span>stmt.signing_payload(),
-	)
-	.<span class="kw">await
-	</span>{
+	) {
 		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(signature)) =&gt; signature,
 		<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
 			<span class="macro">gum::warn!</span>(
