@@ -1551,15 +1551,6 @@
 <a href="#1551" id="1551">1551</a>
 <a href="#1552" id="1552">1552</a>
 <a href="#1553" id="1553">1553</a>
-<a href="#1554" id="1554">1554</a>
-<a href="#1555" id="1555">1555</a>
-<a href="#1556" id="1556">1556</a>
-<a href="#1557" id="1557">1557</a>
-<a href="#1558" id="1558">1558</a>
-<a href="#1559" id="1559">1559</a>
-<a href="#1560" id="1560">1560</a>
-<a href="#1561" id="1561">1561</a>
-<a href="#1562" id="1562">1562</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2313,13 +2304,11 @@
 
 	<span class="kw">let </span>chain_spec = config.chain_spec.cloned_box();
 
-	<span class="kw">let </span>local_keystore = basics.keystore_container.local_keystore();
+	<span class="kw">let </span>keystore = basics.keystore_container.local_keystore();
 	<span class="kw">let </span>auth_or_collator = role.is_authority() || is_collator.is_collator();
-	<span class="kw">let </span>requires_overseer_for_chain_sel = local_keystore.is_some() &amp;&amp; auth_or_collator;
-
 	<span class="kw">let </span>pvf_checker_enabled = role.is_authority() &amp;&amp; !is_collator.is_collator();
 
-	<span class="kw">let </span>select_chain = <span class="kw">if </span>requires_overseer_for_chain_sel {
+	<span class="kw">let </span>select_chain = <span class="kw">if </span>auth_or_collator {
 		<span class="kw">let </span>metrics =
 			polkadot_node_subsystem_util::metrics::Metrics::register(prometheus_registry.as_ref())<span class="question-mark">?</span>;
 
@@ -2562,14 +2551,7 @@
 		<span class="prelude-val">None
 	</span>};
 
-	<span class="kw">if </span>local_keystore.is_none() {
-		<span class="macro">gum::info!</span>(<span class="string">&quot;Cannot run as validator without local keystore.&quot;</span>);
-	}
-
-	<span class="kw">let </span>maybe_params =
-		local_keystore.and_then(<span class="kw">move </span>|k| authority_discovery_service.map(|a| (a, k)));
-
-	<span class="kw">let </span>overseer_handle = <span class="kw">if let </span><span class="prelude-val">Some</span>((authority_discovery_service, keystore)) = maybe_params {
+	<span class="kw">let </span>overseer_handle = <span class="kw">if let </span><span class="prelude-val">Some</span>(authority_discovery_service) = authority_discovery_service {
 		<span class="kw">let </span>(overseer, overseer_handle) = overseer_gen
 			.generate::&lt;service::SpawnTaskHandle, FullClient&lt;RuntimeApi, ExecutorDispatch&gt;&gt;(
 				overseer_connector,
@@ -2633,7 +2615,7 @@
 		<span class="prelude-val">Some</span>(handle)
 	} <span class="kw">else </span>{
 		<span class="macro">assert!</span>(
-			!requires_overseer_for_chain_sel,
+			!auth_or_collator,
 			<span class="string">&quot;Precondition congruence (false) is guaranteed by manual checking. qed&quot;
 		</span>);
 		<span class="prelude-val">None
