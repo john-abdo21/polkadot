@@ -1699,6 +1699,11 @@
 <a href="#1699" id="1699">1699</a>
 <a href="#1700" id="1700">1700</a>
 <a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2418,13 +2423,14 @@
 		assert_err, assert_noop, assert_ok,
 		dispatch::{DispatchError::BadOrigin, GetDispatchInfo, Pays},
 		ord_parameter_types, parameter_types,
-		traits::{ExistenceRequirement, GenesisBuild, WithdrawReasons},
+		traits::{ConstU32, ExistenceRequirement, GenesisBuild, WithdrawReasons},
 	};
 	<span class="kw">use </span>pallet_balances;
 	<span class="kw">use </span>sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, Identity, IdentityLookup},
 		transaction_validity::TransactionLongevity,
+		TokenError,
 	};
 
 	<span class="kw">type </span>UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic&lt;Test&gt;;
@@ -2487,6 +2493,10 @@
 		<span class="kw">type </span>MaxReserves = ();
 		<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">8</span>];
 		<span class="kw">type </span>WeightInfo = ();
+		<span class="kw">type </span>HoldIdentifier = ();
+		<span class="kw">type </span>FreezeIdentifier = ();
+		<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
+		<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">1</span>&gt;;
 	}
 
 	<span class="macro">parameter_types! </span>{
@@ -2907,7 +2917,7 @@
 					<span class="number">180</span>,
 					ExistenceRequirement::AllowDeath
 				),
-				pallet_balances::Error::&lt;Test, <span class="kw">_</span>&gt;::LiquidityRestrictions,
+				TokenError::Frozen,
 			);
 		});
 	}
@@ -2995,6 +3005,8 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>claiming_while_vested_doesnt_work() {
 		new_test_ext().execute_with(|| {
+			CurrencyOf::&lt;Test&gt;::make_free_balance_be(<span class="kw-2">&amp;</span><span class="number">69</span>, total_claims());
+			<span class="macro">assert_eq!</span>(Balances::free_balance(<span class="number">69</span>), total_claims());
 			<span class="comment">// A user is already vested
 			</span><span class="macro">assert_ok!</span>(&lt;Test <span class="kw">as </span>Config&gt;::VestingSchedule::add_vesting_schedule(
 				<span class="kw-2">&amp;</span><span class="number">69</span>,
@@ -3002,8 +3014,6 @@
 				<span class="number">100</span>,
 				<span class="number">10
 			</span>));
-			CurrencyOf::&lt;Test&gt;::make_free_balance_be(<span class="kw-2">&amp;</span><span class="number">69</span>, total_claims());
-			<span class="macro">assert_eq!</span>(Balances::free_balance(<span class="number">69</span>), total_claims());
 			<span class="macro">assert_ok!</span>(Claims::mint_claim(
 				RuntimeOrigin::root(),
 				eth(<span class="kw-2">&amp;</span>bob()),

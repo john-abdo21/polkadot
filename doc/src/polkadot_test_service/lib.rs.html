@@ -402,6 +402,7 @@
 <a href="#402" id="402">402</a>
 <a href="#403" id="403">403</a>
 <a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -799,10 +800,11 @@
 	dest: sp_keyring::AccountKeyring,
 	value: Balance,
 ) -&gt; UncheckedExtrinsic {
-	<span class="kw">let </span>function = polkadot_test_runtime::RuntimeCall::Balances(pallet_balances::Call::transfer {
-		dest: MultiSigner::from(dest.public()).into_account().into(),
-		value,
-	});
+	<span class="kw">let </span>function =
+		polkadot_test_runtime::RuntimeCall::Balances(pallet_balances::Call::transfer_allow_death {
+			dest: MultiSigner::from(dest.public()).into_account().into(),
+			value,
+		});
 
 	construct_extrinsic(client, function, origin, <span class="number">0</span>)
 }

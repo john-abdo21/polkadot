@@ -1204,6 +1204,11 @@
 <a href="#1204" id="1204">1204</a>
 <a href="#1205" id="1205">1205</a>
 <a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1691,11 +1696,10 @@
 		ord_parameter_types, parameter_types,
 		traits::{Currency, WithdrawReasons},
 	};
-	<span class="kw">use </span>pallet_balances::Error <span class="kw">as </span>BalancesError;
 	<span class="kw">use </span>sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, Dispatchable, IdentifyAccount, Identity, IdentityLookup, Verify},
-		MultiSignature,
+		ArithmeticError, MultiSignature,
 	};
 
 	<span class="kw">type </span>UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic&lt;Test&gt;;
@@ -1760,6 +1764,10 @@
 		<span class="kw">type </span>MaxReserves = ();
 		<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">8</span>];
 		<span class="kw">type </span>WeightInfo = ();
+		<span class="kw">type </span>HoldIdentifier = ();
+		<span class="kw">type </span>FreezeIdentifier = ();
+		<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
+		<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">1</span>&gt;;
 	}
 
 	<span class="macro">parameter_types! </span>{
@@ -2021,7 +2029,8 @@
 			);
 
 			<span class="comment">// Account with vesting
-			</span><span class="macro">assert_ok!</span>(&lt;Test <span class="kw">as </span>Config&gt;::VestingSchedule::add_vesting_schedule(
+			</span>Balances::make_free_balance_be(<span class="kw-2">&amp;</span>alice(), <span class="number">100</span>);
+			<span class="macro">assert_ok!</span>(&lt;Test <span class="kw">as </span>Config&gt;::VestingSchedule::add_vesting_schedule(
 				<span class="kw-2">&amp;</span>alice(),
 				<span class="number">100</span>,
 				<span class="number">1</span>,
@@ -2333,7 +2342,8 @@
 			<span class="comment">// Wrong Origin
 			</span><span class="macro">assert_noop!</span>(Purchase::payout(RuntimeOrigin::signed(alice()), alice(),), BadOrigin);
 			<span class="comment">// Account with Existing Vesting Schedule
-			</span><span class="macro">assert_ok!</span>(
+			</span>Balances::make_free_balance_be(<span class="kw-2">&amp;</span>bob(), <span class="number">100</span>);
+			<span class="macro">assert_ok!</span>(
 				&lt;Test <span class="kw">as </span>Config&gt;::VestingSchedule::add_vesting_schedule(<span class="kw-2">&amp;</span>bob(), <span class="number">100</span>, <span class="number">1</span>, <span class="number">50</span>,)
 			);
 			<span class="macro">assert_noop!</span>(
@@ -2369,8 +2379,8 @@
 				Permill::zero(),
 			));
 			<span class="macro">assert_noop!</span>(
-				Purchase::payout(RuntimeOrigin::signed(payment_account()), alice(),),
-				BalancesError::&lt;Test, <span class="kw">_</span>&gt;::InsufficientBalance
+				Purchase::payout(RuntimeOrigin::signed(payment_account()), alice()),
+				ArithmeticError::Underflow
 			);
 		});
 	}

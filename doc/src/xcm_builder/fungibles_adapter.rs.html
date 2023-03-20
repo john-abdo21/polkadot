@@ -402,6 +402,12 @@
 <a href="#402" id="402">402</a>
 <a href="#403" id="403">403</a>
 <a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -420,7 +426,12 @@
 
 </span><span class="doccomment">//! Adapters to work with `frame_support::traits::tokens::fungibles` through XCM.
 
-</span><span class="kw">use </span>frame_support::traits::{tokens::fungibles, Contains, Get};
+</span><span class="kw">use </span>frame_support::traits::{
+	tokens::{
+		fungibles, Fortitude::Polite, Precision::Exact, Preservation::Preserve, Provenance::Minted,
+	},
+	Contains, Get,
+};
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>, result};
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_executor::traits::{Convert, Error <span class="kw">as </span>MatchError, MatchesFungibles, TransactAsset};
@@ -430,7 +441,7 @@
 	PhantomData&lt;(Assets, Matcher, AccountIdConverter, AccountId)&gt;,
 );
 <span class="kw">impl</span>&lt;
-		Assets: fungibles::Transfer&lt;AccountId&gt;,
+		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
 		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
@@ -453,7 +464,7 @@
 			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		<span class="kw">let </span>dest = AccountIdConverter::convert_ref(to)
 			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
-		Assets::transfer(asset_id, <span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>dest, amount, <span class="bool-val">true</span>)
+		Assets::transfer(asset_id, <span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>dest, amount, Preserve)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(what.clone().into())
 	}
@@ -557,14 +568,14 @@
 {
 	<span class="kw">fn </span>can_accrue_checked(asset_id: Assets::AssetId, amount: Assets::Balance) -&gt; XcmResult {
 		<span class="kw">let </span>checking_account = CheckingAccount::get();
-		Assets::can_deposit(asset_id, <span class="kw-2">&amp;</span>checking_account, amount, <span class="bool-val">true</span>)
+		Assets::can_deposit(asset_id, <span class="kw-2">&amp;</span>checking_account, amount, Minted)
 			.into_result()
 			.map_err(|<span class="kw">_</span>| XcmError::NotDepositable)
 	}
 	<span class="kw">fn </span>can_reduce_checked(asset_id: Assets::AssetId, amount: Assets::Balance) -&gt; XcmResult {
 		<span class="kw">let </span>checking_account = CheckingAccount::get();
 		Assets::can_withdraw(asset_id, <span class="kw-2">&amp;</span>checking_account, amount)
-			.into_result()
+			.into_result(<span class="bool-val">false</span>)
 			.map_err(|<span class="kw">_</span>| XcmError::NotWithdrawable)
 			.map(|<span class="kw">_</span>| ())
 	}
@@ -575,7 +586,7 @@
 	}
 	<span class="kw">fn </span>reduce_checked(asset_id: Assets::AssetId, amount: Assets::Balance) {
 		<span class="kw">let </span>checking_account = CheckingAccount::get();
-		<span class="kw">let </span>ok = Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>checking_account, amount).is_ok();
+		<span class="kw">let </span>ok = Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>checking_account, amount, Exact, Polite).is_ok();
 		<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`can_reduce_checked` must have returned `true` immediately prior; qed&quot;</span>);
 	}
 }
@@ -684,7 +695,8 @@
 		<span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
 			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>who, amount)
-			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))
+			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>(())
 	}
 
 	<span class="kw">fn </span>withdraw_asset(
@@ -701,7 +713,7 @@
 		</span><span class="kw">let </span>(asset_id, amount) = Matcher::matches_fungibles(what)<span class="question-mark">?</span>;
 		<span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
 			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
-		Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>who, amount)
+		Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>who, amount, Exact, Polite)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(what.clone().into())
 	}
@@ -716,7 +728,7 @@
 	CheckingAccount,
 &gt;(PhantomData&lt;(Assets, Matcher, AccountIdConverter, AccountId, CheckAsset, CheckingAccount)&gt;);
 <span class="kw">impl</span>&lt;
-		Assets: fungibles::Mutate&lt;AccountId&gt; + fungibles::Transfer&lt;AccountId&gt;,
+		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
 		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.

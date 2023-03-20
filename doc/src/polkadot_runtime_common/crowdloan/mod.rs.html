@@ -2205,6 +2205,14 @@
 <a href="#2205" id="2205">2205</a>
 <a href="#2206" id="2206">2206</a>
 <a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2626,6 +2634,7 @@
 
 			<span class="kw">let </span>deposit = T::SubmissionDeposit::get();
 
+			frame_system::Pallet::&lt;T&gt;::inc_providers(<span class="kw-2">&amp;</span><span class="self">Self</span>::fund_account_id(fund_index));
 			CurrencyOf::&lt;T&gt;::reserve(<span class="kw-2">&amp;</span>depositor, deposit)<span class="question-mark">?</span>;
 
 			Funds::&lt;T&gt;::insert(
@@ -2782,6 +2791,7 @@
 			// can take care of that.
 			</span><span class="macro">debug_assert!</span>(<span class="self">Self</span>::contribution_iterator(fund.fund_index).count().is_zero());
 
+			frame_system::Pallet::&lt;T&gt;::dec_providers(<span class="kw-2">&amp;</span><span class="self">Self</span>::fund_account_id(fund.fund_index))<span class="question-mark">?</span>;
 			CurrencyOf::&lt;T&gt;::unreserve(<span class="kw-2">&amp;</span>fund.depositor, fund.deposit);
 			Funds::&lt;T&gt;::remove(index);
 			<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::Dissolved { para_id: index });
@@ -3068,7 +3078,7 @@
 
 	<span class="kw">use </span>frame_support::{
 		assert_noop, assert_ok, parameter_types,
-		traits::{OnFinalize, OnInitialize},
+		traits::{ConstU32, OnFinalize, OnInitialize},
 	};
 	<span class="kw">use </span>primitives::Id <span class="kw">as </span>ParaId;
 	<span class="kw">use </span>sp_core::H256;
@@ -3150,6 +3160,10 @@
 		<span class="kw">type </span>MaxReserves = ();
 		<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">8</span>];
 		<span class="kw">type </span>WeightInfo = ();
+		<span class="kw">type </span>HoldIdentifier = ();
+		<span class="kw">type </span>FreezeIdentifier = ();
+		<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
+		<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">1</span>&gt;;
 	}
 
 	<span class="attr">#[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -3194,9 +3208,10 @@
 		<span class="kw">let </span>fund = Funds::&lt;Test&gt;::get(para).unwrap();
 		<span class="kw">let </span>account_id = Crowdloan::fund_account_id(fund.fund_index);
 		<span class="kw">if </span>winner {
+			<span class="kw">let </span>ed = &lt;Test <span class="kw">as </span>pallet_balances::Config&gt;::ExistentialDeposit::get();
 			<span class="kw">let </span>free_balance = Balances::free_balance(<span class="kw-2">&amp;</span>account_id);
-			Balances::reserve(<span class="kw-2">&amp;</span>account_id, free_balance)
-				.expect(<span class="string">&quot;should be able to reserve free balance&quot;</span>);
+			Balances::reserve(<span class="kw-2">&amp;</span>account_id, free_balance - ed)
+				.expect(<span class="string">&quot;should be able to reserve free balance minus ED&quot;</span>);
 		} <span class="kw">else </span>{
 			<span class="kw">let </span>reserved_balance = Balances::reserved_balance(<span class="kw-2">&amp;</span>account_id);
 			Balances::unreserve(<span class="kw-2">&amp;</span>account_id, reserved_balance);
@@ -3820,7 +3835,7 @@
 			<span class="kw">let </span>account_id = Crowdloan::fund_account_id(index);
 
 			<span class="comment">// user sends the crowdloan funds trying to make an accounting error
-			</span><span class="macro">assert_ok!</span>(Balances::transfer(RuntimeOrigin::signed(<span class="number">1</span>), account_id, <span class="number">10</span>));
+			</span><span class="macro">assert_ok!</span>(Balances::transfer_allow_death(RuntimeOrigin::signed(<span class="number">1</span>), account_id, <span class="number">10</span>));
 
 			<span class="comment">// overfunded now
 			</span><span class="macro">assert_eq!</span>(Balances::free_balance(<span class="kw-2">&amp;</span>account_id), <span class="number">110</span>);
@@ -3989,6 +4004,7 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>withdraw_from_finished_works() {
 		new_test_ext().execute_with(|| {
+			<span class="macro">assert_eq!</span>(&lt;Test <span class="kw">as </span>pallet_balances::Config&gt;::ExistentialDeposit::get(), <span class="number">1</span>);
 			<span class="kw">let </span>para = new_para();
 			<span class="kw">let </span>index = NextFundIndex::&lt;Test&gt;::get();
 			<span class="kw">let </span>account_id = Crowdloan::fund_account_id(index);
@@ -4000,7 +4016,7 @@
 			</span><span class="macro">assert_ok!</span>(Crowdloan::contribute(RuntimeOrigin::signed(<span class="number">2</span>), para, <span class="number">100</span>, <span class="prelude-val">None</span>));
 			<span class="macro">assert_ok!</span>(Crowdloan::contribute(RuntimeOrigin::signed(<span class="number">3</span>), para, <span class="number">50</span>, <span class="prelude-val">None</span>));
 			<span class="comment">// simulate the reserving of para&#39;s funds. this actually happens in the Slots pallet.
-			</span><span class="macro">assert_ok!</span>(Balances::reserve(<span class="kw-2">&amp;</span>account_id, <span class="number">150</span>));
+			</span><span class="macro">assert_ok!</span>(Balances::reserve(<span class="kw-2">&amp;</span>account_id, <span class="number">149</span>));
 
 			run_to_block(<span class="number">19</span>);
 			<span class="macro">assert_noop!</span>(

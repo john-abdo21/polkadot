@@ -1152,6 +1152,10 @@
 <a href="#1152" id="1152">1152</a>
 <a href="#1153" id="1153">1153</a>
 <a href="#1154" id="1154">1154</a>
+<a href="#1155" id="1155">1155</a>
+<a href="#1156" id="1156">1156</a>
+<a href="#1157" id="1157">1157</a>
+<a href="#1158" id="1158">1158</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1722,6 +1726,10 @@
 		<span class="kw">type </span>MaxLocks = ();
 		<span class="kw">type </span>MaxReserves = ();
 		<span class="kw">type </span>ReserveIdentifier = [u8; <span class="number">8</span>];
+		<span class="kw">type </span>HoldIdentifier = ();
+		<span class="kw">type </span>FreezeIdentifier = ();
+		<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
+		<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">1</span>&gt;;
 	}
 
 	<span class="macro">parameter_types! </span>{
@@ -1998,9 +2006,9 @@
 			<span class="comment">// max_num different people are reserved for leases to Para ID 1
 			</span><span class="kw">for </span>i <span class="kw">in </span><span class="number">1u32</span>..=max_num {
 				<span class="kw">let </span>j: u64 = i.into();
-				<span class="macro">assert_ok!</span>(Slots::lease_out(<span class="number">1</span>.into(), <span class="kw-2">&amp;</span>j, j * <span class="number">10</span>, i * i, i));
-				<span class="macro">assert_eq!</span>(Slots::deposit_held(<span class="number">1</span>.into(), <span class="kw-2">&amp;</span>j), j * <span class="number">10</span>);
-				<span class="macro">assert_eq!</span>(Balances::reserved_balance(j), j * <span class="number">10</span>);
+				<span class="macro">assert_ok!</span>(Slots::lease_out(<span class="number">1</span>.into(), <span class="kw-2">&amp;</span>j, j * <span class="number">10 </span>- <span class="number">1</span>, i * i, i));
+				<span class="macro">assert_eq!</span>(Slots::deposit_held(<span class="number">1</span>.into(), <span class="kw-2">&amp;</span>j), j * <span class="number">10 </span>- <span class="number">1</span>);
+				<span class="macro">assert_eq!</span>(Balances::reserved_balance(j), j * <span class="number">10 </span>- <span class="number">1</span>);
 			}
 
 			<span class="macro">assert_ok!</span>(Slots::clear_all_leases(RuntimeOrigin::root(), <span class="number">1</span>.into()));
