@@ -1066,8 +1066,6 @@
 <a href="#1066" id="1066">1066</a>
 <a href="#1067" id="1067">1067</a>
 <a href="#1068" id="1068">1068</a>
-<a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1098,10 +1096,10 @@
 <span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>primitives::{
-	AvailabilityBitfield, BackedCandidate, CandidateCommitments, CandidateDescriptor,
-	CandidateHash, CandidateReceipt, CommittedCandidateReceipt, CoreIndex, GroupIndex, Hash,
-	HeadData, Id <span class="kw">as </span>ParaId, SigningContext, UncheckedSignedAvailabilityBitfields, ValidatorId,
-	ValidatorIndex, ValidityAttestation,
+	supermajority_threshold, AvailabilityBitfield, BackedCandidate, CandidateCommitments,
+	CandidateDescriptor, CandidateHash, CandidateReceipt, CommittedCandidateReceipt, CoreIndex,
+	GroupIndex, Hash, HeadData, Id <span class="kw">as </span>ParaId, SigningContext, UncheckedSignedAvailabilityBitfields,
+	ValidatorId, ValidatorIndex, ValidityAttestation,
 };
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::{traits::One, DispatchError};
@@ -1969,9 +1967,7 @@
 }
 
 <span class="kw">const fn </span>availability_threshold(n_validators: usize) -&gt; usize {
-	<span class="kw">let </span><span class="kw-2">mut </span>threshold = (n_validators * <span class="number">2</span>) / <span class="number">3</span>;
-	threshold += (n_validators * <span class="number">2</span>) % <span class="number">3</span>;
-	threshold
+	supermajority_threshold(n_validators)
 }
 
 <span class="attr">#[derive(derive_more::From, Debug)]
