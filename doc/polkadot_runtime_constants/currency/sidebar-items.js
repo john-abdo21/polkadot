@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["CENTS",""],["DOLLARS",""],["EXISTENTIAL_DEPOSIT","The existential deposit."],["MILLICENTS",""],["UNITS",""]],"fn":[["deposit",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["CENTS",""],["DOLLARS",""],["EXISTENTIAL_DEPOSIT","The existential deposit."],["GRAND",""],["MILLICENTS",""],["UNITS",""]],"fn":[["deposit",""]]};

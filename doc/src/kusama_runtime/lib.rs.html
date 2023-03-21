@@ -2348,27 +2348,6 @@
 <a href="#2348" id="2348">2348</a>
 <a href="#2349" id="2349">2349</a>
 <a href="#2350" id="2350">2350</a>
-<a href="#2351" id="2351">2351</a>
-<a href="#2352" id="2352">2352</a>
-<a href="#2353" id="2353">2353</a>
-<a href="#2354" id="2354">2354</a>
-<a href="#2355" id="2355">2355</a>
-<a href="#2356" id="2356">2356</a>
-<a href="#2357" id="2357">2357</a>
-<a href="#2358" id="2358">2358</a>
-<a href="#2359" id="2359">2359</a>
-<a href="#2360" id="2360">2360</a>
-<a href="#2361" id="2361">2361</a>
-<a href="#2362" id="2362">2362</a>
-<a href="#2363" id="2363">2363</a>
-<a href="#2364" id="2364">2364</a>
-<a href="#2365" id="2365">2365</a>
-<a href="#2366" id="2366">2366</a>
-<a href="#2367" id="2367">2367</a>
-<a href="#2368" id="2368">2368</a>
-<a href="#2369" id="2369">2369</a>
-<a href="#2370" id="2370">2370</a>
-<a href="#2371" id="2371">2371</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2410,8 +2389,9 @@
 
 <span class="kw">use </span>runtime_parachains::{
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
-	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
-	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
+	disputes::slashing <span class="kw">as </span>parachains_slashing, dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp,
+	inclusion <span class="kw">as </span>parachains_inclusion, initializer <span class="kw">as </span>parachains_initializer,
+	origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent, reward_points <span class="kw">as </span>parachains_reward_points,
 	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl, scheduler <span class="kw">as </span>parachains_scheduler,
 	session_info <span class="kw">as </span>parachains_session_info, shared <span class="kw">as </span>parachains_shared, ump <span class="kw">as </span>parachains_ump,
@@ -2426,7 +2406,7 @@
 	construct_runtime, parameter_types,
 	traits::{
 		ConstU32, Contains, EitherOf, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem,
-		LockIdentifier, PrivilegeCmp, StorageMapShim, WithdrawReasons,
+		PrivilegeCmp, StorageMapShim, WithdrawReasons,
 	},
 	weights::ConstantMultiplier,
 	PalletId, RuntimeDebug,
@@ -2451,7 +2431,6 @@
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
 </span><span class="kw">use </span>sp_version::NativeVersion;
 <span class="kw">use </span>sp_version::RuntimeVersion;
-<span class="kw">use </span>static_assertions::const_assert;
 
 <span class="kw">pub use </span>frame_system::Call <span class="kw">as </span>SystemCall;
 <span class="kw">pub use </span>pallet_balances::Call <span class="kw">as </span>BalancesCall;
@@ -2478,8 +2457,8 @@
 <span class="comment">// Governance configurations.
 </span><span class="kw">pub mod </span>governance;
 <span class="kw">use </span>governance::{
-	old::CouncilCollective, pallet_custom_origins, AuctionAdmin, Fellows, GeneralAdmin, LeaseAdmin,
-	StakingAdmin, Treasurer, TreasurySpender,
+	pallet_custom_origins, AuctionAdmin, Fellows, GeneralAdmin, LeaseAdmin, StakingAdmin,
+	Treasurer, TreasurySpender,
 };
 
 <span class="attr">#[cfg(test)]
@@ -2578,11 +2557,6 @@
 		<span class="kw">match </span>(left, right) {
 			<span class="comment">// Root is greater than anything.
 			</span>(OriginCaller::system(frame_system::RawOrigin::Root), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Ordering::Greater),
-			<span class="comment">// Check which one has more yes votes.
-			</span>(
-				OriginCaller::Council(pallet_collective::RawOrigin::Members(l_yes_votes, l_count)),
-				OriginCaller::Council(pallet_collective::RawOrigin::Members(r_yes_votes, r_count)),
-			) =&gt; <span class="prelude-val">Some</span>((l_yes_votes * r_count).cmp(<span class="kw-2">&amp;</span>(r_yes_votes * l_count))),
 			<span class="comment">// For every other origin we don&#39;t care, as they are not used for `ScheduleOrigin`.
 			</span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		}
@@ -2595,7 +2569,9 @@
 	<span class="kw">type </span>PalletsOrigin = OriginCaller;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>MaximumWeight = MaximumSchedulerWeight;
-	<span class="kw">type </span>ScheduleOrigin = EitherOf&lt;EnsureRoot&lt;AccountId&gt;, AuctionAdmin&gt;;
+	<span class="comment">// The goal of having ScheduleOrigin include AuctionAdmin is to allow the auctions track of
+	// OpenGov to schedule periodic auctions.
+	</span><span class="kw">type </span>ScheduleOrigin = EitherOf&lt;EnsureRoot&lt;AccountId&gt;, AuctionAdmin&gt;;
 	<span class="kw">type </span>MaxScheduledPerBlock = MaxScheduledPerBlock;
 	<span class="kw">type </span>WeightInfo = weights::pallet_scheduler::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>OriginPrivilegeCmp = OriginPrivilegeCmp;
@@ -2844,9 +2820,9 @@
 	<span class="kw">type </span>OffchainRepeat = OffchainRepeat;
 	<span class="kw">type </span>MinerTxPriority = NposSolutionPriority;
 	<span class="kw">type </span>DataProvider = Staking;
-	<span class="attr">#[cfg(feature = <span class="string">&quot;fast-runtime&quot;</span>)]
+	<span class="attr">#[cfg(any(feature = <span class="string">&quot;fast-runtime&quot;</span>, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
 	</span><span class="kw">type </span>Fallback = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
-	<span class="attr">#[cfg(not(feature = <span class="string">&quot;fast-runtime&quot;</span>))]
+	<span class="attr">#[cfg(not(any(feature = <span class="string">&quot;fast-runtime&quot;</span>, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)))]
 	</span><span class="kw">type </span>Fallback = frame_election_provider_support::NoElection&lt;(
 		AccountId,
 		BlockNumber,
@@ -2965,10 +2941,7 @@
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>BatchSize = frame_support::traits::ConstU32&lt;<span class="number">64</span>&gt;;
 	<span class="kw">type </span>Deposit = frame_support::traits::ConstU128&lt;{ CENTS * <span class="number">100 </span>}&gt;;
-	<span class="kw">type </span>ControlOrigin = EitherOfDiverse&lt;
-		EnsureRoot&lt;AccountId&gt;,
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilCollective, <span class="number">1</span>, <span class="number">2</span>&gt;,
-	&gt;;
+	<span class="kw">type </span>ControlOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>Staking = Staking;
 	<span class="kw">type </span>MaxErasToCheckPerBlock = ConstU32&lt;<span class="number">1</span>&gt;;
 	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
@@ -3050,17 +3023,6 @@
 	<span class="kw">type </span>MaxActiveChildBountyCount = MaxActiveChildBountyCount;
 	<span class="kw">type </span>ChildBountyValueMinimum = ChildBountyValueMinimum;
 	<span class="kw">type </span>WeightInfo = weights::pallet_child_bounties::WeightInfo&lt;Runtime&gt;;
-}
-
-<span class="kw">impl </span>pallet_tips::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>MaximumReasonLength = MaximumReasonLength;
-	<span class="kw">type </span>DataDepositPerByte = DataDepositPerByte;
-	<span class="kw">type </span>Tippers = PhragmenElection;
-	<span class="kw">type </span>TipCountdown = TipCountdown;
-	<span class="kw">type </span>TipFindersFee = TipFindersFee;
-	<span class="kw">type </span>TipReportDepositBase = TipReportDepositBase;
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>WeightInfo = weights::pallet_tips::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_offences::Config <span class="kw">for </span>Runtime {
@@ -3354,15 +3316,9 @@
 				RuntimeCall::Session(..) |
 				RuntimeCall::Grandpa(..) |
 				RuntimeCall::ImOnline(..) |
-				RuntimeCall::Democracy(..) |
-				RuntimeCall::Council(..) |
-				RuntimeCall::TechnicalCommittee(..) |
-				RuntimeCall::PhragmenElection(..) |
-				RuntimeCall::TechnicalMembership(..) |
 				RuntimeCall::Treasury(..) |
 				RuntimeCall::Bounties(..) |
 				RuntimeCall::ChildBounties(..) |
-				RuntimeCall::Tips(..) |
 				RuntimeCall::ConvictionVoting(..) |
 				RuntimeCall::Referenda(..) |
 				RuntimeCall::FellowshipCollective(..) |
@@ -3399,12 +3355,9 @@
 			),
 			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
 				c,
-				RuntimeCall::Democracy(..) |
-					RuntimeCall::Council(..) | RuntimeCall::TechnicalCommittee(..) |
-					RuntimeCall::PhragmenElection(..) |
-					RuntimeCall::Treasury(..) |
+				RuntimeCall::Treasury(..) |
 					RuntimeCall::Bounties(..) |
-					RuntimeCall::Tips(..) | RuntimeCall::Utility(..) |
+					RuntimeCall::Utility(..) |
 					RuntimeCall::ChildBounties(..) |
 					<span class="comment">// OpenGov calls
 					</span>RuntimeCall::ConvictionVoting(..) |
@@ -3531,8 +3484,25 @@
 <span class="kw">impl </span>parachains_disputes::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints&lt;Runtime&gt;;
-	<span class="kw">type </span>SlashingHandler = ();
+	<span class="kw">type </span>SlashingHandler = parachains_slashing::SlashValidatorsForDisputes&lt;ParasSlashing&gt;;
 	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_disputes::WeightInfo&lt;Runtime&gt;;
+}
+
+<span class="kw">impl </span>parachains_slashing::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>KeyOwnerProofSystem = Historical;
+	<span class="kw">type </span>KeyOwnerProof =
+		&lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, ValidatorId)&gt;&gt;::Proof;
+	<span class="kw">type </span>KeyOwnerIdentification = &lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(
+		KeyTypeId,
+		ValidatorId,
+	)&gt;&gt;::IdentificationTuple;
+	<span class="kw">type </span>HandleReports = parachains_slashing::SlashingReportHandler&lt;
+		<span class="self">Self</span>::KeyOwnerIdentification,
+		Offences,
+		ReportLongevity,
+	&gt;;
+	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_disputes_slashing::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>BenchmarkingConfig = parachains_slashing::BenchConfig&lt;<span class="number">1000</span>&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -3732,13 +3702,7 @@
 		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config} = <span class="number">12</span>,
 
 		<span class="comment">// Governance stuff.
-		</span>Democracy: pallet_democracy::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">13</span>,
-		Council: pallet_collective::&lt;Instance1&gt;::{Pallet, Call, Storage, Origin&lt;T&gt;, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">14</span>,
-		TechnicalCommittee: pallet_collective::&lt;Instance2&gt;::{Pallet, Call, Storage, Origin&lt;T&gt;, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">15</span>,
-		PhragmenElection: pallet_elections_phragmen::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">16</span>,
-		TechnicalMembership: pallet_membership::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">17</span>,
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">18</span>,
-
+		</span>Treasury: pallet_treasury::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">18</span>,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">20</span>,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">21</span>,
 <span class="comment">//		pub type FellowshipCollectiveInstance = pallet_ranked_collective::Instance1;
@@ -3786,9 +3750,6 @@
 		</span>Bounties: pallet_bounties::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">35</span>,
 		ChildBounties: pallet_child_bounties = <span class="number">40</span>,
 
-		<span class="comment">// Tips module.
-		</span>Tips: pallet_tips::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">36</span>,
-
 		<span class="comment">// Election pallet. Only works with staking, but placed here to maintain indices.
 		</span>ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event&lt;T&gt;, ValidateUnsigned} = <span class="number">37</span>,
 
@@ -3820,6 +3781,7 @@
 		Hrmp: parachains_hrmp::{Pallet, Call, Storage, Event&lt;T&gt;, Config} = <span class="number">60</span>,
 		ParaSessionInfo: parachains_session_info::{Pallet, Storage} = <span class="number">61</span>,
 		ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
+		ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = <span class="number">63</span>,
 
 		<span class="comment">// Parachain Onboarding Pallets. Start indices at 70 to leave room.
 		</span>Registrar: paras_registrar::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">70</span>,
@@ -3904,6 +3866,7 @@
 		[runtime_parachains::configuration, Configuration]
 		[runtime_parachains::hrmp, Hrmp]
 		[runtime_parachains::disputes, ParasDisputes]
+		[runtime_parachains::disputes::slashing, ParasSlashing]
 		[runtime_parachains::initializer, Initializer]
 		[runtime_parachains::paras_inherent, ParaInherent]
 		[runtime_parachains::paras, Paras]
@@ -3915,11 +3878,7 @@
 		[frame_benchmarking::baseline, Baseline::&lt;Runtime&gt;]
 		[pallet_bounties, Bounties]
 		[pallet_child_bounties, ChildBounties]
-		[pallet_collective, Council]
-		[pallet_collective, TechnicalCommittee]
 		[pallet_conviction_voting, ConvictionVoting]
-		[pallet_democracy, Democracy]
-		[pallet_elections_phragmen, PhragmenElection]
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[frame_election_provider_support, ElectionProviderBench::&lt;Runtime&gt;]
 		[pallet_fast_unstake, FastUnstake]
@@ -3927,7 +3886,6 @@
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_indices, Indices]
-		[pallet_membership, TechnicalMembership]
 		[pallet_multisig, Multisig]
 		[pallet_nomination_pools, NominationPoolsBench::&lt;Runtime&gt;]
 		[pallet_offences, OffencesBench::&lt;Runtime&gt;]
@@ -3942,7 +3900,6 @@
 		[pallet_staking, Staking]
 		[frame_system, SystemBench::&lt;Runtime&gt;]
 		[pallet_timestamp, Timestamp]
-		[pallet_tips, Tips]
 		[pallet_treasury, Treasury]
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
@@ -4426,6 +4383,7 @@
 			<span class="kw">impl </span>frame_system_benchmarking::Config <span class="kw">for </span>Runtime {}
 			<span class="kw">impl </span>frame_benchmarking::baseline::Config <span class="kw">for </span>Runtime {}
 			<span class="kw">impl </span>pallet_nomination_pools_benchmarking::Config <span class="kw">for </span>Runtime {}
+			<span class="kw">impl </span>runtime_parachains::disputes::slashing::benchmarking::Config <span class="kw">for </span>Runtime {}
 
 			<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
 				<span class="kw">type </span>XcmConfig = XcmConfig;
