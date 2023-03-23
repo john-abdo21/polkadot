@@ -1340,6 +1340,7 @@
 <a href="#1340" id="1340">1340</a>
 <a href="#1341" id="1341">1341</a>
 <a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1541,7 +1542,8 @@
 				}
 			}
 			from_overseer = ctx.recv().fuse() =&gt; {
-				<span class="kw">match </span>from_overseer<span class="question-mark">? </span>{
+				<span class="comment">// Map the error to ensure that the subsystem exits when the overseer is gone.
+				</span><span class="kw">match </span>from_overseer.map_err(Error::OverseerExited)<span class="question-mark">? </span>{
 					FromOrchestra::Signal(OverseerSignal::ActiveLeaves(update)) =&gt; handle_active_leaves_update(
 						<span class="kw-2">&amp;mut *</span>ctx,
 						update,
