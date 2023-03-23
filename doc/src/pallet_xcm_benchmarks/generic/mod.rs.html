@@ -76,6 +76,15 @@
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2023 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -106,7 +115,10 @@
 		dispatch::{Dispatchable, GetDispatchInfo},
 		pallet_prelude::Encode,
 	};
-	<span class="kw">use </span>xcm::latest::{Junction, MultiAsset, MultiAssets, MultiLocation, Response};
+	<span class="kw">use </span>xcm::latest::{
+		InteriorMultiLocation, Junction, MultiAsset, MultiAssets, MultiLocation, NetworkId,
+		Response,
+	};
 
 	<span class="attr">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config&lt;I: <span class="lifetime">&#39;static </span>= ()&gt;: frame_system::Config + <span class="kw">crate</span>::Config {
@@ -149,6 +161,12 @@
 
 		<span class="doccomment">/// Return an unlocker, owner and assets that can be locked and unlocked.
 		</span><span class="kw">fn </span>unlockable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAsset), BenchmarkError&gt;;
+
+		<span class="doccomment">/// A `(MultiLocation, NetworkId, InteriorMultiLocation)` we can successfully export message to.
+		///
+		/// If set to `Err`, benchmarks which rely on `export_message` will be skipped.
+		</span><span class="kw">fn </span>export_message_origin_and_destination(
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, NetworkId, InteriorMultiLocation), BenchmarkError&gt;;
 	}
 
 	<span class="attr">#[pallet::pallet]
