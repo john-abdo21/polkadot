@@ -1342,27 +1342,6 @@
 <a href="#1342" id="1342">1342</a>
 <a href="#1343" id="1343">1343</a>
 <a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
-<a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
-<a href="#1356" id="1356">1356</a>
-<a href="#1357" id="1357">1357</a>
-<a href="#1358" id="1358">1358</a>
-<a href="#1359" id="1359">1359</a>
-<a href="#1360" id="1360">1360</a>
-<a href="#1361" id="1361">1361</a>
-<a href="#1362" id="1362">1362</a>
-<a href="#1363" id="1363">1363</a>
-<a href="#1364" id="1364">1364</a>
-<a href="#1365" id="1365">1365</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1383,7 +1362,7 @@
 
 </span><span class="kw">use crate</span>::{configuration, initializer::SessionChangeNotification, session_info};
 <span class="kw">use </span>bitvec::{bitvec, order::Lsb0 <span class="kw">as </span>BitOrderLsb0};
-<span class="kw">use </span>frame_support::{ensure, traits::Get, weights::Weight};
+<span class="kw">use </span>frame_support::{ensure, weights::Weight};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>primitives::{
@@ -1868,9 +1847,6 @@
 		<span class="doccomment">/// A dispute has concluded for or against a candidate.
 		/// `\[para id, candidate hash, dispute result\]`
 		</span>DisputeConcluded(CandidateHash, DisputeResult),
-		<span class="doccomment">/// A dispute has timed out due to insufficient participation.
-		/// `\[para id, candidate hash\]`
-		</span>DisputeTimedOut(CandidateHash),
 		<span class="doccomment">/// A dispute has concluded with supermajority against a candidate.
 		/// Block authors should no longer build on top of this head and should
 		/// instead revert the block at the given height. This should be the
@@ -2276,26 +2252,8 @@
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Called by the initializer to initialize the disputes module.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(now: T::BlockNumber) -&gt; Weight {
-		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
-
-		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
-		<span class="kw">for </span>(session_index, candidate_hash, <span class="kw-2">mut </span>dispute) <span class="kw">in </span>&lt;Disputes&lt;T&gt;&gt;::iter() {
-			weight += T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>);
-
-			<span class="kw">if </span>dispute.concluded_at.is_none() &amp;&amp;
-				dispute.start + config.dispute_conclusion_by_time_out_period &lt; now
-			{
-				<span class="self">Self</span>::deposit_event(Event::DisputeTimedOut(candidate_hash));
-
-				dispute.concluded_at = <span class="prelude-val">Some</span>(now);
-				&lt;Disputes&lt;T&gt;&gt;::insert(session_index, candidate_hash, <span class="kw-2">&amp;</span>dispute);
-
-				weight += T::DbWeight::get().writes(<span class="number">1</span>);
-			}
-		}
-
-		weight
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+		Weight::zero()
 	}
 
 	<span class="doccomment">/// Called by the initializer to finalize the disputes pallet.

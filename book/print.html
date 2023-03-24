@@ -403,16 +403,15 @@ Disputes differ from backing and approval process (and can not be part of those)
 </ul>
 <p>Validators are rewarded for providing statements to the chain as well as for participating in the dispute, on either side. However, the losing side of the dispute is slashed.</p>
 <h2 id="dispute-conclusion"><a class="header" href="#dispute-conclusion">Dispute Conclusion</a></h2>
-<p>Disputes, roughly, are over when one side reaches a ⅔ supermajority. They may also conclude after a timeout, without either side witnessing supermajority, which will only happen if the majority of validators are unable to vote for some reason. Furthermore, disputes on-chain will stay open for some fixed amount of time even after concluding, to accept new votes.</p>
+<p>Disputes, roughly, are over when one side reaches a ⅔ supermajority. They may also never conclude without either side witnessing supermajority, which will only happen if the majority of validators are unable to vote for some reason. Furthermore, disputes on-chain will stay open for some fixed amount of time even after concluding, to accept new votes.</p>
 <p>Late votes, after the dispute already reached a ⅔ supermajority, must be rewarded (albeit a smaller amount) as well.</p>
-<footer id="last-change">Last change: 2023-02-24, commit: <a href="https://github.com/paritytech/polkadot/commit/d56dcfaf00">d56dcfaf00</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="disputes-flows"><a class="header" href="#disputes-flows">Disputes Flows</a></h1>
+<footer id="last-change">Last change: 2023-03-24, commit: <a href="https://github.com/paritytech/polkadot/commit/2375a62996">2375a62996</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="disputes-flows"><a class="header" href="#disputes-flows">Disputes Flows</a></h1>
 <p>A component-free description in what-if form with addition state graphs of the dispute.</p>
 <pre class="mermaid">stateDiagram-v2
     [*] --&gt; WaitForBackingVote: negative Vote received
     [*] --&gt; WaitForDisputeVote: backing Vote received
     WaitForBackingVote --&gt; Open: negative Vote received
     WaitForDisputeVote --&gt; Open: backing Vote received
-    Open --&gt; Concluded: Timeout without supermajority
     Open --&gt; Concluded: Incoming Vote via Gossip
     Open --&gt; Open: No ⅔ supermajority
     Open --&gt; [*]
@@ -489,7 +488,7 @@ the validators that had duty at the time of backing, plus backing votes by the b
 <p>If a dispute is not resolved within due time, all validators are to be slashed for a small amount.</p>
 <p>If a dispute is not resolved within due time, governance mode shall be entered for manual resolution.</p>
 <p>If a validator unexpectedly restarts, the dispute shall be continued with the state based on votes being cast and being present in persistent storage.</p>
-<footer id="last-change">Last change: 2022-10-13, commit: <a href="https://github.com/paritytech/polkadot/commit/e307a26c8e">e307a26c8e</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="chain-selection"><a class="header" href="#chain-selection">Chain Selection</a></h1>
+<footer id="last-change">Last change: 2023-03-24, commit: <a href="https://github.com/paritytech/polkadot/commit/2375a62996">2375a62996</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="chain-selection"><a class="header" href="#chain-selection">Chain Selection</a></h1>
 <p>Chain selection processes in blockchains are used for the purpose of selecting blocks to build on and finalize. It is important for these processes to be consistent among nodes and resilient to a maximum proportion of malicious nodes which do not obey the chain selection process.</p>
 <p>The parachain host uses both a block authoring system and a finality gadget. The chain selection strategy of the parachain host involves two key components: a <em>leaf-selection</em> rule and a set of <em>finality constraints</em>. When it's a validator's turn to author on a block, they are expected to select the best block via the leaf-selection rule to build on top of. When a validator is participating in finality, there is a minimum block which can be voted on, which is usually the finalized block. The validator should select the best chain according to the leaf-selection rule and subsequently apply the finality constraints to arrive at the actual vote cast by that validator.</p>
 <p>Before diving into the particularities of the leaf-selection rule and the finality constraints, it's important to discuss the goals that these components are meant to achieve. For this it is useful to create the definitions of <em>viable</em> and <em>finalizable</em> blocks.</p>
@@ -920,9 +919,7 @@ The stuff at the end of the most recent session has been around for a little ove
 <li>Otherwise, clear out all disputes and included candidates entries in the range <code>last_pruned..=pruning_target</code> and set <code>LastPrunedSession</code> to <code>Some(pruning_target)</code>.</li>
 </ol>
 <h2 id="block-initialization"><a class="header" href="#block-initialization">Block Initialization</a></h2>
-<ol>
-<li>Iterate through all disputes. If any have not concluded and started more than <code>config.dispute_conclusion_by_timeout_period</code> blocks ago, set them to <code>Concluded</code> and mildly punish all validators associated, as they have failed to distribute available data.</li>
-</ol>
+<p>This is currently a <code>no op</code>.</p>
 <h2 id="routines-1"><a class="header" href="#routines-1">Routines</a></h2>
 <ul>
 <li>
@@ -1025,7 +1022,7 @@ inconclusive disputes are not slashed. Thanks to the applied filtering (describe
 confident that there are no spam disputes in the runtime. So if a validator is not voting it is due to another reason
 (e.g. being under DoS attack). There is no reason to punish such validators with a slash.</p>
 <p><em>Implementation note</em>: Slashing is performed in <code>process_checked_dispute_data</code> from <code>Disputes</code> pallet.</p>
-<footer id="last-change">Last change: 2023-01-11, commit: <a href="https://github.com/paritytech/polkadot/commit/564b696cd6">564b696cd6</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="paras-module"><a class="header" href="#paras-module">Paras Module</a></h1>
+<footer id="last-change">Last change: 2023-03-24, commit: <a href="https://github.com/paritytech/polkadot/commit/2375a62996">2375a62996</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="paras-module"><a class="header" href="#paras-module">Paras Module</a></h1>
 <p>The Paras module is responsible for storing information on parachains and parathreads. Registered
 parachains and parathreads cannot change except at session boundaries and after at least a full
 session has passed. This is primarily to ensure that the number and meaning of bits required for the
@@ -7099,8 +7096,6 @@ pub enum PvfCheckerMessage { }
 	pub dispute_post_conclusion_acceptance_period: BlockNumber,
 	/// The maximum number of dispute spam slots
 	pub dispute_max_spam_slots: u32,
-	/// How long it takes for a dispute to conclude by time-out, if no supermajority is reached.
-	pub dispute_conclusion_by_time_out_period: BlockNumber,
 	/// The amount of consensus slots that must pass between submitting an assignment and
 	/// submitting an approval vote before a validator is considered a no-show.
 	/// Must be at least 1.
@@ -7186,7 +7181,7 @@ pub enum PvfCheckerMessage { }
 }
 <span class="boring">}
 </span></code></pre></pre>
-<footer id="last-change">Last change: 2021-12-30, commit: <a href="https://github.com/paritytech/polkadot/commit/5bb1d3ab51">5bb1d3ab51</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="message-types"><a class="header" href="#message-types">Message types</a></h1>
+<footer id="last-change">Last change: 2023-03-24, commit: <a href="https://github.com/paritytech/polkadot/commit/2375a62996">2375a62996</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="message-types"><a class="header" href="#message-types">Message types</a></h1>
 <p>Types of messages that are passed between parachains and the relay chain: UMP, DMP, XCMP.</p>
 <p>There is also HRMP (Horizontally Relay-routed Message Passing) which provides the same functionality
 although with smaller scalability potential.</p>

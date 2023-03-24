@@ -366,6 +366,27 @@
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -384,9 +405,10 @@
 
 </span><span class="doccomment">//! A module that is responsible for migration of storage.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::configuration::{<span class="self">self</span>, ActiveConfig, Config, Pallet, MAX_POV_SIZE};
+</span><span class="kw">use </span><span class="kw">crate</span>::configuration::{<span class="self">self</span>, ActiveConfig, Config, Pallet, PendingConfigs, MAX_POV_SIZE};
 <span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, traits::StorageVersion, weights::Weight};
 <span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
+<span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="doccomment">/// The current storage version.
 ///
@@ -394,9 +416,10 @@
 /// v1-v2: &lt;https://github.com/paritytech/polkadot/pull/4420&gt;
 /// v2-v3: &lt;https://github.com/paritytech/polkadot/pull/6091&gt;
 /// v3-v4: &lt;https://github.com/paritytech/polkadot/pull/6345&gt;
-</span><span class="kw">pub const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">4</span>);
+/// v4-v5: &lt;https://github.com/paritytech/polkadot/pull/6937&gt;
+</span><span class="kw">pub const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">5</span>);
 
-<span class="kw">pub mod </span>v4 {
+<span class="kw">pub mod </span>v5 {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::{traits::OnRuntimeUpgrade, weights::constants::WEIGHT_REF_TIME_PER_MILLIS};
 	<span class="kw">use </span>primitives::{Balance, SessionIndex};
@@ -405,7 +428,7 @@
 
 	<span class="comment">// Copied over from configuration.rs @ de9e147695b9f1be8bd44e07861a31e483c8343a and removed
 	// all the comments, and changed the Weight struct to OldWeight
-	</span><span class="attr">#[derive(parity_scale_codec::Encode, parity_scale_codec::Decode, Debug)]
+	</span><span class="attr">#[derive(parity_scale_codec::Encode, parity_scale_codec::Decode, Debug, Clone)]
 	</span><span class="kw">pub struct </span>OldHostConfiguration&lt;BlockNumber&gt; {
 		<span class="kw">pub </span>max_code_size: u32,
 		<span class="kw">pub </span>max_head_data_size: u32,
@@ -439,7 +462,6 @@
 		<span class="kw">pub </span>max_validators: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 		<span class="kw">pub </span>dispute_period: SessionIndex,
 		<span class="kw">pub </span>dispute_post_conclusion_acceptance_period: BlockNumber,
-		<span class="kw">pub </span>dispute_max_spam_slots: u32,
 		<span class="kw">pub </span>dispute_conclusion_by_time_out_period: BlockNumber,
 		<span class="kw">pub </span>no_show_slots: u32,
 		<span class="kw">pub </span>n_delay_tranches: u32,
@@ -472,7 +494,6 @@
 				max_validators: <span class="prelude-val">None</span>,
 				dispute_period: <span class="number">6</span>,
 				dispute_post_conclusion_acceptance_period: <span class="number">100</span>.into(),
-				dispute_max_spam_slots: <span class="number">2</span>,
 				dispute_conclusion_by_time_out_period: <span class="number">200</span>.into(),
 				n_delay_tranches: Default::default(),
 				zeroth_delay_tranche_width: Default::default(),
@@ -505,8 +526,8 @@
 		}
 	}
 
-	<span class="kw">pub struct </span>MigrateToV4&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
-	<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateToV4&lt;T&gt; {
+	<span class="kw">pub struct </span>MigrateToV5&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
+	<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateToV5&lt;T&gt; {
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 			<span class="macro">log::trace!</span>(target: <span class="kw">crate</span>::configuration::LOG_TARGET, <span class="string">&quot;Running pre_upgrade()&quot;</span>);
@@ -516,15 +537,15 @@
 		}
 
 		<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-			<span class="kw">if </span>StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">3 </span>{
-				<span class="kw">let </span>weight_consumed = migrate_to_v4::&lt;T&gt;();
+			<span class="kw">if </span>StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">4 </span>{
+				<span class="kw">let </span>weight_consumed = migrate_to_v5::&lt;T&gt;();
 
-				<span class="macro">log::info!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV4 executed successfully&quot;</span>);
+				<span class="macro">log::info!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV5 executed successfully&quot;</span>);
 				STORAGE_VERSION.put::&lt;Pallet&lt;T&gt;&gt;();
 
 				weight_consumed
 			} <span class="kw">else </span>{
-				<span class="macro">log::warn!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV4 should be removed.&quot;</span>);
+				<span class="macro">log::warn!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV5 should be removed.&quot;</span>);
 				T::DbWeight::get().reads(<span class="number">1</span>)
 			}
 		}
@@ -534,7 +555,7 @@
 			<span class="macro">log::trace!</span>(target: <span class="kw">crate</span>::configuration::LOG_TARGET, <span class="string">&quot;Running post_upgrade()&quot;</span>);
 			<span class="macro">ensure!</span>(
 				StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == STORAGE_VERSION,
-				<span class="string">&quot;Storage version should be 4 after the migration&quot;
+				<span class="string">&quot;Storage version should be 5 after the migration&quot;
 			</span>);
 
 			<span class="prelude-val">Ok</span>(())
@@ -542,14 +563,14 @@
 	}
 }
 
-<span class="kw">fn </span>migrate_to_v4&lt;T: Config&gt;() -&gt; Weight {
+<span class="kw">fn </span>migrate_to_v5&lt;T: Config&gt;() -&gt; Weight {
 	<span class="comment">// Unusual formatting is justified:
 	// - make it easier to verify that fields assign what they supposed to assign.
 	// - this code is transient and will be removed after all migrations are done.
 	// - this code is important enough to optimize for legibility sacrificing consistency.
 	</span><span class="attr">#[rustfmt::skip]
 	</span><span class="kw">let </span>translate =
-		|pre: v4::OldHostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;| -&gt;
+		|pre: v5::OldHostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;| -&gt;
 configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;
 	{
 		<span class="kw">super</span>::HostConfiguration {
@@ -585,7 +606,6 @@ max_validators_per_core                  : pre.max_validators_per_core,
 max_validators                           : pre.max_validators,
 dispute_period                           : pre.dispute_period,
 dispute_post_conclusion_acceptance_period: pre.dispute_post_conclusion_acceptance_period,
-dispute_conclusion_by_time_out_period    : pre.dispute_conclusion_by_time_out_period,
 no_show_slots                            : pre.no_show_slots,
 n_delay_tranches                         : pre.n_delay_tranches,
 zeroth_delay_tranche_width               : pre.zeroth_delay_tranche_width,
@@ -606,11 +626,27 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 		// to be unlikely to be caused by this. So we just log. Maybe it&#39;ll work out still?
 		</span><span class="macro">log::error!</span>(
 			target: configuration::LOG_TARGET,
-			<span class="string">&quot;unexpected error when performing translation of the configuration type during storage upgrade to v4.&quot;
+			<span class="string">&quot;unexpected error when performing translation of the active configuration during storage upgrade to v5.&quot;
 		</span>);
 	}
 
-	T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = PendingConfigs::&lt;T&gt;::translate(|pre| {
+		pre.map(
+			|v: Vec&lt;(primitives::SessionIndex, v5::OldHostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;| {
+				v.into_iter()
+					.map(|(session, config)| (session, translate(config)))
+					.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+			},
+		)
+	}) {
+		<span class="macro">log::error!</span>(
+			target: configuration::LOG_TARGET,
+			<span class="string">&quot;unexpected error when performing translation of the pending configuration during storage upgrade to v5.&quot;
+		</span>);
+	}
+
+	<span class="kw">let </span>num_configs = (PendingConfigs::&lt;T&gt;::get().len() + <span class="number">1</span>) <span class="kw">as </span>u64;
+	T::DbWeight::get().reads_writes(num_configs, num_configs)
 }
 
 <span class="attr">#[cfg(test)]
@@ -619,10 +655,9 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 	<span class="kw">use </span><span class="kw">crate</span>::mock::{new_test_ext, Test};
 
 	<span class="attr">#[test]
-	</span><span class="kw">fn </span>v3_deserialized_from_actual_data() {
+	</span><span class="kw">fn </span>v4_deserialized_from_actual_data() {
 		<span class="comment">// Example how to get new `raw_config`:
-		// We&#39;ll obtain the raw_config hes for block
-		// 15,772,152 (0xf89d3ab5312c5f70d396dc59612f0aa65806c798346f9db4b35278baed2e0e53) on Kusama.
+		// We&#39;ll obtain the raw_config at a specified a block
 		// Steps:
 		// 1. Go to Polkadot.js -&gt; Developer -&gt; Chain state -&gt; Storage: https://polkadot.js.org/apps/#/chainstate
 		// 2. Set these parameters:
@@ -633,37 +668,35 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 		// 3. Go to Polkadot.js -&gt; Developer -&gt; Chain state -&gt; Raw storage
 		//   3.1 Enter the encoded storage key and you get the raw config.
 
-		// Fetched at Kusama 15,772,152 (0xf89d3ab5312c5f70d396dc59612f0aa65806c798346f9db4b35278baed2e0e53)
-		//
 		// This exceeds the maximal line width length, but that&#39;s fine, since this is not code and
 		// doesn&#39;t need to be read and also leaving it as one line allows to easily copy it.
-		</span><span class="kw">let </span>raw_config = <span class="macro">hex_literal::hex!</span>[<span class="string">&quot;0000a000005000000a00000000c8000000c800000a0000000a000000100e0000580200000000500000c800000700e8764817020040011e00000000000000005039278c0400000000000000000000005039278c0400000000000000000000e8030000009001001e00000000000000009001008070000000000000000000000a0000000a0000000a00000001000000010500000001c8000000060000005802000002000000580200000200000059000000000000001e000000280000000700c817a80402004001000200000014000000&quot;</span>];
+		</span><span class="kw">let </span>raw_config = <span class="macro">hex_literal::hex!</span>[<span class="string">&quot;0000a000005000000a00000000c8000000c800000a0000000a000000100e0000580200000000500000c800000700e8764817020040011e00000000000000005039278c0400000000000000000000005039278c0400000000000000000000e8030000009001001e00000000000000009001008070000000000000000000000a0000000a0000000a00000001000000010500000001c80000000600000058020000580200000200000059000000000000001e000000280000000700c817a80402004001010200000014000000&quot;</span>];
 
-		<span class="kw">let </span>v3 = v4::OldHostConfiguration::&lt;primitives::BlockNumber&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>raw_config[..])
+		<span class="kw">let </span>v4 = v5::OldHostConfiguration::&lt;primitives::BlockNumber&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>raw_config[..])
 			.unwrap();
 
 		<span class="comment">// We check only a sample of the values here. If we missed any fields or messed up data types
 		// that would skew all the fields coming after.
-		</span><span class="macro">assert_eq!</span>(v3.max_code_size, <span class="number">10_485_760</span>);
-		<span class="macro">assert_eq!</span>(v3.validation_upgrade_cooldown, <span class="number">3600</span>);
-		<span class="macro">assert_eq!</span>(v3.max_pov_size, <span class="number">5_242_880</span>);
-		<span class="macro">assert_eq!</span>(v3.hrmp_channel_max_message_size, <span class="number">102_400</span>);
-		<span class="macro">assert_eq!</span>(v3.n_delay_tranches, <span class="number">89</span>);
-		<span class="macro">assert_eq!</span>(v3.ump_max_individual_weight, Weight::from_parts(<span class="number">20_000_000_000</span>, <span class="number">5_242_880</span>));
-		<span class="macro">assert_eq!</span>(v3.minimum_validation_upgrade_delay, <span class="number">20</span>);
+		</span><span class="macro">assert_eq!</span>(v4.max_code_size, <span class="number">10_485_760</span>);
+		<span class="macro">assert_eq!</span>(v4.validation_upgrade_cooldown, <span class="number">3600</span>);
+		<span class="macro">assert_eq!</span>(v4.max_pov_size, <span class="number">5_242_880</span>);
+		<span class="macro">assert_eq!</span>(v4.hrmp_channel_max_message_size, <span class="number">102_400</span>);
+		<span class="macro">assert_eq!</span>(v4.n_delay_tranches, <span class="number">89</span>);
+		<span class="macro">assert_eq!</span>(v4.ump_max_individual_weight, Weight::from_parts(<span class="number">20_000_000_000</span>, <span class="number">5_242_880</span>));
+		<span class="macro">assert_eq!</span>(v4.minimum_validation_upgrade_delay, <span class="number">20</span>);
 	}
 
 	<span class="attr">#[test]
-	</span><span class="kw">fn </span>test_migrate_to_v4() {
-		<span class="comment">// Host configuration has lots of fields. However, in this migration we add only a couple of
-		// fields. The most important part to check are a couple of the last fields. We also pick
+	</span><span class="kw">fn </span>test_migrate_to_v5() {
+		<span class="comment">// Host configuration has lots of fields. However, in this migration we only remove one field.
+		// The most important part to check are a couple of the last fields. We also pick
 		// extra fields to check arbitrarily, e.g. depending on their position (i.e. the middle) and
 		// also their type.
 		//
 		// We specify only the picked fields and the rest should be provided by the `Default`
 		// implementation. That implementation is copied over between the two types and should work
 		// fine.
-		</span><span class="kw">let </span>v3 = v4::OldHostConfiguration::&lt;primitives::BlockNumber&gt; {
+		</span><span class="kw">let </span>v4 = v5::OldHostConfiguration::&lt;primitives::BlockNumber&gt; {
 			ump_max_individual_weight: Weight::from_parts(<span class="number">0x71616e6f6e0au64</span>, <span class="number">0x71616e6f6e0au64</span>),
 			needed_approvals: <span class="number">69</span>,
 			thread_availability_period: <span class="number">55</span>,
@@ -674,64 +707,73 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 			..Default::default()
 		};
 
+		<span class="kw">let </span><span class="kw-2">mut </span>pending_configs = Vec::new();
+		pending_configs.push((<span class="number">100</span>, v4.clone()));
+		pending_configs.push((<span class="number">300</span>, v4.clone()));
+
 		new_test_ext(Default::default()).execute_with(|| {
-			<span class="comment">// Implant the v3 version in the state.
+			<span class="comment">// Implant the v4 version in the state.
 			</span>frame_support::storage::unhashed::put_raw(
 				<span class="kw-2">&amp;</span>configuration::ActiveConfig::&lt;Test&gt;::hashed_key(),
-				<span class="kw-2">&amp;</span>v3.encode(),
+				<span class="kw-2">&amp;</span>v4.encode(),
+			);
+			frame_support::storage::unhashed::put_raw(
+				<span class="kw-2">&amp;</span>configuration::PendingConfigs::&lt;Test&gt;::hashed_key(),
+				<span class="kw-2">&amp;</span>pending_configs.encode(),
 			);
 
-			migrate_to_v4::&lt;Test&gt;();
+			migrate_to_v5::&lt;Test&gt;();
 
-			<span class="kw">let </span>v4 = configuration::ActiveConfig::&lt;Test&gt;::get();
+			<span class="kw">let </span>v5 = configuration::ActiveConfig::&lt;Test&gt;::get();
+			<span class="kw">let </span><span class="kw-2">mut </span>configs_to_check = configuration::PendingConfigs::&lt;Test&gt;::get();
+			configs_to_check.push((<span class="number">0</span>, v5.clone()));
 
-			<span class="attr">#[rustfmt::skip]
-			</span>{
-				<span class="macro">assert_eq!</span>(v3.max_code_size                            , v4.max_code_size);
-				<span class="macro">assert_eq!</span>(v3.max_head_data_size                       , v4.max_head_data_size);
-				<span class="macro">assert_eq!</span>(v3.max_upward_queue_count                   , v4.max_upward_queue_count);
-				<span class="macro">assert_eq!</span>(v3.max_upward_queue_size                    , v4.max_upward_queue_size);
-				<span class="macro">assert_eq!</span>(v3.max_upward_message_size                  , v4.max_upward_message_size);
-				<span class="macro">assert_eq!</span>(v3.max_upward_message_num_per_candidate     , v4.max_upward_message_num_per_candidate);
-				<span class="macro">assert_eq!</span>(v3.hrmp_max_message_num_per_candidate       , v4.hrmp_max_message_num_per_candidate);
-				<span class="macro">assert_eq!</span>(v3.validation_upgrade_cooldown              , v4.validation_upgrade_cooldown);
-				<span class="macro">assert_eq!</span>(v3.validation_upgrade_delay                 , v4.validation_upgrade_delay);
-				<span class="macro">assert_eq!</span>(v3.max_pov_size                             , v4.max_pov_size);
-				<span class="macro">assert_eq!</span>(v3.max_downward_message_size                , v4.max_downward_message_size);
-				<span class="macro">assert_eq!</span>(v3.ump_service_total_weight                 , v4.ump_service_total_weight);
-				<span class="macro">assert_eq!</span>(v3.hrmp_max_parachain_outbound_channels     , v4.hrmp_max_parachain_outbound_channels);
-				<span class="macro">assert_eq!</span>(v3.hrmp_max_parathread_outbound_channels    , v4.hrmp_max_parathread_outbound_channels);
-				<span class="macro">assert_eq!</span>(v3.hrmp_sender_deposit                      , v4.hrmp_sender_deposit);
-				<span class="macro">assert_eq!</span>(v3.hrmp_recipient_deposit                   , v4.hrmp_recipient_deposit);
-				<span class="macro">assert_eq!</span>(v3.hrmp_channel_max_capacity                , v4.hrmp_channel_max_capacity);
-				<span class="macro">assert_eq!</span>(v3.hrmp_channel_max_total_size              , v4.hrmp_channel_max_total_size);
-				<span class="macro">assert_eq!</span>(v3.hrmp_max_parachain_inbound_channels      , v4.hrmp_max_parachain_inbound_channels);
-				<span class="macro">assert_eq!</span>(v3.hrmp_max_parathread_inbound_channels     , v4.hrmp_max_parathread_inbound_channels);
-				<span class="macro">assert_eq!</span>(v3.hrmp_channel_max_message_size            , v4.hrmp_channel_max_message_size);
-				<span class="macro">assert_eq!</span>(v3.code_retention_period                    , v4.code_retention_period);
-				<span class="macro">assert_eq!</span>(v3.parathread_cores                         , v4.parathread_cores);
-				<span class="macro">assert_eq!</span>(v3.parathread_retries                       , v4.parathread_retries);
-				<span class="macro">assert_eq!</span>(v3.group_rotation_frequency                 , v4.group_rotation_frequency);
-				<span class="macro">assert_eq!</span>(v3.chain_availability_period                , v4.chain_availability_period);
-				<span class="macro">assert_eq!</span>(v3.thread_availability_period               , v4.thread_availability_period);
-				<span class="macro">assert_eq!</span>(v3.scheduling_lookahead                     , v4.scheduling_lookahead);
-				<span class="macro">assert_eq!</span>(v3.max_validators_per_core                  , v4.max_validators_per_core);
-				<span class="macro">assert_eq!</span>(v3.max_validators                           , v4.max_validators);
-				<span class="macro">assert_eq!</span>(v3.dispute_period                           , v4.dispute_period);
-				<span class="macro">assert_eq!</span>(v3.dispute_post_conclusion_acceptance_period, v4.dispute_post_conclusion_acceptance_period);
-				<span class="macro">assert_eq!</span>(v3.dispute_conclusion_by_time_out_period    , v4.dispute_conclusion_by_time_out_period);
-				<span class="macro">assert_eq!</span>(v3.no_show_slots                            , v4.no_show_slots);
-				<span class="macro">assert_eq!</span>(v3.n_delay_tranches                         , v4.n_delay_tranches);
-				<span class="macro">assert_eq!</span>(v3.zeroth_delay_tranche_width               , v4.zeroth_delay_tranche_width);
-				<span class="macro">assert_eq!</span>(v3.needed_approvals                         , v4.needed_approvals);
-				<span class="macro">assert_eq!</span>(v3.relay_vrf_modulo_samples                 , v4.relay_vrf_modulo_samples);
-				<span class="macro">assert_eq!</span>(v3.ump_max_individual_weight                , v4.ump_max_individual_weight);
-				<span class="macro">assert_eq!</span>(v3.pvf_checking_enabled                     , v4.pvf_checking_enabled);
-				<span class="macro">assert_eq!</span>(v3.pvf_voting_ttl                           , v4.pvf_voting_ttl);
-				<span class="macro">assert_eq!</span>(v3.minimum_validation_upgrade_delay         , v4.minimum_validation_upgrade_delay);
-
-			}; <span class="comment">// ; makes this a statement. `rustfmt::skip` cannot be put on an expression.
-		</span>});
+			<span class="kw">for </span>(<span class="kw">_</span>, v4) <span class="kw">in </span>configs_to_check {
+				<span class="attr">#[rustfmt::skip]
+				</span>{
+					<span class="macro">assert_eq!</span>(v4.max_code_size                            , v5.max_code_size);
+					<span class="macro">assert_eq!</span>(v4.max_head_data_size                       , v5.max_head_data_size);
+					<span class="macro">assert_eq!</span>(v4.max_upward_queue_count                   , v5.max_upward_queue_count);
+					<span class="macro">assert_eq!</span>(v4.max_upward_queue_size                    , v5.max_upward_queue_size);
+					<span class="macro">assert_eq!</span>(v4.max_upward_message_size                  , v5.max_upward_message_size);
+					<span class="macro">assert_eq!</span>(v4.max_upward_message_num_per_candidate     , v5.max_upward_message_num_per_candidate);
+					<span class="macro">assert_eq!</span>(v4.hrmp_max_message_num_per_candidate       , v5.hrmp_max_message_num_per_candidate);
+					<span class="macro">assert_eq!</span>(v4.validation_upgrade_cooldown              , v5.validation_upgrade_cooldown);
+					<span class="macro">assert_eq!</span>(v4.validation_upgrade_delay                 , v5.validation_upgrade_delay);
+					<span class="macro">assert_eq!</span>(v4.max_pov_size                             , v5.max_pov_size);
+					<span class="macro">assert_eq!</span>(v4.max_downward_message_size                , v5.max_downward_message_size);
+					<span class="macro">assert_eq!</span>(v4.ump_service_total_weight                 , v5.ump_service_total_weight);
+					<span class="macro">assert_eq!</span>(v4.hrmp_max_parachain_outbound_channels     , v5.hrmp_max_parachain_outbound_channels);
+					<span class="macro">assert_eq!</span>(v4.hrmp_max_parathread_outbound_channels    , v5.hrmp_max_parathread_outbound_channels);
+					<span class="macro">assert_eq!</span>(v4.hrmp_sender_deposit                      , v5.hrmp_sender_deposit);
+					<span class="macro">assert_eq!</span>(v4.hrmp_recipient_deposit                   , v5.hrmp_recipient_deposit);
+					<span class="macro">assert_eq!</span>(v4.hrmp_channel_max_capacity                , v5.hrmp_channel_max_capacity);
+					<span class="macro">assert_eq!</span>(v4.hrmp_channel_max_total_size              , v5.hrmp_channel_max_total_size);
+					<span class="macro">assert_eq!</span>(v4.hrmp_max_parachain_inbound_channels      , v5.hrmp_max_parachain_inbound_channels);
+					<span class="macro">assert_eq!</span>(v4.hrmp_max_parathread_inbound_channels     , v5.hrmp_max_parathread_inbound_channels);
+					<span class="macro">assert_eq!</span>(v4.hrmp_channel_max_message_size            , v5.hrmp_channel_max_message_size);
+					<span class="macro">assert_eq!</span>(v4.code_retention_period                    , v5.code_retention_period);
+					<span class="macro">assert_eq!</span>(v4.parathread_cores                         , v5.parathread_cores);
+					<span class="macro">assert_eq!</span>(v4.parathread_retries                       , v5.parathread_retries);
+					<span class="macro">assert_eq!</span>(v4.group_rotation_frequency                 , v5.group_rotation_frequency);
+					<span class="macro">assert_eq!</span>(v4.chain_availability_period                , v5.chain_availability_period);
+					<span class="macro">assert_eq!</span>(v4.thread_availability_period               , v5.thread_availability_period);
+					<span class="macro">assert_eq!</span>(v4.scheduling_lookahead                     , v5.scheduling_lookahead);
+					<span class="macro">assert_eq!</span>(v4.max_validators_per_core                  , v5.max_validators_per_core);
+					<span class="macro">assert_eq!</span>(v4.max_validators                           , v5.max_validators);
+					<span class="macro">assert_eq!</span>(v4.dispute_period                           , v5.dispute_period);
+					<span class="macro">assert_eq!</span>(v4.no_show_slots                            , v5.no_show_slots);
+					<span class="macro">assert_eq!</span>(v4.n_delay_tranches                         , v5.n_delay_tranches);
+					<span class="macro">assert_eq!</span>(v4.zeroth_delay_tranche_width               , v5.zeroth_delay_tranche_width);
+					<span class="macro">assert_eq!</span>(v4.needed_approvals                         , v5.needed_approvals);
+					<span class="macro">assert_eq!</span>(v4.relay_vrf_modulo_samples                 , v5.relay_vrf_modulo_samples);
+					<span class="macro">assert_eq!</span>(v4.ump_max_individual_weight                , v5.ump_max_individual_weight);
+					<span class="macro">assert_eq!</span>(v4.pvf_checking_enabled                     , v5.pvf_checking_enabled);
+					<span class="macro">assert_eq!</span>(v4.pvf_voting_ttl                           , v5.pvf_voting_ttl);
+					<span class="macro">assert_eq!</span>(v4.minimum_validation_upgrade_delay         , v5.minimum_validation_upgrade_delay);
+				}; <span class="comment">// ; makes this a statement. `rustfmt::skip` cannot be put on an expression.
+			</span>}
+		});
 	}
 }
 </code></pre></div>
