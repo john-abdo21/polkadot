@@ -2355,6 +2355,11 @@
 <a href="#2355" id="2355">2355</a>
 <a href="#2356" id="2356">2356</a>
 <a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3832,12 +3837,17 @@
 
 <span class="doccomment">/// All migrations that will run on the next runtime upgrade.
 ///
-/// Should be cleared after every release.
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so.
+</span><span class="attr">#[allow(deprecated)]
 </span><span class="kw">pub type </span>Migrations = (
-	pallet_nomination_pools::migration::v4::MigrateToV4&lt;
+	<span class="comment">// 0.9.40
+	</span>pallet_nomination_pools::migration::v4::MigrateToV4&lt;
 		Runtime,
 		NominationPoolsMigrationV4OldPallet,
 	&gt;,
+	<span class="comment">// Unreleased - add new migrations here:
+	</span>pallet_nomination_pools::migration::v5::MigrateToV5&lt;Runtime&gt;,
 	parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
 );
 

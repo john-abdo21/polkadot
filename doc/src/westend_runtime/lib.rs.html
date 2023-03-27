@@ -1963,6 +1963,11 @@
 <a href="#1963" id="1963">1963</a>
 <a href="#1964" id="1964">1964</a>
 <a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3172,13 +3177,18 @@
 
 <span class="doccomment">/// All migrations that will run on the next runtime upgrade.
 ///
-/// Should be cleared after every release.
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so.
+</span><span class="attr">#[allow(deprecated)]
 </span><span class="kw">pub type </span>Migrations = (
-	clean_state_migration::CleanMigrate,
+	<span class="comment">// 0.9.40
+	</span>clean_state_migration::CleanMigrate,
 	pallet_nomination_pools::migration::v4::MigrateToV4&lt;
 		Runtime,
 		NominationPoolsMigrationV4OldPallet,
 	&gt;,
+	<span class="comment">// Unreleased - add new migrations here:
+	</span>pallet_nomination_pools::migration::v5::MigrateToV5&lt;Runtime&gt;,
 	parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
 );
 
