@@ -1330,6 +1330,31 @@
 <a href="#1330" id="1330">1330</a>
 <a href="#1331" id="1331">1331</a>
 <a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1355,7 +1380,10 @@
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_parachain::primitives::{MAX_HORIZONTAL_MESSAGE_NUM, MAX_UPWARD_MESSAGE_NUM};
-<span class="kw">use </span>primitives::{Balance, SessionIndex, MAX_CODE_SIZE, MAX_HEAD_DATA_SIZE, MAX_POV_SIZE};
+<span class="kw">use </span>primitives::{
+	vstaging::AsyncBackingParams, Balance, SessionIndex, MAX_CODE_SIZE, MAX_HEAD_DATA_SIZE,
+	MAX_POV_SIZE,
+};
 <span class="kw">use </span>sp_runtime::traits::Zero;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 
@@ -1450,7 +1478,9 @@
 	 * The parameters that are not essential, but still may be of interest for parachains.
 	 */
 
-	/// The maximum POV block size, in bytes.
+	/// Asynchronous backing parameters.
+	</span><span class="kw">pub </span>async_backing_params: AsyncBackingParams,
+	<span class="doccomment">/// The maximum POV block size, in bytes.
 	</span><span class="kw">pub </span>max_pov_size: u32,
 	<span class="doccomment">/// The maximum size of a message that can be put in a downward message queue.
 	///
@@ -1575,6 +1605,10 @@
 <span class="kw">impl</span>&lt;BlockNumber: Default + From&lt;u32&gt;&gt; Default <span class="kw">for </span>HostConfiguration&lt;BlockNumber&gt; {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{
+			async_backing_params: AsyncBackingParams {
+				max_candidate_depth: <span class="number">0</span>,
+				allowed_ancestry_len: <span class="number">0</span>,
+			},
 			group_rotation_frequency: <span class="number">1u32</span>.into(),
 			chain_availability_period: <span class="number">1u32</span>.into(),
 			thread_availability_period: <span class="number">1u32</span>.into(),
@@ -2469,6 +2503,22 @@
 			ensure_root(origin)<span class="question-mark">?</span>;
 			BypassConsistencyCheck::&lt;T&gt;::put(new);
 			<span class="prelude-val">Ok</span>(())
+		}
+
+		<span class="doccomment">/// Set the asynchronous backing parameters.
+		</span><span class="attr">#[pallet::call_index(<span class="number">45</span>)]
+		#[pallet::weight((
+			T::WeightInfo::set_config_with_option_u32(), <span class="comment">// The same size in bytes.
+			</span>DispatchClass::Operational,
+		))]
+		</span><span class="kw">pub fn </span>set_async_backing_params(
+			origin: OriginFor&lt;T&gt;,
+			new: AsyncBackingParams,
+		) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::schedule_config_update(|config| {
+				config.async_backing_params = new;
+			})
 		}
 	}
 

@@ -387,6 +387,14 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -408,6 +416,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::configuration::{<span class="self">self</span>, ActiveConfig, Config, Pallet, PendingConfigs, MAX_POV_SIZE};
 <span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, traits::StorageVersion, weights::Weight};
 <span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
+<span class="kw">use </span>primitives::vstaging::AsyncBackingParams;
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="doccomment">/// The current storage version.
@@ -416,7 +425,7 @@
 /// v1-v2: &lt;https://github.com/paritytech/polkadot/pull/4420&gt;
 /// v2-v3: &lt;https://github.com/paritytech/polkadot/pull/6091&gt;
 /// v3-v4: &lt;https://github.com/paritytech/polkadot/pull/6345&gt;
-/// v4-v5: &lt;https://github.com/paritytech/polkadot/pull/6937&gt;
+/// v4-v5: &lt;https://github.com/paritytech/polkadot/pull/6937&gt; + &lt;https://github.com/paritytech/polkadot/pull/6961&gt;
 </span><span class="kw">pub const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">5</span>);
 
 <span class="kw">pub mod </span>v5 {
@@ -615,6 +624,9 @@ ump_max_individual_weight                : pre.ump_max_individual_weight,
 pvf_checking_enabled                     : pre.pvf_checking_enabled,
 pvf_voting_ttl                           : pre.pvf_voting_ttl,
 minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
+
+<span class="comment">// Default values are zeroes, thus it&#39;s ensured allowed ancestry never crosses the upgrade block.
+</span>async_backing_params                     : AsyncBackingParams { max_candidate_depth: <span class="number">0</span>, allowed_ancestry_len: <span class="number">0 </span>},
 		}
 	};
 
@@ -772,7 +784,11 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 					<span class="macro">assert_eq!</span>(v4.pvf_voting_ttl                           , v5.pvf_voting_ttl);
 					<span class="macro">assert_eq!</span>(v4.minimum_validation_upgrade_delay         , v5.minimum_validation_upgrade_delay);
 				}; <span class="comment">// ; makes this a statement. `rustfmt::skip` cannot be put on an expression.
-			</span>}
+
+				// additional checks for async backing.
+				</span><span class="macro">assert_eq!</span>(v5.async_backing_params.allowed_ancestry_len, <span class="number">0</span>);
+				<span class="macro">assert_eq!</span>(v5.async_backing_params.max_candidate_depth, <span class="number">0</span>);
+			}
 		});
 	}
 }
