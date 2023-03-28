@@ -1342,6 +1342,14 @@
 <a href="#1342" id="1342">1342</a>
 <a href="#1343" id="1343">1343</a>
 <a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1360,11 +1368,14 @@
 
 </span><span class="doccomment">//! Runtime component for handling disputes of parachain candidates.
 
-</span><span class="kw">use crate</span>::{configuration, initializer::SessionChangeNotification, session_info};
+</span><span class="kw">use crate</span>::{
+	configuration, initializer::SessionChangeNotification, metrics::METRICS, session_info,
+};
 <span class="kw">use </span>bitvec::{bitvec, order::Lsb0 <span class="kw">as </span>BitOrderLsb0};
 <span class="kw">use </span>frame_support::{ensure, weights::Weight};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+<span class="kw">use </span>polkadot_runtime_metrics::get_current_time;
 <span class="kw">use </span>primitives::{
 	byzantine_threshold, supermajority_threshold, ApprovalVote, CandidateHash,
 	CheckedDisputeStatementSet, CheckedMultiDisputeStatementSet, CompactStatement, ConsensusLog,
@@ -2680,11 +2691,16 @@
 			ExplicitDisputeStatement { valid: <span class="bool-val">false</span>, candidate_hash, session }.signing_payload(),
 	};
 
-	<span class="kw">if </span>validator_signature.verify(<span class="kw-2">&amp;</span>payload[..], <span class="kw-2">&amp;</span>validator_public) {
-		<span class="prelude-val">Ok</span>(())
-	} <span class="kw">else </span>{
-		<span class="prelude-val">Err</span>(())
-	}
+	<span class="kw">let </span>start = get_current_time();
+
+	<span class="kw">let </span>res =
+		<span class="kw">if </span>validator_signature.verify(<span class="kw-2">&amp;</span>payload[..], <span class="kw-2">&amp;</span>validator_public) { <span class="prelude-val">Ok</span>(()) } <span class="kw">else </span>{ <span class="prelude-val">Err</span>(()) };
+
+	<span class="kw">let </span>end = get_current_time();
+
+	METRICS.on_signature_check_complete(end.saturating_sub(start)); <span class="comment">// ns
+
+	</span>res
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polkadot_runtime_parachains" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

@@ -177,6 +177,26 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -206,6 +226,8 @@
 	</span>IncrementCounterVec(u64, RuntimeMetricLabelValues),
 	<span class="doccomment">/// Increment a counter metric by value.
 	</span>IncrementCounter(u64),
+	<span class="doccomment">/// Observe histogram value
+	</span>ObserveHistogram(u128),
 }
 
 <span class="doccomment">/// Runtime metric update event.
@@ -306,6 +328,16 @@
 		</span><span class="kw">pub </span>labels: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
 	}
 
+	<span class="doccomment">/// `Histogram` metric definition
+	</span><span class="kw">pub struct </span>HistogramDefinition&lt;<span class="lifetime">&#39;a</span>&gt; {
+		<span class="doccomment">/// The name of the metric.
+		</span><span class="kw">pub </span>name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+		<span class="doccomment">/// The description of the metric.
+		</span><span class="kw">pub </span>description: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+		<span class="doccomment">/// The buckets for the histogram
+		</span><span class="kw">pub </span>buckets: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[f64],
+	}
+
 	<span class="doccomment">/// Counts parachain inherent data weights. Use `before` and `after` labels to differentiate
 	/// between the weight before and after filtering.
 	</span><span class="kw">pub const </span>PARACHAIN_INHERENT_DATA_WEIGHT: CounterVecDefinition = CounterVecDefinition {
@@ -355,6 +387,14 @@
 			description: <span class="string">&quot;Counts the number of bitfields signature checked in `enter_inner`.&quot;</span>,
 			labels: <span class="kw-2">&amp;</span>[<span class="string">&quot;validity&quot;</span>],
 		};
+
+	<span class="doccomment">/// Measures how much time does it take to verify a single validator signature of a dispute statement
+	</span><span class="kw">pub const </span>PARACHAIN_VERIFY_DISPUTE_SIGNATURE: HistogramDefinition =
+		HistogramDefinition {
+			name: <span class="string">&quot;polkadot_parachain_verify_dispute_signature&quot;</span>,
+			description: <span class="string">&quot;How much time does it take to verify a single validator signature of a dispute statement, in seconds&quot;</span>,
+			buckets: <span class="kw-2">&amp;</span>[<span class="number">0.0</span>, <span class="number">0.00005</span>, <span class="number">0.00006</span>, <span class="number">0.0001</span>, <span class="number">0.0005</span>, <span class="number">0.001</span>, <span class="number">0.005</span>, <span class="number">0.01</span>, <span class="number">0.05</span>, <span class="number">0.1</span>, <span class="number">0.3</span>, <span class="number">0.5</span>, <span class="number">1.0</span>],
+	};
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="polkadot_primitives" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (a00f8ba7f 2022-11-15)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-7873449fa8c00e11.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

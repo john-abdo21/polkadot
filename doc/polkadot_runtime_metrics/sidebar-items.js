@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Counter","A dummy `Counter`."],["CounterVec","A dummy `CounterVec`."]]};
+window.SIDEBAR_ITEMS = {"fn":[["get_current_time","Dummy implementation - always 0"]],"struct":[["Counter","A dummy `Counter`."],["CounterVec","A dummy `CounterVec`."],["Histogram","A dummy `Histogram`"]]};
