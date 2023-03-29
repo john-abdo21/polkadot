@@ -83,6 +83,18 @@
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -146,22 +158,34 @@
 			<span class="macro-nonterminal">$crate::sp_tracing::try_init_simple</span>();
 
 			<span class="kw">let </span>args = std::env::args().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-			<span class="kw">if </span>args.len() &lt; <span class="number">2 </span>{
+			<span class="kw">if </span>args.len() &lt; <span class="number">3 </span>{
 				<span class="macro">panic!</span>(<span class="string">&quot;wrong number of arguments&quot;</span>);
+			}
+
+			<span class="kw">let </span><span class="kw-2">mut </span>version = <span class="prelude-val">None</span>;
+			<span class="kw">let </span><span class="kw-2">mut </span>socket_path: <span class="kw-2">&amp;</span>str = <span class="string">&quot;&quot;</span>;
+
+			<span class="kw">for </span>i <span class="kw">in </span><span class="number">2</span>..args.len() {
+				<span class="kw">match </span>args[i].as_ref() {
+					<span class="string">&quot;--socket-path&quot; </span>=&gt; socket_path = args[i + <span class="number">1</span>].as_str(),
+					<span class="string">&quot;--node-version&quot; </span>=&gt; version = <span class="prelude-val">Some</span>(args[i + <span class="number">1</span>].as_str()),
+					<span class="kw">_ </span>=&gt; (),
+				}
 			}
 
 			<span class="kw">let </span>subcommand = <span class="kw-2">&amp;</span>args[<span class="number">1</span>];
 			<span class="kw">match </span>subcommand.as_ref() {
+				<span class="string">&quot;exit&quot; </span>=&gt; {
+					std::process::exit(<span class="number">1</span>);
+				},
 				<span class="string">&quot;sleep&quot; </span>=&gt; {
 					std::thread::sleep(std::time::Duration::from_secs(<span class="number">5</span>));
 				},
 				<span class="string">&quot;prepare-worker&quot; </span>=&gt; {
-					<span class="kw">let </span>socket_path = <span class="kw-2">&amp;</span>args[<span class="number">2</span>];
-					<span class="macro-nonterminal">$crate::prepare_worker_entrypoint</span>(socket_path);
+					<span class="macro-nonterminal">$crate::prepare_worker_entrypoint</span>(<span class="kw-2">&amp;</span>socket_path, version);
 				},
 				<span class="string">&quot;execute-worker&quot; </span>=&gt; {
-					<span class="kw">let </span>socket_path = <span class="kw-2">&amp;</span>args[<span class="number">2</span>];
-					<span class="macro-nonterminal">$crate::execute_worker_entrypoint</span>(socket_path);
+					<span class="macro-nonterminal">$crate::execute_worker_entrypoint</span>(<span class="kw-2">&amp;</span>socket_path, version);
 				},
 				other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown subcommand: {}&quot;</span>, other),
 			}
