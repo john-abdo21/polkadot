@@ -465,6 +465,17 @@
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -491,7 +502,8 @@
 <span class="kw">use </span>sc_transaction_pool_api::TransactionStatus;
 <span class="kw">use </span>sp_core::storage::StorageKey;
 <span class="kw">use </span>sp_runtime::Perbill;
-<span class="kw">use </span>tokio::sync::mpsc;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>tokio::sync::{mpsc, Mutex};
 <span class="kw">use </span>EPM::{signed::SubmissionIndicesOf, SignedSubmissionOf};
 
 <span class="doccomment">/// Ensure that now is the signed phase.
@@ -637,6 +649,7 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>subscription = heads_subscription().<span class="kw">await</span><span class="question-mark">?</span>;
 		<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = mpsc::unbounded_channel::&lt;StakingMinerError&gt;();
+		<span class="kw">let </span>submit_lock = Arc::new(Mutex::new(()));
 
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>at = <span class="macro">tokio::select! </span>{
@@ -668,9 +681,8 @@
 			<span class="comment">// Spawn task and non-recoverable errors are sent back to the main task
 			// such as if the connection has been closed.
 			</span>tokio::spawn(
-				send_and_watch_extrinsic(rpc.clone(), tx.clone(), at, signer.clone(), config.clone())
+				send_and_watch_extrinsic(rpc.clone(), tx.clone(), at, signer.clone(), config.clone(), submit_lock.clone())
 			);
-
 		}
 
 		<span class="doccomment">/// Construct extrinsic at given block and watch it.
@@ -680,6 +692,7 @@
 			at: Header,
 			signer: Signer,
 			config: MonitorConfig,
+			submit_lock: Arc&lt;Mutex&lt;()&gt;&gt;,
 		) {
 
 			<span class="kw">async fn </span>flatten&lt;T&gt;(
@@ -721,6 +734,8 @@
 				<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Skipping block {}; {}&quot;</span>, at.number, err);
 				<span class="kw">return</span>;
 			}
+
+			<span class="kw">let </span>_lock = submit_lock.lock().<span class="kw">await</span>;
 
 			<span class="kw">let </span><span class="kw-2">mut </span>ext = <span class="kw">match </span><span class="kw">crate</span>::create_election_ext::&lt;Runtime, Block&gt;(rpc.clone(), <span class="prelude-val">Some</span>(hash), <span class="macro">vec!</span>[]).<span class="kw">await </span>{
 				<span class="prelude-val">Ok</span>(ext) =&gt; ext,
@@ -769,6 +784,7 @@
 
 			<span class="kw">let </span>rpc1 = rpc.clone();
 			<span class="kw">let </span>rpc2 = rpc.clone();
+			<span class="kw">let </span>rpc3 = rpc.clone();
 
 			<span class="kw">let </span>latest_head = <span class="kw">match </span>get_latest_head::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>rpc, <span class="kw-2">&amp;</span>config.listen).<span class="kw">await </span>{
 				<span class="prelude-val">Ok</span>(hash) =&gt; hash,
@@ -792,10 +808,16 @@
 				ensure_signed_phase::&lt;Runtime, Block&gt;(<span class="kw-2">&amp;</span>rpc2, latest_head).<span class="kw">await
 			</span>});
 
+			<span class="kw">let </span>account = signer.account.clone();
+			<span class="kw">let </span>no_prev_sol_fut = tokio::spawn(<span class="kw">async move </span>{
+				ensure_no_previous_solution::&lt;Runtime, Block&gt;(<span class="kw-2">&amp;</span>rpc3, latest_head, <span class="kw-2">&amp;</span>account).<span class="kw">await
+			</span>});
+
 			<span class="comment">// Run the calls in parallel and return once all has completed or any failed.
 			</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="macro">tokio::try_join!</span>(
 				flatten(ensure_strategy_met_fut),
 				flatten(ensure_signed_phase_fut),
+				flatten(no_prev_sol_fut),
 			) {
 				<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Skipping to submit at block {}; {}&quot;</span>, at.number, err);
 				<span class="kw">return</span>;
