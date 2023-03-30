@@ -423,6 +423,7 @@
 <a href="#423" id="423">423</a>
 <a href="#424" id="424">424</a>
 <a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -585,10 +586,11 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		priority: ParticipationPriority,
-		req: ParticipationRequest,
+		<span class="kw-2">mut </span>req: ParticipationRequest,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-		<span class="comment">// Participation already running - we can ignore that request:
+		<span class="comment">// Participation already running - we can ignore that request, discarding its timer:
 		</span><span class="kw">if </span><span class="self">self</span>.running_participations.contains(req.candidate_hash()) {
+			req.discard_timer();
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 		}
 		<span class="comment">// Available capacity - participate right away (if we already have a recent block):

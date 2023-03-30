@@ -440,9 +440,6 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -579,6 +576,11 @@
 	<span class="kw">pub fn </span>session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SessionIndex {
 		<span class="self">self</span>.session
 	}
+	<span class="kw">pub fn </span>discard_timer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(timer) = <span class="self">self</span>.request_timer.take() {
+			timer.stop_and_discard();
+		}
+	}
 	<span class="kw">pub fn </span>into_candidate_info(<span class="self">self</span>) -&gt; (CandidateHash, CandidateReceipt) {
 		<span class="kw">let </span><span class="self">Self </span>{ candidate_hash, candidate_receipt, .. } = <span class="self">self</span>;
 		(candidate_hash, candidate_receipt)
@@ -691,17 +693,12 @@
 			<span class="comment">// Remove any best effort entry, using it to replace our new
 			// request.
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(older_request) = <span class="self">self</span>.best_effort.remove(<span class="kw-2">&amp;</span>comparator) {
-				<span class="kw">if let </span><span class="prelude-val">Some</span>(timer) = req.request_timer {
-					timer.stop_and_discard();
-				}
+				req.discard_timer();
 				req = older_request;
 			}
 			<span class="comment">// Keeping old request if any.
 			</span><span class="kw">match </span><span class="self">self</span>.priority.entry(comparator) {
-				Entry::Occupied(<span class="kw">_</span>) =&gt;
-					<span class="kw">if let </span><span class="prelude-val">Some</span>(timer) = req.request_timer {
-						timer.stop_and_discard();
-					},
+				Entry::Occupied(<span class="kw">_</span>) =&gt; req.discard_timer(),
 				Entry::Vacant(vac) =&gt; {
 					vac.insert(req);
 				},
@@ -719,10 +716,7 @@
 			}
 			<span class="comment">// Keeping old request if any.
 			</span><span class="kw">match </span><span class="self">self</span>.best_effort.entry(comparator) {
-				Entry::Occupied(<span class="kw">_</span>) =&gt;
-					<span class="kw">if let </span><span class="prelude-val">Some</span>(timer) = req.request_timer {
-						timer.stop_and_discard();
-					},
+				Entry::Occupied(<span class="kw">_</span>) =&gt; req.discard_timer(),
 				Entry::Vacant(vac) =&gt; {
 					vac.insert(req);
 				},
