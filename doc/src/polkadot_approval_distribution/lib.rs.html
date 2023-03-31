@@ -1805,6 +1805,49 @@
 <a href="#1805" id="1805">1805</a>
 <a href="#1806" id="1806">1806</a>
 <a href="#1807" id="1807">1807</a>
+<a href="#1808" id="1808">1808</a>
+<a href="#1809" id="1809">1809</a>
+<a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
+<a href="#1817" id="1817">1817</a>
+<a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1828,6 +1871,7 @@
 </span><span class="attr">#![warn(missing_docs)]
 
 </span><span class="kw">use </span>futures::{channel::oneshot, FutureExt <span class="kw">as _</span>};
+<span class="kw">use </span>polkadot_node_jaeger <span class="kw">as </span>jaeger;
 <span class="kw">use </span>polkadot_node_network_protocol::{
 	<span class="self">self </span><span class="kw">as </span>net_protocol,
 	grid_topology::{RandomRouting, RequiredRouting, SessionGridTopologies, SessionGridTopology},
@@ -1842,7 +1886,7 @@
 		ApprovalCheckResult, ApprovalDistributionMessage, ApprovalVotingMessage,
 		AssignmentCheckResult, NetworkBridgeEvent, NetworkBridgeTxMessage,
 	},
-	overseer, ActiveLeavesUpdate, FromOrchestra, OverseerSignal, SpawnedSubsystem, SubsystemError,
+	overseer, FromOrchestra, OverseerSignal, SpawnedSubsystem, SubsystemError,
 };
 <span class="kw">use </span>polkadot_primitives::{
 	BlockNumber, CandidateIndex, Hash, SessionIndex, ValidatorIndex, ValidatorSignature,
@@ -1987,6 +2031,9 @@
 
 	<span class="doccomment">/// Config for aggression.
 	</span>aggression_config: AggressionConfig,
+
+	<span class="doccomment">/// HashMap from active leaves to spans
+	</span>spans: HashMap&lt;Hash, jaeger::PerLeafSpan&gt;,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -2197,9 +2244,18 @@
 	) {
 		<span class="kw">let </span><span class="kw-2">mut </span>new_hashes = HashSet::new();
 		<span class="kw">for </span>meta <span class="kw">in </span><span class="kw-2">&amp;</span>metas {
+			<span class="kw">let </span><span class="kw-2">mut </span>span = <span class="self">self
+				</span>.spans
+				.get(<span class="kw-2">&amp;</span>meta.hash)
+				.map(|span| span.child(<span class="kw-2">&amp;</span><span class="string">&quot;handle-new-blocks&quot;</span>))
+				.unwrap_or_else(|| jaeger::Span::new(meta.hash, <span class="kw-2">&amp;</span><span class="string">&quot;handle-new-blocks&quot;</span>))
+				.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, meta.hash))
+				.with_stage(jaeger::Stage::ApprovalDistribution);
+
 			<span class="kw">match </span><span class="self">self</span>.blocks.entry(meta.hash) {
 				hash_map::Entry::Vacant(entry) =&gt; {
 					<span class="kw">let </span>candidates_count = meta.candidates.len();
+					span.add_uint_tag(<span class="string">&quot;candidates-count&quot;</span>, candidates_count <span class="kw">as </span>u64);
 					<span class="kw">let </span><span class="kw-2">mut </span>candidates = Vec::with_capacity(candidates_count);
 					candidates.resize_with(candidates_count, Default::default);
 
@@ -2497,6 +2553,7 @@
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(block_entry) = <span class="self">self</span>.blocks.remove(relay_block) {
 				<span class="self">self</span>.topologies.dec_session_refs(block_entry.session);
 			}
+			<span class="self">self</span>.spans.remove(<span class="kw-2">&amp;</span>relay_block);
 		});
 
 		<span class="comment">// If a block was finalized, this means we may need to move our aggression
@@ -3037,6 +3094,14 @@
 	) -&gt; HashMap&lt;ValidatorIndex, ValidatorSignature&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>all_sigs = HashMap::new();
 		<span class="kw">for </span>(hash, index) <span class="kw">in </span>indices {
+			<span class="kw">let </span>_span = <span class="self">self
+				</span>.spans
+				.get(<span class="kw-2">&amp;</span>hash)
+				.map(|span| span.child(<span class="string">&quot;get-approval-signatures&quot;</span>))
+				.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>hash, <span class="string">&quot;get-approval-signatures&quot;</span>))
+				.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, hash))
+				.with_stage(jaeger::Stage::ApprovalDistribution);
+
 			<span class="kw">let </span>block_entry = <span class="kw">match </span><span class="self">self</span>.blocks.get(<span class="kw-2">&amp;</span>hash) {
 				<span class="prelude-val">None </span>=&gt; {
 					<span class="macro">gum::debug!</span>(
@@ -3457,14 +3522,19 @@
 			<span class="kw">match </span>message {
 				FromOrchestra::Communication { msg } =&gt;
 					<span class="self">Self</span>::handle_incoming(<span class="kw-2">&amp;mut </span>ctx, state, msg, <span class="kw-2">&amp;</span><span class="self">self</span>.metrics, rng).<span class="kw">await</span>,
-				FromOrchestra::Signal(OverseerSignal::ActiveLeaves(ActiveLeavesUpdate {
-					..
-				})) =&gt; {
+				FromOrchestra::Signal(OverseerSignal::ActiveLeaves(update)) =&gt; {
 					<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;active leaves signal (ignored)&quot;</span>);
 					<span class="comment">// the relay chain blocks relevant to the approval subsystems
 					// are those that are available, but not finalized yet
-					// actived and deactivated heads hence are irrelevant to this subsystem
-				</span>},
+					// actived and deactivated heads hence are irrelevant to this subsystem, other than
+					// for tracing purposes.
+					</span><span class="kw">if let </span><span class="prelude-val">Some</span>(activated) = update.activated {
+						<span class="kw">let </span>head = activated.hash;
+						<span class="kw">let </span>approval_distribution_span =
+							jaeger::PerLeafSpan::new(activated.span, <span class="string">&quot;approval-distribution&quot;</span>);
+						state.spans.insert(head, approval_distribution_span);
+					}
+				},
 				FromOrchestra::Signal(OverseerSignal::BlockFinalized(_hash, number)) =&gt; {
 					<span class="macro">gum::trace!</span>(target: LOG_TARGET, number = %number, <span class="string">&quot;finalized signal&quot;</span>);
 					state.handle_block_finalized(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;</span><span class="self">self</span>.metrics, number).<span class="kw">await</span>;
@@ -3489,6 +3559,14 @@
 				state.handle_new_blocks(ctx, metrics, metas, rng).<span class="kw">await</span>;
 			},
 			ApprovalDistributionMessage::DistributeAssignment(cert, candidate_index) =&gt; {
+				<span class="kw">let </span>_span = state
+					.spans
+					.get(<span class="kw-2">&amp;</span>cert.block_hash)
+					.map(|span| span.child(<span class="string">&quot;import-and-distribute-assignment&quot;</span>))
+					.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>cert.block_hash, <span class="string">&quot;distribute-assignment&quot;</span>))
+					.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, cert.block_hash))
+					.with_stage(jaeger::Stage::ApprovalDistribution);
+
 				<span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
 					<span class="string">&quot;Distributing our assignment on candidate (block={}, index={})&quot;</span>,
@@ -3508,6 +3586,14 @@
 					.<span class="kw">await</span>;
 			},
 			ApprovalDistributionMessage::DistributeApproval(vote) =&gt; {
+				<span class="kw">let </span>_span = state
+					.spans
+					.get(<span class="kw-2">&amp;</span>vote.block_hash)
+					.map(|span| span.child(<span class="string">&quot;import-and-distribute-approval&quot;</span>))
+					.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>vote.block_hash, <span class="string">&quot;distribute-approval&quot;</span>))
+					.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, vote.block_hash))
+					.with_stage(jaeger::Stage::ApprovalDistribution);
+
 				<span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
 					<span class="string">&quot;Distributing our approval vote on candidate (block={}, index={})&quot;</span>,

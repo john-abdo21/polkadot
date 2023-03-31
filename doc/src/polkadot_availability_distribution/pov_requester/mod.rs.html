@@ -229,6 +229,12 @@
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -283,7 +289,18 @@
 	pov_hash: Hash,
 	tx: oneshot::Sender&lt;PoV&gt;,
 	metrics: Metrics,
+	span: <span class="kw-2">&amp;</span>jaeger::Span,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+	<span class="kw">let </span>_span = span
+		.child(<span class="string">&quot;fetch-pov&quot;</span>)
+		.with_trace_id(candidate_hash)
+		.with_validator_index(from_validator)
+		.with_candidate(candidate_hash)
+		.with_para_id(para_id)
+		.with_relay_parent(parent)
+		.with_string_tag(<span class="string">&quot;pov-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, pov_hash))
+		.with_stage(jaeger::Stage::AvailabilityDistribution);
+
 	<span class="kw">let </span>info = <span class="kw-2">&amp;</span>runtime.get_session_info(ctx.sender(), parent).<span class="kw">await</span><span class="question-mark">?</span>.session_info;
 	<span class="kw">let </span>authority_id = info
 		.discovery_keys
@@ -302,13 +319,9 @@
 	))
 	.<span class="kw">await</span>;
 
-	<span class="kw">let </span>span = jaeger::Span::new(candidate_hash, <span class="string">&quot;fetch-pov&quot;</span>)
-		.with_validator_index(from_validator)
-		.with_relay_parent(parent)
-		.with_para_id(para_id);
 	ctx.spawn(
 		<span class="string">&quot;pov-fetcher&quot;</span>,
-		fetch_pov_job(para_id, pov_hash, authority_id, pending_response.boxed(), span, tx, metrics)
+		fetch_pov_job(para_id, pov_hash, authority_id, pending_response.boxed(), tx, metrics)
 			.boxed(),
 	)
 	.map_err(|e| FatalError::SpawnTask(e))<span class="question-mark">?</span>;
@@ -321,11 +334,10 @@
 	pov_hash: Hash,
 	authority_id: AuthorityDiscoveryId,
 	pending_response: BoxFuture&lt;<span class="lifetime">&#39;static</span>, std::result::Result&lt;PoVFetchingResponse, RequestError&gt;&gt;,
-	span: jaeger::Span,
 	tx: oneshot::Sender&lt;PoV&gt;,
 	metrics: Metrics,
 ) {
-	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = do_fetch_pov(pov_hash, pending_response, span, tx, metrics).<span class="kw">await </span>{
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = do_fetch_pov(pov_hash, pending_response, tx, metrics).<span class="kw">await </span>{
 		<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="question-mark">?</span>para_id, <span class="question-mark">?</span>pov_hash, <span class="question-mark">?</span>authority_id, <span class="string">&quot;fetch_pov_job&quot;</span>);
 	}
 }
@@ -334,7 +346,6 @@
 </span><span class="kw">async fn </span>do_fetch_pov(
 	pov_hash: Hash,
 	pending_response: BoxFuture&lt;<span class="lifetime">&#39;static</span>, std::result::Result&lt;PoVFetchingResponse, RequestError&gt;&gt;,
-	_span: jaeger::Span,
 	tx: oneshot::Sender&lt;PoV&gt;,
 	metrics: Metrics,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -413,6 +424,7 @@
 				pov_hash,
 				tx,
 				Metrics::new_dummy(),
+				<span class="kw-2">&amp;</span>jaeger::Span::Disabled,
 			)
 			.<span class="kw">await
 			</span>.expect(<span class="string">&quot;Should succeed&quot;</span>);

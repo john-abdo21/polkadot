@@ -471,6 +471,23 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -613,16 +630,24 @@
 		sender: mpsc::Sender&lt;FromFetchTask&gt;,
 		metrics: Metrics,
 		session_info: <span class="kw-2">&amp;</span>SessionInfo,
+		span: jaeger::Span,
 	) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>span = span
+			.child(<span class="string">&quot;fetch-task-config&quot;</span>)
+			.with_trace_id(core.candidate_hash)
+			.with_string_tag(<span class="string">&quot;leaf&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, leaf))
+			.with_validator_index(session_info.our_index)
+			.with_uint_tag(<span class="string">&quot;group-index&quot;</span>, core.group_responsible.<span class="number">0 </span><span class="kw">as </span>u64)
+			.with_relay_parent(core.candidate_descriptor.relay_parent)
+			.with_string_tag(<span class="string">&quot;pov-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, core.candidate_descriptor.pov_hash))
+			.with_stage(jaeger::Stage::AvailabilityDistribution);
+
 		<span class="kw">let </span>live_in = <span class="macro">vec!</span>[leaf].into_iter().collect();
 
 		<span class="comment">// Don&#39;t run tasks for our backing group:
 		</span><span class="kw">if </span>session_info.our_group == <span class="prelude-val">Some</span>(core.group_responsible) {
 			<span class="kw">return </span>FetchTaskConfig { live_in, prepared_running: <span class="prelude-val">None </span>}
 		}
-
-		<span class="kw">let </span>span = jaeger::Span::new(core.candidate_hash, <span class="string">&quot;availability-distribution&quot;</span>)
-			.with_stage(jaeger::Stage::AvailabilityDistribution);
 
 		<span class="kw">let </span>prepared_running = RunningTask {
 			session_index: session_info.session_index,
@@ -724,20 +749,18 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>bad_validators = Vec::new();
 		<span class="kw">let </span><span class="kw-2">mut </span>succeeded = <span class="bool-val">false</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>count: u32 = <span class="number">0</span>;
-		<span class="kw">let </span><span class="kw-2">mut </span>_span = <span class="self">self
-			</span>.span
-			.child(<span class="string">&quot;fetch-task&quot;</span>)
-			.with_chunk_index(<span class="self">self</span>.request.index.<span class="number">0</span>)
-			.with_relay_parent(<span class="self">self</span>.relay_parent);
+		<span class="kw">let </span><span class="kw-2">mut </span>span = <span class="self">self</span>.span.child(<span class="string">&quot;run-fetch-chunk-task&quot;</span>).with_relay_parent(<span class="self">self</span>.relay_parent);
 		<span class="comment">// Try validators in reverse order:
 		</span><span class="kw">while let </span><span class="prelude-val">Some</span>(validator) = <span class="self">self</span>.group.pop() {
-			<span class="kw">let </span>_try_span = _span.child(<span class="string">&quot;try&quot;</span>);
 			<span class="comment">// Report retries:
 			</span><span class="kw">if </span>count &gt; <span class="number">0 </span>{
 				<span class="self">self</span>.metrics.on_retry();
 			}
 			count += <span class="number">1</span>;
-
+			<span class="kw">let </span>_chunk_fetch_span = span
+				.child(<span class="string">&quot;fetch-chunk-request&quot;</span>)
+				.with_chunk_index(<span class="self">self</span>.request.index.<span class="number">0</span>)
+				.with_stage(jaeger::Stage::AvailabilityDistribution);
 			<span class="comment">// Send request:
 			</span><span class="kw">let </span>resp = <span class="kw">match </span><span class="self">self</span>.do_request(<span class="kw-2">&amp;</span>validator).<span class="kw">await </span>{
 				<span class="prelude-val">Ok</span>(resp) =&gt; resp,
@@ -754,6 +777,12 @@
 					<span class="kw">continue
 				</span>},
 			};
+			<span class="comment">// We drop the span here, so that the span is not active while we recombine the chunk.
+			</span>drop(_chunk_fetch_span);
+			<span class="kw">let </span>_chunk_recombine_span = span
+				.child(<span class="string">&quot;recombine-chunk&quot;</span>)
+				.with_chunk_index(<span class="self">self</span>.request.index.<span class="number">0</span>)
+				.with_stage(jaeger::Stage::AvailabilityDistribution);
 			<span class="kw">let </span>chunk = <span class="kw">match </span>resp {
 				ChunkFetchingResponse::Chunk(resp) =&gt; resp.recombine_into_chunk(<span class="kw-2">&amp;</span><span class="self">self</span>.request),
 				ChunkFetchingResponse::NoSuchChunk =&gt; {
@@ -771,6 +800,12 @@
 					<span class="kw">continue
 				</span>},
 			};
+			<span class="comment">// We drop the span so that the span is not active whilst we validate and store the chunk.
+			</span>drop(_chunk_recombine_span);
+			<span class="kw">let </span>_chunk_validate_and_store_span = span
+				.child(<span class="string">&quot;validate-and-store-chunk&quot;</span>)
+				.with_chunk_index(<span class="self">self</span>.request.index.<span class="number">0</span>)
+				.with_stage(jaeger::Stage::AvailabilityDistribution);
 
 			<span class="comment">// Data genuine?
 			</span><span class="kw">if </span>!<span class="self">self</span>.validate_chunk(<span class="kw-2">&amp;</span>validator, <span class="kw-2">&amp;</span>chunk) {
@@ -781,10 +816,9 @@
 			<span class="comment">// Ok, let&#39;s store it and be happy:
 			</span><span class="self">self</span>.store_chunk(chunk).<span class="kw">await</span>;
 			succeeded = <span class="bool-val">true</span>;
-			_span.add_string_tag(<span class="string">&quot;success&quot;</span>, <span class="string">&quot;true&quot;</span>);
 			<span class="kw">break
 		</span>}
-		_span.add_int_tag(<span class="string">&quot;tries&quot;</span>, count <span class="kw">as _</span>);
+		span.add_int_tag(<span class="string">&quot;tries&quot;</span>, count <span class="kw">as _</span>);
 		<span class="kw">if </span>succeeded {
 			<span class="self">self</span>.metrics.on_fetch(SUCCEEDED);
 			<span class="self">self</span>.conclude(bad_validators).<span class="kw">await</span>;

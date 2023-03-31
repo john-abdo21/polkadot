@@ -1350,6 +1350,7 @@
 <a href="#1350" id="1350">1350</a>
 <a href="#1351" id="1351">1351</a>
 <a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1681,13 +1682,17 @@
 	finalized_number: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
 ) -&gt; SubsystemResult&lt;Vec&lt;BlockImportedCandidates&gt;&gt; {
 	<span class="kw">const </span>MAX_HEADS_LOOK_BACK: BlockNumber = MAX_FINALITY_LAG;
-
-	<span class="kw">let </span><span class="kw-2">mut </span>span = jaeger::Span::new(head, <span class="string">&quot;approval-checking-import&quot;</span>);
+	<span class="kw">let </span>_handle_new_head_span = state
+		.spans
+		.get(<span class="kw-2">&amp;</span>head)
+		.map(|span| span.child(<span class="string">&quot;handle-new-head&quot;</span>))
+		.unwrap_or_else(|| jaeger::Span::new(head, <span class="string">&quot;handle-new-head&quot;</span>))
+		.with_string_tag(<span class="string">&quot;head&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, head))
+		.with_stage(jaeger::Stage::ApprovalChecking);
 
 	<span class="kw">let </span>header = {
 		<span class="kw">let </span>(h_tx, h_rx) = oneshot::channel();
 		ctx.send_message(ChainApiMessage::BlockHeader(head, h_tx)).<span class="kw">await</span>;
-
 		<span class="kw">match </span>h_rx.<span class="kw">await</span><span class="question-mark">? </span>{
 			<span class="prelude-val">Err</span>(e) =&gt; {
 				<span class="macro">gum::debug!</span>(
@@ -1695,12 +1700,13 @@
 					<span class="string">&quot;Chain API subsystem temporarily unreachable {}&quot;</span>,
 					e,
 				);
-
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
+				<span class="comment">// May be a better way of handling errors here.
+				</span><span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
 			},
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
 				<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="string">&quot;Missing header for new head {}&quot;</span>, head);
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
+				<span class="comment">// May be a better way of handling warnings here.
+				</span><span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
 			},
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(h)) =&gt; h,
 		}
@@ -1715,7 +1721,6 @@
 				<span class="question-mark">?</span>e,
 				<span class="string">&quot;Could not cache session info when processing head.&quot;</span>,
 			);
-
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
 		},
 		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(a @ SessionWindowUpdate::Advanced { .. })) =&gt; {
@@ -1742,8 +1747,6 @@
 	)
 	.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;approval-voting&quot;</span>, e))
 	.<span class="kw">await</span><span class="question-mark">?</span>;
-
-	span.add_uint_tag(<span class="string">&quot;new-blocks&quot;</span>, new_blocks.len() <span class="kw">as </span>u64);
 
 	<span class="kw">if </span>new_blocks.is_empty() {
 		<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
@@ -1825,6 +1828,7 @@
 			);
 			(block_tick, no_show_duration)
 		};
+
 		<span class="kw">let </span>needed_approvals = session_info.needed_approvals;
 		<span class="kw">let </span>validator_group_lens: Vec&lt;usize&gt; =
 			session_info.validator_groups.iter().map(|v| v.len()).collect();
@@ -1859,11 +1863,9 @@
 						result.len(),
 					);
 				}
-
 				result
 			}
 		};
-
 		<span class="comment">// If all bits are already set, then send an approve message.
 		</span><span class="kw">if </span>approved_bitfield.count_ones() == approved_bitfield.len() {
 			ctx.send_message(ChainSelectionMessage::Approved(block_hash)).<span class="kw">await</span>;
@@ -1954,7 +1956,6 @@
 	);
 
 	ctx.send_unbounded_message(ApprovalDistributionMessage::NewBlocks(approval_meta));
-
 	<span class="prelude-val">Ok</span>(imported_candidates)
 }
 
@@ -2013,6 +2014,7 @@
 			assignment_criteria: Box::new(MockAssignmentCriteria),
 			db,
 			db_config: TEST_CONFIG,
+			spans: HashMap::new(),
 		}
 	}
 

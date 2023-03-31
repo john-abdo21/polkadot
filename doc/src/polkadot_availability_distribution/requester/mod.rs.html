@@ -319,6 +319,37 @@
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -354,6 +385,7 @@
 };
 
 <span class="kw">use </span>polkadot_node_subsystem::{
+	jaeger,
 	messages::{ChainApiMessage, RuntimeApiMessage},
 	overseer, ActivatedLeaf, ActiveLeavesUpdate, LeafStatus,
 };
@@ -421,14 +453,22 @@
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 		update: ActiveLeavesUpdate,
+		spans: <span class="kw-2">&amp;</span>HashMap&lt;Hash, jaeger::PerLeafSpan&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>update, <span class="string">&quot;Update fetching heads&quot;</span>);
 		<span class="kw">let </span>ActiveLeavesUpdate { activated, deactivated } = update;
 		<span class="comment">// Stale leaves happen after a reversion - we don&#39;t want to re-run availability there.
 		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(leaf) = activated.filter(|leaf| leaf.status == LeafStatus::Fresh) {
+			<span class="kw">let </span>span = spans
+				.get(<span class="kw-2">&amp;</span>leaf.hash)
+				.map(|span| span.child(<span class="string">&quot;update-fetching-heads&quot;</span>))
+				.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>leaf.hash, <span class="string">&quot;update-fetching-heads&quot;</span>))
+				.with_string_tag(<span class="string">&quot;leaf&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, leaf.hash))
+				.with_stage(jaeger::Stage::AvailabilityDistribution);
+
 			<span class="comment">// Order important! We need to handle activated, prior to deactivated, otherwise we might
 			// cancel still needed jobs.
-			</span><span class="self">self</span>.start_requesting_chunks(ctx, runtime, leaf).<span class="kw">await</span><span class="question-mark">?</span>;
+			</span><span class="self">self</span>.start_requesting_chunks(ctx, runtime, leaf, <span class="kw-2">&amp;</span>span).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 
 		<span class="self">self</span>.stop_requesting_chunks(deactivated.into_iter());
@@ -444,7 +484,13 @@
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		runtime: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 		new_head: ActivatedLeaf,
+		span: <span class="kw-2">&amp;</span>jaeger::Span,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>span = span
+			.child(<span class="string">&quot;request-chunks-new-head&quot;</span>)
+			.with_string_tag(<span class="string">&quot;leaf&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, new_head.hash))
+			.with_stage(jaeger::Stage::AvailabilityDistribution);
+
 		<span class="kw">let </span>sender = <span class="kw-2">&amp;mut </span>ctx.sender().clone();
 		<span class="kw">let </span>ActivatedLeaf { hash: leaf, .. } = new_head;
 		<span class="kw">let </span>(leaf_session_index, ancestors_in_session) = get_block_ancestors_in_same_session(
@@ -454,8 +500,15 @@
 			<span class="self">Self</span>::LEAF_ANCESTRY_LEN_WITHIN_SESSION,
 		)
 		.<span class="kw">await</span><span class="question-mark">?</span>;
+		span.add_uint_tag(<span class="string">&quot;ancestors-in-session&quot;</span>, ancestors_in_session.len() <span class="kw">as </span>u64);
+
 		<span class="comment">// Also spawn or bump tasks for candidates in ancestry in the same session.
 		</span><span class="kw">for </span>hash <span class="kw">in </span>std::iter::once(leaf).chain(ancestors_in_session) {
+			<span class="kw">let </span>span = span
+				.child(<span class="string">&quot;request-chunks-ancestor&quot;</span>)
+				.with_string_tag(<span class="string">&quot;leaf&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, hash.clone()))
+				.with_stage(jaeger::Stage::AvailabilityDistribution);
+
 			<span class="kw">let </span>cores = get_occupied_cores(sender, hash).<span class="kw">await</span><span class="question-mark">?</span>;
 			<span class="macro">gum::trace!</span>(
 				target: LOG_TARGET,
@@ -469,7 +522,7 @@
 			// The next time the subsystem receives leaf update, some of spawned task will be bumped
 			// to be live in fresh relay parent, while some might get dropped due to the current leaf
 			// being deactivated.
-			</span><span class="self">self</span>.add_cores(ctx, runtime, leaf, leaf_session_index, cores).<span class="kw">await</span><span class="question-mark">?</span>;
+			</span><span class="self">self</span>.add_cores(ctx, runtime, leaf, leaf_session_index, cores, span).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 
 		<span class="prelude-val">Ok</span>(())
@@ -499,15 +552,24 @@
 		leaf: Hash,
 		leaf_session_index: SessionIndex,
 		cores: <span class="kw">impl </span>IntoIterator&lt;Item = OccupiedCore&gt;,
+		span: jaeger::Span,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
 		<span class="kw">for </span>core <span class="kw">in </span>cores {
+			<span class="kw">let </span><span class="kw-2">mut </span>span = span
+				.child(<span class="string">&quot;check-fetch-candidate&quot;</span>)
+				.with_trace_id(core.candidate_hash)
+				.with_string_tag(<span class="string">&quot;leaf&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, leaf))
+				.with_candidate(core.candidate_hash)
+				.with_stage(jaeger::Stage::AvailabilityDistribution);
 			<span class="kw">match </span><span class="self">self</span>.fetches.entry(core.candidate_hash) {
 				Entry::Occupied(<span class="kw-2">mut </span>e) =&gt;
 				<span class="comment">// Just book keeping - we are already requesting that chunk:
 				</span>{
+					span.add_string_tag(<span class="string">&quot;already-requested-chunk&quot;</span>, <span class="string">&quot;true&quot;</span>);
 					e.get_mut().add_leaf(leaf);
 				},
 				Entry::Vacant(e) =&gt; {
+					span.add_string_tag(<span class="string">&quot;already-requested-chunk&quot;</span>, <span class="string">&quot;false&quot;</span>);
 					<span class="kw">let </span>tx = <span class="self">self</span>.tx.clone();
 					<span class="kw">let </span>metrics = <span class="self">self</span>.metrics.clone();
 
@@ -522,7 +584,7 @@
 							// be fetchable by the state trie.
 							</span>leaf,
 							leaf_session_index,
-							|info| FetchTaskConfig::new(leaf, <span class="kw-2">&amp;</span>core, tx, metrics, info),
+							|info| FetchTaskConfig::new(leaf, <span class="kw-2">&amp;</span>core, tx, metrics, info, span),
 						)
 						.<span class="kw">await
 						</span>.map_err(|err| {

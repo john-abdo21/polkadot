@@ -172,6 +172,28 @@
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -194,9 +216,11 @@
 
 <span class="kw">use </span>polkadot_node_network_protocol::request_response::{v1, IncomingRequestReceiver};
 <span class="kw">use </span>polkadot_node_subsystem::{
-	messages::AvailabilityDistributionMessage, overseer, FromOrchestra, OverseerSignal,
+	jaeger, messages::AvailabilityDistributionMessage, overseer, FromOrchestra, OverseerSignal,
 	SpawnedSubsystem, SubsystemError,
 };
+<span class="kw">use </span>polkadot_primitives::Hash;
+<span class="kw">use </span>std::collections::HashMap;
 
 <span class="doccomment">/// Error and [`Result`] type for this subsystem.
 </span><span class="kw">mod </span>error;
@@ -265,6 +289,7 @@
 	<span class="doccomment">/// Start processing work as passed on from the Overseer.
 	</span><span class="kw">async fn </span>run&lt;Context&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>ctx: Context) -&gt; std::result::Result&lt;(), FatalError&gt; {
 		<span class="kw">let </span><span class="self">Self </span>{ <span class="kw-2">mut </span>runtime, recvs, metrics } = <span class="self">self</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>spans: HashMap&lt;Hash, jaeger::PerLeafSpan&gt; = HashMap::new();
 
 		<span class="kw">let </span>IncomingRequestReceivers { pov_req_receiver, chunk_req_receiver } = recvs;
 		<span class="kw">let </span><span class="kw-2">mut </span>requester = Requester::new(metrics.clone()).fuse();
@@ -305,15 +330,24 @@
 			};
 			<span class="kw">match </span>message {
 				FromOrchestra::Signal(OverseerSignal::ActiveLeaves(update)) =&gt; {
+					<span class="kw">let </span>cloned_leaf = <span class="kw">match </span>update.activated.clone() {
+						<span class="prelude-val">Some</span>(activated) =&gt; activated,
+						<span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
+					};
+					<span class="kw">let </span>span =
+						jaeger::PerLeafSpan::new(cloned_leaf.span, <span class="string">&quot;availability-distribution&quot;</span>);
+					spans.insert(cloned_leaf.hash, span);
 					log_error(
 						requester
 							.get_mut()
-							.update_fetching_heads(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>runtime, update)
+							.update_fetching_heads(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>runtime, update, <span class="kw-2">&amp;</span>spans)
 							.<span class="kw">await</span>,
 						<span class="string">&quot;Error in Requester::update_fetching_heads&quot;</span>,
 					)<span class="question-mark">?</span>;
 				},
-				FromOrchestra::Signal(OverseerSignal::BlockFinalized(..)) =&gt; {},
+				FromOrchestra::Signal(OverseerSignal::BlockFinalized(hash, <span class="kw">_</span>)) =&gt; {
+					spans.remove(<span class="kw-2">&amp;</span>hash);
+				},
 				FromOrchestra::Signal(OverseerSignal::Conclude) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
 				FromOrchestra::Communication {
 					msg:
@@ -326,6 +360,15 @@
 							tx,
 						},
 				} =&gt; {
+					<span class="kw">let </span>span = spans
+						.get(<span class="kw-2">&amp;</span>relay_parent)
+						.map(|span| span.child(<span class="string">&quot;fetch-pov&quot;</span>))
+						.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>relay_parent, <span class="string">&quot;fetch-pov&quot;</span>))
+						.with_trace_id(candidate_hash)
+						.with_candidate(candidate_hash)
+						.with_relay_parent(relay_parent)
+						.with_stage(jaeger::Stage::AvailabilityDistribution);
+
 					log_error(
 						pov_requester::fetch_pov(
 							<span class="kw-2">&amp;mut </span>ctx,
@@ -337,6 +380,7 @@
 							pov_hash,
 							tx,
 							metrics.clone(),
+							<span class="kw-2">&amp;</span>span,
 						)
 						.<span class="kw">await</span>,
 						<span class="string">&quot;pov_requester::fetch_pov&quot;</span>,
