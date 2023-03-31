@@ -2108,7 +2108,7 @@
 /// as well as their indices in ascending order.
 </span><span class="kw">fn </span>random_sel&lt;X, F: Fn(<span class="kw-2">&amp;</span>X) -&gt; Weight&gt;(
 	rng: <span class="kw-2">&amp;mut </span>rand_chacha::ChaChaRng,
-	selectables: Vec&lt;X&gt;,
+	selectables: <span class="kw-2">&amp;</span>[X],
 	<span class="kw-2">mut </span>preferred_indices: Vec&lt;usize&gt;,
 	weight_fn: F,
 	weight_limit: Weight,
@@ -2209,7 +2209,7 @@
 		<span class="kw">let </span>(acc_candidate_weight, indices) =
 			random_sel::&lt;BackedCandidate&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;, <span class="kw">_</span>&gt;(
 				rng,
-				candidates.clone(),
+				<span class="kw-2">&amp;</span>candidates,
 				preferred_indices,
 				|c| backed_candidate_weight::&lt;T&gt;(c),
 				max_consumable_by_candidates,
@@ -2228,7 +2228,7 @@
 	// into the block and skip the candidates entirely
 	</span><span class="kw">let </span>(total_consumed, indices) = random_sel::&lt;UncheckedSignedAvailabilityBitfield, <span class="kw">_</span>&gt;(
 		rng,
-		bitfields.clone(),
+		<span class="kw-2">&amp;</span>bitfields,
 		<span class="macro">vec!</span>[],
 		|<span class="kw">_</span>| &lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_bitfields(),
 		max_consumable_weight,
@@ -2599,7 +2599,7 @@
 		<span class="comment">// Select remote disputes at random until the block is full
 		</span><span class="kw">let </span>(_acc_remote_disputes_weight, <span class="kw-2">mut </span>indices) = random_sel::&lt;u32, <span class="kw">_</span>&gt;(
 			rng,
-			d,
+			<span class="kw-2">&amp;</span>d,
 			<span class="macro">vec!</span>[],
 			|v| &lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_variable_disputes(<span class="kw-2">*</span>v),
 			max_consumable_weight.saturating_sub(weight_acc),
