@@ -383,6 +383,12 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -751,6 +757,12 @@
 	<span class="comment">// Iterate all heads we track as active and fetch the child&#39; session indices.
 	</span><span class="kw">for </span>head <span class="kw">in </span>active_heads {
 		<span class="kw">let </span>session_index = runtime.get_session_index_for_child(ctx.sender(), <span class="kw-2">*</span>head).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="comment">// Cache session info
+		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) =
+			runtime.get_session_info_by_index(ctx.sender(), <span class="kw-2">*</span>head, session_index).<span class="kw">await
+		</span>{
+			<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="question-mark">?</span>err, <span class="question-mark">?</span>session_index, <span class="string">&quot;Can&#39;t cache SessionInfo&quot;</span>);
+		}
 		indeces.insert(session_index, <span class="kw-2">*</span>head);
 	}
 	<span class="prelude-val">Ok</span>(indeces)
