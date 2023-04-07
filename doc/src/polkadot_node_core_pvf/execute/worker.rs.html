@@ -369,10 +369,6 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -636,6 +632,13 @@
 			<span class="self">Self</span>::InvalidCandidate(<span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, ctx, msg))
 		}
 	}
+	<span class="kw">fn </span>format_internal(ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, msg: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+		<span class="kw">if </span>msg.is_empty() {
+			<span class="self">Self</span>::InternalError(ctx.to_string())
+		} <span class="kw">else </span>{
+			<span class="self">Self</span>::InternalError(<span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, ctx, msg))
+		}
+	}
 }
 
 <span class="doccomment">/// The entrypoint that the spawned execute worker should start with. The `socket_path` specifies
@@ -643,19 +646,8 @@
 /// is checked against the worker version. A mismatch results in immediate worker termination.
 /// `None` is used for tests and in other situations when version check is not necessary.
 </span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str, node_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
-	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
+	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, node_version, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">let </span>worker_pid = std::process::id();
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(version) = node_version {
-			<span class="kw">if </span>version != <span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>) {
-				<span class="macro">gum::error!</span>(
-					target: LOG_TARGET,
-					%worker_pid,
-					<span class="string">&quot;Node and worker version mismatch, node needs restarting, forcing shutdown&quot;</span>,
-				);
-				<span class="kw">crate</span>::kill_parent_node_in_emergency();
-				<span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Unsupported, <span class="string">&quot;Version mismatch&quot;</span>))
-			}
-		}
 
 		<span class="kw">let </span>handshake = recv_handshake(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
 		<span class="kw">let </span>executor = Arc::new(Executor::new(handshake.executor_params).map_err(|e| {
@@ -676,7 +668,7 @@
 			<span class="kw">let </span>cpu_time_start = ProcessTime::now();
 
 			<span class="comment">// Spawn a new thread that runs the CPU time monitor.
-			</span><span class="kw">let </span>thread_fut = rt_handle
+			</span><span class="kw">let </span>cpu_time_monitor_fut = rt_handle
 				.spawn_blocking(<span class="kw">move </span>|| {
 					cpu_time_monitor_loop(cpu_time_start, execution_timeout, finished_rx)
 				})
@@ -688,14 +680,14 @@
 				})
 				.fuse();
 
-			<span class="macro">pin_mut!</span>(thread_fut);
+			<span class="macro">pin_mut!</span>(cpu_time_monitor_fut);
 			<span class="macro">pin_mut!</span>(execute_fut);
 
 			<span class="kw">let </span>response = <span class="macro">select_biased! </span>{
 				<span class="comment">// If this future is not selected, the join handle is dropped and the thread will
 				// finish in the background.
-				</span>join_res = thread_fut =&gt; {
-					<span class="kw">match </span>join_res {
+				</span>cpu_time_monitor_res = cpu_time_monitor_fut =&gt; {
+					<span class="kw">match </span>cpu_time_monitor_res {
 						<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(cpu_time_elapsed)) =&gt; {
 							<span class="comment">// Log if we exceed the timeout and the other thread hasn&#39;t finished.
 							</span><span class="macro">gum::warn!</span>(
@@ -708,12 +700,12 @@
 							Response::TimedOut
 						},
 						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Response::InternalError(<span class="string">&quot;error communicating over finished channel&quot;</span>.into()),
-						<span class="prelude-val">Err</span>(e) =&gt; Response::InternalError(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, e)),
+						<span class="prelude-val">Err</span>(e) =&gt; Response::format_internal(<span class="string">&quot;cpu time monitor thread error&quot;</span>, <span class="kw-2">&amp;</span>e.to_string()),
 					}
 				},
 				execute_res = execute_fut =&gt; {
 					<span class="kw">let _ </span>= finished_tx.send(());
-					execute_res.unwrap_or_else(|e| Response::InternalError(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, e)))
+					execute_res.unwrap_or_else(|e| Response::format_internal(<span class="string">&quot;execute thread error&quot;</span>, <span class="kw-2">&amp;</span>e.to_string()))
 				},
 			};
 
@@ -742,7 +734,7 @@
 
 	<span class="kw">let </span>result_descriptor = <span class="kw">match </span>ValidationResult::decode(<span class="kw-2">&amp;mut &amp;</span>descriptor_bytes[..]) {
 		<span class="prelude-val">Err</span>(err) =&gt;
-			<span class="kw">return </span>Response::InvalidCandidate(<span class="macro">format!</span>(<span class="string">&quot;validation result decoding failed: {}&quot;</span>, err)),
+			<span class="kw">return </span>Response::format_invalid(<span class="string">&quot;validation result decoding failed&quot;</span>, <span class="kw-2">&amp;</span>err.to_string()),
 		<span class="prelude-val">Ok</span>(r) =&gt; r,
 	};
 

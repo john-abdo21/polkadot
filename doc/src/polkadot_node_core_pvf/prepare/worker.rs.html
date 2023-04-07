@@ -480,17 +480,6 @@
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
 <a href="#482" id="482">482</a>
-<a href="#483" id="483">483</a>
-<a href="#484" id="484">484</a>
-<a href="#485" id="485">485</a>
-<a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
-<a href="#488" id="488">488</a>
-<a href="#489" id="489">489</a>
-<a href="#490" id="490">490</a>
-<a href="#491" id="491">491</a>
-<a href="#492" id="492">492</a>
-<a href="#493" id="493">493</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -844,19 +833,8 @@
 ///	7. Send the result of preparation back to the host. If any error occurred in the above steps, we
 ///	   send that in the `PrepareResult`.
 </span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str, node_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
-	worker_event_loop(<span class="string">&quot;prepare&quot;</span>, socket_path, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
+	worker_event_loop(<span class="string">&quot;prepare&quot;</span>, socket_path, node_version, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">let </span>worker_pid = std::process::id();
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(version) = node_version {
-			<span class="kw">if </span>version != <span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>) {
-				<span class="macro">gum::error!</span>(
-					target: LOG_TARGET,
-					%worker_pid,
-					<span class="string">&quot;Node and worker version mismatch, node needs restarting, forcing shutdown&quot;</span>,
-				);
-				<span class="kw">crate</span>::kill_parent_node_in_emergency();
-				<span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Unsupported, <span class="string">&quot;Version mismatch&quot;</span>))
-			}
-		}
 
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>(pvf, dest) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;

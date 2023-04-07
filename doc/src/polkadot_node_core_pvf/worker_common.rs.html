@@ -432,6 +432,17 @@
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -605,19 +616,36 @@
 	tmpfile_in(prefix, <span class="kw-2">&amp;</span>temp_dir).<span class="kw">await
 </span>}
 
-<span class="kw">pub fn </span>worker_event_loop&lt;F, Fut&gt;(debug_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, socket_path: <span class="kw-2">&amp;</span>str, <span class="kw-2">mut </span>event_loop: F)
-<span class="kw">where
+<span class="kw">pub fn </span>worker_event_loop&lt;F, Fut&gt;(
+	debug_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+	socket_path: <span class="kw-2">&amp;</span>str,
+	node_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+	<span class="kw-2">mut </span>event_loop: F,
+) <span class="kw">where
 	</span>F: FnMut(Handle, UnixStream) -&gt; Fut,
 	Fut: futures::Future&lt;Output = io::Result&lt;Never&gt;&gt;,
 {
-	<span class="macro">gum::debug!</span>(
-		target: LOG_TARGET,
-		worker_pid = %std::process::id(),
-		<span class="string">&quot;starting pvf worker ({})&quot;</span>,
-		debug_id,
-	);
+	<span class="kw">let </span>worker_pid = std::process::id();
+	<span class="macro">gum::debug!</span>(target: LOG_TARGET, %worker_pid, <span class="string">&quot;starting pvf worker ({})&quot;</span>, debug_id);
 
-	<span class="kw">let </span>rt = Runtime::new().expect(<span class="string">&quot;Creates tokio runtime. If this panics the worker will die and the host will detect that and deal with it.&quot;</span>);
+	<span class="comment">// Check for a mismatch between the node and worker versions.
+	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(version) = node_version {
+		<span class="kw">if </span>version != <span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>) {
+			<span class="macro">gum::error!</span>(
+				target: LOG_TARGET,
+				%worker_pid,
+				<span class="string">&quot;Node and worker version mismatch, node needs restarting, forcing shutdown&quot;</span>,
+			);
+			kill_parent_node_in_emergency();
+			<span class="kw">let </span>err: io::Result&lt;Never&gt; =
+				<span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Unsupported, <span class="string">&quot;Version mismatch&quot;</span>));
+			<span class="macro">gum::debug!</span>(target: LOG_TARGET, %worker_pid, <span class="string">&quot;quitting pvf worker({}): {:?}&quot;</span>, debug_id, err);
+			<span class="kw">return
+		</span>}
+	}
+
+	<span class="comment">// Run the main worker loop.
+	</span><span class="kw">let </span>rt = Runtime::new().expect(<span class="string">&quot;Creates tokio runtime. If this panics the worker will die and the host will detect that and deal with it.&quot;</span>);
 	<span class="kw">let </span>handle = rt.handle();
 	<span class="kw">let </span>err = rt
 		.block_on(<span class="kw">async move </span>{
@@ -631,13 +659,7 @@
 		<span class="comment">// It&#39;s never `Ok` because it&#39;s `Ok(Never)`.
 		</span>.unwrap_err();
 
-	<span class="macro">gum::debug!</span>(
-		target: LOG_TARGET,
-		worker_pid = %std::process::id(),
-		<span class="string">&quot;quitting pvf worker ({}): {:?}&quot;</span>,
-		debug_id,
-		err,
-	);
+	<span class="macro">gum::debug!</span>(target: LOG_TARGET, %worker_pid, <span class="string">&quot;quitting pvf worker ({}): {:?}&quot;</span>, debug_id, err);
 
 	<span class="comment">// We don&#39;t want tokio to wait for the tasks to finish. We want to bring down the worker as fast
 	// as possible and not wait for stalled validation to finish. This isn&#39;t strictly necessary now,
@@ -856,7 +878,7 @@
 /// get closed by the OS and other workers receive error on socket read and also exit. Preparation
 /// jobs are written to the temporary files that are renamed to real artifacts on the node side, so
 /// no leftover artifacts are possible.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>kill_parent_node_in_emergency() {
+</span><span class="kw">fn </span>kill_parent_node_in_emergency() {
 	<span class="kw">unsafe </span>{
 		<span class="comment">// SAFETY: `getpid()` never fails but may return &quot;no-parent&quot; (0) or &quot;parent-init&quot; (1) in
 		// some corner cases, which is checked. `kill()` never fails.
