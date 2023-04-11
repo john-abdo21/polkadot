@@ -1,4 +1,4 @@
 (function() {var implementors = {
-"kusama_runtime":[["impl EraPayout&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u128.html\">u128</a>&gt; for <a class=\"struct\" href=\"kusama_runtime/struct.EraPayout.html\" title=\"struct kusama_runtime::EraPayout\">EraPayout</a>"]],
-"polkadot_runtime":[["impl EraPayout&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u128.html\">u128</a>&gt; for <a class=\"struct\" href=\"polkadot_runtime/struct.EraPayout.html\" title=\"struct polkadot_runtime::EraPayout\">EraPayout</a>"]]
+"kusama_runtime":[["impl EraPayout&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.68.2/std/primitive.u128.html\">u128</a>&gt; for <a class=\"struct\" href=\"kusama_runtime/struct.EraPayout.html\" title=\"struct kusama_runtime::EraPayout\">EraPayout</a>"]],
+"polkadot_runtime":[["impl EraPayout&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.68.2/std/primitive.u128.html\">u128</a>&gt; for <a class=\"struct\" href=\"polkadot_runtime/struct.EraPayout.html\" title=\"struct polkadot_runtime::EraPayout\">EraPayout</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
