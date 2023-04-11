@@ -1161,7 +1161,7 @@
 	<span class="comment">// Ignore any cores where the assigned group is our own.
 	</span><span class="kw">let </span>leaving_cores = leaving_cores
 		.into_iter()
-		.filter(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw-2">ref </span>g)| !is_in_backing_group(<span class="kw-2">&amp;</span>config.validator_groups, index, <span class="kw-2">*</span>g))
+		.filter(|(<span class="kw">_</span>, <span class="kw">_</span>, g)| !is_in_backing_group(<span class="kw-2">&amp;</span>config.validator_groups, index, <span class="kw-2">*</span>g))
 		.map(|(c_hash, core, <span class="kw">_</span>)| (c_hash, core))
 		.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
@@ -1383,7 +1383,7 @@
 		<span class="kw">return </span><span class="prelude-val">Err</span>(InvalidAssignment(Reason::IsInBackingGroup))
 	}
 
-	<span class="kw">let </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>vrf_output, <span class="kw-2">ref </span>vrf_proof) = <span class="kw-2">&amp;</span>assignment.vrf;
+	<span class="kw">let </span>(vrf_output, vrf_proof) = <span class="kw-2">&amp;</span>assignment.vrf;
 	<span class="kw">match </span>assignment.kind {
 		AssignmentCertKind::RelayVRFModulo { sample } =&gt; {
 			<span class="kw">if </span>sample &gt;= config.relay_vrf_modulo_samples {
