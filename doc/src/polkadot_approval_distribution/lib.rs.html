@@ -1848,6 +1848,25 @@
 <a href="#1848" id="1848">1848</a>
 <a href="#1849" id="1849">1849</a>
 <a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1974,12 +1993,12 @@
 }
 
 <span class="kw">impl </span>AggressionConfig {
-	<span class="doccomment">/// Returns `true` if block is not too old depending on the aggression level
-	</span><span class="kw">fn </span>is_age_relevant(<span class="kw-2">&amp;</span><span class="self">self</span>, block_age: BlockNumber) -&gt; bool {
+	<span class="doccomment">/// Returns `true` if lag is past threshold depending on the aggression level
+	</span><span class="kw">fn </span>should_trigger_aggression(<span class="kw-2">&amp;</span><span class="self">self</span>, approval_checking_lag: BlockNumber) -&gt; bool {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.l1_threshold {
-			block_age &gt;= t
+			approval_checking_lag &gt;= t
 		} <span class="kw">else if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.resend_unfinalized_period {
-			block_age &gt; <span class="number">0 </span>&amp;&amp; block_age % t == <span class="number">0
+			approval_checking_lag &gt; <span class="number">0 </span>&amp;&amp; approval_checking_lag % t == <span class="number">0
 		</span>} <span class="kw">else </span>{
 			<span class="bool-val">false
 		</span>}
@@ -2034,6 +2053,9 @@
 
 	<span class="doccomment">/// HashMap from active leaves to spans
 	</span>spans: HashMap&lt;Hash, jaeger::PerLeafSpan&gt;,
+
+	<span class="doccomment">/// Current approval checking finality lag.
+	</span>approval_checking_lag: BlockNumber,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -3275,19 +3297,29 @@
 		resend: Resend,
 		metrics: <span class="kw-2">&amp;</span>Metrics,
 	) {
-		<span class="kw">let </span>min_age = <span class="self">self</span>.blocks_by_number.iter().next().map(|(num, <span class="kw">_</span>)| num);
-		<span class="kw">let </span>max_age = <span class="self">self</span>.blocks_by_number.iter().rev().next().map(|(num, <span class="kw">_</span>)| num);
 		<span class="kw">let </span>config = <span class="self">self</span>.aggression_config.clone();
 
-		<span class="kw">let </span>(min_age, max_age) = <span class="kw">match </span>(min_age, max_age) {
-			(<span class="prelude-val">Some</span>(min), <span class="prelude-val">Some</span>(max)) =&gt; (min, max),
+		<span class="kw">if </span>!<span class="self">self</span>.aggression_config.should_trigger_aggression(<span class="self">self</span>.approval_checking_lag) {
+			<span class="macro">gum::trace!</span>(
+				target: LOG_TARGET,
+				approval_checking_lag = <span class="self">self</span>.approval_checking_lag,
+				<span class="string">&quot;Aggression not enabled&quot;</span>,
+			);
+			<span class="kw">return
+		</span>}
+
+		<span class="kw">let </span>max_age = <span class="self">self</span>.blocks_by_number.iter().rev().next().map(|(num, <span class="kw">_</span>)| num);
+
+		<span class="kw">let </span>max_age = <span class="kw">match </span>max_age {
+			<span class="prelude-val">Some</span>(max) =&gt; <span class="kw-2">*</span>max,
 			<span class="kw">_ </span>=&gt; <span class="kw">return</span>, <span class="comment">// empty.
 		</span>};
 
-		<span class="kw">let </span>diff = max_age - min_age;
-		<span class="kw">if </span>!<span class="self">self</span>.aggression_config.is_age_relevant(diff) {
-			<span class="kw">return
-		</span>}
+		<span class="comment">// Since we have the approval checking lag, we need to set the `min_age` accordingly to
+		// enable aggresion for the oldest block that is not approved.
+		</span><span class="kw">let </span>min_age = max_age.saturating_sub(<span class="self">self</span>.approval_checking_lag);
+
+		<span class="macro">gum::debug!</span>(target: LOG_TARGET, min_age, max_age, <span class="string">&quot;Aggression enabled&quot;</span>,);
 
 		adjust_required_routing_and_propagate(
 			ctx,
@@ -3326,20 +3358,21 @@
 				// its descendants from being finalized. Waste minimal bandwidth
 				// this way. Also, disputes might prevent finality - again, nothing
 				// to waste bandwidth on newer blocks for.
-				</span><span class="kw-2">&amp;</span>block_entry.number == min_age
+				</span>block_entry.number == min_age
 			},
 			|required_routing, local, <span class="kw">_</span>| {
 				<span class="comment">// It&#39;s a bit surprising not to have a topology at this age.
 				</span><span class="kw">if </span><span class="kw-2">*</span>required_routing == RequiredRouting::PendingTopology {
 					<span class="macro">gum::debug!</span>(
 						target: LOG_TARGET,
-						age = <span class="question-mark">?</span>diff,
+						lag = <span class="question-mark">?</span><span class="self">self</span>.approval_checking_lag,
 						<span class="string">&quot;Encountered old block pending gossip topology&quot;</span>,
 					);
 					<span class="kw">return
 				</span>}
 
-				<span class="kw">if </span>config.l1_threshold.as_ref().map_or(<span class="bool-val">false</span>, |t| <span class="kw-2">&amp;</span>diff &gt;= t) {
+				<span class="kw">if </span>config.l1_threshold.as_ref().map_or(<span class="bool-val">false</span>, |t| <span class="kw-2">&amp;</span><span class="self">self</span>.approval_checking_lag &gt;= t)
+				{
 					<span class="comment">// Message originator sends to everyone.
 					</span><span class="kw">if </span>local &amp;&amp; <span class="kw-2">*</span>required_routing != RequiredRouting::All {
 						metrics.on_aggression_l1();
@@ -3347,7 +3380,8 @@
 					}
 				}
 
-				<span class="kw">if </span>config.l2_threshold.as_ref().map_or(<span class="bool-val">false</span>, |t| <span class="kw-2">&amp;</span>diff &gt;= t) {
+				<span class="kw">if </span>config.l2_threshold.as_ref().map_or(<span class="bool-val">false</span>, |t| <span class="kw-2">&amp;</span><span class="self">self</span>.approval_checking_lag &gt;= t)
+				{
 					<span class="comment">// Message originator sends to everyone. Everyone else sends to XY.
 					</span><span class="kw">if </span>!local &amp;&amp; <span class="kw-2">*</span>required_routing != RequiredRouting::GridXY {
 						metrics.on_aggression_l2();
@@ -3613,6 +3647,10 @@
 						<span class="string">&quot;Sending back approval signatures failed, oneshot got closed&quot;
 					</span>);
 				}
+			},
+			ApprovalDistributionMessage::ApprovalCheckingLagUpdate(lag) =&gt; {
+				<span class="macro">gum::debug!</span>(target: LOG_TARGET, lag, <span class="string">&quot;Received `ApprovalCheckingLagUpdate`&quot;</span>);
+				state.approval_checking_lag = lag;
 			},
 		}
 	}
