@@ -2344,26 +2344,6 @@
 <a href="#2344" id="2344">2344</a>
 <a href="#2345" id="2345">2345</a>
 <a href="#2346" id="2346">2346</a>
-<a href="#2347" id="2347">2347</a>
-<a href="#2348" id="2348">2348</a>
-<a href="#2349" id="2349">2349</a>
-<a href="#2350" id="2350">2350</a>
-<a href="#2351" id="2351">2351</a>
-<a href="#2352" id="2352">2352</a>
-<a href="#2353" id="2353">2353</a>
-<a href="#2354" id="2354">2354</a>
-<a href="#2355" id="2355">2355</a>
-<a href="#2356" id="2356">2356</a>
-<a href="#2357" id="2357">2357</a>
-<a href="#2358" id="2358">2358</a>
-<a href="#2359" id="2359">2359</a>
-<a href="#2360" id="2360">2360</a>
-<a href="#2361" id="2361">2361</a>
-<a href="#2362" id="2362">2362</a>
-<a href="#2363" id="2363">2363</a>
-<a href="#2364" id="2364">2364</a>
-<a href="#2365" id="2365">2365</a>
-<a href="#2366" id="2366">2366</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2669,7 +2649,7 @@
 	<span class="kw">type </span>WeightInfo = weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>FreezeIdentifier = ();
 	<span class="kw">type </span>MaxFreezes = ();
-	<span class="kw">type </span>HoldIdentifier = HoldReason;
+	<span class="kw">type </span>HoldIdentifier = RuntimeHoldReason;
 	<span class="kw">type </span>MaxHolds = ConstU32&lt;<span class="number">1</span>&gt;;
 }
 
@@ -3295,7 +3275,7 @@
 	Decode,
 	RuntimeDebug,
 	MaxEncodedLen,
-	scale_info::TypeInfo,
+	TypeInfo,
 )]
 </span><span class="kw">pub enum </span>ProxyType {
 	Any,
@@ -3624,27 +3604,7 @@
 	<span class="kw">pub const </span>ThawThrottle: (Perquintill, BlockNumber) = (Perquintill::from_percent(<span class="number">25</span>), <span class="number">5</span>);
 	<span class="kw">pub </span>storage NisTarget: Perquintill = Perquintill::zero();
 	<span class="kw">pub const </span>NisPalletId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;py/nis  &quot;</span>);
-	<span class="kw">pub const </span>NisHoldReason: HoldReason = HoldReason::Nis(HoldReasonNis::NftReceipt);
-}
-
-<span class="doccomment">/// A reason for placing a hold on funds.
-</span><span class="attr">#[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, MaxEncodedLen, Debug, TypeInfo,
-)]
-</span><span class="kw">pub enum </span>HoldReason {
-	<span class="doccomment">/// Some reason of the NIS pallet.
-	</span><span class="attr">#[codec(index = <span class="number">38</span>)]
-	</span>Nis(HoldReasonNis),
-}
-
-<span class="doccomment">/// A reason for the NIS pallet placing a hold on funds.
-</span><span class="attr">#[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, MaxEncodedLen, Debug, TypeInfo,
-)]
-</span><span class="kw">pub enum </span>HoldReasonNis {
-	<span class="doccomment">/// The NIS Pallet has reserved it for a non-fungible receipt.
-	</span><span class="attr">#[codec(index = <span class="number">0</span>)]
-	</span>NftReceipt = <span class="number">0</span>,
+	<span class="kw">pub const </span>NisHoldReason: RuntimeHoldReason = RuntimeHoldReason::Nis(pallet_nis::HoldReason::NftReceipt);
 }
 
 <span class="kw">impl </span>pallet_nis::Config <span class="kw">for </span>Runtime {
@@ -3774,7 +3734,7 @@
 		</span>ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event&lt;T&gt;, ValidateUnsigned} = <span class="number">37</span>,
 
 		<span class="comment">// NIS pallet.
-		</span>Nis: pallet_nis::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">38</span>,
+		</span>Nis: pallet_nis::{Pallet, Call, Storage, Event&lt;T&gt;, HoldReason} = <span class="number">38</span>,
 <span class="comment">//		pub type NisCounterpartInstance = pallet_balances::Instance2;
 		</span>NisCounterpartBalances: pallet_balances::&lt;Instance2&gt; = <span class="number">45</span>,
 
@@ -4521,7 +4481,7 @@
 }
 
 <span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests_fess {
+</span><span class="kw">mod </span>fees_tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span>sp_runtime::assert_eq_error_rate;
 
