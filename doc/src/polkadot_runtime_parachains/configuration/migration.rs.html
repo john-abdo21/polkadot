@@ -395,6 +395,13 @@
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
 <a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -425,7 +432,9 @@
 /// v1-v2: &lt;https://github.com/paritytech/polkadot/pull/4420&gt;
 /// v2-v3: &lt;https://github.com/paritytech/polkadot/pull/6091&gt;
 /// v3-v4: &lt;https://github.com/paritytech/polkadot/pull/6345&gt;
-/// v4-v5: &lt;https://github.com/paritytech/polkadot/pull/6937&gt; + &lt;https://github.com/paritytech/polkadot/pull/6961&gt;
+/// v4-v5: &lt;https://github.com/paritytech/polkadot/pull/6937&gt;
+///        + &lt;https://github.com/paritytech/polkadot/pull/6961&gt;
+///        + &lt;https://github.com/paritytech/polkadot/pull/6934&gt;
 </span><span class="kw">pub const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">5</span>);
 
 <span class="kw">pub mod </span>v5 {
@@ -627,6 +636,9 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 
 <span class="comment">// Default values are zeroes, thus it&#39;s ensured allowed ancestry never crosses the upgrade block.
 </span>async_backing_params                     : AsyncBackingParams { max_candidate_depth: <span class="number">0</span>, allowed_ancestry_len: <span class="number">0 </span>},
+
+<span class="comment">// Default executor parameters set is empty
+</span>executor_params                          : Default::default(),
 		}
 	};
 
@@ -665,6 +677,7 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span><span class="kw">crate</span>::mock::{new_test_ext, Test};
+	<span class="kw">use </span>primitives::ExecutorParams;
 
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>v4_deserialized_from_actual_data() {
@@ -788,6 +801,7 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 				// additional checks for async backing.
 				</span><span class="macro">assert_eq!</span>(v5.async_backing_params.allowed_ancestry_len, <span class="number">0</span>);
 				<span class="macro">assert_eq!</span>(v5.async_backing_params.max_candidate_depth, <span class="number">0</span>);
+				<span class="macro">assert_eq!</span>(v5.executor_params, ExecutorParams::new());
 			}
 		});
 	}

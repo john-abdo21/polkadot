@@ -226,14 +226,6 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -263,9 +255,7 @@
 	pallet_prelude::<span class="kw-2">*</span>,
 	traits::{OneSessionHandler, ValidatorSet, ValidatorSetWithIdentification},
 };
-<span class="kw">use </span>primitives::{
-	AssignmentId, AuthorityDiscoveryId, ExecutorParam, ExecutorParams, SessionIndex, SessionInfo,
-};
+<span class="kw">use </span>primitives::{AssignmentId, AuthorityDiscoveryId, ExecutorParams, SessionIndex, SessionInfo};
 <span class="kw">use </span>sp_std::vec::Vec;
 
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
@@ -274,10 +264,6 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
-
-<span class="comment">// The order of parameters should be deterministic, that is, one should not reorder them when
-// changing the array contents to avoid creating excessive pressure to PVF execution subsys.
-</span><span class="kw">const </span>EXECUTOR_PARAMS: [ExecutorParam; <span class="number">0</span>] = [];
 
 <span class="doccomment">/// A type for representing the validator account id in a session.
 </span><span class="kw">pub type </span>AccountId&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::ValidatorSet <span class="kw">as </span>ValidatorSet&lt;
@@ -432,10 +418,8 @@
 			dispute_period,
 		};
 		Sessions::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_session_index, <span class="kw-2">&amp;</span>new_session_info);
-		SessionExecutorParams::&lt;T&gt;::insert(
-			<span class="kw-2">&amp;</span>new_session_index,
-			ExecutorParams::from(<span class="kw-2">&amp;</span>EXECUTOR_PARAMS[..]),
-		);
+
+		SessionExecutorParams::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_session_index, config.executor_params);
 	}
 
 	<span class="doccomment">/// Called by the initializer to initialize the session info pallet.
