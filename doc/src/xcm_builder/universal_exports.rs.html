@@ -376,6 +376,8 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -536,8 +538,10 @@
 		<span class="comment">// We then send a normal message to the bridge asking it to export the prepended
 		// message to the remote chain. This will only work if the bridge will do the message
 		// export for free. Common-good chains will typically be afforded this.
-		</span><span class="kw">let </span>message =
-			Xcm(<span class="macro">vec!</span>[ExportMessage { network: remote_network, destination: remote_location, xcm }]);
+		</span><span class="kw">let </span>message = Xcm(<span class="macro">vec!</span>[
+			UnpaidExecution { weight_limit: Unlimited, check_origin: <span class="prelude-val">None </span>},
+			ExportMessage { network: remote_network, destination: remote_location, xcm },
+		]);
 		validate_send::&lt;Router&gt;(bridge, message)
 	}
 

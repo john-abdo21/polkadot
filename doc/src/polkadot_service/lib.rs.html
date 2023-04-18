@@ -1557,10 +1557,6 @@
 <a href="#1557" id="1557">1557</a>
 <a href="#1558" id="1558">1558</a>
 <a href="#1559" id="1559">1559</a>
-<a href="#1560" id="1560">1560</a>
-<a href="#1561" id="1561">1561</a>
-<a href="#1562" id="1562">1562</a>
-<a href="#1563" id="1563">1563</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2094,7 +2090,7 @@
 		babe::block_import(babe_config.clone(), beefy_block_import, client.clone())<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>slot_duration = babe_link.config().slot_duration();
-	<span class="kw">let </span>import_queue = babe::import_queue(
+	<span class="kw">let </span>(import_queue, babe_worker_handle) = babe::import_queue(
 		babe_link.clone(),
 		block_import.clone(),
 		<span class="prelude-val">Some</span>(Box::new(justification_import)),
@@ -2124,9 +2120,6 @@
 		<span class="prelude-val">Some</span>(shared_authority_set.clone()),
 	);
 
-	<span class="kw">let </span>shared_epoch_changes = babe_link.epoch_changes().clone();
-	<span class="kw">let </span>slot_duration = babe_config.slot_duration();
-
 	<span class="kw">let </span>import_setup = (block_import, grandpa_link, babe_link, beefy_voter_links);
 	<span class="kw">let </span>rpc_setup = shared_voter_state.clone();
 
@@ -2148,8 +2141,7 @@
 				chain_spec: chain_spec.cloned_box(),
 				deny_unsafe,
 				babe: polkadot_rpc::BabeDeps {
-					babe_config: babe_config.clone(),
-					shared_epoch_changes: shared_epoch_changes.clone(),
+					babe_worker_handle: babe_worker_handle.clone(),
 					keystore: keystore.clone(),
 				},
 				grandpa: polkadot_rpc::GrandpaDeps {
