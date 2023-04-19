@@ -283,6 +283,47 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -298,6 +339,47 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+
+</span><span class="doccomment">//! PVF artifacts (final compiled code blobs).
+//!
+//!	# Lifecycle of an artifact
+//!
+//! 1. During node start-up, the artifacts cache is cleaned up. This means that all local artifacts
+//!    stored on-disk are cleared, and we start with an empty [`Artifacts`] table.
+//!
+//! 2. In order to be executed, a PVF should be prepared first. This means that artifacts should
+//!    have an [`ArtifactState::Prepared`] entry for that artifact in the table. If not, the
+//!    preparation process kicks in. The execution request is stashed until after the preparation is
+//!    done, and the artifact state in the host is set to [`ArtifactState::Preparing`]. Preparation
+//!    goes through the preparation queue and the pool.
+//!
+//!    1. If the artifact is already being processed, we add another execution request to the
+//!       existing preparation job, without starting a new one.
+//!
+//!    2. Note that if the state is [`ArtifactState::FailedToProcess`], we usually do not retry
+//!       preparation, though we may under certain conditions.
+//!
+//! 3. The pool gets an available worker and instructs it to work on the given PVF. The worker
+//!    starts compilation. When the worker finishes successfully, it writes the serialized artifact
+//!    into a temporary file and notifies the host that it&#39;s done. The host atomically moves
+//!    (renames) the temporary file to the destination filename of the artifact.
+//!
+//! 4. If the worker concluded successfully or returned an error, then the pool notifies the queue.
+//!    In both cases, the queue reports to the host that the result is ready.
+//!
+//! 5. The host will react by changing the artifact state to either [`ArtifactState::Prepared`] or
+//!    [`ArtifactState::FailedToProcess`] for the PVF in question. On success, the
+//!    `last_time_needed` will be set to the current time. It will also dispatch the pending
+//!    execution requests.
+//!
+//! 6. On success, the execution request will come through the execution queue and ultimately be
+//!    processed by an execution worker. When this worker receives the request, it will read the
+//!    requested artifact. If it doesn&#39;t exist it reports an internal error. A request for execution
+//!    will bump the `last_time_needed` to the current time.
+//!
+//! 7. There is a separate process for pruning the prepared artifacts whose `last_time_needed` is
+//!    older by a predefined parameter. This process is run very rarely (say, once a day). Once the
+//!    artifact is expired it is removed from disk eagerly atomically.
 
 </span><span class="kw">use crate</span>::{error::PrepareError, host::PrepareResultSender, prepare::PrepareStats};
 <span class="kw">use </span>always_assert::always;
