@@ -876,15 +876,6 @@
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
 <a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1243,10 +1234,10 @@
 			// has been executed.
 			</span><span class="kw">let </span>cert = AssignmentCert {
 				kind: AssignmentCertKind::RelayVRFModulo { sample: rvm_sample },
-				vrf: (
-					approval_types::VRFOutput(vrf_in_out.to_output()),
-					approval_types::VRFProof(vrf_proof),
-				),
+				vrf: approval_types::VrfSignature {
+					output: approval_types::VrfOutput(vrf_in_out.to_output()),
+					proof: approval_types::VrfProof(vrf_proof),
+				},
 			};
 
 			<span class="comment">// All assignments of type RelayVRFModulo have tranche 0.
@@ -1280,10 +1271,10 @@
 
 		<span class="kw">let </span>cert = AssignmentCert {
 			kind: AssignmentCertKind::RelayVRFDelay { core_index: core },
-			vrf: (
-				approval_types::VRFOutput(vrf_in_out.to_output()),
-				approval_types::VRFProof(vrf_proof),
-			),
+			vrf: approval_types::VrfSignature {
+				output: approval_types::VrfOutput(vrf_in_out.to_output()),
+				proof: approval_types::VrfProof(vrf_proof),
+			},
 		};
 
 		<span class="kw">let </span>our_assignment = OurAssignment { cert, tranche, validator_index, triggered: <span class="bool-val">false </span>};
@@ -1383,7 +1374,7 @@
 		<span class="kw">return </span><span class="prelude-val">Err</span>(InvalidAssignment(Reason::IsInBackingGroup))
 	}
 
-	<span class="kw">let </span>(vrf_output, vrf_proof) = <span class="kw-2">&amp;</span>assignment.vrf;
+	<span class="kw">let </span>vrf_signature = <span class="kw-2">&amp;</span>assignment.vrf;
 	<span class="kw">match </span>assignment.kind {
 		AssignmentCertKind::RelayVRFModulo { sample } =&gt; {
 			<span class="kw">if </span>sample &gt;= config.relay_vrf_modulo_samples {
@@ -1393,8 +1384,8 @@
 			<span class="kw">let </span>(vrf_in_out, <span class="kw">_</span>) = public
 				.vrf_verify_extra(
 					relay_vrf_modulo_transcript(relay_vrf_story, sample),
-					<span class="kw-2">&amp;</span>vrf_output.<span class="number">0</span>,
-					<span class="kw-2">&amp;</span>vrf_proof.<span class="number">0</span>,
+					<span class="kw-2">&amp;</span>vrf_signature.output.<span class="number">0</span>,
+					<span class="kw-2">&amp;</span>vrf_signature.proof.<span class="number">0</span>,
 					assigned_core_transcript(claimed_core_index),
 				)
 				.map_err(|<span class="kw">_</span>| InvalidAssignment(Reason::VRFModuloOutputMismatch))<span class="question-mark">?</span>;
@@ -1414,8 +1405,8 @@
 			<span class="kw">let </span>(vrf_in_out, <span class="kw">_</span>) = public
 				.vrf_verify(
 					relay_vrf_delay_transcript(relay_vrf_story, core_index),
-					<span class="kw-2">&amp;</span>vrf_output.<span class="number">0</span>,
-					<span class="kw-2">&amp;</span>vrf_proof.<span class="number">0</span>,
+					<span class="kw-2">&amp;</span>vrf_signature.output.<span class="number">0</span>,
+					<span class="kw-2">&amp;</span>vrf_signature.proof.<span class="number">0</span>,
 				)
 				.map_err(|<span class="kw">_</span>| InvalidAssignment(Reason::VRFDelayOutputMismatch))<span class="question-mark">?</span>;
 
@@ -1439,7 +1430,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span>polkadot_node_primitives::approval::{VRFOutput, VRFProof};
+	<span class="kw">use </span><span class="kw">crate</span>::import::tests::garbage_vrf_signature;
 	<span class="kw">use </span>polkadot_primitives::{Hash, ASSIGNMENT_KEY_TYPE_ID};
 	<span class="kw">use </span>sp_application_crypto::sr25519;
 	<span class="kw">use </span>sp_core::crypto::Pair <span class="kw">as </span>PairT;
@@ -1491,15 +1482,6 @@
 					.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
 			})
 			.collect()
-	}
-
-	<span class="comment">// used for generating assignments where the validity of the VRF doesn&#39;t matter.
-	</span><span class="kw">fn </span>garbage_vrf() -&gt; (VRFOutput, VRFProof) {
-		<span class="kw">let </span>key = Sr25519Keyring::Alice.pair();
-		<span class="kw">let </span>key: <span class="kw-2">&amp;</span>schnorrkel::Keypair = key.as_ref();
-
-		<span class="kw">let </span>(o, p, <span class="kw">_</span>) = key.vrf_sign(Transcript::new(<span class="string">b&quot;test-garbage&quot;</span>));
-		(VRFOutput(o.to_output()), VRFProof(p))
 	}
 
 	<span class="attr">#[test]
@@ -1712,7 +1694,7 @@
 		check_mutated_assignments(<span class="number">40</span>, <span class="number">10</span>, <span class="number">8</span>, |m| {
 			<span class="kw">match </span>m.cert.kind.clone() {
 				AssignmentCertKind::RelayVRFDelay { .. } =&gt; {
-					m.cert.vrf = garbage_vrf();
+					m.cert.vrf = garbage_vrf_signature();
 					<span class="prelude-val">Some</span>(<span class="bool-val">false</span>)
 				},
 				<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>, <span class="comment">// skip everything else.
@@ -1725,7 +1707,7 @@
 		check_mutated_assignments(<span class="number">200</span>, <span class="number">100</span>, <span class="number">25</span>, |m| {
 			<span class="kw">match </span>m.cert.kind.clone() {
 				AssignmentCertKind::RelayVRFModulo { .. } =&gt; {
-					m.cert.vrf = garbage_vrf();
+					m.cert.vrf = garbage_vrf_signature();
 					<span class="prelude-val">Some</span>(<span class="bool-val">false</span>)
 				},
 				<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>, <span class="comment">// skip everything else.

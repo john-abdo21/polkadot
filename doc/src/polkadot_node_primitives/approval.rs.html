@@ -203,10 +203,6 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -225,8 +221,7 @@
 
 </span><span class="doccomment">//! Types relevant for approval.
 
-</span><span class="kw">pub use </span>sp_consensus_babe::Slot;
-<span class="kw">pub use </span>sp_consensus_vrf::schnorrkel::{Randomness, VRFOutput, VRFProof};
+</span><span class="kw">pub use </span>sp_consensus_babe::{Randomness, Slot, VrfOutput, VrfProof, VrfSignature, VrfTranscript};
 
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_primitives::{
@@ -291,8 +286,8 @@
 </span><span class="kw">pub struct </span>AssignmentCert {
 	<span class="doccomment">/// The criterion which is claimed to be met by this cert.
 	</span><span class="kw">pub </span>kind: AssignmentCertKind,
-	<span class="doccomment">/// The VRF showing the criterion is met.
-	</span><span class="kw">pub </span>vrf: (VRFOutput, VRFProof),
+	<span class="doccomment">/// The VRF signature showing the criterion is met.
+	</span><span class="kw">pub </span>vrf: VrfSignature,
 }
 
 <span class="doccomment">/// An assignment criterion which refers to the candidate under which the assignment is
@@ -353,7 +348,7 @@
 
 <span class="doccomment">/// An unsafe VRF output. Provide BABE Epoch info to create a `RelayVRFStory`.
 </span><span class="kw">pub struct </span>UnsafeVRFOutput {
-	vrf_output: VRFOutput,
+	vrf_output: VrfOutput,
 	slot: Slot,
 	authority_index: u32,
 }
@@ -379,12 +374,12 @@
 		<span class="kw">let </span>pubkey = schnorrkel::PublicKey::from_bytes(author.as_slice())
 			.map_err(ApprovalError::SchnorrkelSignature)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>transcript = babe_primitives::make_transcript(randomness, <span class="self">self</span>.slot, epoch_index);
+		<span class="kw">let </span>transcript = sp_consensus_babe::make_transcript(randomness, <span class="self">self</span>.slot, epoch_index);
 
 		<span class="kw">let </span>inout = <span class="self">self
 			</span>.vrf_output
 			.<span class="number">0
-			</span>.attach_input_hash(<span class="kw-2">&amp;</span>pubkey, transcript)
+			</span>.attach_input_hash(<span class="kw-2">&amp;</span>pubkey, transcript.<span class="number">0</span>)
 			.map_err(ApprovalError::SchnorrkelSignature)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(RelayVRFStory(inout.make_bytes(RELAY_VRF_STORY_CONTEXT)))
 	}
@@ -396,21 +391,18 @@
 /// the digest has type `SecondaryPlain`, which Substrate nodes do
 /// not produce or accept anymore.
 </span><span class="kw">pub fn </span>babe_unsafe_vrf_info(header: <span class="kw-2">&amp;</span>Header) -&gt; <span class="prelude-ty">Option</span>&lt;UnsafeVRFOutput&gt; {
-	<span class="kw">use </span>babe_primitives::digests::{CompatibleDigestItem, PreDigest};
+	<span class="kw">use </span>babe_primitives::digests::CompatibleDigestItem;
 
 	<span class="kw">for </span>digest <span class="kw">in </span><span class="kw-2">&amp;</span>header.digest.logs {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(pre) = digest.as_babe_pre_digest() {
 			<span class="kw">let </span>slot = pre.slot();
 			<span class="kw">let </span>authority_index = pre.authority_index();
 
-			<span class="comment">// exhaustive match to defend against upstream variant changes.
-			</span><span class="kw">let </span>vrf_output = <span class="kw">match </span>pre {
-				PreDigest::Primary(primary) =&gt; primary.vrf_output,
-				PreDigest::SecondaryVRF(secondary) =&gt; secondary.vrf_output,
-				PreDigest::SecondaryPlain(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
-			};
-
-			<span class="kw">return </span><span class="prelude-val">Some</span>(UnsafeVRFOutput { vrf_output, slot, authority_index })
+			<span class="kw">return </span>pre.vrf_signature().map(|sig| UnsafeVRFOutput {
+				vrf_output: sig.output.clone(),
+				slot,
+				authority_index,
+			})
 		}
 	}
 

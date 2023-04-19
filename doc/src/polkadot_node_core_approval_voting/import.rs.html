@@ -1347,10 +1347,6 @@
 <a href="#1347" id="1347">1347</a>
 <a href="#1348" id="1348">1348</a>
 <a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1965,8 +1961,7 @@
 	<span class="kw">use </span><span class="kw">crate</span>::approval_db::v1::DbBackend;
 	<span class="kw">use </span>::test_helpers::{dummy_candidate_receipt, dummy_hash};
 	<span class="kw">use </span>assert_matches::assert_matches;
-	<span class="kw">use </span>merlin::Transcript;
-	<span class="kw">use </span>polkadot_node_primitives::approval::{VRFOutput, VRFProof};
+	<span class="kw">use </span>polkadot_node_primitives::approval::{VrfSignature, VrfTranscript};
 	<span class="kw">use </span>polkadot_node_subsystem::messages::{AllMessages, ApprovalVotingMessage};
 	<span class="kw">use </span>polkadot_node_subsystem_test_helpers::make_subsystem_context;
 	<span class="kw">use </span>polkadot_node_subsystem_util::database::Database;
@@ -1975,7 +1970,7 @@
 		digests::{CompatibleDigestItem, PreDigest, SecondaryVRFPreDigest},
 		AllowedSlots, BabeEpochConfiguration, Epoch <span class="kw">as </span>BabeEpoch,
 	};
-	<span class="kw">use </span>sp_core::testing::TaskExecutor;
+	<span class="kw">use </span>sp_core::{crypto::VrfSigner, testing::TaskExecutor};
 	<span class="kw">use </span>sp_keyring::sr25519::Keyring <span class="kw">as </span>Sr25519Keyring;
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>sp_runtime::{Digest, DigestItem};
 	<span class="kw">use </span>std::{pin::Pin, sync::Arc};
@@ -2056,12 +2051,9 @@
 	}
 
 	<span class="comment">// used for generating assignments where the validity of the VRF doesn&#39;t matter.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>garbage_vrf() -&gt; (VRFOutput, VRFProof) {
-		<span class="kw">let </span>key = Sr25519Keyring::Alice.pair();
-		<span class="kw">let </span>key: <span class="kw-2">&amp;</span>schnorrkel::Keypair = key.as_ref();
-
-		<span class="kw">let </span>(o, p, <span class="kw">_</span>) = key.vrf_sign(Transcript::new(<span class="string">b&quot;test-garbage&quot;</span>));
-		(VRFOutput(o.to_output()), VRFProof(p))
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>garbage_vrf_signature() -&gt; VrfSignature {
+		<span class="kw">let </span>transcript = VrfTranscript::new(<span class="string">b&quot;test-garbage&quot;</span>, <span class="kw-2">&amp;</span>[]);
+		Sr25519Keyring::Alice.pair().vrf_sign(<span class="kw-2">&amp;</span>transcript)
 	}
 
 	<span class="kw">fn </span>dummy_session_info(index: SessionIndex) -&gt; SessionInfo {
@@ -2096,9 +2088,9 @@
 		<span class="kw">let </span>header = Header {
 			digest: {
 				<span class="kw">let </span><span class="kw-2">mut </span>d = Digest::default();
-				<span class="kw">let </span>(vrf_output, vrf_proof) = garbage_vrf();
+				<span class="kw">let </span>vrf_signature = garbage_vrf_signature();
 				d.push(DigestItem::babe_pre_digest(PreDigest::SecondaryVRF(
-					SecondaryVRFPreDigest { authority_index: <span class="number">0</span>, slot, vrf_output, vrf_proof },
+					SecondaryVRFPreDigest { authority_index: <span class="number">0</span>, slot, vrf_signature },
 				)));
 
 				d
@@ -2395,9 +2387,9 @@
 		<span class="kw">let </span>header = Header {
 			digest: {
 				<span class="kw">let </span><span class="kw-2">mut </span>d = Digest::default();
-				<span class="kw">let </span>(vrf_output, vrf_proof) = garbage_vrf();
+				<span class="kw">let </span>vrf_signature = garbage_vrf_signature();
 				d.push(DigestItem::babe_pre_digest(PreDigest::SecondaryVRF(
-					SecondaryVRFPreDigest { authority_index: <span class="number">0</span>, slot, vrf_output, vrf_proof },
+					SecondaryVRFPreDigest { authority_index: <span class="number">0</span>, slot, vrf_signature },
 				)));
 
 				d.push(ConsensusLog::ForceApprove(<span class="number">3</span>).into());
@@ -2547,9 +2539,9 @@
 		<span class="kw">let </span>header = Header {
 			digest: {
 				<span class="kw">let </span><span class="kw-2">mut </span>d = Digest::default();
-				<span class="kw">let </span>(vrf_output, vrf_proof) = garbage_vrf();
+				<span class="kw">let </span>vrf_signature = garbage_vrf_signature();
 				d.push(DigestItem::babe_pre_digest(PreDigest::SecondaryVRF(
-					SecondaryVRFPreDigest { authority_index: <span class="number">0</span>, slot, vrf_output, vrf_proof },
+					SecondaryVRFPreDigest { authority_index: <span class="number">0</span>, slot, vrf_signature },
 				)));
 
 				d
