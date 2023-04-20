@@ -194,8 +194,20 @@ or time out). We will only retry preparation if another request comes in after
 15 minutes, to ensure any potential transient conditions had time to be
 resolved. We will retry up to 5 times.</p>
 <p>If the actual <strong>execution</strong> of the artifact fails, we will retry once if it was
-an ambiguous error after a brief delay, to allow any potential transient
-conditions to clear.</p>
+a possibly transient error, to allow the conditions that led to the error to
+hopefully resolve. We use a more brief delay here (1 second as opposed to 15
+minutes for preparation (see above)), because a successful execution must happen
+in a short amount of time.</p>
+<p>We currently know of at least two specific cases that will lead to a retried
+execution request:</p>
+<ol>
+<li><strong>OOM:</strong> The host might have been temporarily low on memory due to other
+processes running on the same machine. <strong>NOTE:</strong> This case will lead to
+voting against the candidate (and possibly a dispute) if the retry is still
+not successful.</li>
+<li><strong>Artifact missing:</strong> The prepared artifact might have been deleted due to
+operator error or some bug in the system. We will re-create it on retry.</li>
+</ol>
 <h4 id="preparation-timeouts"><a class="header" href="#preparation-timeouts">Preparation timeouts</a></h4>
 <p>We use timeouts for both preparation and execution jobs to limit the amount of
 time they can take. As the time for a job can vary depending on the machine and
@@ -212,7 +224,7 @@ jobs using CPU time, rather than wall clock time. This is because the CPU time
 of a process is less variable under different system conditions. When the
 overall system is under heavy load, the wall clock time of a job is affected
 more than the CPU time.</p>
-<footer id="last-change">Last change: 2022-11-30, commit: <a href="https://github.com/paritytech/polkadot/commit/ce003d6195">ce003d6195</a></footer>
+<footer id="last-change">Last change: 2023-04-20, commit: <a href="https://github.com/paritytech/polkadot/commit/67278e0182">67278e0182</a></footer>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

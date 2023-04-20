@@ -816,6 +816,22 @@
 <a href="#816" id="816">816</a>
 <a href="#817" id="817">817</a>
 <a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1509,6 +1525,9 @@
 
 	<span class="doccomment">/// Tries executing a PVF. Will retry once if an error is encountered that may have been
 	/// transient.
+	///
+	/// NOTE: Should retry only on errors that are a result of execution itself, and not of
+	/// preparation.
 	</span><span class="kw">async fn </span>validate_candidate_with_retry(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		raw_validation_code: Vec&lt;u8&gt;,
@@ -1516,31 +1535,44 @@
 		params: ValidationParams,
 		executor_params: ExecutorParams,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt; {
+		<span class="kw">let </span>prep_timeout = pvf_prep_timeout(<span class="kw-2">&amp;</span>executor_params, PvfPrepTimeoutKind::Lenient);
 		<span class="comment">// Construct the PVF a single time, since it is an expensive operation. Cloning it is cheap.
-		</span><span class="kw">let </span>prep_timeout = pvf_prep_timeout(<span class="kw-2">&amp;</span>executor_params, PvfPrepTimeoutKind::Lenient);
-		<span class="kw">let </span>pvf = PvfPrepData::from_code(raw_validation_code, executor_params, prep_timeout);
+		</span><span class="kw">let </span>pvf = PvfPrepData::from_code(raw_validation_code, executor_params, prep_timeout);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>validation_result =
 			<span class="self">self</span>.validate_candidate(pvf.clone(), exec_timeout, params.encode()).<span class="kw">await</span>;
 
-		<span class="comment">// If we get an AmbiguousWorkerDeath error, retry once after a brief delay, on the
-		// assumption that the conditions that caused this error may have been transient. Note that
-		// this error is only a result of execution itself and not of preparation.
-		</span><span class="kw">if let </span><span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::AmbiguousWorkerDeath)) =
-			validation_result
-		{
-			<span class="comment">// Wait a brief delay before retrying.
-			</span>futures_timer::Delay::new(PVF_EXECUTION_RETRY_DELAY).<span class="kw">await</span>;
+		<span class="comment">// Allow limited retries for each kind of error.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>num_internal_retries_left = <span class="number">1</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>num_awd_retries_left = <span class="number">1</span>;
+		<span class="kw">loop </span>{
+			<span class="kw">match </span>validation_result {
+				<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(
+					WasmInvalidCandidate::AmbiguousWorkerDeath,
+				)) <span class="kw">if </span>num_awd_retries_left &gt; <span class="number">0 </span>=&gt; num_awd_retries_left -= <span class="number">1</span>,
+				<span class="prelude-val">Err</span>(ValidationError::InternalError(<span class="kw">_</span>)) <span class="kw">if </span>num_internal_retries_left &gt; <span class="number">0 </span>=&gt;
+					num_internal_retries_left -= <span class="number">1</span>,
+				<span class="kw">_ </span>=&gt; <span class="kw">break</span>,
+			}
 
-			<span class="macro">gum::warn!</span>(
-				target: LOG_TARGET,
-				<span class="question-mark">?</span>pvf,
-				<span class="string">&quot;Re-trying failed candidate validation due to AmbiguousWorkerDeath.&quot;
-			</span>);
+			<span class="comment">// If we got a possibly transient error, retry once after a brief delay, on the assumption
+			// that the conditions that caused this error may have resolved on their own.
+			</span>{
+				<span class="comment">// Wait a brief delay before retrying.
+				</span>futures_timer::Delay::new(PVF_EXECUTION_RETRY_DELAY).<span class="kw">await</span>;
 
-			<span class="comment">// Encode the params again when re-trying. We expect the retry case to be relatively
-			// rare, and we want to avoid unconditionally cloning data.
-			</span>validation_result = <span class="self">self</span>.validate_candidate(pvf, exec_timeout, params.encode()).<span class="kw">await</span>;
+				<span class="macro">gum::warn!</span>(
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>pvf,
+					<span class="string">&quot;Re-trying failed candidate validation due to possible transient error: {:?}&quot;</span>,
+					validation_result
+				);
+
+				<span class="comment">// Encode the params again when re-trying. We expect the retry case to be relatively
+				// rare, and we want to avoid unconditionally cloning data.
+				</span>validation_result =
+					<span class="self">self</span>.validate_candidate(pvf.clone(), exec_timeout, params.encode()).<span class="kw">await</span>;
+			}
 		}
 
 		validation_result

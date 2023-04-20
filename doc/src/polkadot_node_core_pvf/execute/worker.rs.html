@@ -369,6 +369,13 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -720,6 +727,13 @@
 	executor: Arc&lt;Executor&gt;,
 	cpu_time_start: ProcessTime,
 ) -&gt; Response {
+	<span class="comment">// Check here if the file exists, because the error from Substrate is not match-able.
+	// TODO: Re-evaluate after &lt;https://github.com/paritytech/substrate/issues/13860&gt;.
+	</span><span class="kw">let </span>file_metadata = std::fs::metadata(artifact_path);
+	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = file_metadata {
+		<span class="kw">return </span>Response::format_internal(<span class="string">&quot;execute: could not find or open file&quot;</span>, <span class="kw-2">&amp;</span>err.to_string())
+	}
+
 	<span class="kw">let </span>descriptor_bytes = <span class="kw">match unsafe </span>{
 		<span class="comment">// SAFETY: this should be safe since the compiled artifact passed here comes from the
 		//         file created by the prepare workers. These files are obtained by calling

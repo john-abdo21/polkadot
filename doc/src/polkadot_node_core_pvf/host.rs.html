@@ -1634,6 +1634,41 @@
 <a href="#1634" id="1634">1634</a>
 <a href="#1635" id="1635">1635</a>
 <a href="#1636" id="1636">1636</a>
+<a href="#1637" id="1637">1637</a>
+<a href="#1638" id="1638">1638</a>
+<a href="#1639" id="1639">1639</a>
+<a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1659,7 +1694,7 @@
 </span><span class="kw">use crate</span>::{
 	artifacts::{ArtifactId, ArtifactPathId, ArtifactState, Artifacts},
 	error::PrepareError,
-	execute,
+	execute::{<span class="self">self</span>, PendingExecutionRequest},
 	metrics::Metrics,
 	prepare, PrepareResult, Priority, PvfPrepData, ValidationError, LOG_TARGET,
 };
@@ -1669,7 +1704,6 @@
 	Future, FutureExt, SinkExt, StreamExt,
 };
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
-<span class="kw">use </span>polkadot_primitives::ExecutorParams;
 <span class="kw">use </span>std::{
 	collections::HashMap,
 	path::{Path, PathBuf},
@@ -1885,36 +1919,14 @@
 	(validation_host, task)
 }
 
-<span class="doccomment">/// An execution request that should execute the PVF (known in the context) and send the results
-/// to the given result sender.
-</span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>PendingExecutionRequest {
-	exec_timeout: Duration,
-	params: Vec&lt;u8&gt;,
-	executor_params: ExecutorParams,
-	result_tx: ResultSender,
-}
-
 <span class="doccomment">/// A mapping from an artifact ID which is in preparation state to the list of pending execution
 /// requests that should be executed once the artifact&#39;s preparation is finished.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">struct </span>AwaitingPrepare(HashMap&lt;ArtifactId, Vec&lt;PendingExecutionRequest&gt;&gt;);
 
 <span class="kw">impl </span>AwaitingPrepare {
-	<span class="kw">fn </span>add(
-		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		artifact_id: ArtifactId,
-		exec_timeout: Duration,
-		params: Vec&lt;u8&gt;,
-		executor_params: ExecutorParams,
-		result_tx: ResultSender,
-	) {
-		<span class="self">self</span>.<span class="number">0</span>.entry(artifact_id).or_default().push(PendingExecutionRequest {
-			exec_timeout,
-			params,
-			executor_params,
-			result_tx,
-		});
+	<span class="kw">fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, artifact_id: ArtifactId, pending_execution_request: PendingExecutionRequest) {
+		<span class="self">self</span>.<span class="number">0</span>.entry(artifact_id).or_default().push(pending_execution_request);
 	}
 
 	<span class="kw">fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, artifact_id: <span class="kw-2">&amp;</span>ArtifactId) -&gt; Vec&lt;PendingExecutionRequest&gt; {
@@ -2111,6 +2123,8 @@
 /// This will try to prepare the PVF, if a prepared artifact does not already exist. If there is already a
 /// preparation job, we coalesce the two preparation jobs.
 ///
+/// If the prepare job succeeded previously, we will enqueue an execute job right away.
+///
 /// If the prepare job failed previously, we may retry it under certain conditions.
 ///
 /// When preparing for execution, we use a more lenient timeout ([`LENIENT_PREPARATION_TIMEOUT`])
@@ -2125,32 +2139,63 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">let </span>ExecutePvfInputs { pvf, exec_timeout, params, priority, result_tx } = inputs;
 	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
+	<span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf.executor_params()).clone();
 
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = artifacts.artifact_state_mut(<span class="kw-2">&amp;</span>artifact_id) {
 		<span class="kw">match </span>state {
 			ArtifactState::Prepared { last_time_needed, .. } =&gt; {
-				<span class="kw-2">*</span>last_time_needed = SystemTime::now();
+				<span class="kw">let </span>file_metadata = std::fs::metadata(artifact_id.path(cache_path));
 
-				<span class="comment">// This artifact has already been prepared, send it to the execute queue.
-				</span>send_execute(
-					execute_queue,
-					execute::ToQueue::Enqueue {
-						artifact: ArtifactPathId::new(artifact_id, cache_path),
-						exec_timeout,
-						params,
-						executor_params: (<span class="kw-2">*</span>pvf.executor_params()).clone(),
-						result_tx,
-					},
-				)
-				.<span class="kw">await</span><span class="question-mark">?</span>;
+				<span class="kw">if </span>file_metadata.is_ok() {
+					<span class="kw-2">*</span>last_time_needed = SystemTime::now();
+
+					<span class="comment">// This artifact has already been prepared, send it to the execute queue.
+					</span>send_execute(
+						execute_queue,
+						execute::ToQueue::Enqueue {
+							artifact: ArtifactPathId::new(artifact_id, cache_path),
+							pending_execution_request: PendingExecutionRequest {
+								exec_timeout,
+								params,
+								executor_params,
+								result_tx,
+							},
+						},
+					)
+					.<span class="kw">await</span><span class="question-mark">?</span>;
+				} <span class="kw">else </span>{
+					<span class="macro">gum::warn!</span>(
+						target: LOG_TARGET,
+						<span class="question-mark">?</span>pvf,
+						<span class="question-mark">?</span>artifact_id,
+						<span class="string">&quot;handle_execute_pvf: Re-queuing PVF preparation for prepared artifact with missing file.&quot;
+					</span>);
+
+					<span class="comment">// The artifact has been prepared previously but the file is missing, prepare it again.
+					</span><span class="kw-2">*</span>state = ArtifactState::Preparing {
+						waiting_for_response: Vec::new(),
+						num_failures: <span class="number">0</span>,
+					};
+					enqueue_prepare_for_execute(
+						prepare_queue,
+						awaiting_prepare,
+						pvf,
+						priority,
+						artifact_id,
+						PendingExecutionRequest {
+							exec_timeout,
+							params,
+							executor_params,
+							result_tx,
+						},
+					)
+					.<span class="kw">await</span><span class="question-mark">?</span>;
+				}
 			},
 			ArtifactState::Preparing { .. } =&gt; {
 				awaiting_prepare.add(
 					artifact_id,
-					exec_timeout,
-					params,
-					(<span class="kw-2">*</span>pvf.executor_params()).clone(),
-					result_tx,
+					PendingExecutionRequest { exec_timeout, params, executor_params, result_tx },
 				);
 			},
 			ArtifactState::FailedToProcess { last_time_failed, num_failures, error } =&gt; {
@@ -2171,19 +2216,20 @@
 						waiting_for_response: Vec::new(),
 						num_failures: <span class="kw-2">*</span>num_failures,
 					};
-					<span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf.executor_params()).clone();
-					send_prepare(prepare_queue, prepare::ToQueue::Enqueue { priority, pvf })
-						.<span class="kw">await</span><span class="question-mark">?</span>;
-
-					<span class="comment">// Add an execution request that will wait to run after this prepare job has
-					// finished.
-					</span>awaiting_prepare.add(
+					enqueue_prepare_for_execute(
+						prepare_queue,
+						awaiting_prepare,
+						pvf,
+						priority,
 						artifact_id,
-						exec_timeout,
-						params,
-						executor_params,
-						result_tx,
-					);
+						PendingExecutionRequest {
+							exec_timeout,
+							params,
+							executor_params,
+							result_tx,
+						},
+					)
+					.<span class="kw">await</span><span class="question-mark">?</span>;
 				} <span class="kw">else </span>{
 					<span class="kw">let _ </span>= result_tx.send(<span class="prelude-val">Err</span>(ValidationError::from(error.clone())));
 				}
@@ -2192,12 +2238,16 @@
 	} <span class="kw">else </span>{
 		<span class="comment">// Artifact is unknown: register it and enqueue a job with the corresponding priority and
 		// PVF.
-		</span><span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf.executor_params()).clone();
-		artifacts.insert_preparing(artifact_id.clone(), Vec::new());
-		send_prepare(prepare_queue, prepare::ToQueue::Enqueue { priority, pvf }).<span class="kw">await</span><span class="question-mark">?</span>;
-
-		<span class="comment">// Add an execution request that will wait to run after this prepare job has finished.
-		</span>awaiting_prepare.add(artifact_id, exec_timeout, params, executor_params, result_tx);
+		</span>artifacts.insert_preparing(artifact_id.clone(), Vec::new());
+		enqueue_prepare_for_execute(
+			prepare_queue,
+			awaiting_prepare,
+			pvf,
+			priority,
+			artifact_id,
+			PendingExecutionRequest { exec_timeout, params, executor_params, result_tx },
+		)
+		.<span class="kw">await</span><span class="question-mark">?</span>;
 	}
 
 	<span class="prelude-val">Ok</span>(())
@@ -2336,10 +2386,12 @@
 			execute_queue,
 			execute::ToQueue::Enqueue {
 				artifact: ArtifactPathId::new(artifact_id.clone(), cache_path),
-				exec_timeout,
-				params,
-				executor_params,
-				result_tx,
+				pending_execution_request: PendingExecutionRequest {
+					exec_timeout,
+					params,
+					executor_params,
+					result_tx,
+				},
 			},
 		)
 		.<span class="kw">await</span><span class="question-mark">?</span>;
@@ -2379,6 +2431,24 @@
 	to_queue: execute::ToQueue,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	execute_queue.send(to_queue).<span class="kw">await</span>.map_err(|<span class="kw">_</span>| Fatal)
+}
+
+<span class="doccomment">/// Sends a job to the preparation queue, and adds an execution request that will wait to run after
+/// this prepare job has finished.
+</span><span class="kw">async fn </span>enqueue_prepare_for_execute(
+	prepare_queue: <span class="kw-2">&amp;mut </span>mpsc::Sender&lt;prepare::ToQueue&gt;,
+	awaiting_prepare: <span class="kw-2">&amp;mut </span>AwaitingPrepare,
+	pvf: PvfPrepData,
+	priority: Priority,
+	artifact_id: ArtifactId,
+	pending_execution_request: PendingExecutionRequest,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
+	send_prepare(prepare_queue, prepare::ToQueue::Enqueue { priority, pvf }).<span class="kw">await</span><span class="question-mark">?</span>;
+
+	<span class="comment">// Add an execution request that will wait to run after this prepare job has finished.
+	</span>awaiting_prepare.add(artifact_id, pending_execution_request);
+
+	<span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">async fn </span>handle_cleanup_pulse(
@@ -2761,11 +2831,11 @@
 			</span>.unwrap();
 		<span class="kw">let </span>result_tx_pvf_1_1 = <span class="macro">assert_matches!</span>(
 			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
-			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
+			execute::ToQueue::Enqueue { pending_execution_request: PendingExecutionRequest { result_tx, .. }, .. } =&gt; result_tx
 		);
 		<span class="kw">let </span>result_tx_pvf_1_2 = <span class="macro">assert_matches!</span>(
 			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
-			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
+			execute::ToQueue::Enqueue { pending_execution_request: PendingExecutionRequest { result_tx, .. }, .. } =&gt; result_tx
 		);
 
 		test.from_prepare_queue_tx
@@ -2777,7 +2847,7 @@
 			</span>.unwrap();
 		<span class="kw">let </span>result_tx_pvf_2 = <span class="macro">assert_matches!</span>(
 			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
-			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
+			execute::ToQueue::Enqueue { pending_execution_request: PendingExecutionRequest { result_tx, .. }, .. } =&gt; result_tx
 		);
 
 		result_tx_pvf_1_1
@@ -3092,7 +3162,7 @@
 		<span class="comment">// Preparation should have been retried and succeeded this time.
 		</span><span class="kw">let </span>result_tx_3 = <span class="macro">assert_matches!</span>(
 			test.poll_and_recv_to_execute_queue().<span class="kw">await</span>,
-			execute::ToQueue::Enqueue { result_tx, .. } =&gt; result_tx
+			execute::ToQueue::Enqueue { pending_execution_request: PendingExecutionRequest { result_tx, .. }, .. } =&gt; result_tx
 		);
 
 		<span class="comment">// Send an error for the execution here, just so we can check the result receiver is still
