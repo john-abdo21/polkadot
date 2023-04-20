@@ -436,6 +436,20 @@
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -455,9 +469,9 @@
 </span><span class="doccomment">//! XCM configuration for Polkadot.
 
 </span><span class="kw">use super</span>::{
-	parachains_origin, AccountId, AllPalletsWithSystem, Balances, CouncilCollective,
+	parachains_origin, AccountId, AllPalletsWithSystem, Balances, CouncilCollective, Dmp,
 	FellowshipAdmin, ParaId, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, StakingAdmin,
-	WeightToFee, XcmPallet,
+	TransactionByteFee, WeightToFee, XcmPallet,
 };
 <span class="kw">use </span>frame_support::{
 	match_types, parameter_types,
@@ -466,8 +480,14 @@
 };
 <span class="kw">use </span>frame_system::EnsureRoot;
 <span class="kw">use </span>pallet_xcm::XcmPassthrough;
-<span class="kw">use </span>polkadot_runtime_constants::{system_parachain::<span class="kw-2">*</span>, xcm::body::FELLOWSHIP_ADMIN_INDEX};
-<span class="kw">use </span>runtime_common::{crowdloan, paras_registrar, xcm_sender, ToAuthor};
+<span class="kw">use </span>polkadot_runtime_constants::{
+	currency::CENTS, system_parachain::<span class="kw-2">*</span>, xcm::body::FELLOWSHIP_ADMIN_INDEX,
+};
+<span class="kw">use </span>runtime_common::{
+	crowdloan, paras_registrar,
+	xcm_sender::{ChildParachainRouter, ExponentialPrice},
+	ToAuthor,
+};
 <span class="kw">use </span>sp_core::ConstU32;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_builder::{
@@ -544,13 +564,21 @@
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against weight
 	/// calculations getting too crazy.
 	</span><span class="kw">pub const </span>MaxInstructions: u32 = <span class="number">100</span>;
+	<span class="doccomment">/// The asset ID for the asset that we use to pay for message delivery fees.
+	</span><span class="kw">pub </span>FeeAssetId: AssetId = Concrete(TokenLocation::get());
+	<span class="doccomment">/// The base fee for the message delivery fees.
+	</span><span class="kw">pub const </span>BaseDeliveryFee: u128 = CENTS.saturating_mul(<span class="number">3</span>);
 }
 
 <span class="doccomment">/// The XCM router. When we want to send an XCM message, we use this type. It amalgamates all of our
 /// individual routers.
 </span><span class="kw">pub type </span>XcmRouter = (
 	<span class="comment">// Only one router so far - use DMP to communicate with child parachains.
-	</span>xcm_sender::ChildParachainRouter&lt;Runtime, XcmPallet, ()&gt;,
+	</span>ChildParachainRouter&lt;
+		Runtime,
+		XcmPallet,
+		ExponentialPrice&lt;FeeAssetId, BaseDeliveryFee, TransactionByteFee, Dmp&gt;,
+	&gt;,
 );
 
 <span class="macro">parameter_types! </span>{

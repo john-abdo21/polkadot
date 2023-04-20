@@ -292,6 +292,19 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -311,16 +324,21 @@
 </span><span class="doccomment">//! XCM configurations for Westend.
 
 </span><span class="kw">use super</span>::{
-	parachains_origin, weights, AccountId, AllPalletsWithSystem, Balances, ParaId, Runtime,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmPallet,
+	parachains_origin, weights, AccountId, AllPalletsWithSystem, Balances, Dmp, ParaId, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, TransactionByteFee, WeightToFee, XcmPallet,
 };
 <span class="kw">use </span>frame_support::{
 	parameter_types,
 	traits::{Contains, Everything, Nothing},
 };
 <span class="kw">use </span>frame_system::EnsureRoot;
-<span class="kw">use </span>runtime_common::{crowdloan, paras_registrar, xcm_sender, ToAuthor};
+<span class="kw">use </span>runtime_common::{
+	crowdloan, paras_registrar,
+	xcm_sender::{ChildParachainRouter, ExponentialPrice},
+	ToAuthor,
+};
 <span class="kw">use </span>sp_core::ConstU32;
+<span class="kw">use </span>westend_runtime_constants::currency::CENTS;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
@@ -338,6 +356,10 @@
 	<span class="kw">pub </span>UniversalLocation: InteriorMultiLocation = ThisNetwork::get().into();
 	<span class="kw">pub </span>CheckAccount: AccountId = XcmPallet::check_account();
 	<span class="kw">pub </span>LocalCheckAccount: (AccountId, MintLocation) = (CheckAccount::get(), MintLocation::Local);
+	<span class="doccomment">/// The asset ID for the asset that we use to pay for message delivery fees.
+	</span><span class="kw">pub </span>FeeAssetId: AssetId = Concrete(TokenLocation::get());
+	<span class="doccomment">/// The base fee for the message delivery fees.
+	</span><span class="kw">pub const </span>BaseDeliveryFee: u128 = CENTS.saturating_mul(<span class="number">3</span>);
 }
 
 <span class="kw">pub type </span>LocationConverter =
@@ -367,7 +389,11 @@
 /// individual routers.
 </span><span class="kw">pub type </span>XcmRouter = (
 	<span class="comment">// Only one router so far - use DMP to communicate with child parachains.
-	</span>xcm_sender::ChildParachainRouter&lt;Runtime, XcmPallet, ()&gt;,
+	</span>ChildParachainRouter&lt;
+		Runtime,
+		XcmPallet,
+		ExponentialPrice&lt;FeeAssetId, BaseDeliveryFee, TransactionByteFee, Dmp&gt;,
+	&gt;,
 );
 
 <span class="macro">parameter_types! </span>{
