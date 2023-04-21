@@ -718,7 +718,7 @@
 <span class="kw">use </span>frame_support::traits::Get;
 <span class="kw">use </span>futures_util::StreamExt;
 <span class="kw">use </span>jsonrpsee::ws_client::{WsClient, WsClientBuilder};
-<span class="kw">use </span>remote_externalities::{Builder, Mode, OnlineConfig};
+<span class="kw">use </span>remote_externalities::{Builder, Mode, OnlineConfig, Transport};
 <span class="kw">use </span>rpc::{RpcApiClient, SharedRpcClient};
 <span class="kw">use </span>runtime_versions::RuntimeVersions;
 <span class="kw">use </span>signal_hook::consts::signal::<span class="kw-2">*</span>;
@@ -982,7 +982,7 @@
 	pallets.extend(additional);
 	Builder::&lt;B&gt;::new()
 		.mode(Mode::Online(OnlineConfig {
-			transport: client.into_inner().into(),
+			transport: Transport::Uri(client.uri().to_owned()),
 			at,
 			pallets,
 			hashed_prefixes: <span class="macro">vec!</span>[&lt;frame_system::BlockHash&lt;T&gt;&gt;::prefix_hash()],
