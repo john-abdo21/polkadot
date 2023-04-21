@@ -419,6 +419,9 @@
 <a href="#419" id="419">419</a>
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -529,7 +532,10 @@
 
 <span class="macro">parameter_types! </span>{
 	<span class="doccomment">/// The amount of weight an XCM operation takes. This is a safe overestimate.
-	</span><span class="kw">pub const </span>BaseXcmWeight: Weight = Weight::from_parts(<span class="number">1_000_000_000</span>, <span class="number">64 </span>* <span class="number">1024</span>);
+	</span><span class="kw">pub const </span>BaseXcmWeight: Weight = Weight::from_parts(<span class="number">1_000_000_000</span>, <span class="number">1024</span>);
+	<span class="doccomment">/// A temporary weight value for each XCM instruction.
+	/// NOTE: This should be removed after we account for PoV weights.
+	</span><span class="kw">pub const </span>TempFixedXcmWeight: Weight = Weight::from_parts(<span class="number">1_000_000_000</span>, <span class="number">0</span>);
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against weight
 	/// calculations getting too crazy.
 	</span><span class="kw">pub const </span>MaxInstructions: u32 = <span class="number">100</span>;
@@ -744,7 +750,7 @@
 	<span class="kw">type </span>IsTeleporter = TrustedTeleporters;
 	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>Barrier = Barrier;
-	<span class="kw">type </span>Weigher = FixedWeightBounds&lt;BaseXcmWeight, RuntimeCall, MaxInstructions&gt;;
+	<span class="kw">type </span>Weigher = FixedWeightBounds&lt;TempFixedXcmWeight, RuntimeCall, MaxInstructions&gt;;
 	<span class="comment">// The weight trader piggybacks on the existing transaction-fee conversion logic.
 	</span><span class="kw">type </span>Trader =
 		UsingComponents&lt;WeightToFee, TokenLocation, AccountId, Balances, ToAuthor&lt;Runtime&gt;&gt;;
