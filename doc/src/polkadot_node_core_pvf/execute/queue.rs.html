@@ -479,6 +479,11 @@
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -497,7 +502,7 @@
 
 </span><span class="doccomment">//! A queue that handles requests for PVF execution.
 
-</span><span class="kw">use </span><span class="kw">super</span>::worker::Outcome;
+</span><span class="kw">use </span><span class="kw">super</span>::worker_intf::Outcome;
 <span class="kw">use crate</span>::{
 	artifacts::{ArtifactId, ArtifactPathId},
 	host::ResultSender,
@@ -897,7 +902,8 @@
 	<span class="kw">use </span>futures_timer::Delay;
 
 	<span class="kw">loop </span>{
-		<span class="kw">match </span><span class="kw">super</span>::worker::spawn(<span class="kw-2">&amp;</span>program_path, job.executor_params.clone(), spawn_timeout).<span class="kw">await
+		<span class="kw">match </span><span class="kw">super</span>::worker_intf::spawn(<span class="kw-2">&amp;</span>program_path, job.executor_params.clone(), spawn_timeout)
+			.<span class="kw">await
 		</span>{
 			<span class="prelude-val">Ok</span>((idle, handle)) =&gt; <span class="kw">break </span>QueueEvent::Spawn(idle, handle, job),
 			<span class="prelude-val">Err</span>(err) =&gt; {
@@ -941,9 +947,13 @@
 	queue.mux.push(
 		<span class="kw">async move </span>{
 			<span class="kw">let </span>_timer = execution_timer;
-			<span class="kw">let </span>outcome =
-				<span class="kw">super</span>::worker::start_work(idle, job.artifact.clone(), job.exec_timeout, job.params)
-					.<span class="kw">await</span>;
+			<span class="kw">let </span>outcome = <span class="kw">super</span>::worker_intf::start_work(
+				idle,
+				job.artifact.clone(),
+				job.exec_timeout,
+				job.params,
+			)
+			.<span class="kw">await</span>;
 			QueueEvent::StartWork(worker, outcome, job.artifact.id, job.result_tx)
 		}
 		.boxed(),
