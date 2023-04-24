@@ -564,6 +564,44 @@
 <a href="#564" id="564">564</a>
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -590,7 +628,7 @@
 //! validation results as well as a sink for votes received by other subsystems. When importing a dispute vote from
 //! another node, this will trigger dispute participation to recover and validate the block.
 
-</span><span class="kw">use </span>std::sync::Arc;
+</span><span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
 
 <span class="kw">use </span>futures::FutureExt;
 
@@ -599,6 +637,7 @@
 
 <span class="kw">use </span>polkadot_node_primitives::{
 	CandidateVotes, DisputeMessage, DisputeMessageCheckError, SignedDisputeStatement,
+	DISPUTE_WINDOW,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{
 	messages::DisputeDistributionMessage, overseer, ActivatedLeaf, FromOrchestra, OverseerSignal,
@@ -606,12 +645,14 @@
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::{
 	database::Database,
-	rolling_session_window::{DatabaseParams, RollingSessionWindow},
+	runtime::{Config <span class="kw">as </span>RuntimeInfoConfig, RuntimeInfo},
 };
-<span class="kw">use </span>polkadot_primitives::{DisputeStatement, ScrapedOnChainVotes, SessionInfo, ValidatorIndex};
+<span class="kw">use </span>polkadot_primitives::{
+	DisputeStatement, ScrapedOnChainVotes, SessionIndex, SessionInfo, ValidatorIndex,
+};
 
 <span class="kw">use crate</span>::{
-	error::{FatalResult, JfyiError, <span class="prelude-ty">Result</span>},
+	error::{FatalResult, <span class="prelude-ty">Result</span>},
 	metrics::Metrics,
 	status::{get_active_with_status, SystemClock},
 };
@@ -631,7 +672,7 @@
 
 <span class="doccomment">/// Subsystem after receiving the first active leaf.
 </span><span class="kw">mod </span>initialized;
-<span class="kw">use </span>initialized::Initialized;
+<span class="kw">use </span>initialized::{InitialData, Initialized};
 
 <span class="doccomment">/// Provider of data scraped from chain.
 ///
@@ -753,7 +794,7 @@
 		};
 
 		initialized
-			.run(ctx, backend, participations, votes, <span class="prelude-val">Some</span>(first_leaf), clock)
+			.run(ctx, backend, <span class="prelude-val">Some</span>(InitialData { participations, votes, leaf: first_leaf }), clock)
 			.<span class="kw">await
 	</span>}
 
@@ -776,31 +817,32 @@
 		</span>B: Backend + <span class="lifetime">&#39;static</span>,
 	{
 		<span class="kw">loop </span>{
-			<span class="kw">let </span>db_params =
-				DatabaseParams { db: <span class="self">self</span>.store.clone(), db_column: <span class="self">self</span>.config.col_session_data };
+			<span class="kw">let </span>first_leaf = <span class="kw">match </span>wait_for_first_leaf(ctx).<span class="kw">await </span>{
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(activated_leaf)) =&gt; activated_leaf,
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">continue</span>,
+				<span class="prelude-val">Err</span>(e) =&gt; {
+					e.split()<span class="question-mark">?</span>.log();
+					<span class="kw">continue
+				</span>},
+			};
 
-			<span class="kw">let </span>(first_leaf, rolling_session_window) =
-				<span class="kw">match </span>get_rolling_session_window(ctx, db_params).<span class="kw">await </span>{
-					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(update)) =&gt; update,
-					<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-						<span class="macro">gum::info!</span>(target: LOG_TARGET, <span class="string">&quot;received `Conclude` signal, exiting&quot;</span>);
-						<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-					},
-					<span class="prelude-val">Err</span>(e) =&gt; {
-						e.split()<span class="question-mark">?</span>.log();
-						<span class="kw">continue
-					</span>},
-				};
-
+			<span class="comment">// `RuntimeInfo` cache should match `DISPUTE_WINDOW` so that we can
+			// keep all sessions for a dispute window
+			</span><span class="kw">let </span><span class="kw-2">mut </span>runtime_info = RuntimeInfo::new_with_config(RuntimeInfoConfig {
+				keystore: <span class="prelude-val">None</span>,
+				session_cache_lru_size: NonZeroUsize::new(DISPUTE_WINDOW.get() <span class="kw">as </span>usize)
+					.expect(<span class="string">&quot;DISPUTE_WINDOW can&#39;t be 0; qed.&quot;</span>),
+			});
 			<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;mut </span>backend);
-			<span class="kw">let </span>(participations, votes, spam_slots, ordering_provider) = <span class="kw">match </span><span class="self">self
-				</span>.handle_startup(
-					ctx,
-					first_leaf.clone(),
-					<span class="kw-2">&amp;</span>rolling_session_window,
-					<span class="kw-2">&amp;mut </span>overlay_db,
-					clock,
-				)
+			<span class="kw">let </span>(
+				participations,
+				votes,
+				spam_slots,
+				ordering_provider,
+				highest_session_seen,
+				gaps_in_cache,
+			) = <span class="kw">match </span><span class="self">self
+				</span>.handle_startup(ctx, first_leaf.clone(), <span class="kw-2">&amp;mut </span>runtime_info, <span class="kw-2">&amp;mut </span>overlay_db, clock)
 				.<span class="kw">await
 			</span>{
 				<span class="prelude-val">Ok</span>(v) =&gt; v,
@@ -818,7 +860,14 @@
 				participations,
 				votes,
 				first_leaf,
-				Initialized::new(<span class="self">self</span>, rolling_session_window, spam_slots, ordering_provider),
+				Initialized::new(
+					<span class="self">self</span>,
+					runtime_info,
+					spam_slots,
+					ordering_provider,
+					highest_session_seen,
+					gaps_in_cache,
+				),
 				backend,
 			)))
 		}
@@ -833,7 +882,7 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		initial_head: ActivatedLeaf,
-		rolling_session_window: <span class="kw-2">&amp;</span>RollingSessionWindow,
+		runtime_info: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 		overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
 		clock: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Clock,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(
@@ -841,10 +890,9 @@
 		Vec&lt;ScrapedOnChainVotes&gt;,
 		SpamSlots,
 		ChainScraper,
+		SessionIndex,
+		bool,
 	)&gt; {
-		<span class="comment">// Prune obsolete disputes:
-		</span>db::v1::note_earliest_session(overlay_db, rolling_session_window.earliest_session())<span class="question-mark">?</span>;
-
 		<span class="kw">let </span>now = clock.now();
 
 		<span class="kw">let </span>active_disputes = <span class="kw">match </span>overlay_db.load_recent_disputes() {
@@ -858,23 +906,63 @@
 			},
 		};
 
+		<span class="comment">// We assume the highest session is the passed leaf. If we can&#39;t get the session index
+		// we can&#39;t initialize the subsystem so we&#39;ll wait for a new leaf
+		</span><span class="kw">let </span>highest_session = runtime_info
+			.get_session_index_for_child(ctx.sender(), initial_head.hash)
+			.<span class="kw">await</span><span class="question-mark">?</span>;
+
+		<span class="kw">let </span><span class="kw-2">mut </span>gap_in_cache = <span class="bool-val">false</span>;
+		<span class="comment">// Cache the sessions. A failure to fetch a session here is not that critical so we
+		// won&#39;t abort the initialization
+		</span><span class="kw">for </span>idx <span class="kw">in </span>highest_session.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>)..=highest_session {
+			<span class="kw">if let </span><span class="prelude-val">Err</span>(e) = runtime_info
+				.get_session_info_by_index(ctx.sender(), initial_head.hash, idx)
+				.<span class="kw">await
+			</span>{
+				<span class="macro">gum::debug!</span>(
+					target: LOG_TARGET,
+					leaf_hash = <span class="question-mark">?</span>initial_head.hash,
+					session_idx = idx,
+					err = <span class="question-mark">?</span>e,
+					<span class="string">&quot;Can&#39;t cache SessionInfo during subsystem initialization. Skipping session.&quot;
+				</span>);
+				gap_in_cache = <span class="bool-val">true</span>;
+				<span class="kw">continue
+			</span>};
+		}
+
+		<span class="comment">// Prune obsolete disputes:
+		</span>db::v1::note_earliest_session(
+			overlay_db,
+			highest_session.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>),
+		)<span class="question-mark">?</span>;
+
 		<span class="kw">let </span><span class="kw-2">mut </span>participation_requests = Vec::new();
 		<span class="kw">let </span><span class="kw-2">mut </span>spam_disputes: UnconfirmedDisputes = UnconfirmedDisputes::new();
+		<span class="kw">let </span>leaf_hash = initial_head.hash;
 		<span class="kw">let </span>(scraper, votes) = ChainScraper::new(ctx.sender(), initial_head).<span class="kw">await</span><span class="question-mark">?</span>;
 		<span class="kw">for </span>((session, <span class="kw-2">ref </span>candidate_hash), <span class="kw">_</span>) <span class="kw">in </span>active_disputes {
-			<span class="kw">let </span>env =
-				<span class="kw">match </span>CandidateEnvironment::new(<span class="kw-2">&amp;</span><span class="self">self</span>.keystore, <span class="kw-2">&amp;</span>rolling_session_window, session) {
-					<span class="prelude-val">None </span>=&gt; {
-						<span class="macro">gum::warn!</span>(
-							target: LOG_TARGET,
-							session,
-							<span class="string">&quot;We are lacking a `SessionInfo` for handling db votes on startup.&quot;
-						</span>);
+			<span class="kw">let </span>env = <span class="kw">match </span>CandidateEnvironment::new(
+				<span class="kw-2">&amp;</span><span class="self">self</span>.keystore,
+				ctx,
+				runtime_info,
+				highest_session,
+				leaf_hash,
+			)
+			.<span class="kw">await
+			</span>{
+				<span class="prelude-val">None </span>=&gt; {
+					<span class="macro">gum::warn!</span>(
+						target: LOG_TARGET,
+						session,
+						<span class="string">&quot;We are lacking a `SessionInfo` for handling db votes on startup.&quot;
+					</span>);
 
-						<span class="kw">continue
-					</span>},
-					<span class="prelude-val">Some</span>(env) =&gt; env,
-				};
+					<span class="kw">continue
+				</span>},
+				<span class="prelude-val">Some</span>(env) =&gt; env,
+			};
 
 			<span class="kw">let </span>votes: CandidateVotes =
 				<span class="kw">match </span>overlay_db.load_candidate_votes(session, candidate_hash) {
@@ -936,26 +1024,14 @@
 			}
 		}
 
-		<span class="prelude-val">Ok</span>((participation_requests, votes, SpamSlots::recover_from_state(spam_disputes), scraper))
-	}
-}
-
-<span class="doccomment">/// Wait for `ActiveLeavesUpdate` on startup, returns `None` if `Conclude` signal came first.
-</span><span class="attr">#[overseer::contextbounds(DisputeCoordinator, prefix = <span class="self">self</span>::overseer)]
-</span><span class="kw">async fn </span>get_rolling_session_window&lt;Context&gt;(
-	ctx: <span class="kw-2">&amp;mut </span>Context,
-	db_params: DatabaseParams,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(ActivatedLeaf, RollingSessionWindow)&gt;&gt; {
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(leaf) = { wait_for_first_leaf(ctx) }.<span class="kw">await</span><span class="question-mark">? </span>{
-		<span class="kw">let </span>sender = ctx.sender().clone();
-		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((
-			leaf.clone(),
-			RollingSessionWindow::new(sender, leaf.hash, db_params)
-				.<span class="kw">await
-				</span>.map_err(JfyiError::RollingSessionWindow)<span class="question-mark">?</span>,
-		)))
-	} <span class="kw">else </span>{
-		<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+		<span class="prelude-val">Ok</span>((
+			participation_requests,
+			votes,
+			SpamSlots::recover_from_state(spam_disputes),
+			scraper,
+			highest_session,
+			gap_in_cache,
+		))
 	}
 }
 

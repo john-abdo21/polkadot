@@ -1317,6 +1317,41 @@
 <a href="#1317" id="1317">1317</a>
 <a href="#1318" id="1318">1318</a>
 <a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1345,7 +1380,8 @@
 <span class="kw">use </span>sc_keystore::LocalKeystore;
 
 <span class="kw">use </span>polkadot_node_primitives::{
-	disputes::ValidCandidateVotes, CandidateVotes, DisputeStatus, SignedDisputeStatement, Timestamp,
+	disputes::ValidCandidateVotes, CandidateVotes, DisputeStatus, SignedDisputeStatement,
+	Timestamp, DISPUTE_WINDOW,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{
 	messages::{
@@ -1354,17 +1390,16 @@
 	},
 	overseer, ActivatedLeaf, ActiveLeavesUpdate, FromOrchestra, OverseerSignal,
 };
-<span class="kw">use </span>polkadot_node_subsystem_util::rolling_session_window::{
-	RollingSessionWindow, SessionWindowUpdate, SessionsUnavailable,
-};
+<span class="kw">use </span>polkadot_node_subsystem_util::runtime::RuntimeInfo;
 <span class="kw">use </span>polkadot_primitives::{
 	BlockNumber, CandidateHash, CandidateReceipt, CompactStatement, DisputeStatement,
-	DisputeStatementSet, Hash, ScrapedOnChainVotes, SessionIndex, SessionInfo,
-	ValidDisputeStatementKind, ValidatorId, ValidatorIndex,
+	DisputeStatementSet, Hash, ScrapedOnChainVotes, SessionIndex, ValidDisputeStatementKind,
+	ValidatorId, ValidatorIndex,
 };
 
 <span class="kw">use crate</span>::{
-	error::{log_error, Error, FatalError, FatalResult, JfyiError, JfyiResult, <span class="prelude-ty">Result</span>},
+	db,
+	error::{log_error, FatalError, FatalResult, JfyiError, JfyiResult, <span class="prelude-ty">Result</span>},
 	import::{CandidateEnvironment, CandidateVoteState},
 	is_potential_spam,
 	metrics::Metrics,
@@ -1374,7 +1409,7 @@
 
 <span class="kw">use super</span>::{
 	backend::Backend,
-	db, make_dispute_message,
+	make_dispute_message,
 	participation::{
 		<span class="self">self</span>, Participation, ParticipationPriority, ParticipationRequest, ParticipationStatement,
 		WorkerMessageReceiver,
@@ -1384,23 +1419,31 @@
 	OverlayedBackend,
 };
 
+<span class="comment">// Initial data for `dispute-coordinator`. It is provided only at first start.
+</span><span class="kw">pub struct </span>InitialData {
+	<span class="kw">pub </span>participations: Vec&lt;(ParticipationPriority, ParticipationRequest)&gt;,
+	<span class="kw">pub </span>votes: Vec&lt;ScrapedOnChainVotes&gt;,
+	<span class="kw">pub </span>leaf: ActivatedLeaf,
+}
+
 <span class="doccomment">/// After the first active leaves update we transition to `Initialized` state.
 ///
 /// Before the first active leaves update we can&#39;t really do much. We cannot check incoming
-/// statements for validity, we cannot query orderings, we have no valid `RollingSessionWindow`,
+/// statements for validity, we cannot query orderings, we have no valid `SessionInfo`,
 /// ...
-</span><span class="kw">pub struct </span>Initialized {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Initialized {
 	keystore: Arc&lt;LocalKeystore&gt;,
-	rolling_session_window: RollingSessionWindow,
-	highest_session: SessionIndex,
+	runtime_info: RuntimeInfo,
+	<span class="doccomment">/// This is the highest `SessionIndex` seen via `ActiveLeavesUpdate`. It doen&#39;t matter if it was
+	/// cached successfully or not. It is used to detect ancient disputes.
+	</span>highest_session_seen: SessionIndex,
+	<span class="doccomment">/// Will be set to `true` if an error occured during the last caching attempt
+	</span>gaps_in_cache: bool,
 	spam_slots: SpamSlots,
 	participation: Participation,
 	scraper: ChainScraper,
 	participation_receiver: WorkerMessageReceiver,
 	metrics: Metrics,
-	<span class="comment">// This tracks only rolling session window failures.
-	// It can be a `Vec` if the need to track more arises.
-	</span>error: <span class="prelude-ty">Option</span>&lt;SessionsUnavailable&gt;,
 }
 
 <span class="attr">#[overseer::contextbounds(DisputeCoordinator, prefix = <span class="self">self</span>::overseer)]
@@ -1408,55 +1451,46 @@
 	<span class="doccomment">/// Make initialized subsystem, ready to `run`.
 	</span><span class="kw">pub fn </span>new(
 		subsystem: DisputeCoordinatorSubsystem,
-		rolling_session_window: RollingSessionWindow,
+		runtime_info: RuntimeInfo,
 		spam_slots: SpamSlots,
 		scraper: ChainScraper,
+		highest_session_seen: SessionIndex,
+		gaps_in_cache: bool,
 	) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>DisputeCoordinatorSubsystem { config: <span class="kw">_</span>, store: <span class="kw">_</span>, keystore, metrics } = subsystem;
 
 		<span class="kw">let </span>(participation_sender, participation_receiver) = mpsc::channel(<span class="number">1</span>);
 		<span class="kw">let </span>participation = Participation::new(participation_sender, metrics.clone());
-		<span class="kw">let </span>highest_session = rolling_session_window.latest_session();
 
 		<span class="self">Self </span>{
 			keystore,
-			rolling_session_window,
-			highest_session,
+			runtime_info,
+			highest_session_seen,
+			gaps_in_cache,
 			spam_slots,
 			scraper,
 			participation,
 			participation_receiver,
 			metrics,
-			error: <span class="prelude-val">None</span>,
 		}
 	}
 
 	<span class="doccomment">/// Run the initialized subsystem.
 	///
-	/// Optionally supply initial participations and a first leaf to process.
+	/// `initial_data` is optional. It is passed on first start and is `None` on subsystem restarts.
 	</span><span class="kw">pub async fn </span>run&lt;B, Context&gt;(
 		<span class="kw-2">mut </span><span class="self">self</span>,
 		<span class="kw-2">mut </span>ctx: Context,
 		<span class="kw-2">mut </span>backend: B,
-		<span class="kw-2">mut </span>participations: Vec&lt;(ParticipationPriority, ParticipationRequest)&gt;,
-		<span class="kw-2">mut </span>votes: Vec&lt;ScrapedOnChainVotes&gt;,
-		<span class="kw-2">mut </span>first_leaf: <span class="prelude-ty">Option</span>&lt;ActivatedLeaf&gt;,
+		<span class="kw-2">mut </span>initial_data: <span class="prelude-ty">Option</span>&lt;InitialData&gt;,
 		clock: Box&lt;<span class="kw">dyn </span>Clock&gt;,
 	) -&gt; FatalResult&lt;()&gt;
 	<span class="kw">where
 		</span>B: Backend,
 	{
 		<span class="kw">loop </span>{
-			<span class="kw">let </span>res = <span class="self">self
-				</span>.run_until_error(
-					<span class="kw-2">&amp;mut </span>ctx,
-					<span class="kw-2">&amp;mut </span>backend,
-					<span class="kw-2">&amp;mut </span>participations,
-					<span class="kw-2">&amp;mut </span>votes,
-					<span class="kw-2">&amp;mut </span>first_leaf,
-					<span class="kw-2">&amp;*</span>clock,
-				)
-				.<span class="kw">await</span>;
+			<span class="kw">let </span>res =
+				<span class="self">self</span>.run_until_error(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>backend, <span class="kw-2">&amp;mut </span>initial_data, <span class="kw-2">&amp;*</span>clock).<span class="kw">await</span>;
 			<span class="kw">if let </span><span class="prelude-val">Ok</span>(()) = res {
 				<span class="macro">gum::info!</span>(target: LOG_TARGET, <span class="string">&quot;received `Conclude` signal, exiting&quot;</span>);
 				<span class="kw">return </span><span class="prelude-val">Ok</span>(())
@@ -1474,23 +1508,29 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		ctx: <span class="kw-2">&amp;mut </span>Context,
 		backend: <span class="kw-2">&amp;mut </span>B,
-		participations: <span class="kw-2">&amp;mut </span>Vec&lt;(ParticipationPriority, ParticipationRequest)&gt;,
-		on_chain_votes: <span class="kw-2">&amp;mut </span>Vec&lt;ScrapedOnChainVotes&gt;,
-		first_leaf: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;ActivatedLeaf&gt;,
+		initial_data: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;InitialData&gt;,
 		clock: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Clock,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
 	<span class="kw">where
 		</span>B: Backend,
 	{
-		<span class="kw">for </span>(priority, request) <span class="kw">in </span>participations.drain(..) {
-			<span class="self">self</span>.participation.queue_participation(ctx, priority, request).<span class="kw">await</span><span class="question-mark">?</span>;
-		}
-
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(InitialData { participations, votes: on_chain_votes, leaf: first_leaf }) =
+			initial_data.take()
 		{
+			<span class="kw">for </span>(priority, request) <span class="kw">in </span>participations {
+				<span class="self">self</span>.participation.queue_participation(ctx, priority, request).<span class="kw">await</span><span class="question-mark">?</span>;
+			}
+
 			<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(backend);
-			<span class="kw">for </span>votes <span class="kw">in </span>on_chain_votes.drain(..) {
+			<span class="kw">for </span>votes <span class="kw">in </span>on_chain_votes {
 				<span class="kw">let _ </span>= <span class="self">self
-					</span>.process_on_chain_votes(ctx, <span class="kw-2">&amp;mut </span>overlay_db, votes, clock.now())
+					</span>.process_on_chain_votes(
+						ctx,
+						<span class="kw-2">&amp;mut </span>overlay_db,
+						votes,
+						clock.now(),
+						first_leaf.hash,
+					)
 					.<span class="kw">await
 					</span>.map_err(|error| {
 						<span class="macro">gum::warn!</span>(
@@ -1504,9 +1544,7 @@
 				<span class="kw">let </span>ops = overlay_db.into_write_ops();
 				backend.write(ops)<span class="question-mark">?</span>;
 			}
-		}
 
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(first_leaf) = first_leaf.take() {
 			<span class="comment">// Also provide first leaf to participation for good measure.
 			</span><span class="self">self</span>.participation
 				.process_active_leaves_update(ctx, <span class="kw-2">&amp;</span>ActiveLeavesUpdate::start_work(first_leaf))
@@ -1602,37 +1640,56 @@
 		<span class="self">self</span>.participation.process_active_leaves_update(ctx, <span class="kw-2">&amp;</span>update).<span class="kw">await</span><span class="question-mark">?</span>;
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(new_leaf) = update.activated {
-			<span class="kw">match </span><span class="self">self
-				</span>.rolling_session_window
-				.cache_session_info_for_head(ctx.sender(), new_leaf.hash)
-				.<span class="kw">await
-			</span>{
-				<span class="prelude-val">Err</span>(e) =&gt; {
-					<span class="macro">gum::warn!</span>(
-						target: LOG_TARGET,
-						err = <span class="question-mark">?</span>e,
-						<span class="string">&quot;Failed to update session cache for disputes&quot;</span>,
-					);
-					<span class="self">self</span>.error = <span class="prelude-val">Some</span>(e);
-				},
-				<span class="prelude-val">Ok</span>(SessionWindowUpdate::Advanced {
-					new_window_end: window_end,
-					new_window_start,
-					..
-				}) =&gt; {
-					<span class="self">self</span>.error = <span class="prelude-val">None</span>;
-					<span class="kw">let </span>session = window_end;
-					<span class="kw">if </span><span class="self">self</span>.highest_session &lt; session {
-						<span class="macro">gum::trace!</span>(target: LOG_TARGET, session, <span class="string">&quot;Observed new session. Pruning&quot;</span>);
+			<span class="kw">let </span>session_idx =
+				<span class="self">self</span>.runtime_info.get_session_index_for_child(ctx.sender(), new_leaf.hash).<span class="kw">await</span>;
 
-						<span class="self">self</span>.highest_session = session;
+			<span class="kw">match </span>session_idx {
+				<span class="prelude-val">Ok</span>(session_idx)
+					<span class="kw">if </span><span class="self">self</span>.gaps_in_cache || session_idx &gt; <span class="self">self</span>.highest_session_seen =&gt;
+				{
+					<span class="comment">// If error has occurred during last session caching - fetch the whole window
+					// Otherwise - cache only the new sessions
+					</span><span class="kw">let </span>lower_bound = <span class="kw">if </span><span class="self">self</span>.gaps_in_cache {
+						session_idx.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>)
+					} <span class="kw">else </span>{
+						<span class="self">self</span>.highest_session_seen + <span class="number">1
+					</span>};
 
-						db::v1::note_earliest_session(overlay_db, new_window_start)<span class="question-mark">?</span>;
-						<span class="self">self</span>.spam_slots.prune_old(new_window_start);
+					<span class="comment">// There is a new session. Perform a dummy fetch to cache it.
+					</span><span class="kw">for </span>idx <span class="kw">in </span>lower_bound..=session_idx {
+						<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self
+							</span>.runtime_info
+							.get_session_info_by_index(ctx.sender(), new_leaf.hash, idx)
+							.<span class="kw">await
+						</span>{
+							<span class="macro">gum::debug!</span>(
+								target: LOG_TARGET,
+								session_idx,
+								leaf_hash = <span class="question-mark">?</span>new_leaf.hash,
+								<span class="question-mark">?</span>err,
+								<span class="string">&quot;Error caching SessionInfo on ActiveLeaves update&quot;
+							</span>);
+							<span class="self">self</span>.gaps_in_cache = <span class="bool-val">true</span>;
+						}
 					}
+
+					<span class="self">self</span>.highest_session_seen = session_idx;
+
+					db::v1::note_earliest_session(
+						overlay_db,
+						session_idx.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>),
+					)<span class="question-mark">?</span>;
+					<span class="self">self</span>.spam_slots.prune_old(session_idx.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>));
 				},
-				<span class="prelude-val">Ok</span>(SessionWindowUpdate::Unchanged) =&gt; {},
-			};
+				<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; { <span class="comment">/* no new session =&gt; nothing to cache */ </span>},
+				<span class="prelude-val">Err</span>(err) =&gt; {
+					<span class="macro">gum::debug!</span>(
+						target: LOG_TARGET,
+						<span class="question-mark">?</span>err,
+						<span class="string">&quot;Failed to update session cache for disputes - can&#39;t fetch session index&quot;</span>,
+					);
+				},
+			}
 
 			<span class="macro">gum::trace!</span>(
 				target: LOG_TARGET,
@@ -1644,15 +1701,16 @@
 			<span class="comment">// The `runtime-api` subsystem has an internal queue which serializes the execution,
 			// so there is no point in running these in parallel
 			</span><span class="kw">for </span>votes <span class="kw">in </span>scraped_updates.on_chain_votes {
-				<span class="kw">let _ </span>= <span class="self">self</span>.process_on_chain_votes(ctx, overlay_db, votes, now).<span class="kw">await</span>.map_err(
-					|error| {
+				<span class="kw">let _ </span>= <span class="self">self
+					</span>.process_on_chain_votes(ctx, overlay_db, votes, now, new_leaf.hash)
+					.<span class="kw">await
+					</span>.map_err(|error| {
 						<span class="macro">gum::warn!</span>(
 							target: LOG_TARGET,
 							<span class="question-mark">?</span>error,
 							<span class="string">&quot;Skipping scraping block due to error&quot;</span>,
 						);
-					},
-				);
+					});
 			}
 		}
 
@@ -1668,6 +1726,7 @@
 		overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
 		votes: ScrapedOnChainVotes,
 		now: u64,
+		block_hash: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
 		<span class="kw">let </span>ScrapedOnChainVotes { session, backing_validators_per_candidate, disputes } = votes;
 
@@ -1679,23 +1738,24 @@
 		// the new active leaf as if we received them via gossip.
 		</span><span class="kw">for </span>(candidate_receipt, backers) <span class="kw">in </span>backing_validators_per_candidate {
 			<span class="comment">// Obtain the session info, for sake of `ValidatorId`s
-			// either from the rolling session window.
-			// Must be called _after_ `fn cache_session_info_for_head`
-			// which guarantees that the session info is available
-			// for the current session.
-			</span><span class="kw">let </span>session_info: <span class="kw-2">&amp;</span>SessionInfo =
-				<span class="kw">if let </span><span class="prelude-val">Some</span>(session_info) = <span class="self">self</span>.rolling_session_window.session_info(session) {
-					session_info
-				} <span class="kw">else </span>{
+			</span><span class="kw">let </span>relay_parent = candidate_receipt.descriptor.relay_parent;
+			<span class="kw">let </span>session_info = <span class="kw">match </span><span class="self">self
+				</span>.runtime_info
+				.get_session_info_by_index(ctx.sender(), relay_parent, session)
+				.<span class="kw">await
+			</span>{
+				<span class="prelude-val">Ok</span>(extended_session_info) =&gt; <span class="kw-2">&amp;</span>extended_session_info.session_info,
+				<span class="prelude-val">Err</span>(err) =&gt; {
 					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
 						<span class="question-mark">?</span>session,
-						<span class="string">&quot;Could not retrieve session info from rolling session window&quot;</span>,
+						<span class="question-mark">?</span>err,
+						<span class="string">&quot;Could not retrieve session info from RuntimeInfo&quot;</span>,
 					);
 					<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-				};
+				},
+			};
 
-			<span class="kw">let </span>relay_parent = candidate_receipt.descriptor.relay_parent;
 			<span class="kw">let </span>candidate_hash = candidate_receipt.hash();
 			<span class="macro">gum::trace!</span>(
 				target: LOG_TARGET,
@@ -1789,18 +1849,23 @@
 				<span class="question-mark">?</span>session,
 				<span class="string">&quot;Importing dispute votes from chain for candidate&quot;
 			</span>);
-			<span class="kw">let </span>session_info =
-				<span class="kw">if let </span><span class="prelude-val">Some</span>(session_info) = <span class="self">self</span>.rolling_session_window.session_info(session) {
-					session_info
-				} <span class="kw">else </span>{
+			<span class="kw">let </span>session_info = <span class="kw">match </span><span class="self">self
+				</span>.runtime_info
+				.get_session_info_by_index(ctx.sender(), block_hash, session)
+				.<span class="kw">await
+			</span>{
+				<span class="prelude-val">Ok</span>(extended_session_info) =&gt; <span class="kw-2">&amp;</span>extended_session_info.session_info,
+				<span class="prelude-val">Err</span>(err) =&gt; {
 					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
 						<span class="question-mark">?</span>candidate_hash,
 						<span class="question-mark">?</span>session,
-						<span class="string">&quot;Could not retrieve session info from rolling session window for recently concluded dispute&quot;
+						<span class="question-mark">?</span>err,
+						<span class="string">&quot;Could not retrieve session info for recently concluded dispute&quot;
 					</span>);
 					<span class="kw">continue
-				</span>};
+				</span>},
+			};
 
 			<span class="kw">let </span>statements = statements
 				.into_iter()
@@ -1912,9 +1977,6 @@
 				}
 			},
 			DisputeCoordinatorMessage::RecentDisputes(tx) =&gt; {
-				<span class="comment">// Return error if session information is missing.
-				</span><span class="self">self</span>.ensure_available_session_info()<span class="question-mark">?</span>;
-
 				<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;Loading recent disputes from db&quot;</span>);
 				<span class="kw">let </span>recent_disputes = <span class="kw">if let </span><span class="prelude-val">Some</span>(disputes) = overlay_db.load_recent_disputes()<span class="question-mark">? </span>{
 					disputes
@@ -1928,11 +1990,7 @@
 				);
 			},
 			DisputeCoordinatorMessage::ActiveDisputes(tx) =&gt; {
-				<span class="comment">// Return error if session information is missing.
-				</span><span class="self">self</span>.ensure_available_session_info()<span class="question-mark">?</span>;
-
 				<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;DisputeCoordinatorMessage::ActiveDisputes&quot;</span>);
-
 				<span class="kw">let </span>recent_disputes = <span class="kw">if let </span><span class="prelude-val">Some</span>(disputes) = overlay_db.load_recent_disputes()<span class="question-mark">? </span>{
 					disputes
 				} <span class="kw">else </span>{
@@ -1948,11 +2006,7 @@
 				);
 			},
 			DisputeCoordinatorMessage::QueryCandidateVotes(query, tx) =&gt; {
-				<span class="comment">// Return error if session information is missing.
-				</span><span class="self">self</span>.ensure_available_session_info()<span class="question-mark">?</span>;
-
 				<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="string">&quot;DisputeCoordinatorMessage::QueryCandidateVotes&quot;</span>);
-
 				<span class="kw">let </span><span class="kw-2">mut </span>query_output = Vec::new();
 				<span class="kw">for </span>(session_index, candidate_hash) <span class="kw">in </span>query {
 					<span class="kw">if let </span><span class="prelude-val">Some</span>(v) =
@@ -1992,8 +2046,6 @@
 				block_descriptions,
 				tx,
 			} =&gt; {
-				<span class="comment">// Return error if session information is missing.
-				</span><span class="self">self</span>.ensure_available_session_info()<span class="question-mark">?</span>;
 				<span class="macro">gum::trace!</span>(
 					target: LOG_TARGET,
 					<span class="string">&quot;DisputeCoordinatorMessage::DetermineUndisputedChain&quot;
@@ -2013,15 +2065,6 @@
 		<span class="prelude-val">Ok</span>(Box::new(|| <span class="prelude-val">Ok</span>(())))
 	}
 
-	<span class="comment">// Helper function for checking subsystem errors in message processing.
-	</span><span class="kw">fn </span>ensure_available_session_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(subsystem_error) = <span class="self">self</span>.error.clone() {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(Error::RollingSessionWindow(subsystem_error))
-		}
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
 	<span class="comment">// We use fatal result rather than result here. Reason being, We for example increase
 	// spam slots in this function. If then the import fails for some non fatal and
 	// unrelated reason, we should likely actually decrement previously incremented spam
@@ -2036,16 +2079,39 @@
 		now: Timestamp,
 	) -&gt; FatalResult&lt;ImportStatementsResult&gt; {
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>statements, <span class="string">&quot;In handle import statements&quot;</span>);
-		<span class="kw">if </span>!<span class="self">self</span>.rolling_session_window.contains(session) {
+		<span class="kw">if </span><span class="self">self</span>.session_is_ancient(session) {
 			<span class="comment">// It is not valid to participate in an ancient dispute (spam?) or too new.
 			</span><span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
 		}
 
+		<span class="kw">let </span>candidate_hash = candidate_receipt.hash();
+		<span class="kw">let </span>votes_in_db = overlay_db.load_candidate_votes(session, <span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">?</span>;
+		<span class="kw">let </span>relay_parent = <span class="kw">match </span><span class="kw-2">&amp;</span>candidate_receipt {
+			MaybeCandidateReceipt::Provides(candidate_receipt) =&gt;
+				candidate_receipt.descriptor().relay_parent,
+			MaybeCandidateReceipt::AssumeBackingVotePresent(candidate_hash) =&gt; <span class="kw">match </span><span class="kw-2">&amp;</span>votes_in_db {
+				<span class="prelude-val">Some</span>(votes) =&gt; votes.candidate_receipt.descriptor().relay_parent,
+				<span class="prelude-val">None </span>=&gt; {
+					<span class="macro">gum::warn!</span>(
+						target: LOG_TARGET,
+						session,
+						<span class="question-mark">?</span>candidate_hash,
+						<span class="string">&quot;Cannot obtain relay parent without `CandidateReceipt` available!&quot;
+					</span>);
+					<span class="kw">return </span><span class="prelude-val">Ok</span>(ImportStatementsResult::InvalidImport)
+				},
+			},
+		};
+
 		<span class="kw">let </span>env = <span class="kw">match </span>CandidateEnvironment::new(
 			<span class="kw-2">&amp;</span><span class="self">self</span>.keystore,
-			<span class="kw-2">&amp;</span><span class="self">self</span>.rolling_session_window,
+			ctx,
+			<span class="kw-2">&amp;mut </span><span class="self">self</span>.runtime_info,
 			session,
-		) {
+			relay_parent,
+		)
+		.<span class="kw">await
+		</span>{
 			<span class="prelude-val">None </span>=&gt; {
 				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
@@ -2057,8 +2123,6 @@
 			},
 			<span class="prelude-val">Some</span>(env) =&gt; env,
 		};
-
-		<span class="kw">let </span>candidate_hash = candidate_receipt.hash();
 
 		<span class="macro">gum::trace!</span>(
 			target: LOG_TARGET,
@@ -2076,10 +2140,7 @@
 		// There is one exception: A sufficiently sophisticated attacker could prevent
 		// us from seeing the backing votes by withholding arbitrary blocks, and hence we do
 		// not have a `CandidateReceipt` available.
-		</span><span class="kw">let </span>old_state = <span class="kw">match </span>overlay_db
-			.load_candidate_votes(session, <span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">?
-			</span>.map(CandidateVotes::from)
-		{
+		</span><span class="kw">let </span>old_state = <span class="kw">match </span>votes_in_db.map(CandidateVotes::from) {
 			<span class="prelude-val">Some</span>(votes) =&gt; CandidateVoteState::new(votes, <span class="kw-2">&amp;</span>env, now),
 			<span class="prelude-val">None </span>=&gt;
 				<span class="kw">if let </span>MaybeCandidateReceipt::Provides(candidate_receipt) = candidate_receipt {
@@ -2439,12 +2500,17 @@
 			<span class="question-mark">?</span>now,
 			<span class="string">&quot;Issuing local statement for candidate!&quot;
 		</span>);
+
 		<span class="comment">// Load environment:
 		</span><span class="kw">let </span>env = <span class="kw">match </span>CandidateEnvironment::new(
 			<span class="kw-2">&amp;</span><span class="self">self</span>.keystore,
-			<span class="kw-2">&amp;</span><span class="self">self</span>.rolling_session_window,
+			ctx,
+			<span class="kw-2">&amp;mut </span><span class="self">self</span>.runtime_info,
 			session,
-		) {
+			candidate_receipt.descriptor.relay_parent,
+		)
+		.<span class="kw">await
+		</span>{
 			<span class="prelude-val">None </span>=&gt; {
 				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
@@ -2494,10 +2560,10 @@
 					statements.push((signed_dispute_statement, <span class="kw-2">*</span>index));
 				},
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {},
-				<span class="prelude-val">Err</span>(e) =&gt; {
+				<span class="prelude-val">Err</span>(err) =&gt; {
 					<span class="macro">gum::error!</span>(
 						target: LOG_TARGET,
-						err = <span class="question-mark">?</span>e,
+						<span class="question-mark">?</span>err,
 						<span class="string">&quot;Encountered keystore error while signing dispute statement&quot;</span>,
 					);
 				},
@@ -2551,6 +2617,10 @@
 		}
 
 		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">fn </span>session_is_ancient(<span class="kw-2">&amp;</span><span class="self">self</span>, session_idx: SessionIndex) -&gt; bool {
+		<span class="kw">return </span>session_idx &lt; <span class="self">self</span>.highest_session_seen.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>)
 	}
 }
 
