@@ -1352,6 +1352,42 @@
 <a href="#1352" id="1352">1352</a>
 <a href="#1353" id="1353">1353</a>
 <a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1370,7 +1406,10 @@
 
 </span><span class="doccomment">//! Dispute coordinator subsystem in initialized state (after first active leaf is received).
 
-</span><span class="kw">use </span>std::{collections::BTreeMap, sync::Arc};
+</span><span class="kw">use </span>std::{
+	collections::{BTreeMap, VecDeque},
+	sync::Arc,
+};
 
 <span class="kw">use </span>futures::{
 	channel::{mpsc, oneshot},
@@ -1419,6 +1458,12 @@
 	OverlayedBackend,
 };
 
+<span class="doccomment">/// How many blocks we import votes from per leaf update.
+///
+/// Since vote import is relatively slow, we have to limit the maximum amount of work we do on leaf
+/// updates (and especially on startup) so the dispute coordinator won&#39;t be considered stalling.
+</span><span class="kw">const </span>CHAIN_IMPORT_MAX_BATCH_SIZE: usize = <span class="number">8</span>;
+
 <span class="comment">// Initial data for `dispute-coordinator`. It is provided only at first start.
 </span><span class="kw">pub struct </span>InitialData {
 	<span class="kw">pub </span>participations: Vec&lt;(ParticipationPriority, ParticipationRequest)&gt;,
@@ -1443,6 +1488,17 @@
 	participation: Participation,
 	scraper: ChainScraper,
 	participation_receiver: WorkerMessageReceiver,
+	<span class="doccomment">/// Backlog of still to be imported votes from chain.
+	///
+	/// For some reason importing votes is relatively slow, if there is a large finality lag (~50
+	/// blocks) we will be too slow importing all votes from unfinalized chains on startup
+	/// (dispute-coordinator gets killed because of unresponsiveness).
+	///
+	/// https://github.com/paritytech/polkadot/issues/6912
+	///
+	/// To resolve this, we limit the amount of votes imported at once to
+	/// `CHAIN_IMPORT_MAX_BATCH_SIZE` and put the rest here for later processing.
+	</span>chain_import_backlog: VecDeque&lt;ScrapedOnChainVotes&gt;,
 	metrics: Metrics,
 }
 
@@ -1471,6 +1527,7 @@
 			scraper,
 			participation,
 			participation_receiver,
+			chain_import_backlog: VecDeque::new(),
 			metrics,
 		}
 	}
@@ -1522,24 +1579,16 @@
 			}
 
 			<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(backend);
-			<span class="kw">for </span>votes <span class="kw">in </span>on_chain_votes {
-				<span class="kw">let _ </span>= <span class="self">self
-					</span>.process_on_chain_votes(
-						ctx,
-						<span class="kw-2">&amp;mut </span>overlay_db,
-						votes,
-						clock.now(),
-						first_leaf.hash,
-					)
-					.<span class="kw">await
-					</span>.map_err(|error| {
-						<span class="macro">gum::warn!</span>(
-							target: LOG_TARGET,
-							<span class="question-mark">?</span>error,
-							<span class="string">&quot;Skipping scraping block due to error&quot;</span>,
-						);
-					});
-			}
+
+			<span class="self">self</span>.process_chain_import_backlog(
+				ctx,
+				<span class="kw-2">&amp;mut </span>overlay_db,
+				on_chain_votes,
+				clock.now(),
+				first_leaf.hash,
+			)
+			.<span class="kw">await</span>;
+
 			<span class="kw">if </span>!overlay_db.is_empty() {
 				<span class="kw">let </span>ops = overlay_db.into_write_ops();
 				backend.write(ops)<span class="question-mark">?</span>;
@@ -1698,24 +1747,47 @@
 				scraped_updates.on_chain_votes.len()
 			);
 
-			<span class="comment">// The `runtime-api` subsystem has an internal queue which serializes the execution,
-			// so there is no point in running these in parallel
-			</span><span class="kw">for </span>votes <span class="kw">in </span>scraped_updates.on_chain_votes {
-				<span class="kw">let _ </span>= <span class="self">self
-					</span>.process_on_chain_votes(ctx, overlay_db, votes, now, new_leaf.hash)
-					.<span class="kw">await
-					</span>.map_err(|error| {
-						<span class="macro">gum::warn!</span>(
-							target: LOG_TARGET,
-							<span class="question-mark">?</span>error,
-							<span class="string">&quot;Skipping scraping block due to error&quot;</span>,
-						);
-					});
-			}
+			<span class="self">self</span>.process_chain_import_backlog(
+				ctx,
+				overlay_db,
+				scraped_updates.on_chain_votes,
+				now,
+				new_leaf.hash,
+			)
+			.<span class="kw">await</span>;
 		}
 
 		<span class="macro">gum::trace!</span>(target: LOG_TARGET, timestamp = now, <span class="string">&quot;Done processing ActiveLeavesUpdate&quot;</span>);
 		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="doccomment">/// Process one batch of our `chain_import_backlog`.
+	///
+	/// `new_votes` will be appended beforehand.
+	</span><span class="kw">async fn </span>process_chain_import_backlog&lt;Context&gt;(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		ctx: <span class="kw-2">&amp;mut </span>Context,
+		overlay_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+		new_votes: Vec&lt;ScrapedOnChainVotes&gt;,
+		now: u64,
+		block_hash: Hash,
+	) {
+		<span class="kw">let </span><span class="kw-2">mut </span>chain_import_backlog = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.chain_import_backlog);
+		chain_import_backlog.extend(new_votes);
+		<span class="kw">let </span>import_range =
+			<span class="number">0</span>..std::cmp::min(CHAIN_IMPORT_MAX_BATCH_SIZE, chain_import_backlog.len());
+		<span class="comment">// The `runtime-api` subsystem has an internal queue which serializes the execution,
+		// so there is no point in running these in parallel
+		</span><span class="kw">for </span>votes <span class="kw">in </span>chain_import_backlog.drain(import_range) {
+			<span class="kw">let </span>res = <span class="self">self</span>.process_on_chain_votes(ctx, overlay_db, votes, now, block_hash).<span class="kw">await</span>;
+			<span class="kw">match </span>res {
+				<span class="prelude-val">Ok</span>(()) =&gt; {},
+				<span class="prelude-val">Err</span>(error) =&gt; {
+					<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="question-mark">?</span>error, <span class="string">&quot;Skipping scraping block due to error&quot;</span>,);
+				},
+			};
+		}
+		<span class="self">self</span>.chain_import_backlog = chain_import_backlog;
 	}
 
 	<span class="doccomment">/// Scrapes on-chain votes (backing votes and concluded disputes) for a active leaf of the
