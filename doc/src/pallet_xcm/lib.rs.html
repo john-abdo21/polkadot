@@ -2164,6 +2164,39 @@
 <a href="#2164" id="2164">2164</a>
 <a href="#2165" id="2165">2165</a>
 <a href="#2166" id="2166">2166</a>
+<a href="#2167" id="2167">2167</a>
+<a href="#2168" id="2168">2168</a>
+<a href="#2169" id="2169">2169</a>
+<a href="#2170" id="2170">2170</a>
+<a href="#2171" id="2171">2171</a>
+<a href="#2172" id="2172">2172</a>
+<a href="#2173" id="2173">2173</a>
+<a href="#2174" id="2174">2174</a>
+<a href="#2175" id="2175">2175</a>
+<a href="#2176" id="2176">2176</a>
+<a href="#2177" id="2177">2177</a>
+<a href="#2178" id="2178">2178</a>
+<a href="#2179" id="2179">2179</a>
+<a href="#2180" id="2180">2180</a>
+<a href="#2181" id="2181">2181</a>
+<a href="#2182" id="2182">2182</a>
+<a href="#2183" id="2183">2183</a>
+<a href="#2184" id="2184">2184</a>
+<a href="#2185" id="2185">2185</a>
+<a href="#2186" id="2186">2186</a>
+<a href="#2187" id="2187">2187</a>
+<a href="#2188" id="2188">2188</a>
+<a href="#2189" id="2189">2189</a>
+<a href="#2190" id="2190">2190</a>
+<a href="#2191" id="2191">2191</a>
+<a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2218,7 +2251,8 @@
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_executor::{
 	traits::{
-		ClaimAssets, DropAssets, MatchesFungible, OnResponse, VersionChangeNotifier, WeightBounds,
+		CheckSuspension, ClaimAssets, DropAssets, MatchesFungible, OnResponse,
+		VersionChangeNotifier, WeightBounds,
 	},
 	Assets,
 };
@@ -2232,6 +2266,7 @@
 	<span class="kw">fn </span>force_default_xcm_version() -&gt; Weight;
 	<span class="kw">fn </span>force_subscribe_version_notify() -&gt; Weight;
 	<span class="kw">fn </span>force_unsubscribe_version_notify() -&gt; Weight;
+	<span class="kw">fn </span>force_suspension() -&gt; Weight;
 	<span class="kw">fn </span>migrate_supported_version() -&gt; Weight;
 	<span class="kw">fn </span>migrate_version_notifiers() -&gt; Weight;
 	<span class="kw">fn </span>already_notified_target() -&gt; Weight;
@@ -2273,6 +2308,10 @@
 	}
 
 	<span class="kw">fn </span>force_unsubscribe_version_notify() -&gt; Weight {
+		Weight::from_parts(<span class="number">100_000_000</span>, <span class="number">0</span>)
+	}
+
+	<span class="kw">fn </span>force_suspension() -&gt; Weight {
 		Weight::from_parts(<span class="number">100_000_000</span>, <span class="number">0</span>)
 	}
 
@@ -2778,6 +2817,10 @@
 		OptionQuery,
 	&gt;;
 
+	<span class="doccomment">/// Global suspension state of the XCM executor.
+	</span><span class="attr">#[pallet::storage]
+	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>XcmExecutionSuspended&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, bool, ValueQuery&gt;;
+
 	<span class="attr">#[pallet::genesis_config]
 	</span><span class="kw">pub struct </span>GenesisConfig {
 		<span class="doccomment">/// The default version to encode outgoing XCM messages with.
@@ -3074,7 +3117,7 @@
 		<span class="doccomment">/// Extoll that a particular destination can be communicated with through a particular
 		/// version of XCM.
 		///
-		/// - `origin`: Must be Root.
+		/// - `origin`: Must be an origin specified by AdminOrigin.
 		/// - `location`: The destination that is being described.
 		/// - `xcm_version`: The latest version of XCM that `location` supports.
 		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
@@ -3098,7 +3141,7 @@
 		<span class="doccomment">/// Set a safe XCM version (the version that XCM should be encoded with if the most recent
 		/// version a destination can accept is unknown).
 		///
-		/// - `origin`: Must be Root.
+		/// - `origin`: Must be an origin specified by AdminOrigin.
 		/// - `maybe_xcm_version`: The default XCM encoding version, or `None` to disable.
 		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
 		#[pallet::weight(T::WeightInfo::force_default_xcm_version())]
@@ -3113,7 +3156,7 @@
 
 		<span class="doccomment">/// Ask a location to notify us regarding their XCM version and any changes to it.
 		///
-		/// - `origin`: Must be Root.
+		/// - `origin`: Must be an origin specified by AdminOrigin.
 		/// - `location`: The location to which we should subscribe for XCM version notifications.
 		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
 		#[pallet::weight(T::WeightInfo::force_subscribe_version_notify())]
@@ -3136,7 +3179,7 @@
 		<span class="doccomment">/// Require that a particular destination should no longer notify us regarding any XCM
 		/// version changes.
 		///
-		/// - `origin`: Must be Root.
+		/// - `origin`: Must be an origin specified by AdminOrigin.
 		/// - `location`: The location to which we are currently subscribed for XCM version
 		///   notifications which we no longer desire.
 		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
@@ -3257,6 +3300,18 @@
 				fee_asset_item,
 				<span class="prelude-val">Some</span>(weight_limit),
 			)
+		}
+
+		<span class="doccomment">/// Set or unset the global suspension state of the XCM executor.
+		///
+		/// - `origin`: Must be an origin specified by AdminOrigin.
+		/// - `suspended`: `true` to suspend, `false` to resume.
+		</span><span class="attr">#[pallet::call_index(<span class="number">10</span>)]
+		#[pallet::weight(T::WeightInfo::force_suspension())]
+		</span><span class="kw">pub fn </span>force_suspension(origin: OriginFor&lt;T&gt;, suspended: bool) -&gt; DispatchResult {
+			T::AdminOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			XcmExecutionSuspended::&lt;T&gt;::set(suspended);
+			<span class="prelude-val">Ok</span>(())
 		}
 	}
 }
@@ -4207,6 +4262,17 @@
 				Weight::zero()
 			},
 		}
+	}
+}
+
+<span class="kw">impl</span>&lt;T: Config&gt; CheckSuspension <span class="kw">for </span>Pallet&lt;T&gt; {
+	<span class="kw">fn </span>is_suspended&lt;Call&gt;(
+		_origin: <span class="kw-2">&amp;</span>MultiLocation,
+		_instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
+		_max_weight: Weight,
+		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+	) -&gt; bool {
+		XcmExecutionSuspended::&lt;T&gt;::get()
 	}
 }
 
