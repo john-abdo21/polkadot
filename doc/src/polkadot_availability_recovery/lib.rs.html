@@ -1077,6 +1077,37 @@
 <a href="#1077" id="1077">1077</a>
 <a href="#1078" id="1078">1078</a>
 <a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1180,6 +1211,12 @@
 
 <span class="doccomment">/// The Availability Recovery Subsystem.
 </span><span class="kw">pub struct </span>AvailabilityRecoverySubsystem {
+	<span class="doccomment">/// Do not request data from the availability store.
+	/// This is the useful for nodes where the
+	/// availability-store subsystem is not expected to run,
+	/// such as collators.
+	</span>bypass_availability_store: bool,
+
 	fast_path: bool,
 	<span class="doccomment">/// Receiver for available data requests.
 	</span>req_receiver: IncomingRequestReceiver&lt;request_v1::AvailableDataFetchingRequest&gt;,
@@ -1226,6 +1263,9 @@
 
 	<span class="doccomment">/// Metrics to report
 	</span>metrics: Metrics,
+
+	<span class="doccomment">/// Do not request data from availability-store
+	</span>bypass_availability_store: bool,
 }
 
 <span class="doccomment">/// Source the availability data either by means
@@ -1546,7 +1586,7 @@
 		<span class="kw">let </span>metrics = <span class="kw-2">&amp;</span>params.metrics;
 
 		<span class="comment">// First query the store for any chunks we&#39;ve got.
-		</span>{
+		</span><span class="kw">if </span>!params.bypass_availability_store {
 			<span class="kw">let </span>(tx, rx) = oneshot::channel();
 			sender
 				.send_message(AvailabilityStoreMessage::QueryAllChunks(params.candidate_hash, tx))
@@ -1747,7 +1787,7 @@
 {
 	<span class="kw">async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;AvailableData, RecoveryError&gt; {
 		<span class="comment">// First just see if we have the data available locally.
-		</span>{
+		</span><span class="kw">if </span>!<span class="self">self</span>.params.bypass_availability_store {
 			<span class="kw">let </span>(tx, rx) = oneshot::channel();
 			<span class="self">self</span>.sender
 				.send_message(AvailabilityStoreMessage::QueryAvailableData(
@@ -1935,6 +1975,7 @@
 	receipt: CandidateReceipt,
 	backing_group: <span class="prelude-ty">Option</span>&lt;GroupIndex&gt;,
 	response_sender: oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;AvailableData, RecoveryError&gt;&gt;,
+	bypass_availability_store: bool,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; error::Result&lt;()&gt; {
 	<span class="kw">let </span>candidate_hash = receipt.hash();
@@ -1946,6 +1987,7 @@
 		candidate_hash,
 		erasure_root: receipt.descriptor.erasure_root,
 		metrics: metrics.clone(),
+		bypass_availability_store,
 	};
 
 	<span class="kw">let </span>phase = backing_group
@@ -1985,6 +2027,7 @@
 	session_index: SessionIndex,
 	backing_group: <span class="prelude-ty">Option</span>&lt;GroupIndex&gt;,
 	response_sender: oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;AvailableData, RecoveryError&gt;&gt;,
+	bypass_availability_store: bool,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; error::Result&lt;()&gt; {
 	<span class="kw">let </span>candidate_hash = receipt.hash();
@@ -2028,6 +2071,7 @@
 				receipt,
 				backing_group,
 				response_sender,
+				bypass_availability_store,
 				metrics,
 			)
 			.<span class="kw">await</span>,
@@ -2056,13 +2100,22 @@
 
 <span class="attr">#[overseer::contextbounds(AvailabilityRecovery, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">impl </span>AvailabilityRecoverySubsystem {
+	<span class="doccomment">/// Create a new instance of `AvailabilityRecoverySubsystem` which never requests the  
+	/// `AvailabilityStoreSubsystem` subsystem.
+	</span><span class="kw">pub fn </span>with_availability_store_skip(
+		req_receiver: IncomingRequestReceiver&lt;request_v1::AvailableDataFetchingRequest&gt;,
+		metrics: Metrics,
+	) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ fast_path: <span class="bool-val">false</span>, bypass_availability_store: <span class="bool-val">true</span>, req_receiver, metrics }
+	}
+
 	<span class="doccomment">/// Create a new instance of `AvailabilityRecoverySubsystem` which starts with a fast path to
 	/// request data from backers.
 	</span><span class="kw">pub fn </span>with_fast_path(
 		req_receiver: IncomingRequestReceiver&lt;request_v1::AvailableDataFetchingRequest&gt;,
 		metrics: Metrics,
 	) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ fast_path: <span class="bool-val">true</span>, req_receiver, metrics }
+		<span class="self">Self </span>{ fast_path: <span class="bool-val">true</span>, bypass_availability_store: <span class="bool-val">false</span>, req_receiver, metrics }
 	}
 
 	<span class="doccomment">/// Create a new instance of `AvailabilityRecoverySubsystem` which requests only chunks
@@ -2070,12 +2123,12 @@
 		req_receiver: IncomingRequestReceiver&lt;request_v1::AvailableDataFetchingRequest&gt;,
 		metrics: Metrics,
 	) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ fast_path: <span class="bool-val">false</span>, req_receiver, metrics }
+		<span class="self">Self </span>{ fast_path: <span class="bool-val">false</span>, bypass_availability_store: <span class="bool-val">false</span>, req_receiver, metrics }
 	}
 
 	<span class="kw">async fn </span>run&lt;Context&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>ctx: Context) -&gt; SubsystemResult&lt;()&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>state = State::default();
-		<span class="kw">let </span><span class="self">Self </span>{ fast_path, <span class="kw-2">mut </span>req_receiver, metrics } = <span class="self">self</span>;
+		<span class="kw">let </span><span class="self">Self </span>{ fast_path, <span class="kw-2">mut </span>req_receiver, metrics, bypass_availability_store } = <span class="self">self</span>;
 
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>recv_req = req_receiver.recv(|| <span class="macro">vec!</span>[COST_INVALID_REQUEST]).fuse();
@@ -2104,6 +2157,7 @@
 										session_index,
 										maybe_backing_group.filter(|<span class="kw">_</span>| fast_path),
 										response_sender,
+										bypass_availability_store,
 										<span class="kw-2">&amp;</span>metrics,
 									).<span class="kw">await </span>{
 										<span class="macro">gum::warn!</span>(
@@ -2120,6 +2174,14 @@
 				in_req = recv_req =&gt; {
 					<span class="kw">match </span>in_req.into_nested().map_err(|fatal| SubsystemError::with_origin(<span class="string">&quot;availability-recovery&quot;</span>, fatal))<span class="question-mark">? </span>{
 						<span class="prelude-val">Ok</span>(req) =&gt; {
+							<span class="kw">if </span>bypass_availability_store {
+								<span class="macro">gum::debug!</span>(
+									target: LOG_TARGET,
+									<span class="string">&quot;Skipping request to availability-store.&quot;</span>,
+								);
+								<span class="kw">let _ </span>= req.send_response(<span class="prelude-val">None</span>.into());
+								<span class="kw">continue
+							</span>}
 							<span class="kw">match </span>query_full_data(<span class="kw-2">&amp;mut </span>ctx, req.payload.candidate_hash).<span class="kw">await </span>{
 								<span class="prelude-val">Ok</span>(res) =&gt; {
 									<span class="kw">let _ </span>= req.send_response(res.into());
