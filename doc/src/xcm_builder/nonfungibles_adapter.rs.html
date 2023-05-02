@@ -325,6 +325,23 @@
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -352,6 +369,8 @@
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_executor::traits::{Convert, Error <span class="kw">as </span>MatchError, MatchesNonFungibles, TransactAsset};
 
+<span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;xcm::nonfungibles_adapter&quot;</span>;
+
 <span class="kw">pub struct </span>NonFungiblesTransferAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;(
 	PhantomData&lt;(Assets, Matcher, AccountIdConverter, AccountId)&gt;,
 );
@@ -369,9 +388,12 @@
 		context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; result::Result&lt;xcm_executor::Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::non_fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;transfer_asset what: {:?}, from: {:?}, to: {:?}, context: {:?}&quot;</span>,
-			what, from, to, context,
+			what,
+			from,
+			to,
+			context,
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
@@ -453,9 +475,11 @@
 {
 	<span class="kw">fn </span>can_check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;can_check_in origin: {:?}, what: {:?}, context: {:?}&quot;</span>,
-			_origin, what, context,
+			_origin,
+			what,
+			context,
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
@@ -470,9 +494,11 @@
 
 	<span class="kw">fn </span>check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;check_in origin: {:?}, what: {:?}, context: {:?}&quot;</span>,
-			_origin, what, context,
+			_origin,
+			what,
+			context,
 		);
 		<span class="kw">if let </span><span class="prelude-val">Ok</span>((class, instance)) = Matcher::matches_nonfungibles(what) {
 			<span class="kw">match </span>CheckAsset::asset_checking(<span class="kw-2">&amp;</span>class) {
@@ -487,9 +513,11 @@
 
 	<span class="kw">fn </span>can_check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;can_check_out dest: {:?}, what: {:?}, context: {:?}&quot;</span>,
-			_dest, what, context,
+			_dest,
+			what,
+			context,
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
@@ -504,9 +532,11 @@
 
 	<span class="kw">fn </span>check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, what: <span class="kw-2">&amp;</span>MultiAsset, context: <span class="kw-2">&amp;</span>XcmContext) {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;check_out dest: {:?}, what: {:?}, context: {:?}&quot;</span>,
-			_dest, what, context,
+			_dest,
+			what,
+			context,
 		);
 		<span class="kw">if let </span><span class="prelude-val">Ok</span>((class, instance)) = Matcher::matches_nonfungibles(what) {
 			<span class="kw">match </span>CheckAsset::asset_checking(<span class="kw-2">&amp;</span>class) {
@@ -521,9 +551,11 @@
 
 	<span class="kw">fn </span>deposit_asset(what: <span class="kw-2">&amp;</span>MultiAsset, who: <span class="kw-2">&amp;</span>MultiLocation, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; XcmResult {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;deposit_asset what: {:?}, who: {:?}, context: {:?}&quot;</span>,
-			what, who, context,
+			what,
+			who,
+			context,
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
@@ -539,9 +571,11 @@
 		maybe_context: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>XcmContext&gt;,
 	) -&gt; result::Result&lt;xcm_executor::Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(
-			target: <span class="string">&quot;xcm::fungibles_adapter&quot;</span>,
+			target: LOG_TARGET,
 			<span class="string">&quot;withdraw_asset what: {:?}, who: {:?}, maybe_context: {:?}&quot;</span>,
-			what, who, maybe_context,
+			what,
+			who,
+			maybe_context,
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
