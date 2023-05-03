@@ -2187,6 +2187,19 @@
 <a href="#2187" id="2187">2187</a>
 <a href="#2188" id="2188">2188</a>
 <a href="#2189" id="2189">2189</a>
+<a href="#2190" id="2190">2190</a>
+<a href="#2191" id="2191">2191</a>
+<a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3666,12 +3679,25 @@
 <span class="doccomment">/// All migrations that will run on the next runtime upgrade.
 ///
 /// This contains the combined migrations of the last 10 releases. It allows to skip runtime
-/// upgrades in case governance decides to do so.
-</span><span class="kw">pub type </span>Migrations = (
-	<span class="comment">// Unreleased - add new migrations here:
-	</span>parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
-	pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
-);
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+</span><span class="kw">pub type </span>Migrations =
+	(migrations::V0940, migrations::V0941, migrations::V0942, migrations::Unreleased);
+
+<span class="doccomment">/// The runtime migrations per release.
+</span><span class="attr">#[allow(deprecated, missing_docs)]
+</span><span class="kw">pub mod </span>migrations {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+	<span class="kw">pub type </span>V0940 = ();
+	<span class="kw">pub type </span>V0941 = (); <span class="comment">// Node only release - no migrations.
+	</span><span class="kw">pub type </span>V0942 = (
+		parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
+		pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
+	);
+
+	<span class="doccomment">/// Unreleased migrations. Add new ones here:
+	</span><span class="kw">pub type </span>Unreleased = ();
+}
 
 <span class="doccomment">/// Executive: handles dispatch to the various modules.
 </span><span class="kw">pub type </span>Executive = frame_executive::Executive&lt;

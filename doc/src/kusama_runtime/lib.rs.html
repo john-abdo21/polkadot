@@ -2346,6 +2346,18 @@
 <a href="#2346" id="2346">2346</a>
 <a href="#2347" id="2347">2347</a>
 <a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
+<a href="#2351" id="2351">2351</a>
+<a href="#2352" id="2352">2352</a>
+<a href="#2353" id="2353">2353</a>
+<a href="#2354" id="2354">2354</a>
+<a href="#2355" id="2355">2355</a>
+<a href="#2356" id="2356">2356</a>
+<a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3808,20 +3820,32 @@
 <span class="doccomment">/// All migrations that will run on the next runtime upgrade.
 ///
 /// This contains the combined migrations of the last 10 releases. It allows to skip runtime
-/// upgrades in case governance decides to do so.
-</span><span class="attr">#[allow(deprecated)]
-</span><span class="kw">pub type </span>Migrations = (
-	<span class="comment">// 0.9.40
-	</span>pallet_nomination_pools::migration::v4::MigrateToV4&lt;
-		Runtime,
-		NominationPoolsMigrationV4OldPallet,
-	&gt;,
-	pallet_nomination_pools::migration::v5::MigrateToV5&lt;Runtime&gt;,
-	<span class="comment">// Unreleased - add new migrations here:
-	</span>parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
-	pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
-	runtime_common::session::migration::ClearOldSessionStorage&lt;Runtime&gt;,
-);
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+</span><span class="kw">pub type </span>Migrations =
+	(migrations::V0940, migrations::V0941, migrations::V0942, migrations::Unreleased);
+
+<span class="doccomment">/// The runtime migrations per release.
+</span><span class="attr">#[allow(deprecated, missing_docs)]
+</span><span class="kw">pub mod </span>migrations {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+	<span class="kw">pub type </span>V0940 = (
+		pallet_nomination_pools::migration::v4::MigrateToV4&lt;
+			Runtime,
+			NominationPoolsMigrationV4OldPallet,
+		&gt;,
+		pallet_nomination_pools::migration::v5::MigrateToV5&lt;Runtime&gt;,
+	);
+	<span class="kw">pub type </span>V0941 = (); <span class="comment">// Node only release - no migrations.
+	</span><span class="kw">pub type </span>V0942 = (
+		parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
+		pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
+		runtime_common::session::migration::ClearOldSessionStorage&lt;Runtime&gt;,
+	);
+
+	<span class="doccomment">/// Unreleased migrations. Add new ones here:
+	</span><span class="kw">pub type </span>Unreleased = ();
+}
 
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
