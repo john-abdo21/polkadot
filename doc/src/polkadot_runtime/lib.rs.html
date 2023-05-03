@@ -2389,6 +2389,27 @@
 <a href="#2389" id="2389">2389</a>
 <a href="#2390" id="2390">2390</a>
 <a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
+<a href="#2404" id="2404">2404</a>
+<a href="#2405" id="2405">2405</a>
+<a href="#2406" id="2406">2406</a>
+<a href="#2407" id="2407">2407</a>
+<a href="#2408" id="2408">2408</a>
+<a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2419,8 +2440,9 @@
 
 <span class="kw">use </span>runtime_parachains::{
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
-	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
-	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
+	disputes::slashing <span class="kw">as </span>parachains_slashing, dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp,
+	inclusion <span class="kw">as </span>parachains_inclusion, initializer <span class="kw">as </span>parachains_initializer,
+	origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent, reward_points <span class="kw">as </span>parachains_reward_points,
 	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl, scheduler <span class="kw">as </span>parachains_scheduler,
 	session_info <span class="kw">as </span>parachains_session_info, shared <span class="kw">as </span>parachains_shared, ump <span class="kw">as </span>parachains_ump,
@@ -2855,9 +2877,9 @@
 	<span class="kw">type </span>OffchainRepeat = OffchainRepeat;
 	<span class="kw">type </span>MinerTxPriority = NposSolutionPriority;
 	<span class="kw">type </span>DataProvider = Staking;
-	<span class="attr">#[cfg(feature = <span class="string">&quot;fast-runtime&quot;</span>)]
+	<span class="attr">#[cfg(any(feature = <span class="string">&quot;fast-runtime&quot;</span>, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
 	</span><span class="kw">type </span>Fallback = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
-	<span class="attr">#[cfg(not(feature = <span class="string">&quot;fast-runtime&quot;</span>))]
+	<span class="attr">#[cfg(not(any(feature = <span class="string">&quot;fast-runtime&quot;</span>, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)))]
 	</span><span class="kw">type </span>Fallback = frame_election_provider_support::NoElection&lt;(
 		AccountId,
 		BlockNumber,
@@ -3537,9 +3559,26 @@
 
 <span class="kw">impl </span>parachains_disputes::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>RewardValidators = ();
-	<span class="kw">type </span>SlashingHandler = ();
+	<span class="kw">type </span>RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints&lt;Runtime&gt;;
+	<span class="kw">type </span>SlashingHandler = parachains_slashing::SlashValidatorsForDisputes&lt;ParasSlashing&gt;;
 	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_disputes::WeightInfo&lt;Runtime&gt;;
+}
+
+<span class="kw">impl </span>parachains_slashing::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>KeyOwnerProofSystem = Historical;
+	<span class="kw">type </span>KeyOwnerProof =
+		&lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, ValidatorId)&gt;&gt;::Proof;
+	<span class="kw">type </span>KeyOwnerIdentification = &lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(
+		KeyTypeId,
+		ValidatorId,
+	)&gt;&gt;::IdentificationTuple;
+	<span class="kw">type </span>HandleReports = parachains_slashing::SlashingReportHandler&lt;
+		<span class="self">Self</span>::KeyOwnerIdentification,
+		Offences,
+		ReportLongevity,
+	&gt;;
+	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_disputes_slashing::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>BenchmarkingConfig = parachains_slashing::BenchConfig&lt;<span class="number">1000</span>&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -3763,6 +3802,7 @@
 		Hrmp: parachains_hrmp::{Pallet, Call, Storage, Event&lt;T&gt;, Config} = <span class="number">60</span>,
 		ParaSessionInfo: parachains_session_info::{Pallet, Storage} = <span class="number">61</span>,
 		ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
+		ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = <span class="number">63</span>,
 
 		<span class="comment">// Parachain Onboarding Pallets. Start indices at 70 to leave room.
 		</span>Registrar: paras_registrar::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">70</span>,
@@ -3855,6 +3895,7 @@
 		[runtime_common::paras_registrar, Registrar]
 		[runtime_parachains::configuration, Configuration]
 		[runtime_parachains::disputes, ParasDisputes]
+		[runtime_parachains::disputes::slashing, ParasSlashing]
 		[runtime_parachains::hrmp, Hrmp]
 		[runtime_parachains::initializer, Initializer]
 		[runtime_parachains::paras, Paras]
@@ -4367,6 +4408,7 @@
 			<span class="kw">impl </span>frame_system_benchmarking::Config <span class="kw">for </span>Runtime {}
 			<span class="kw">impl </span>frame_benchmarking::baseline::Config <span class="kw">for </span>Runtime {}
 			<span class="kw">impl </span>pallet_nomination_pools_benchmarking::Config <span class="kw">for </span>Runtime {}
+			<span class="kw">impl </span>runtime_parachains::disputes::slashing::benchmarking::Config <span class="kw">for </span>Runtime {}
 
 			<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
 				<span class="comment">// Block Number
