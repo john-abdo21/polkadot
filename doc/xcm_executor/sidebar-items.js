@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["traits","Various traits used in configuring the executor."]],"struct":[["Assets","List of non-wildcard fungible and non-fungible assets."],["ExecutorError",""],["FeesMode","A struct to specify how fees are being paid."],["WeighedMessage",""],["XcmExecutor","The XCM executor."]],"trait":[["Config","The trait to parameterize the `XcmExecutor`."]]};
+window.SIDEBAR_ITEMS = {"mod":["traits"],"struct":["Assets","ExecutorError","FeesMode","WeighedMessage","XcmExecutor"],"trait":["Config"]};

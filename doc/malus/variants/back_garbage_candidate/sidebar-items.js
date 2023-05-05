@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BackGarbageCandidateOptions",""],["BackGarbageCandidates","Generates an overseer that replaces the candidate validation subsystem with our malicious variant."]]};
+window.SIDEBAR_ITEMS = {"static":["DEFAULT_VALUE"],"struct":["BackGarbageCandidateOptions","BackGarbageCandidates"]};

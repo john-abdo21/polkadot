@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ClearOldSessionStorage","This migration clears everything under `Session::HistoricalSessions` and `Session::StoredRange` that were not cleared when the pallet was moved to its new prefix (`Historical`)  "]]};
+window.SIDEBAR_ITEMS = {"struct":["ClearOldSessionStorage"]};

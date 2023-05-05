@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["PvfCheckerSubsystem","PVF pre-checking subsystem."]]};
+window.SIDEBAR_ITEMS = {"struct":["PvfCheckerSubsystem"]};

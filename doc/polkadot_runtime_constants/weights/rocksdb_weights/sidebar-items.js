@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["constants","Storage DB weights for the `Polkadot` runtime and `RocksDb`."]]};
+window.SIDEBAR_ITEMS = {"mod":["constants"]};

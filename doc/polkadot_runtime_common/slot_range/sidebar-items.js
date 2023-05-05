@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["SlotRange","A compactly represented sub-range from the series."]]};
+window.SIDEBAR_ITEMS = {"enum":["SlotRange"]};

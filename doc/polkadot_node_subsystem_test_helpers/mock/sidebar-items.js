@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["make_ferdie_keystore","Get mock keystore with `Ferdie` key."]]};
+window.SIDEBAR_ITEMS = {"fn":["make_ferdie_keystore"]};

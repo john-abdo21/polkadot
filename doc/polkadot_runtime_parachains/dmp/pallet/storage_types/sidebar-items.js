@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DeliveryFeeFactor","The number to multiply the base delivery fee by."],["DownwardMessageQueueHeads","A mapping that stores the downward message queue MQC head for each para."],["DownwardMessageQueues","The downward messages addressed for a certain para."]]};
+window.SIDEBAR_ITEMS = {"struct":["DeliveryFeeFactor","DownwardMessageQueueHeads","DownwardMessageQueues"]};

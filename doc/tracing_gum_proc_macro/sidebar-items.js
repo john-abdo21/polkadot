@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["debug","Print a debug level message."],["error","Print an error message."],["info","Print a info level message."],["trace","Print a trace level message."],["warn","Print a warning level message."]]};
+window.SIDEBAR_ITEMS = {"macro":["debug","error","info","trace","warn"]};

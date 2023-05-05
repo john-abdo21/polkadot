@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["METRICS",""]],"struct":[["Metrics",""]]};
+window.SIDEBAR_ITEMS = {"constant":["METRICS"],"struct":["Metrics"]};

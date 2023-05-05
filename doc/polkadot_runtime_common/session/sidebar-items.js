@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["migration",""]]};
+window.SIDEBAR_ITEMS = {"mod":["migration"]};

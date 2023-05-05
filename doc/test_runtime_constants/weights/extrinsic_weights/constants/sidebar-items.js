@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ExtrinsicBaseWeight","Executing a NO-OP `System::remarks` Extrinsic."]]};
+window.SIDEBAR_ITEMS = {"struct":["ExtrinsicBaseWeight"]};

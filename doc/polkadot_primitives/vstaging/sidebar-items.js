@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AsyncBackingParams","Candidate’s acceptance limitations for asynchronous backing per relay parent."]]};
+window.SIDEBAR_ITEMS = {"struct":["AsyncBackingParams"]};

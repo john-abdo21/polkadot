@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_uxt_polkadot",""]]};
+window.SIDEBAR_ITEMS = {"fn":["create_uxt_polkadot"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["emergency_solution_cmd_kusama","Execute the emergency-solution command."],["emergency_solution_cmd_polkadot","Execute the emergency-solution command."],["emergency_solution_cmd_westend","Execute the emergency-solution command."]],"macro":[["emergency_solution_cmd_for",""]]};
+window.SIDEBAR_ITEMS = {"fn":["emergency_solution_cmd_kusama","emergency_solution_cmd_polkadot","emergency_solution_cmd_westend"],"macro":["emergency_solution_cmd_for"]};

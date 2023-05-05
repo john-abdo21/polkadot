@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""]],"mod":[["cli","Polkadot CLI library."]]};
+window.SIDEBAR_ITEMS = {"fn":["main"],"mod":["cli"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["GossipSupport","The Gossip Support subsystem."]]};
+window.SIDEBAR_ITEMS = {"struct":["GossipSupport"]};

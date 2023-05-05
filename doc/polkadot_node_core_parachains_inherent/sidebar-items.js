@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"struct":[["ParachainsInherentDataProvider","Provides the parachains inherent data."]]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"struct":["ParachainsInherentDataProvider"]};

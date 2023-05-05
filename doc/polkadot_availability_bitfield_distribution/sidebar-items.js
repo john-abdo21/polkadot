@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BitfieldDistribution","The bitfield distribution subsystem."]]};
+window.SIDEBAR_ITEMS = {"struct":["BitfieldDistribution"]};

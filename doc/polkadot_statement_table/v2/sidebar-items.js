@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":[["Misbehavior","Kinds of misbehavior, along with proof."],["SignedStatement","Signed statements about candidates."],["Statement","Statements about candidates on the network."],["Summary","A summary of import of a statement."]]};
+window.SIDEBAR_ITEMS = {"type":["Misbehavior","SignedStatement","Statement","Summary"]};

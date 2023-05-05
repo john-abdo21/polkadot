@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["NetworkBridgeEvent","Events from network."]],"struct":[["NewGossipTopology","A struct indicating new gossip topology."],["PeerId","Identifier of a peer of the network."],["ReputationChange","Description of a reputation adjustment for a node."]]};
+window.SIDEBAR_ITEMS = {"enum":["NetworkBridgeEvent"],"struct":["NewGossipTopology","PeerId","ReputationChange"]};

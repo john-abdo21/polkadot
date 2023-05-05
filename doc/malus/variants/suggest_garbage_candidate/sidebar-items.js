@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["NoteCandidate","Replace outgoing approval messages with disputes."],["SuggestGarbageCandidateOptions",""],["SuggestGarbageCandidates","Garbage candidate implementation wrapper which implements `OverseerGen` glue."]]};
+window.SIDEBAR_ITEMS = {"static":["CALLSITE","DEFAULT_VALUE","META"],"struct":["NoteCandidate","SuggestGarbageCandidateOptions","SuggestGarbageCandidates"]};
