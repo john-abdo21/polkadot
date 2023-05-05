@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AvailabilityRecoverySubsystem","The Availability Recovery Subsystem."]]};
+window.SIDEBAR_ITEMS = {"enum":[["RecoveryStrategy","The strategy we use to recover the PoV."]],"struct":[["AvailabilityRecoverySubsystem","The Availability Recovery Subsystem."]]};
