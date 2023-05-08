@@ -2213,6 +2213,28 @@
 <a href="#2213" id="2213">2213</a>
 <a href="#2214" id="2214">2214</a>
 <a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
+<a href="#2234" id="2234">2234</a>
+<a href="#2235" id="2235">2235</a>
+<a href="#2236" id="2236">2236</a>
+<a href="#2237" id="2237">2237</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -4168,6 +4190,7 @@
 	<span class="kw">use super</span>::{Pallet <span class="kw">as </span>Crowdloan, <span class="kw-2">*</span>};
 	<span class="kw">use </span>frame_support::{assert_ok, traits::OnInitialize};
 	<span class="kw">use </span>frame_system::RawOrigin;
+	<span class="kw">use </span>runtime_parachains::paras;
 	<span class="kw">use </span>sp_core::crypto::UncheckedFrom;
 	<span class="kw">use </span>sp_runtime::traits::{Bounded, CheckedSub};
 	<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
@@ -4182,7 +4205,7 @@
 		<span class="macro">assert_eq!</span>(event, <span class="kw-2">&amp;</span>system_event);
 	}
 
-	<span class="kw">fn </span>create_fund&lt;T: Config&gt;(id: u32, end: T::BlockNumber) -&gt; ParaId {
+	<span class="kw">fn </span>create_fund&lt;T: Config + paras::Config&gt;(id: u32, end: T::BlockNumber) -&gt; ParaId {
 		<span class="kw">let </span>cap = BalanceOf::&lt;T&gt;::max_value();
 		<span class="kw">let </span>(<span class="kw">_</span>, offset) = T::Auctioneer::lease_period_length();
 		<span class="comment">// Set to the very beginning of lease period index 0.
@@ -4202,7 +4225,16 @@
 
 		<span class="kw">let </span>head_data = T::Registrar::worst_head_data();
 		<span class="kw">let </span>validation_code = T::Registrar::worst_validation_code();
-		<span class="macro">assert_ok!</span>(T::Registrar::register(caller.clone(), para_id, head_data, validation_code));
+		<span class="macro">assert_ok!</span>(T::Registrar::register(
+			caller.clone(),
+			para_id,
+			head_data,
+			validation_code.clone()
+		));
+		<span class="macro">assert_ok!</span>(paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+			frame_system::Origin::&lt;T&gt;::Root.into(),
+			validation_code,
+		));
 		T::Registrar::execute_pending_transitions();
 
 		<span class="macro">assert_ok!</span>(Crowdloan::&lt;T&gt;::create(
@@ -4235,6 +4267,8 @@
 	}
 
 	<span class="macro">benchmarks! </span>{
+		where_clause { <span class="kw">where </span>T: paras::Config }
+
 		create {
 			<span class="kw">let </span>para_id = ParaId::from(<span class="number">1_u32</span>);
 			<span class="kw">let </span>cap = BalanceOf::&lt;T&gt;::max_value();
@@ -4250,7 +4284,12 @@
 			<span class="kw">let </span>verifier = MultiSigner::unchecked_from(account::&lt;[u8; <span class="number">32</span>]&gt;(<span class="string">&quot;verifier&quot;</span>, <span class="number">0</span>, <span class="number">0</span>));
 
 			CurrencyOf::&lt;T&gt;::make_free_balance_be(<span class="kw-2">&amp;</span>caller, BalanceOf::&lt;T&gt;::max_value());
-			T::Registrar::register(caller.clone(), para_id, head_data, validation_code)<span class="question-mark">?</span>;
+			T::Registrar::register(caller.clone(), para_id, head_data, validation_code.clone())<span class="question-mark">?</span>;
+			<span class="macro">assert_ok!</span>(paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+				frame_system::Origin::&lt;T&gt;::Root.into(),
+				validation_code,
+			));
+
 			T::Registrar::execute_pending_transitions();
 
 		}: <span class="kw">_</span>(RawOrigin::Signed(caller), para_id, cap, first_period, last_period, end, <span class="prelude-val">Some</span>(verifier))
@@ -4338,7 +4377,12 @@
 			<span class="kw">let </span>verifier = MultiSigner::unchecked_from(account::&lt;[u8; <span class="number">32</span>]&gt;(<span class="string">&quot;verifier&quot;</span>, <span class="number">0</span>, <span class="number">0</span>));
 
 			CurrencyOf::&lt;T&gt;::make_free_balance_be(<span class="kw-2">&amp;</span>caller, BalanceOf::&lt;T&gt;::max_value());
-			T::Registrar::register(caller.clone(), para_id, head_data, validation_code)<span class="question-mark">?</span>;
+			T::Registrar::register(caller.clone(), para_id, head_data, validation_code.clone())<span class="question-mark">?</span>;
+			<span class="macro">assert_ok!</span>(paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+				frame_system::Origin::&lt;T&gt;::Root.into(),
+				validation_code,
+			));
+
 			T::Registrar::execute_pending_transitions();
 
 			Crowdloan::&lt;T&gt;::create(

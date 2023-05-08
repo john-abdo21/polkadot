@@ -1156,6 +1156,14 @@
 <a href="#1156" id="1156">1156</a>
 <a href="#1157" id="1157">1157</a>
 <a href="#1158" id="1158">1158</a>
+<a href="#1159" id="1159">1159</a>
+<a href="#1160" id="1160">1160</a>
+<a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2146,6 +2154,7 @@
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::assert_ok;
 	<span class="kw">use </span>frame_system::RawOrigin;
+	<span class="kw">use </span>runtime_parachains::paras;
 	<span class="kw">use </span>sp_runtime::traits::{Bounded, One};
 
 	<span class="kw">use </span>frame_benchmarking::{account, benchmarks, whitelisted_caller, BenchmarkError};
@@ -2160,7 +2169,7 @@
 		<span class="macro">assert_eq!</span>(event, <span class="kw-2">&amp;</span>system_event);
 	}
 
-	<span class="kw">fn </span>register_a_parathread&lt;T: Config&gt;(i: u32) -&gt; (ParaId, T::AccountId) {
+	<span class="kw">fn </span>register_a_parathread&lt;T: Config + paras::Config&gt;(i: u32) -&gt; (ParaId, T::AccountId) {
 		<span class="kw">let </span>para = ParaId::from(i);
 		<span class="kw">let </span>leaser: T::AccountId = account(<span class="string">&quot;leaser&quot;</span>, i, <span class="number">0</span>);
 		T::Currency::make_free_balance_be(<span class="kw-2">&amp;</span>leaser, BalanceOf::&lt;T&gt;::max_value());
@@ -2171,14 +2180,21 @@
 			leaser.clone(),
 			para,
 			worst_head_data,
-			worst_validation_code
+			worst_validation_code.clone(),
 		));
+		<span class="macro">assert_ok!</span>(paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+			frame_system::Origin::&lt;T&gt;::Root.into(),
+			worst_validation_code,
+		));
+
 		T::Registrar::execute_pending_transitions();
 
 		(para, leaser)
 	}
 
 	<span class="macro">benchmarks! </span>{
+		where_clause { <span class="kw">where </span>T: paras::Config }
+
 		force_lease {
 			<span class="comment">// If there is an offset, we need to be on that block to be able to do lease things.
 			</span>frame_system::Pallet::&lt;T&gt;::set_block_number(T::LeaseOffset::get() + One::one());

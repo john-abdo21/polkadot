@@ -1497,6 +1497,70 @@
 <a href="#1497" id="1497">1497</a>
 <a href="#1498" id="1498">1498</a>
 <a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2154,7 +2218,9 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use crate</span>::{paras_registrar, traits::Registrar <span class="kw">as </span>RegistrarTrait};
+	<span class="kw">use crate</span>::{
+		mock::conclude_pvf_checking, paras_registrar, traits::Registrar <span class="kw">as </span>RegistrarTrait,
+	};
 	<span class="kw">use </span>frame_support::{
 		assert_noop, assert_ok,
 		error::BadOrigin,
@@ -2163,10 +2229,11 @@
 	};
 	<span class="kw">use </span>frame_system::limits;
 	<span class="kw">use </span>pallet_balances::Error <span class="kw">as </span>BalancesError;
-	<span class="kw">use </span>primitives::{Balance, BlockNumber, Header};
+	<span class="kw">use </span>primitives::{Balance, BlockNumber, Header, SessionIndex};
 	<span class="kw">use </span>runtime_parachains::{configuration, origin, shared};
 	<span class="kw">use </span>sp_core::H256;
 	<span class="kw">use </span>sp_io::TestExternalities;
+	<span class="kw">use </span>sp_keyring::Sr25519Keyring;
 	<span class="kw">use </span>sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
 		transaction_validity::TransactionPriority,
@@ -2334,6 +2401,14 @@
 
 	<span class="kw">const </span>BLOCKS_PER_SESSION: u32 = <span class="number">3</span>;
 
+	<span class="kw">const </span>VALIDATORS: <span class="kw-2">&amp;</span>[Sr25519Keyring] = <span class="kw-2">&amp;</span>[
+		Sr25519Keyring::Alice,
+		Sr25519Keyring::Bob,
+		Sr25519Keyring::Charlie,
+		Sr25519Keyring::Dave,
+		Sr25519Keyring::Ferdie,
+	];
+
 	<span class="kw">fn </span>run_to_block(n: BlockNumber) {
 		<span class="comment">// NOTE that this function only simulates modules of interest. Depending on new pallet may
 		// require adding it here.
@@ -2346,9 +2421,12 @@
 			}
 			<span class="comment">// Session change every 3 blocks.
 			</span><span class="kw">if </span>(b + <span class="number">1</span>) % BLOCKS_PER_SESSION == <span class="number">0 </span>{
-				shared::Pallet::&lt;Test&gt;::set_session_index(
-					shared::Pallet::&lt;Test&gt;::session_index() + <span class="number">1</span>,
-				);
+				<span class="kw">let </span>session_index = shared::Pallet::&lt;Test&gt;::session_index() + <span class="number">1</span>;
+				<span class="kw">let </span>validators_pub_keys = VALIDATORS.iter().map(|v| v.public().into()).collect();
+
+				shared::Pallet::&lt;Test&gt;::set_session_index(session_index);
+				shared::Pallet::&lt;Test&gt;::set_active_validators_ascending(validators_pub_keys);
+
 				Parachains::test_on_new_session();
 			}
 			System::set_block_number(b + <span class="number">1</span>);
@@ -2394,35 +2472,41 @@
 	</span><span class="kw">fn </span>end_to_end_scenario_works() {
 		new_test_ext().execute_with(|| {
 			<span class="kw">let </span>para_id = LOWEST_PUBLIC_ID;
-			run_to_block(<span class="number">1</span>);
+
+			<span class="kw">const </span>START_SESSION_INDEX: SessionIndex = <span class="number">1</span>;
+			run_to_session(START_SESSION_INDEX);
+
 			<span class="comment">// first para is not yet registered
 			</span><span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
 			<span class="comment">// We register the Para ID
-			</span><span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
+			</span><span class="kw">let </span>validation_code = test_validation_code(<span class="number">32</span>);
+			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">1</span>),
 				para_id,
 				test_genesis_head(<span class="number">32</span>),
-				test_validation_code(<span class="number">32</span>),
+				validation_code.clone(),
 			));
-			run_to_session(<span class="number">2</span>);
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
+
+			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 			<span class="comment">// It is now a parathread.
 			</span><span class="macro">assert!</span>(Parachains::is_parathread(para_id));
 			<span class="macro">assert!</span>(!Parachains::is_parachain(para_id));
 			<span class="comment">// Some other external process will elevate parathread to parachain
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parachain(para_id));
-			run_to_session(<span class="number">4</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
 			<span class="comment">// It is now a parachain.
 			</span><span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
 			<span class="macro">assert!</span>(Parachains::is_parachain(para_id));
 			<span class="comment">// Turn it back into a parathread
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parathread(para_id));
-			run_to_session(<span class="number">6</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">6</span>);
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_id));
 			<span class="macro">assert!</span>(!Parachains::is_parachain(para_id));
 			<span class="comment">// Deregister it
 			</span><span class="macro">assert_ok!</span>(Registrar::deregister(RuntimeOrigin::root(), para_id,));
-			run_to_session(<span class="number">8</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">8</span>);
 			<span class="comment">// It is nothing
 			</span><span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
 			<span class="macro">assert!</span>(!Parachains::is_parachain(para_id));
@@ -2432,18 +2516,24 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>register_works() {
 		new_test_ext().execute_with(|| {
-			run_to_block(<span class="number">1</span>);
+			<span class="kw">const </span>START_SESSION_INDEX: SessionIndex = <span class="number">1</span>;
+			run_to_session(START_SESSION_INDEX);
+
 			<span class="kw">let </span>para_id = LOWEST_PUBLIC_ID;
 			<span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
+
+			<span class="kw">let </span>validation_code = test_validation_code(<span class="number">32</span>);
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
 			<span class="macro">assert_eq!</span>(Balances::reserved_balance(<span class="kw-2">&amp;</span><span class="number">1</span>), &lt;Test <span class="kw">as </span>Config&gt;::ParaDeposit::get());
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">1</span>),
 				para_id,
 				test_genesis_head(<span class="number">32</span>),
-				test_validation_code(<span class="number">32</span>),
+				validation_code.clone(),
 			));
-			run_to_session(<span class="number">2</span>);
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
+
+			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_id));
 			<span class="macro">assert_eq!</span>(
 				Balances::reserved_balance(<span class="kw-2">&amp;</span><span class="number">1</span>),
@@ -2487,8 +2577,8 @@
 				test_genesis_head(max_head_size() <span class="kw">as </span>usize),
 				test_validation_code(max_code_size() <span class="kw">as </span>usize),
 			));
-
-			run_to_session(<span class="number">2</span>);
+			<span class="comment">// Can skip pre-check and deregister para which&#39;s still onboarding.
+			</span>run_to_session(<span class="number">2</span>);
 
 			<span class="macro">assert_ok!</span>(Registrar::deregister(RuntimeOrigin::root(), para_id));
 
@@ -2537,20 +2627,26 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>deregister_works() {
 		new_test_ext().execute_with(|| {
-			run_to_block(<span class="number">1</span>);
+			<span class="kw">const </span>START_SESSION_INDEX: SessionIndex = <span class="number">1</span>;
+			run_to_session(START_SESSION_INDEX);
+
 			<span class="kw">let </span>para_id = LOWEST_PUBLIC_ID;
 			<span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
+
+			<span class="kw">let </span>validation_code = test_validation_code(<span class="number">32</span>);
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">1</span>),
 				para_id,
 				test_genesis_head(<span class="number">32</span>),
-				test_validation_code(<span class="number">32</span>),
+				validation_code.clone(),
 			));
-			run_to_session(<span class="number">2</span>);
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
+
+			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_id));
 			<span class="macro">assert_ok!</span>(Registrar::deregister(RuntimeOrigin::root(), para_id,));
-			run_to_session(<span class="number">4</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
 			<span class="macro">assert!</span>(paras::Pallet::&lt;Test&gt;::lifecycle(para_id).is_none());
 			<span class="macro">assert_eq!</span>(Balances::reserved_balance(<span class="kw-2">&amp;</span><span class="number">1</span>), <span class="number">0</span>);
 		});
@@ -2559,22 +2655,28 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>deregister_handles_basic_errors() {
 		new_test_ext().execute_with(|| {
-			run_to_block(<span class="number">1</span>);
+			<span class="kw">const </span>START_SESSION_INDEX: SessionIndex = <span class="number">1</span>;
+			run_to_session(START_SESSION_INDEX);
+
 			<span class="kw">let </span>para_id = LOWEST_PUBLIC_ID;
 			<span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
+
+			<span class="kw">let </span>validation_code = test_validation_code(<span class="number">32</span>);
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">1</span>),
 				para_id,
 				test_genesis_head(<span class="number">32</span>),
-				test_validation_code(<span class="number">32</span>),
+				validation_code.clone(),
 			));
-			run_to_session(<span class="number">2</span>);
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
+
+			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_id));
 			<span class="comment">// Owner check
 			</span><span class="macro">assert_noop!</span>(Registrar::deregister(RuntimeOrigin::signed(<span class="number">2</span>), para_id,), BadOrigin);
 			<span class="macro">assert_ok!</span>(Registrar::make_parachain(para_id));
-			run_to_session(<span class="number">4</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
 			<span class="comment">// Cant directly deregister parachain
 			</span><span class="macro">assert_noop!</span>(
 				Registrar::deregister(RuntimeOrigin::root(), para_id,),
@@ -2586,24 +2688,31 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>swap_works() {
 		new_test_ext().execute_with(|| {
+			<span class="kw">const </span>START_SESSION_INDEX: SessionIndex = <span class="number">1</span>;
+			run_to_session(START_SESSION_INDEX);
+
 			<span class="comment">// Successfully register first two parachains
 			</span><span class="kw">let </span>para_1 = LOWEST_PUBLIC_ID;
 			<span class="kw">let </span>para_2 = LOWEST_PUBLIC_ID + <span class="number">1</span>;
+
+			<span class="kw">let </span>validation_code = test_validation_code(max_code_size() <span class="kw">as </span>usize);
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">1</span>),
 				para_1,
 				test_genesis_head(max_head_size() <span class="kw">as </span>usize),
-				test_validation_code(max_code_size() <span class="kw">as </span>usize),
+				validation_code.clone(),
 			));
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">2</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">2</span>),
 				para_2,
 				test_genesis_head(max_head_size() <span class="kw">as </span>usize),
-				test_validation_code(max_code_size() <span class="kw">as </span>usize),
+				validation_code.clone(),
 			));
-			run_to_session(<span class="number">2</span>);
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
+
+			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 
 			<span class="comment">// Upgrade para 1 into a parachain
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parachain(para_1));
@@ -2614,7 +2723,7 @@
 			swap_data.insert(para_2, <span class="number">1337</span>);
 			SwapData::set(swap_data);
 
-			run_to_session(<span class="number">4</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
 
 			<span class="comment">// Roles are as we expect
 			</span><span class="macro">assert!</span>(Parachains::is_parachain(para_1));
@@ -2631,7 +2740,7 @@
 				other_id: para_1,
 			}));
 
-			run_to_session(<span class="number">6</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">6</span>);
 
 			<span class="comment">// Roles are swapped
 			</span><span class="macro">assert!</span>(!Parachains::is_parachain(para_1));
@@ -2658,15 +2767,17 @@
 
 			<span class="comment">// Parachain to parachain swap
 			</span><span class="kw">let </span>para_3 = LOWEST_PUBLIC_ID + <span class="number">2</span>;
+			<span class="kw">let </span>validation_code = test_validation_code(max_code_size() <span class="kw">as </span>usize);
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">3</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">3</span>),
 				para_3,
 				test_genesis_head(max_head_size() <span class="kw">as </span>usize),
-				test_validation_code(max_code_size() <span class="kw">as </span>usize),
+				validation_code.clone(),
 			));
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX + <span class="number">6</span>);
 
-			run_to_session(<span class="number">8</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">8</span>);
 
 			<span class="comment">// Upgrade para 3 into a parachain
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parachain(para_3));
@@ -2676,7 +2787,7 @@
 			swap_data.insert(para_3, <span class="number">777</span>);
 			SwapData::set(swap_data);
 
-			run_to_session(<span class="number">10</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">10</span>);
 
 			<span class="comment">// Both are parachains
 			</span><span class="macro">assert!</span>(Parachains::is_parachain(para_3));
@@ -2733,9 +2844,12 @@
 	<span class="attr">#[test]
 	</span><span class="kw">fn </span>swap_handles_bad_states() {
 		new_test_ext().execute_with(|| {
+			<span class="kw">const </span>START_SESSION_INDEX: SessionIndex = <span class="number">1</span>;
+			run_to_session(START_SESSION_INDEX);
+
 			<span class="kw">let </span>para_1 = LOWEST_PUBLIC_ID;
 			<span class="kw">let </span>para_2 = LOWEST_PUBLIC_ID + <span class="number">1</span>;
-			run_to_block(<span class="number">1</span>);
+
 			<span class="comment">// paras are not yet registered
 			</span><span class="macro">assert!</span>(!Parachains::is_parathread(para_1));
 			<span class="macro">assert!</span>(!Parachains::is_parathread(para_2));
@@ -2747,20 +2861,22 @@
 			);
 
 			<span class="comment">// We register Paras 1 and 2
-			</span><span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
+			</span><span class="kw">let </span>validation_code = test_validation_code(<span class="number">32</span>);
+			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">1</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::reserve(RuntimeOrigin::signed(<span class="number">2</span>)));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">1</span>),
 				para_1,
 				test_genesis_head(<span class="number">32</span>),
-				test_validation_code(<span class="number">32</span>),
+				validation_code.clone(),
 			));
 			<span class="macro">assert_ok!</span>(Registrar::register(
 				RuntimeOrigin::signed(<span class="number">2</span>),
 				para_2,
 				test_genesis_head(<span class="number">32</span>),
-				test_validation_code(<span class="number">32</span>),
+				validation_code.clone(),
 			));
+			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
 
 			<span class="comment">// Cannot swap
 			</span><span class="macro">assert_ok!</span>(Registrar::swap(RuntimeOrigin::root(), para_1, para_2));
@@ -2769,7 +2885,7 @@
 				Error::&lt;Test&gt;::CannotSwap
 			);
 
-			run_to_session(<span class="number">2</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 
 			<span class="comment">// They are now a parathread.
 			</span><span class="macro">assert!</span>(Parachains::is_parathread(para_1));
@@ -2792,7 +2908,7 @@
 				Error::&lt;Test&gt;::CannotSwap
 			);
 
-			run_to_session(<span class="number">3</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">3</span>);
 
 			<span class="comment">// Cannot swap
 			</span><span class="macro">assert_ok!</span>(Registrar::swap(RuntimeOrigin::root(), para_1, para_2));
@@ -2801,7 +2917,7 @@
 				Error::&lt;Test&gt;::CannotSwap
 			);
 
-			run_to_session(<span class="number">4</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
 
 			<span class="comment">// It is now a parachain.
 			</span><span class="macro">assert!</span>(Parachains::is_parachain(para_1));
@@ -2815,7 +2931,7 @@
 				RuntimeEvent::Registrar(paras_registrar::Event::Swapped { .. })
 			)));
 
-			run_to_session(<span class="number">5</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">5</span>);
 
 			<span class="comment">// Cannot swap
 			</span><span class="macro">assert_ok!</span>(Registrar::swap(RuntimeOrigin::root(), para_1, para_2));
@@ -2824,7 +2940,7 @@
 				Error::&lt;Test&gt;::CannotSwap
 			);
 
-			run_to_session(<span class="number">6</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">6</span>);
 
 			<span class="comment">// Swap worked!
 			</span><span class="macro">assert!</span>(Parachains::is_parachain(para_2));
@@ -2837,7 +2953,7 @@
 			<span class="comment">// Something starts to downgrade a para
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parathread(para_2));
 
-			run_to_session(<span class="number">7</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">7</span>);
 
 			<span class="comment">// Cannot swap
 			</span><span class="macro">assert_ok!</span>(Registrar::swap(RuntimeOrigin::root(), para_1, para_2));
@@ -2846,7 +2962,7 @@
 				Error::&lt;Test&gt;::CannotSwap
 			);
 
-			run_to_session(<span class="number">8</span>);
+			run_to_session(START_SESSION_INDEX + <span class="number">8</span>);
 
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_1));
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_2));
@@ -2885,7 +3001,11 @@
 			RawOrigin::Signed(caller).into(),
 			para,
 			genesis_head,
-			validation_code
+			validation_code.clone()
+		));
+		<span class="macro">assert_ok!</span>(runtime_parachains::paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+			frame_system::Origin::&lt;T&gt;::Root.into(),
+			validation_code,
 		));
 		<span class="kw">return </span>para
 	}
@@ -2920,10 +3040,14 @@
 			<span class="kw">let </span>caller: T::AccountId = whitelisted_caller();
 			T::Currency::make_free_balance_be(<span class="kw-2">&amp;</span>caller, BalanceOf::&lt;T&gt;::max_value());
 			<span class="macro">assert_ok!</span>(Registrar::&lt;T&gt;::reserve(RawOrigin::Signed(caller.clone()).into()));
-		}: <span class="kw">_</span>(RawOrigin::Signed(caller.clone()), para, genesis_head, validation_code)
+		}: <span class="kw">_</span>(RawOrigin::Signed(caller.clone()), para, genesis_head, validation_code.clone())
 		verify {
 			assert_last_event::&lt;T&gt;(Event::&lt;T&gt;::Registered{ para_id: para, manager: caller }.into());
 			<span class="macro">assert_eq!</span>(paras::Pallet::&lt;T&gt;::lifecycle(para), <span class="prelude-val">Some</span>(ParaLifecycle::Onboarding));
+			<span class="macro">assert_ok!</span>(runtime_parachains::paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+				frame_system::Origin::&lt;T&gt;::Root.into(),
+				validation_code,
+			));
 			next_scheduled_session::&lt;T&gt;();
 			<span class="macro">assert_eq!</span>(paras::Pallet::&lt;T&gt;::lifecycle(para), <span class="prelude-val">Some</span>(ParaLifecycle::Parathread));
 		}
@@ -2934,10 +3058,14 @@
 			<span class="kw">let </span>para = ParaId::from(<span class="number">69</span>);
 			<span class="kw">let </span>genesis_head = Registrar::&lt;T&gt;::worst_head_data();
 			<span class="kw">let </span>validation_code = Registrar::&lt;T&gt;::worst_validation_code();
-		}: <span class="kw">_</span>(RawOrigin::Root, manager.clone(), deposit, para, genesis_head, validation_code)
+		}: <span class="kw">_</span>(RawOrigin::Root, manager.clone(), deposit, para, genesis_head, validation_code.clone())
 		verify {
 			assert_last_event::&lt;T&gt;(Event::&lt;T&gt;::Registered { para_id: para, manager }.into());
 			<span class="macro">assert_eq!</span>(paras::Pallet::&lt;T&gt;::lifecycle(para), <span class="prelude-val">Some</span>(ParaLifecycle::Onboarding));
+			<span class="macro">assert_ok!</span>(runtime_parachains::paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+				frame_system::Origin::&lt;T&gt;::Root.into(),
+				validation_code,
+			));
 			next_scheduled_session::&lt;T&gt;();
 			<span class="macro">assert_eq!</span>(paras::Pallet::&lt;T&gt;::lifecycle(para), <span class="prelude-val">Some</span>(ParaLifecycle::Parathread));
 		}

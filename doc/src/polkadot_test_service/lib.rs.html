@@ -400,6 +400,22 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -434,8 +450,8 @@
 	ClientHandle, Error, ExecuteWithClient, FullClient, IsCollator, NewFull, PrometheusConfig,
 };
 <span class="kw">use </span>polkadot_test_runtime::{
-	ParasSudoWrapperCall, Runtime, SignedExtra, SignedPayload, SudoCall, UncheckedExtrinsic,
-	VERSION,
+	ParasCall, ParasSudoWrapperCall, Runtime, SignedExtra, SignedPayload, SudoCall,
+	UncheckedExtrinsic, VERSION,
 };
 <span class="kw">use </span>sc_chain_spec::ChainSpec;
 <span class="kw">use </span>sc_client_api::execution_extensions::ExecutionStrategies;
@@ -683,6 +699,19 @@
 }
 
 <span class="kw">impl </span>PolkadotTestNode {
+	<span class="doccomment">/// Send a sudo call to this node.
+	</span><span class="kw">async fn </span>send_sudo(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		call: <span class="kw">impl </span>Into&lt;polkadot_test_runtime::RuntimeCall&gt;,
+		caller: Sr25519Keyring,
+		nonce: u32,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), RpcTransactionError&gt; {
+		<span class="kw">let </span>sudo = SudoCall::sudo { call: Box::new(call.into()) };
+
+		<span class="kw">let </span>extrinsic = construct_extrinsic(<span class="kw-2">&amp;*</span><span class="self">self</span>.client, sudo, caller, nonce);
+		<span class="self">self</span>.rpc_handlers.send_transaction(extrinsic.into()).<span class="kw">await</span>.map(drop)
+	}
+
 	<span class="doccomment">/// Send an extrinsic to this node.
 	</span><span class="kw">pub async fn </span>send_extrinsic(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -701,19 +730,22 @@
 		validation_code: <span class="kw">impl </span>Into&lt;ValidationCode&gt;,
 		genesis_head: <span class="kw">impl </span>Into&lt;HeadData&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), RpcTransactionError&gt; {
+		<span class="kw">let </span>validation_code: ValidationCode = validation_code.into();
 		<span class="kw">let </span>call = ParasSudoWrapperCall::sudo_schedule_para_initialize {
 			id,
 			genesis: ParaGenesisArgs {
 				genesis_head: genesis_head.into(),
-				validation_code: validation_code.into(),
+				validation_code: validation_code.clone(),
 				para_kind: ParaKind::Parachain,
 			},
 		};
 
-		<span class="self">self</span>.send_extrinsic(SudoCall::sudo { call: Box::new(call.into()) }, Sr25519Keyring::Alice)
-			.<span class="kw">await
-			</span>.map(drop)
-	}
+		<span class="self">self</span>.send_sudo(call, Sr25519Keyring::Alice, <span class="number">0</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+
+		<span class="comment">// Bypass pvf-checking.
+		</span><span class="kw">let </span>call = ParasCall::add_trusted_validation_code { validation_code };
+		<span class="self">self</span>.send_sudo(call, Sr25519Keyring::Alice, <span class="number">1</span>).<span class="kw">await
+	</span>}
 
 	<span class="doccomment">/// Wait for `count` blocks to be imported in the node and then exit. This function will not return if no blocks
 	/// are ever created, thus you should restrict the maximum amount of time of the test execution.

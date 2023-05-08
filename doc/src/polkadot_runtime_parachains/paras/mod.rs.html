@@ -2138,24 +2138,6 @@
 <a href="#2138" id="2138">2138</a>
 <a href="#2139" id="2139">2139</a>
 <a href="#2140" id="2140">2140</a>
-<a href="#2141" id="2141">2141</a>
-<a href="#2142" id="2142">2142</a>
-<a href="#2143" id="2143">2143</a>
-<a href="#2144" id="2144">2144</a>
-<a href="#2145" id="2145">2145</a>
-<a href="#2146" id="2146">2146</a>
-<a href="#2147" id="2147">2147</a>
-<a href="#2148" id="2148">2148</a>
-<a href="#2149" id="2149">2149</a>
-<a href="#2150" id="2150">2150</a>
-<a href="#2151" id="2151">2151</a>
-<a href="#2152" id="2152">2152</a>
-<a href="#2153" id="2153">2153</a>
-<a href="#2154" id="2154">2154</a>
-<a href="#2155" id="2155">2155</a>
-<a href="#2156" id="2156">2156</a>
-<a href="#2157" id="2157">2157</a>
-<a href="#2158" id="2158">2158</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2659,7 +2641,8 @@
 		Weight::MAX
 	}
 	<span class="kw">fn </span>add_trusted_validation_code(_c: u32) -&gt; Weight {
-		Weight::MAX
+		<span class="comment">// Called during integration tests for para initialization.
+		</span>Weight::zero()
 	}
 	<span class="kw">fn </span>poke_unused_validation_code() -&gt; Weight {
 		Weight::MAX
@@ -2760,9 +2743,6 @@
 		</span>PvfCheckDoubleVote,
 		<span class="doccomment">/// The given PVF does not exist at the moment of process a vote.
 		</span>PvfCheckSubjectInvalid,
-		<span class="doccomment">/// The PVF pre-checking statement cannot be included since the PVF pre-checking mechanism
-		/// is disabled.
-		</span>PvfCheckDisabled,
 		<span class="doccomment">/// Parachain cannot currently schedule a code upgrade.
 		</span>CannotUpgradeCode,
 	}
@@ -3128,12 +3108,6 @@
 		) -&gt; DispatchResultWithPostInfo {
 			ensure_none(origin)<span class="question-mark">?</span>;
 
-			<span class="comment">// Make sure that PVF pre-checking is enabled.
-			</span><span class="macro">ensure!</span>(
-				configuration::Pallet::&lt;T&gt;::config().pvf_checking_enabled,
-				Error::&lt;T&gt;::PvfCheckDisabled,
-			);
-
 			<span class="kw">let </span>validators = shared::Pallet::&lt;T&gt;::active_validator_keys();
 			<span class="kw">let </span>current_session = shared::Pallet::&lt;T&gt;::session_index();
 			<span class="kw">if </span>stmt.session_index &lt; current_session {
@@ -3220,10 +3194,6 @@
 				<span class="kw">_ </span>=&gt; <span class="kw">return </span>InvalidTransaction::Call.into(),
 			};
 
-			<span class="kw">if </span>!configuration::Pallet::&lt;T&gt;::config().pvf_checking_enabled {
-				<span class="kw">return </span>InvalidTransaction::Custom(INVALID_TX_PVF_CHECK_DISABLED).into()
-			}
-
 			<span class="kw">let </span>current_session = shared::Pallet::&lt;T&gt;::session_index();
 			<span class="kw">if </span>stmt.session_index &lt; current_session {
 				<span class="kw">return </span>InvalidTransaction::Stale.into()
@@ -3284,7 +3254,6 @@
 </span><span class="kw">const </span>INVALID_TX_BAD_VALIDATOR_IDX: u8 = <span class="number">1</span>;
 <span class="kw">const </span>INVALID_TX_BAD_SUBJECT: u8 = <span class="number">2</span>;
 <span class="kw">const </span>INVALID_TX_DOUBLE_VOTE: u8 = <span class="number">3</span>;
-<span class="kw">const </span>INVALID_TX_PVF_CHECK_DISABLED: u8 = <span class="number">4</span>;
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// This is a call to schedule code upgrades for parachains which is safe to be called
@@ -3986,9 +3955,7 @@
 	<span class="doccomment">/// Makes sure that the given code hash has passed pre-checking.
 	///
 	/// If the given code hash has already passed pre-checking, then the approval happens
-	/// immediately. Similarly, if the pre-checking is turned off, the update is scheduled immediately
-	/// as well. In this case, the behavior is similar to the previous, i.e. the upgrade sequence
-	/// is purely time-based.
+	/// immediately.
 	///
 	/// If the code is unknown, but the pre-checking for that PVF is already running then we perform
 	/// &quot;coalescing&quot;. We save the cause for this PVF pre-check request and just add it to the
@@ -4017,12 +3984,9 @@
 				</span><span class="kw">let </span>known_code = CodeByHash::&lt;T&gt;::contains_key(<span class="kw-2">&amp;</span>code_hash);
 				weight += T::DbWeight::get().reads(<span class="number">1</span>);
 
-				<span class="kw">if </span>!cfg.pvf_checking_enabled || known_code {
-					<span class="comment">// Either:
-					// - the code is known and there is no active PVF vote for it meaning it is
-					//   already checked, or
-					// - the PVF checking is diabled
-					// In any case: fast track the PVF checking into the accepted state
+				<span class="kw">if </span>known_code {
+					<span class="comment">// The code is known and there is no active PVF vote for it meaning it is
+					// already checked -- fast track the PVF checking into the accepted state.
 					</span>weight += T::DbWeight::get().reads(<span class="number">1</span>);
 					<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
 					weight += <span class="self">Self</span>::enact_pvf_accepted(now, <span class="kw-2">&amp;</span>code_hash, <span class="kw-2">&amp;</span>[cause], <span class="number">0</span>, cfg);

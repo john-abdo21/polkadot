@@ -1937,6 +1937,19 @@
 <a href="#1937" id="1937">1937</a>
 <a href="#1938" id="1938">1938</a>
 <a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3670,8 +3683,12 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="kw">mod </span>benchmarking {
 	<span class="kw">use super</span>::{Pallet <span class="kw">as </span>Auctions, <span class="kw-2">*</span>};
-	<span class="kw">use </span>frame_support::traits::{EnsureOrigin, OnInitialize};
+	<span class="kw">use </span>frame_support::{
+		assert_ok,
+		traits::{EnsureOrigin, OnInitialize},
+	};
 	<span class="kw">use </span>frame_system::RawOrigin;
+	<span class="kw">use </span>runtime_parachains::paras;
 	<span class="kw">use </span>sp_runtime::{traits::Bounded, SaturatedConversion};
 
 	<span class="kw">use </span>frame_benchmarking::{account, benchmarks, whitelisted_caller, BenchmarkError};
@@ -3684,7 +3701,7 @@
 		<span class="macro">assert_eq!</span>(event, <span class="kw-2">&amp;</span>system_event);
 	}
 
-	<span class="kw">fn </span>fill_winners&lt;T: Config&gt;(lease_period_index: LeasePeriodOf&lt;T&gt;) {
+	<span class="kw">fn </span>fill_winners&lt;T: Config + paras::Config&gt;(lease_period_index: LeasePeriodOf&lt;T&gt;) {
 		<span class="kw">let </span>auction_index = AuctionCounter::&lt;T&gt;::get();
 		<span class="kw">let </span>minimum_balance = CurrencyOf::&lt;T&gt;::minimum_balance();
 
@@ -3702,6 +3719,10 @@
 			)
 			.is_ok());
 		}
+		<span class="macro">assert_ok!</span>(paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+			frame_system::Origin::&lt;T&gt;::Root.into(),
+			T::Registrar::worst_validation_code(),
+		));
 
 		T::Registrar::execute_pending_transitions();
 
@@ -3725,7 +3746,7 @@
 	}
 
 	<span class="macro">benchmarks! </span>{
-		where_clause { <span class="kw">where </span>T: pallet_babe::Config }
+		where_clause { <span class="kw">where </span>T: pallet_babe::Config + paras::Config }
 
 		new_auction {
 			<span class="kw">let </span>duration = T::BlockNumber::max_value();
@@ -3763,7 +3784,12 @@
 			<span class="kw">let </span>worst_head_data = T::Registrar::worst_head_data();
 			<span class="kw">let </span>worst_validation_code = T::Registrar::worst_validation_code();
 			T::Registrar::register(owner.clone(), para, worst_head_data.clone(), worst_validation_code.clone())<span class="question-mark">?</span>;
-			T::Registrar::register(owner, new_para, worst_head_data, worst_validation_code)<span class="question-mark">?</span>;
+			T::Registrar::register(owner, new_para, worst_head_data, worst_validation_code.clone())<span class="question-mark">?</span>;
+			<span class="macro">assert_ok!</span>(paras::Pallet::&lt;T&gt;::add_trusted_validation_code(
+				frame_system::Origin::&lt;T&gt;::Root.into(),
+				worst_validation_code,
+			));
+
 			T::Registrar::execute_pending_transitions();
 
 			<span class="comment">// Make an existing bid
