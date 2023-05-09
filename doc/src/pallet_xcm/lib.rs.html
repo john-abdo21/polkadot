@@ -2218,11 +2218,6 @@
 <a href="#2218" id="2218">2218</a>
 <a href="#2219" id="2219">2219</a>
 <a href="#2220" id="2220">2220</a>
-<a href="#2221" id="2221">2221</a>
-<a href="#2222" id="2222">2222</a>
-<a href="#2223" id="2223">2223</a>
-<a href="#2224" id="2224">2224</a>
-<a href="#2225" id="2225">2225</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3004,16 +2999,7 @@
 	<span class="attr">#[pallet::call]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 		<span class="attr">#[pallet::call_index(<span class="number">0</span>)]
-		#[pallet::weight({
-			<span class="kw">let </span>maybe_msg: <span class="prelude-ty">Result</span>&lt;Xcm&lt;()&gt;, ()&gt; = (<span class="kw-2">*</span>message.clone()).try_into();
-			<span class="kw">match </span>maybe_msg {
-				<span class="prelude-val">Ok</span>(msg) =&gt; {
-					T::Weigher::weight(<span class="kw-2">&amp;mut </span>msg.into())
-						.map_or(Weight::MAX, |w| T::WeightInfo::send().saturating_add(w))
-				}
-				<span class="kw">_ </span>=&gt; Weight::MAX,
-			}
-		})]
+		#[pallet::weight(T::WeightInfo::send())]
 		</span><span class="kw">pub fn </span>send(
 			origin: OriginFor&lt;T&gt;,
 			dest: Box&lt;VersionedMultiLocation&gt;,
@@ -3055,6 +3041,7 @@
 					<span class="kw">let </span>count = assets.len() <span class="kw">as </span>u32;
 					<span class="kw">let </span><span class="kw-2">mut </span>message = Xcm(<span class="macro">vec!</span>[
 						WithdrawAsset(assets),
+						SetFeesMode { jit_withdraw: <span class="bool-val">true </span>},
 						InitiateTeleport {
 							assets: Wild(AllCounted(count)),
 							dest,
@@ -3100,6 +3087,7 @@
 				(<span class="prelude-val">Ok</span>(assets), <span class="prelude-val">Ok</span>(dest)) =&gt; {
 					<span class="kw">use </span>sp_std::vec;
 					<span class="kw">let </span><span class="kw-2">mut </span>message = Xcm(<span class="macro">vec!</span>[
+						SetFeesMode { jit_withdraw: <span class="bool-val">true </span>},
 						TransferReserveAsset { assets, dest, xcm: Xcm(<span class="macro">vec!</span>[]</span>) }
 					]);
 					T::Weigher::weight(<span class="kw-2">&amp;mut </span>message).map_or(Weight::MAX, |w| T::WeightInfo::reserve_transfer_assets().saturating_add(w))
@@ -3273,6 +3261,7 @@
 				(<span class="prelude-val">Ok</span>(assets), <span class="prelude-val">Ok</span>(dest)) =&gt; {
 					<span class="kw">use </span>sp_std::vec;
 					<span class="kw">let </span><span class="kw-2">mut </span>message = Xcm(<span class="macro">vec!</span>[
+						SetFeesMode { jit_withdraw: <span class="bool-val">true </span>},
 						TransferReserveAsset { assets, dest, xcm: Xcm(<span class="macro">vec!</span>[]</span>) }
 					]);
 					T::Weigher::weight(<span class="kw-2">&amp;mut </span>message).map_or(Weight::MAX, |w| T::WeightInfo::reserve_transfer_assets().saturating_add(w))
@@ -3324,6 +3313,7 @@
 					<span class="kw">use </span>sp_std::vec;
 					<span class="kw">let </span><span class="kw-2">mut </span>message = Xcm(<span class="macro">vec!</span>[
 						WithdrawAsset(assets),
+						SetFeesMode { jit_withdraw: <span class="bool-val">true </span>},
 						InitiateTeleport { assets: Wild(All), dest, xcm: Xcm(<span class="macro">vec!</span>[]</span>) },
 					]);
 					T::Weigher::weight(<span class="kw-2">&amp;mut </span>message).map_or(Weight::MAX, |w| T::WeightInfo::teleport_assets().saturating_add(w))
