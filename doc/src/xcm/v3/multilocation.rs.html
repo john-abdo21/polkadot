@@ -705,9 +705,6 @@
 <a href="#705" id="705">705</a>
 <a href="#706" id="706">706</a>
 <a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1309,13 +1306,10 @@
 	</span><span class="kw">fn </span>append_with_works() {
 		<span class="kw">let </span>acc = AccountIndex64 { network: <span class="prelude-val">None</span>, index: <span class="number">23 </span>};
 		<span class="kw">let </span><span class="kw-2">mut </span>m = MultiLocation { parents: <span class="number">1</span>, interior: X1(Parachain(<span class="number">42</span>)) };
-		<span class="macro">assert_eq!</span>(m.append_with(X2(PalletInstance(<span class="number">3</span>), acc.clone())), <span class="prelude-val">Ok</span>(()));
+		<span class="macro">assert_eq!</span>(m.append_with(X2(PalletInstance(<span class="number">3</span>), acc)), <span class="prelude-val">Ok</span>(()));
 		<span class="macro">assert_eq!</span>(
 			m,
-			MultiLocation {
-				parents: <span class="number">1</span>,
-				interior: X3(Parachain(<span class="number">42</span>), PalletInstance(<span class="number">3</span>), acc.clone())
-			}
+			MultiLocation { parents: <span class="number">1</span>, interior: X3(Parachain(<span class="number">42</span>), PalletInstance(<span class="number">3</span>), acc) }
 		);
 
 		<span class="comment">// cannot append to create overly long multilocation
@@ -1324,8 +1318,8 @@
 			parents: <span class="number">254</span>,
 			interior: X5(Parachain(<span class="number">42</span>), OnlyChild, OnlyChild, OnlyChild, OnlyChild),
 		};
-		<span class="kw">let </span>suffix: MultiLocation = (PalletInstance(<span class="number">3</span>), acc.clone(), OnlyChild, OnlyChild).into();
-		<span class="macro">assert_eq!</span>(m.clone().append_with(suffix.clone()), <span class="prelude-val">Err</span>(suffix));
+		<span class="kw">let </span>suffix: MultiLocation = (PalletInstance(<span class="number">3</span>), acc, OnlyChild, OnlyChild).into();
+		<span class="macro">assert_eq!</span>(m.clone().append_with(suffix), <span class="prelude-val">Err</span>(suffix));
 	}
 
 	<span class="attr">#[test]
@@ -1346,7 +1340,7 @@
 		<span class="comment">// cannot prepend to create overly long multilocation
 		</span><span class="kw">let </span><span class="kw-2">mut </span>m = MultiLocation { parents: <span class="number">254</span>, interior: X1(Parachain(<span class="number">42</span>)) };
 		<span class="kw">let </span>prefix = MultiLocation { parents: <span class="number">2</span>, interior: Here };
-		<span class="macro">assert_eq!</span>(m.prepend_with(prefix.clone()), <span class="prelude-val">Err</span>(prefix));
+		<span class="macro">assert_eq!</span>(m.prepend_with(prefix), <span class="prelude-val">Err</span>(prefix));
 
 		<span class="kw">let </span>prefix = MultiLocation { parents: <span class="number">1</span>, interior: Here };
 		<span class="macro">assert_eq!</span>(m.prepend_with(prefix), <span class="prelude-val">Ok</span>(()));
@@ -1368,11 +1362,11 @@
 		<span class="macro">assert_eq!</span>(second, <span class="kw-2">&amp;</span>Parachain(<span class="number">3</span>));
 
 		<span class="kw">let </span>res = Here
-			.pushed_with(first.clone())
+			.pushed_with(<span class="kw-2">*</span>first)
 			.unwrap()
-			.pushed_with(second.clone())
+			.pushed_with(<span class="kw-2">*</span>second)
 			.unwrap()
-			.pushed_with(third.clone())
+			.pushed_with(<span class="kw-2">*</span>third)
 			.unwrap();
 		<span class="macro">assert_eq!</span>(m, res);
 
