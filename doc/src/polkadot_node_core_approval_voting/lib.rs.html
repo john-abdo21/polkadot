@@ -2760,6 +2760,72 @@
 <a href="#2760" id="2760">2760</a>
 <a href="#2761" id="2761">2761</a>
 <a href="#2762" id="2762">2762</a>
+<a href="#2763" id="2763">2763</a>
+<a href="#2764" id="2764">2764</a>
+<a href="#2765" id="2765">2765</a>
+<a href="#2766" id="2766">2766</a>
+<a href="#2767" id="2767">2767</a>
+<a href="#2768" id="2768">2768</a>
+<a href="#2769" id="2769">2769</a>
+<a href="#2770" id="2770">2770</a>
+<a href="#2771" id="2771">2771</a>
+<a href="#2772" id="2772">2772</a>
+<a href="#2773" id="2773">2773</a>
+<a href="#2774" id="2774">2774</a>
+<a href="#2775" id="2775">2775</a>
+<a href="#2776" id="2776">2776</a>
+<a href="#2777" id="2777">2777</a>
+<a href="#2778" id="2778">2778</a>
+<a href="#2779" id="2779">2779</a>
+<a href="#2780" id="2780">2780</a>
+<a href="#2781" id="2781">2781</a>
+<a href="#2782" id="2782">2782</a>
+<a href="#2783" id="2783">2783</a>
+<a href="#2784" id="2784">2784</a>
+<a href="#2785" id="2785">2785</a>
+<a href="#2786" id="2786">2786</a>
+<a href="#2787" id="2787">2787</a>
+<a href="#2788" id="2788">2788</a>
+<a href="#2789" id="2789">2789</a>
+<a href="#2790" id="2790">2790</a>
+<a href="#2791" id="2791">2791</a>
+<a href="#2792" id="2792">2792</a>
+<a href="#2793" id="2793">2793</a>
+<a href="#2794" id="2794">2794</a>
+<a href="#2795" id="2795">2795</a>
+<a href="#2796" id="2796">2796</a>
+<a href="#2797" id="2797">2797</a>
+<a href="#2798" id="2798">2798</a>
+<a href="#2799" id="2799">2799</a>
+<a href="#2800" id="2800">2800</a>
+<a href="#2801" id="2801">2801</a>
+<a href="#2802" id="2802">2802</a>
+<a href="#2803" id="2803">2803</a>
+<a href="#2804" id="2804">2804</a>
+<a href="#2805" id="2805">2805</a>
+<a href="#2806" id="2806">2806</a>
+<a href="#2807" id="2807">2807</a>
+<a href="#2808" id="2808">2808</a>
+<a href="#2809" id="2809">2809</a>
+<a href="#2810" id="2810">2810</a>
+<a href="#2811" id="2811">2811</a>
+<a href="#2812" id="2812">2812</a>
+<a href="#2813" id="2813">2813</a>
+<a href="#2814" id="2814">2814</a>
+<a href="#2815" id="2815">2815</a>
+<a href="#2816" id="2816">2816</a>
+<a href="#2817" id="2817">2817</a>
+<a href="#2818" id="2818">2818</a>
+<a href="#2819" id="2819">2819</a>
+<a href="#2820" id="2820">2820</a>
+<a href="#2821" id="2821">2821</a>
+<a href="#2822" id="2822">2822</a>
+<a href="#2823" id="2823">2823</a>
+<a href="#2824" id="2824">2824</a>
+<a href="#2825" id="2825">2825</a>
+<a href="#2826" id="2826">2826</a>
+<a href="#2827" id="2827">2827</a>
+<a href="#2828" id="2828">2828</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2789,7 +2855,7 @@
 	approval::{
 		BlockApprovalMeta, DelayTranche, IndirectAssignmentCert, IndirectSignedApprovalVote,
 	},
-	ValidationResult,
+	ValidationResult, DISPUTE_WINDOW,
 };
 <span class="kw">use </span>polkadot_node_subsystem::{
 	errors::RecoveryError,
@@ -2804,11 +2870,10 @@
 	SubsystemSender,
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::{
+	<span class="self">self</span>,
 	database::Database,
 	metrics::{<span class="self">self</span>, prometheus},
-	rolling_session_window::{
-		DatabaseParams, RollingSessionWindow, SessionWindowUpdate, SessionsUnavailable,
-	},
+	runtime::{Config <span class="kw">as </span>RuntimeInfoConfig, RuntimeInfo},
 	TimeoutExt,
 };
 <span class="kw">use </span>polkadot_primitives::{
@@ -3400,78 +3465,65 @@
 	</span>}
 }
 
+<span class="kw">async fn </span>get_session_info&lt;<span class="lifetime">&#39;a</span>, Sender&gt;(
+	runtime_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>RuntimeInfo,
+	sender: <span class="kw-2">&amp;mut </span>Sender,
+	relay_parent: Hash,
+	session_index: SessionIndex,
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SessionInfo&gt;
+<span class="kw">where
+	</span>Sender: SubsystemSender&lt;RuntimeApiMessage&gt;,
+{
+	<span class="kw">match </span>runtime_info
+		.get_session_info_by_index(sender, relay_parent, session_index)
+		.<span class="kw">await
+	</span>{
+		<span class="prelude-val">Ok</span>(extended_info) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>extended_info.session_info),
+		<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+			<span class="macro">gum::debug!</span>(
+				target: LOG_TARGET,
+				session = session_index,
+				<span class="question-mark">?</span>relay_parent,
+				<span class="string">&quot;Can&#39;t obtain SessionInfo&quot;
+			</span>);
+			<span class="prelude-val">None
+		</span>},
+	}
+}
+
 <span class="kw">struct </span>State {
-	session_window: <span class="prelude-ty">Option</span>&lt;RollingSessionWindow&gt;,
 	keystore: Arc&lt;LocalKeystore&gt;,
 	slot_duration_millis: u64,
 	clock: Box&lt;<span class="kw">dyn </span>Clock + Send + Sync&gt;,
 	assignment_criteria: Box&lt;<span class="kw">dyn </span>AssignmentCriteria + Send + Sync&gt;,
-	<span class="comment">// Require for `RollingSessionWindow`.
-	</span>db_config: DatabaseConfig,
-	db: Arc&lt;<span class="kw">dyn </span>Database&gt;,
 	spans: HashMap&lt;Hash, jaeger::PerLeafSpan&gt;,
 }
 
 <span class="attr">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">impl </span>State {
-	<span class="kw">fn </span>session_info(<span class="kw-2">&amp;</span><span class="self">self</span>, i: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SessionInfo&gt; {
-		<span class="self">self</span>.session_window.as_ref().and_then(|w| w.session_info(i))
-	}
-
-	<span class="doccomment">/// Bring `session_window` up to date.
-	</span><span class="kw">pub async fn </span>cache_session_info_for_head&lt;Context&gt;(
-		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		ctx: <span class="kw-2">&amp;mut </span>Context,
-		head: Hash,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;SessionWindowUpdate&gt;, SessionsUnavailable&gt;
-	<span class="kw">where
-		</span>&lt;Context <span class="kw">as </span>overseer::SubsystemContext&gt;::Sender: Sized + Send,
-	{
-		<span class="kw">let </span>session_window = <span class="self">self</span>.session_window.take();
-		<span class="kw">match </span>session_window {
-			<span class="prelude-val">None </span>=&gt; {
-				<span class="kw">let </span>sender = ctx.sender().clone();
-				<span class="self">self</span>.session_window = <span class="prelude-val">Some</span>(
-					RollingSessionWindow::new(
-						sender,
-						head,
-						DatabaseParams {
-							db: <span class="self">self</span>.db.clone(),
-							db_column: <span class="self">self</span>.db_config.col_session_data,
-						},
-					)
-					.<span class="kw">await</span><span class="question-mark">?</span>,
-				);
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-			},
-			<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>session_window) =&gt; {
-				<span class="kw">let </span>r = session_window
-					.cache_session_info_for_head(ctx.sender(), head)
-					.<span class="kw">await
-					</span>.map(Option::Some);
-				<span class="self">self</span>.session_window = <span class="prelude-val">Some</span>(session_window);
-				r
-			},
-		}
-	}
 	<span class="comment">// Compute the required tranches for approval for this block and candidate combo.
 	// Fails if there is no approval entry for the block under the candidate or no candidate entry
 	// under the block, or if the session is out of bounds.
-	</span><span class="kw">fn </span>approval_status&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(
+	</span><span class="kw">async fn </span>approval_status&lt;Sender, <span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt;(
 		<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+		sender: <span class="kw-2">&amp;mut </span>Sender,
+		session_info_provider: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>RuntimeInfo,
 		block_entry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BlockEntry,
 		candidate_entry: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>CandidateEntry,
-	) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ApprovalEntry, ApprovalStatus)&gt; {
-		<span class="kw">let </span>session_info = <span class="kw">match </span><span class="self">self</span>.session_info(block_entry.session()) {
+	) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>ApprovalEntry, ApprovalStatus)&gt;
+	<span class="kw">where
+		</span>Sender: SubsystemSender&lt;RuntimeApiMessage&gt;,
+	{
+		<span class="kw">let </span>session_info = <span class="kw">match </span>get_session_info(
+			session_info_provider,
+			sender,
+			block_entry.parent_hash(),
+			block_entry.session(),
+		)
+		.<span class="kw">await
+		</span>{
 			<span class="prelude-val">Some</span>(s) =&gt; s,
-			<span class="prelude-val">None </span>=&gt; {
-				<span class="macro">gum::warn!</span>(
-					target: LOG_TARGET,
-					<span class="string">&quot;Unknown session info for {}&quot;</span>,
-					block_entry.session()
-				);
-				<span class="kw">return </span><span class="prelude-val">None
-			</span>},
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
 		};
 		<span class="kw">let </span>block_hash = block_entry.block_hash();
 
@@ -3541,16 +3593,18 @@
 	}
 
 	<span class="kw">let </span><span class="kw-2">mut </span>state = State {
-		session_window: <span class="prelude-val">None</span>,
 		keystore: subsystem.keystore,
 		slot_duration_millis: subsystem.slot_duration_millis,
 		clock,
 		assignment_criteria,
-		db_config: subsystem.db_config,
-		db: subsystem.db,
 		spans: HashMap::new(),
 	};
 
+	<span class="comment">// `None` on start-up. Gets initialized/updated on leaf update
+	</span><span class="kw">let </span><span class="kw-2">mut </span>session_info_provider = RuntimeInfo::new_with_config(RuntimeInfoConfig {
+		keystore: <span class="prelude-val">None</span>,
+		session_cache_lru_size: DISPUTE_WINDOW.into(),
+	});
 	<span class="kw">let </span><span class="kw-2">mut </span>wakeups = Wakeups::default();
 	<span class="kw">let </span><span class="kw-2">mut </span>currently_checking_set = CurrentlyCheckingSet::default();
 	<span class="kw">let </span><span class="kw-2">mut </span>approvals_cache = lru::LruCache::new(APPROVAL_CACHE_SIZE);
@@ -3573,18 +3627,21 @@
 			(_tick, woken_block, woken_candidate) = wakeups.next(<span class="kw-2">&amp;*</span>state.clock).fuse() =&gt; {
 				subsystem.metrics.on_wakeup();
 				process_wakeup(
-					<span class="kw-2">&amp;mut </span>state,
+					<span class="kw-2">&amp;mut </span>ctx,
+					<span class="kw-2">&amp;</span>state,
 					<span class="kw-2">&amp;mut </span>overlayed_db,
+					<span class="kw-2">&amp;mut </span>session_info_provider,
 					woken_block,
 					woken_candidate,
 					<span class="kw-2">&amp;</span>subsystem.metrics,
-				)<span class="question-mark">?
+				).<span class="kw">await</span><span class="question-mark">?
 			</span>}
 			next_msg = ctx.recv().fuse() =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>actions = handle_from_overseer(
 					<span class="kw-2">&amp;mut </span>ctx,
 					<span class="kw-2">&amp;mut </span>state,
 					<span class="kw-2">&amp;mut </span>overlayed_db,
+					<span class="kw-2">&amp;mut </span>session_info_provider,
 					<span class="kw-2">&amp;</span>subsystem.metrics,
 					next_msg<span class="question-mark">?</span>,
 					<span class="kw-2">&amp;mut </span>last_finalized_height,
@@ -3633,8 +3690,9 @@
 
 		<span class="kw">if </span>handle_actions(
 			<span class="kw-2">&amp;mut </span>ctx,
-			<span class="kw-2">&amp;mut </span>state,
+			<span class="kw-2">&amp;</span>state,
 			<span class="kw-2">&amp;mut </span>overlayed_db,
+			<span class="kw-2">&amp;mut </span>session_info_provider,
 			<span class="kw-2">&amp;</span>subsystem.metrics,
 			<span class="kw-2">&amp;mut </span>wakeups,
 			<span class="kw-2">&amp;mut </span>currently_checking_set,
@@ -3679,8 +3737,9 @@
 </span><span class="attr">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>handle_actions&lt;Context&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
-	state: <span class="kw-2">&amp;mut </span>State,
+	state: <span class="kw-2">&amp;</span>State,
 	overlayed_db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	wakeups: <span class="kw-2">&amp;mut </span>Wakeups,
 	currently_checking_set: <span class="kw-2">&amp;mut </span>CurrentlyCheckingSet,
@@ -3711,6 +3770,7 @@
 					ctx,
 					state,
 					overlayed_db,
+					session_info_provider,
 					metrics,
 					candidate_hash,
 					approval_request,
@@ -3824,7 +3884,7 @@
 
 <span class="kw">fn </span>distribution_messages_for_activation(
 	db: <span class="kw-2">&amp;</span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
-	state: <span class="kw-2">&amp;mut </span>State,
+	state: <span class="kw-2">&amp;</span>State,
 ) -&gt; SubsystemResult&lt;Vec&lt;ApprovalDistributionMessage&gt;&gt; {
 	<span class="kw">let </span>all_blocks: Vec&lt;Hash&gt; = db.load_all_blocks()<span class="question-mark">?</span>;
 
@@ -3938,6 +3998,7 @@
 	ctx: <span class="kw-2">&amp;mut </span>Context,
 	state: <span class="kw-2">&amp;mut </span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	x: FromOrchestra&lt;ApprovalVotingMessage&gt;,
 	last_finalized_height: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
@@ -3951,7 +4012,16 @@
 				<span class="kw">let </span>approval_voting_span =
 					jaeger::PerLeafSpan::new(activated.span, <span class="string">&quot;approval-voting&quot;</span>);
 				state.spans.insert(head, approval_voting_span);
-				<span class="kw">match </span>import::handle_new_head(ctx, state, db, head, <span class="kw-2">&amp;*</span>last_finalized_height).<span class="kw">await </span>{
+				<span class="kw">match </span>import::handle_new_head(
+					ctx,
+					state,
+					db,
+					session_info_provider,
+					head,
+					last_finalized_height,
+				)
+				.<span class="kw">await
+				</span>{
 					<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(SubsystemError::with_origin(<span class="string">&quot;db&quot;</span>, e)),
 					<span class="prelude-val">Ok</span>(block_imported_candidates) =&gt; {
 						<span class="comment">// Schedule wakeups for all imported candidates.
@@ -4021,16 +4091,32 @@
 		},
 		FromOrchestra::Communication { msg } =&gt; <span class="kw">match </span>msg {
 			ApprovalVotingMessage::CheckAndImportAssignment(a, claimed_core, res) =&gt; {
-				<span class="kw">let </span>(check_outcome, actions) =
-					check_and_import_assignment(state, db, a, claimed_core)<span class="question-mark">?</span>;
+				<span class="kw">let </span>(check_outcome, actions) = check_and_import_assignment(
+					ctx.sender(),
+					state,
+					db,
+					session_info_provider,
+					a,
+					claimed_core,
+				)
+				.<span class="kw">await</span><span class="question-mark">?</span>;
 				<span class="kw">let _ </span>= res.send(check_outcome);
 
 				actions
 			},
 			ApprovalVotingMessage::CheckAndImportApproval(a, res) =&gt;
-				check_and_import_approval(state, db, metrics, a, |r| {
-					<span class="kw">let _ </span>= res.send(r);
-				})<span class="question-mark">?
+				check_and_import_approval(
+					ctx.sender(),
+					state,
+					db,
+					session_info_provider,
+					metrics,
+					a,
+					|r| {
+						<span class="kw">let _ </span>= res.send(r);
+					},
+				)
+				.<span class="kw">await</span><span class="question-mark">?
 				</span>.<span class="number">0</span>,
 			ApprovalVotingMessage::ApprovedAncestor(target, lower_bound, res) =&gt; {
 				<span class="kw">let </span><span class="kw-2">mut </span>approved_ancestor_span = state
@@ -4500,12 +4586,17 @@
 	maybe_action
 }
 
-<span class="kw">fn </span>check_and_import_assignment(
+<span class="kw">async fn </span>check_and_import_assignment&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
 	state: <span class="kw-2">&amp;</span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	assignment: IndirectAssignmentCert,
 	candidate_index: CandidateIndex,
-) -&gt; SubsystemResult&lt;(AssignmentCheckResult, Vec&lt;Action&gt;)&gt; {
+) -&gt; SubsystemResult&lt;(AssignmentCheckResult, Vec&lt;Action&gt;)&gt;
+<span class="kw">where
+	</span>Sender: SubsystemSender&lt;RuntimeApiMessage&gt;,
+{
 	<span class="kw">let </span>tick_now = state.clock.tick_now();
 
 	<span class="kw">let </span><span class="kw-2">mut </span>check_and_import_assignment_span = state
@@ -4528,7 +4619,14 @@
 			)),
 	};
 
-	<span class="kw">let </span>session_info = <span class="kw">match </span>state.session_info(block_entry.session()) {
+	<span class="kw">let </span>session_info = <span class="kw">match </span>get_session_info(
+		session_info_provider,
+		sender,
+		block_entry.parent_hash(),
+		block_entry.session(),
+	)
+	.<span class="kw">await
+	</span>{
 		<span class="prelude-val">Some</span>(s) =&gt; s,
 		<span class="prelude-val">None </span>=&gt;
 			<span class="kw">return </span><span class="prelude-val">Ok</span>((
@@ -4639,7 +4737,10 @@
 	<span class="kw">let </span><span class="kw-2">mut </span>actions = Vec::new();
 
 	<span class="comment">// We&#39;ve imported a new approval, so we need to schedule a wake-up for when that might no-show.
-	</span><span class="kw">if let </span><span class="prelude-val">Some</span>((approval_entry, status)) = state.approval_status(<span class="kw-2">&amp;</span>block_entry, <span class="kw-2">&amp;</span>candidate_entry) {
+	</span><span class="kw">if let </span><span class="prelude-val">Some</span>((approval_entry, status)) = state
+		.approval_status(sender, session_info_provider, <span class="kw-2">&amp;</span>block_entry, <span class="kw-2">&amp;</span>candidate_entry)
+		.<span class="kw">await
+	</span>{
 		actions.extend(schedule_wakeup_action(
 			approval_entry,
 			block_entry.block_hash(),
@@ -4657,13 +4758,18 @@
 	<span class="prelude-val">Ok</span>((res, actions))
 }
 
-<span class="kw">fn </span>check_and_import_approval&lt;T&gt;(
+<span class="kw">async fn </span>check_and_import_approval&lt;T, Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
 	state: <span class="kw-2">&amp;</span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	approval: IndirectSignedApprovalVote,
 	with_response: <span class="kw">impl </span>FnOnce(ApprovalCheckResult) -&gt; T,
-) -&gt; SubsystemResult&lt;(Vec&lt;Action&gt;, T)&gt; {
+) -&gt; SubsystemResult&lt;(Vec&lt;Action&gt;, T)&gt;
+<span class="kw">where
+	</span>Sender: SubsystemSender&lt;RuntimeApiMessage&gt;,
+{
 	<span class="macro">macro_rules! </span>respond_early {
 		(<span class="macro-nonterminal">$e</span>: expr) =&gt; {{
 			<span class="kw">let </span>t = with_response(<span class="macro-nonterminal">$e</span>);
@@ -4689,7 +4795,14 @@
 		},
 	};
 
-	<span class="kw">let </span>session_info = <span class="kw">match </span>state.session_info(block_entry.session()) {
+	<span class="kw">let </span>session_info = <span class="kw">match </span>get_session_info(
+		session_info_provider,
+		sender,
+		approval.block_hash,
+		block_entry.session(),
+	)
+	.<span class="kw">await
+	</span>{
 		<span class="prelude-val">Some</span>(s) =&gt; s,
 		<span class="prelude-val">None </span>=&gt; {
 			<span class="macro">respond_early!</span>(ApprovalCheckResult::Bad(ApprovalCheckError::UnknownSessionIndex(
@@ -4770,14 +4883,17 @@
 	);
 
 	<span class="kw">let </span>actions = advance_approval_state(
+		sender,
 		state,
 		db,
+		session_info_provider,
 		<span class="kw-2">&amp;</span>metrics,
 		block_entry,
 		approved_candidate_hash,
 		candidate_entry,
 		ApprovalStateTransition::RemoteApproval(approval.validator),
-	);
+	)
+	.<span class="kw">await</span>;
 
 	<span class="prelude-val">Ok</span>((actions, t))
 }
@@ -4810,15 +4926,20 @@
 <span class="comment">// Advance the approval state, either by importing an approval vote which is already checked to be valid and corresponding to an assigned
 // validator on the candidate and block, or by noting that there are no further wakeups or tranches needed. This updates the block entry and candidate entry as
 // necessary and schedules any further wakeups.
-</span><span class="kw">fn </span>advance_approval_state(
+</span><span class="kw">async fn </span>advance_approval_state&lt;Sender&gt;(
+	sender: <span class="kw-2">&amp;mut </span>Sender,
 	state: <span class="kw-2">&amp;</span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	<span class="kw-2">mut </span>block_entry: BlockEntry,
 	candidate_hash: CandidateHash,
 	<span class="kw-2">mut </span>candidate_entry: CandidateEntry,
 	transition: ApprovalStateTransition,
-) -&gt; Vec&lt;Action&gt; {
+) -&gt; Vec&lt;Action&gt;
+<span class="kw">where
+	</span>Sender: SubsystemSender&lt;RuntimeApiMessage&gt;,
+{
 	<span class="kw">let </span>validator_index = transition.validator_index();
 
 	<span class="kw">let </span>already_approved_by = validator_index.as_ref().map(|v| candidate_entry.mark_approval(<span class="kw-2">*</span>v));
@@ -4848,9 +4969,10 @@
 
 	<span class="kw">let </span>tick_now = state.clock.tick_now();
 
-	<span class="kw">let </span>(is_approved, status) = <span class="kw">if let </span><span class="prelude-val">Some</span>((approval_entry, status)) =
-		state.approval_status(<span class="kw-2">&amp;</span>block_entry, <span class="kw-2">&amp;</span>candidate_entry)
-	{
+	<span class="kw">let </span>(is_approved, status) = <span class="kw">if let </span><span class="prelude-val">Some</span>((approval_entry, status)) = state
+		.approval_status(sender, session_info_provider, <span class="kw-2">&amp;</span>block_entry, <span class="kw-2">&amp;</span>candidate_entry)
+		.<span class="kw">await
+	</span>{
 		<span class="kw">let </span>check = approval_checking::check_approval(
 			<span class="kw-2">&amp;</span>candidate_entry,
 			approval_entry,
@@ -4979,9 +5101,12 @@
 	}
 }
 
-<span class="kw">fn </span>process_wakeup(
+<span class="attr">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
+</span><span class="kw">async fn </span>process_wakeup&lt;Context&gt;(
+	ctx: <span class="kw-2">&amp;mut </span>Context,
 	state: <span class="kw-2">&amp;</span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	relay_block: Hash,
 	candidate_hash: CandidateHash,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
@@ -5005,18 +5130,16 @@
 		<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new()),
 	};
 
-	<span class="kw">let </span>session_info = <span class="kw">match </span>state.session_info(block_entry.session()) {
+	<span class="kw">let </span>session_info = <span class="kw">match </span>get_session_info(
+		session_info_provider,
+		ctx.sender(),
+		block_entry.parent_hash(),
+		block_entry.session(),
+	)
+	.<span class="kw">await
+	</span>{
 		<span class="prelude-val">Some</span>(i) =&gt; i,
-		<span class="prelude-val">None </span>=&gt; {
-			<span class="macro">gum::warn!</span>(
-				target: LOG_TARGET,
-				<span class="string">&quot;Missing session info for live block {} in session {}&quot;</span>,
-				relay_block,
-				block_entry.session(),
-			);
-
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
-		},
+		<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new()),
 	};
 
 	<span class="kw">let </span>block_tick = slot_number_to_tick(state.slot_duration_millis, block_entry.slot());
@@ -5115,15 +5238,20 @@
 	// we need to check for that and advance the state on-disk.
 	//
 	// Note that this function also schedules a wakeup as necessary.
-	</span>actions.extend(advance_approval_state(
-		state,
-		db,
-		metrics,
-		block_entry,
-		candidate_hash,
-		candidate_entry,
-		ApprovalStateTransition::WakeupProcessed,
-	));
+	</span>actions.extend(
+		advance_approval_state(
+			ctx.sender(),
+			state,
+			db,
+			session_info_provider,
+			metrics,
+			block_entry,
+			candidate_hash,
+			candidate_entry,
+			ApprovalStateTransition::WakeupProcessed,
+		)
+		.<span class="kw">await</span>,
+	);
 
 	<span class="prelude-val">Ok</span>(actions)
 }
@@ -5331,8 +5459,9 @@
 </span><span class="attr">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>issue_approval&lt;Context&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
-	state: <span class="kw-2">&amp;mut </span>State,
+	state: <span class="kw-2">&amp;</span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, <span class="kw">impl </span>Backend&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	candidate_hash: CandidateHash,
 	ApprovalVoteRequest { validator_index, block_hash }: ApprovalVoteRequest,
@@ -5374,16 +5503,16 @@
 	};
 	issue_approval_span.add_int_tag(<span class="string">&quot;candidate_index&quot;</span>, candidate_index <span class="kw">as </span>i64);
 
-	<span class="kw">let </span>session_info = <span class="kw">match </span>state.session_info(block_entry.session()) {
+	<span class="kw">let </span>session_info = <span class="kw">match </span>get_session_info(
+		session_info_provider,
+		ctx.sender(),
+		block_entry.parent_hash(),
+		block_entry.session(),
+	)
+	.<span class="kw">await
+	</span>{
 		<span class="prelude-val">Some</span>(s) =&gt; s,
 		<span class="prelude-val">None </span>=&gt; {
-			<span class="macro">gum::warn!</span>(
-				target: LOG_TARGET,
-				<span class="string">&quot;Missing session info for live block {} in session {}&quot;</span>,
-				block_hash,
-				block_entry.session(),
-			);
-
 			metrics.on_approval_error();
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
 		},
@@ -5459,14 +5588,17 @@
 	);
 
 	<span class="kw">let </span>actions = advance_approval_state(
+		ctx.sender(),
 		state,
 		db,
+		session_info_provider,
 		metrics,
 		block_entry,
 		candidate_hash,
 		candidate_entry,
 		ApprovalStateTransition::LocalApproval(validator_index <span class="kw">as _</span>, sig.clone()),
-	);
+	)
+	.<span class="kw">await</span>;
 
 	metrics.on_approval_produced();
 

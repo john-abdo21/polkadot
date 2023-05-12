@@ -732,6 +732,8 @@
 <a href="#732" id="732">732</a>
 <a href="#733" id="733">733</a>
 <a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -764,6 +766,8 @@
 <span class="kw">pub use crate</span>::{error::Error, service::BlockId};
 <span class="attr">#[cfg(feature = <span class="string">&quot;hostperfcheck&quot;</span>)]
 </span><span class="kw">pub use </span>polkadot_performance_test::PerfCheckError;
+<span class="attr">#[cfg(feature = <span class="string">&quot;pyroscope&quot;</span>)]
+</span><span class="kw">use </span>pyroscope_pprofrs::{pprof_backend, PprofConfig};
 
 <span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>Error {
 	<span class="kw">fn </span>from(s: String) -&gt; <span class="self">Self </span>{
@@ -1111,14 +1115,13 @@
 			</span>.next()
 			.ok_or_else(|| Error::AddressResolutionMissing)<span class="question-mark">?</span>;
 		<span class="comment">// The pyroscope agent requires a `http://` prefix, so we just do that.
-		</span><span class="kw">let </span><span class="kw-2">mut </span>agent = pyro::PyroscopeAgent::builder(
+		</span><span class="kw">let </span>agent = pyro::PyroscopeAgent::builder(
 			<span class="string">&quot;http://&quot;</span>.to_owned() + address.to_string().as_str(),
 			<span class="string">&quot;polkadot&quot;</span>.to_owned(),
 		)
-		.sample_rate(<span class="number">113</span>)
+		.backend(pprof_backend(PprofConfig::new().sample_rate(<span class="number">113</span>)))
 		.build()<span class="question-mark">?</span>;
-		agent.start();
-		<span class="prelude-val">Some</span>(agent)
+		<span class="prelude-val">Some</span>(agent.start()<span class="question-mark">?</span>)
 	} <span class="kw">else </span>{
 		<span class="prelude-val">None
 	</span>};
@@ -1461,8 +1464,9 @@
 	}<span class="question-mark">?</span>;
 
 	<span class="attr">#[cfg(feature = <span class="string">&quot;pyroscope&quot;</span>)]
-	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>pyroscope_agent) = pyroscope_agent_maybe.take() {
-		pyroscope_agent.stop();
+	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(pyroscope_agent) = pyroscope_agent_maybe.take() {
+		<span class="kw">let </span>agent = pyroscope_agent.stop()<span class="question-mark">?</span>;
+		agent.shutdown();
 	}
 	<span class="prelude-val">Ok</span>(())
 }

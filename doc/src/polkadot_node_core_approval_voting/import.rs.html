@@ -1347,6 +1347,46 @@
 <a href="#1347" id="1347">1347</a>
 <a href="#1348" id="1348">1348</a>
 <a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1389,10 +1429,7 @@
 	},
 	overseer, RuntimeApiError, SubsystemError, SubsystemResult,
 };
-<span class="kw">use </span>polkadot_node_subsystem_util::{
-	determine_new_blocks,
-	rolling_session_window::{RollingSessionWindow, SessionWindowUpdate},
-};
+<span class="kw">use </span>polkadot_node_subsystem_util::{determine_new_blocks, runtime::RuntimeInfo};
 <span class="kw">use </span>polkadot_primitives::{
 	BlockNumber, CandidateEvent, CandidateHash, CandidateReceipt, ConsensusLog, CoreIndex,
 	GroupIndex, Hash, Header, SessionIndex,
@@ -1409,6 +1446,7 @@
 <span class="kw">use crate</span>::{
 	backend::{Backend, OverlayedBackend},
 	criteria::{AssignmentCriteria, OurAssignment},
+	get_session_info,
 	persisted_entries::CandidateEntry,
 	time::{slot_number_to_tick, Tick},
 };
@@ -1427,7 +1465,7 @@
 }
 
 <span class="kw">struct </span>ImportedBlockInfoEnv&lt;<span class="lifetime">&#39;a</span>&gt; {
-	session_window: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="prelude-ty">Option</span>&lt;RollingSessionWindow&gt;,
+	runtime_info: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>RuntimeInfo,
 	assignment_criteria: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>(<span class="kw">dyn </span>AssignmentCriteria + Send + Sync),
 	keystore: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>LocalKeystore,
 }
@@ -1445,8 +1483,8 @@
 	<span class="attr">#[error(transparent)]
 	</span>ApprovalError(approval_types::ApprovalError),
 
-	<span class="attr">#[error(<span class="string">&quot;block is from an ancient session&quot;</span>)]
-	</span>BlockFromAncientSession,
+	<span class="attr">#[error(<span class="string">&quot;block is already finalized&quot;</span>)]
+	</span>BlockAlreadyFinalized,
 
 	<span class="attr">#[error(<span class="string">&quot;session info unavailable&quot;</span>)]
 	</span>SessionInfoUnavailable,
@@ -1462,6 +1500,7 @@
 	env: ImportedBlockInfoEnv&lt;<span class="lifetime">&#39;_</span>&gt;,
 	block_hash: Hash,
 	block_header: <span class="kw-2">&amp;</span>Header,
+	last_finalized_height: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ImportedBlockInfo, ImportedBlockInfoError&gt; {
 	<span class="comment">// Ignore any runtime API errors - that means these blocks are old and finalized.
 	// Only unfinalized blocks factor into the approval voting process.
@@ -1509,19 +1548,17 @@
 				<span class="kw">return </span><span class="prelude-val">Err</span>(ImportedBlockInfoError::FutureCancelled(<span class="string">&quot;SessionIndexForChild&quot;</span>, error)),
 		};
 
-		<span class="kw">if </span>env
-			.session_window
-			.as_ref()
-			.map_or(<span class="bool-val">true</span>, |s| session_index &lt; s.earliest_session())
-		{
+		<span class="comment">// We can&#39;t determine if the block is finalized or not - try processing it
+		</span><span class="kw">if </span>last_finalized_height.map_or(<span class="bool-val">false</span>, |finalized| block_header.number &lt; finalized) {
 			<span class="macro">gum::debug!</span>(
 				target: LOG_TARGET,
-				<span class="string">&quot;Block {} is from ancient session {}. Skipping&quot;</span>,
+				session = session_index,
+				finalized = <span class="question-mark">?</span>last_finalized_height,
+				<span class="string">&quot;Block {} is either finalized or last finalized height is unknown. Skipping&quot;</span>,
 				block_hash,
-				session_index
 			);
 
-			<span class="kw">return </span><span class="prelude-val">Err</span>(ImportedBlockInfoError::BlockFromAncientSession)
+			<span class="kw">return </span><span class="prelude-val">Err</span>(ImportedBlockInfoError::BlockAlreadyFinalized)
 		}
 
 		session_index
@@ -1561,15 +1598,9 @@
 		}
 	};
 
-	<span class="kw">let </span>session_info = <span class="kw">match </span>env.session_window.as_ref().and_then(|s| s.session_info(session_index))
-	{
-		<span class="prelude-val">Some</span>(s) =&gt; s,
-		<span class="prelude-val">None </span>=&gt; {
-			<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Session info unavailable for block {}&quot;</span>, block_hash,);
-
-			<span class="kw">return </span><span class="prelude-val">Err</span>(ImportedBlockInfoError::SessionInfoUnavailable)
-		},
-	};
+	<span class="kw">let </span>session_info = get_session_info(env.runtime_info, ctx.sender(), block_hash, session_index)
+		.<span class="kw">await
+		</span>.ok_or(ImportedBlockInfoError::SessionInfoUnavailable)<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>(assignments, slot, relay_vrf_story) = {
 		<span class="kw">let </span>unsafe_vrf = approval_types::babe_unsafe_vrf_info(<span class="kw-2">&amp;</span>block_header);
@@ -1672,8 +1703,9 @@
 </span><span class="attr">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>handle_new_head&lt;Context, B: Backend&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
-	state: <span class="kw-2">&amp;mut </span>State,
+	state: <span class="kw-2">&amp;</span>State,
 	db: <span class="kw-2">&amp;mut </span>OverlayedBackend&lt;<span class="lifetime">&#39;_</span>, B&gt;,
+	session_info_provider: <span class="kw-2">&amp;mut </span>RuntimeInfo,
 	head: Hash,
 	finalized_number: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
 ) -&gt; SubsystemResult&lt;Vec&lt;BlockImportedCandidates&gt;&gt; {
@@ -1708,27 +1740,6 @@
 		}
 	};
 
-	<span class="comment">// Update session info based on most recent head.
-	</span><span class="kw">match </span>state.cache_session_info_for_head(ctx, head).<span class="kw">await </span>{
-		<span class="prelude-val">Err</span>(e) =&gt; {
-			<span class="macro">gum::debug!</span>(
-				target: LOG_TARGET,
-				<span class="question-mark">?</span>head,
-				<span class="question-mark">?</span>e,
-				<span class="string">&quot;Could not cache session info when processing head.&quot;</span>,
-			);
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new())
-		},
-		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(a @ SessionWindowUpdate::Advanced { .. })) =&gt; {
-			<span class="macro">gum::info!</span>(
-				target: LOG_TARGET,
-				update = <span class="question-mark">?</span>a,
-				<span class="string">&quot;Advanced session window for approvals&quot;</span>,
-			);
-		},
-		<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {},
-	}
-
 	<span class="comment">// If we&#39;ve just started the node and are far behind,
 	// import at most `MAX_HEADS_LOOK_BACK` blocks.
 	</span><span class="kw">let </span>lower_bound_number = header.number.saturating_sub(MAX_HEADS_LOOK_BACK);
@@ -1756,12 +1767,12 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>imported_blocks_and_info = Vec::with_capacity(new_blocks.len());
 		<span class="kw">for </span>(block_hash, block_header) <span class="kw">in </span>new_blocks.into_iter().rev() {
 			<span class="kw">let </span>env = ImportedBlockInfoEnv {
-				session_window: <span class="kw-2">&amp;</span>state.session_window,
+				runtime_info: session_info_provider,
 				assignment_criteria: <span class="kw-2">&amp;*</span>state.assignment_criteria,
 				keystore: <span class="kw-2">&amp;</span>state.keystore,
 			};
 
-			<span class="kw">match </span>imported_block_info(ctx, env, block_hash, <span class="kw-2">&amp;</span>block_header).<span class="kw">await </span>{
+			<span class="kw">match </span>imported_block_info(ctx, env, block_hash, <span class="kw-2">&amp;</span>block_header, finalized_number).<span class="kw">await </span>{
 				<span class="prelude-val">Ok</span>(i) =&gt; imported_blocks_and_info.push((block_hash, block_header, i)),
 				<span class="prelude-val">Err</span>(error) =&gt; {
 					<span class="comment">// It&#39;s possible that we&#39;ve lost a race with finality.
@@ -1810,11 +1821,17 @@
 			force_approve,
 		} = imported_block_info;
 
-		<span class="kw">let </span>session_info = state
-			.session_window
-			.as_ref()
-			.and_then(|s| s.session_info(session_index))
-			.expect(<span class="string">&quot;imported_block_info requires session info to be available; qed&quot;</span>);
+		<span class="kw">let </span>session_info = <span class="kw">match </span>get_session_info(
+			session_info_provider,
+			ctx.sender(),
+			head,
+			session_index,
+		)
+		.<span class="kw">await
+		</span>{
+			<span class="prelude-val">Some</span>(session_info) =&gt; session_info,
+			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(Vec::new()),
+		};
 
 		<span class="kw">let </span>(block_tick, no_show_duration) = {
 			<span class="kw">let </span>block_tick = slot_number_to_tick(state.slot_duration_millis, slot);
@@ -1958,10 +1975,13 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span><span class="kw">crate</span>::approval_db::v1::DbBackend;
+	<span class="kw">use crate</span>::{approval_db::v1::DbBackend, RuntimeInfo, RuntimeInfoConfig};
 	<span class="kw">use </span>::test_helpers::{dummy_candidate_receipt, dummy_hash};
 	<span class="kw">use </span>assert_matches::assert_matches;
-	<span class="kw">use </span>polkadot_node_primitives::approval::{VrfSignature, VrfTranscript};
+	<span class="kw">use </span>polkadot_node_primitives::{
+		approval::{VrfSignature, VrfTranscript},
+		DISPUTE_WINDOW,
+	};
 	<span class="kw">use </span>polkadot_node_subsystem::messages::{AllMessages, ApprovalVotingMessage};
 	<span class="kw">use </span>polkadot_node_subsystem_test_helpers::make_subsystem_context;
 	<span class="kw">use </span>polkadot_node_subsystem_util::database::Database;
@@ -1998,26 +2018,23 @@
 	}
 
 	<span class="kw">fn </span>blank_state() -&gt; State {
-		<span class="kw">let </span>db = kvdb_memorydb::create(NUM_COLUMNS);
-		<span class="kw">let </span>db = polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new(db, <span class="kw-2">&amp;</span>[]);
-		<span class="kw">let </span>db: Arc&lt;<span class="kw">dyn </span>Database&gt; = Arc::new(db);
 		State {
-			session_window: <span class="prelude-val">None</span>,
 			keystore: Arc::new(LocalKeystore::in_memory()),
 			slot_duration_millis: <span class="number">6_000</span>,
 			clock: Box::new(MockClock::default()),
 			assignment_criteria: Box::new(MockAssignmentCriteria),
-			db,
-			db_config: TEST_CONFIG,
 			spans: HashMap::new(),
 		}
 	}
 
-	<span class="kw">fn </span>single_session_state(index: SessionIndex, info: SessionInfo) -&gt; State {
-		State {
-			session_window: <span class="prelude-val">Some</span>(RollingSessionWindow::with_session_info(index, <span class="macro">vec!</span>[info])),
-			..blank_state()
-		}
+	<span class="kw">fn </span>single_session_state() -&gt; (State, RuntimeInfo) {
+		(
+			blank_state(),
+			RuntimeInfo::new_with_config(RuntimeInfoConfig {
+				keystore: <span class="prelude-val">None</span>,
+				session_cache_lru_size: DISPUTE_WINDOW.into(),
+			}),
+		)
 	}
 
 	<span class="kw">struct </span>MockAssignmentCriteria;
@@ -2125,18 +2142,21 @@
 				.map(|(r, c, g)| (r.hash(), r.clone(), <span class="kw-2">*</span>c, <span class="kw-2">*</span>g))
 				.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-			<span class="kw">let </span>session_window =
-				RollingSessionWindow::with_session_info(session, <span class="macro">vec!</span>[session_info]);
+			<span class="kw">let </span><span class="kw-2">mut </span>runtime_info = RuntimeInfo::new_with_config(RuntimeInfoConfig {
+				keystore: <span class="prelude-val">None</span>,
+				session_cache_lru_size: DISPUTE_WINDOW.into(),
+			});
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
 				<span class="kw">let </span>env = ImportedBlockInfoEnv {
-					session_window: <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(session_window),
+					runtime_info: <span class="kw-2">&amp;mut </span>runtime_info,
 					assignment_criteria: <span class="kw-2">&amp;</span>MockAssignmentCriteria,
 					keystore: <span class="kw-2">&amp;</span>LocalKeystore::in_memory(),
 				};
 
-				<span class="kw">let </span>info = imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header).<span class="kw">await</span>.unwrap();
+				<span class="kw">let </span>info =
+					imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header, <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="number">4</span>)).<span class="kw">await</span>.unwrap();
 
 				<span class="macro">assert_eq!</span>(info.included_candidates, included_candidates);
 				<span class="macro">assert_eq!</span>(info.session_index, session);
@@ -2190,6 +2210,20 @@
 					}));
 				}
 			);
+
+			<span class="macro">assert_matches!</span>(
+				handle.recv().<span class="kw">await</span>,
+				AllMessages::RuntimeApi(
+					RuntimeApiMessage::Request(
+						req_block_hash,
+						RuntimeApiRequest::SessionInfo(idx, si_tx),
+					)
+				) =&gt; {
+					<span class="macro">assert_eq!</span>(session, idx);
+					<span class="macro">assert_eq!</span>(req_block_hash, hash);
+					si_tx.send(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(session_info.clone()))).unwrap();
+				}
+			);
 		});
 
 		futures::executor::block_on(futures::future::join(test_fut, aux_fut));
@@ -2231,18 +2265,20 @@
 			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
 		<span class="kw">let </span>test_fut = {
-			<span class="kw">let </span>session_window =
-				RollingSessionWindow::with_session_info(session, <span class="macro">vec!</span>[session_info]);
+			<span class="kw">let </span><span class="kw-2">mut </span>runtime_info = RuntimeInfo::new_with_config(RuntimeInfoConfig {
+				keystore: <span class="prelude-val">None</span>,
+				session_cache_lru_size: DISPUTE_WINDOW.into(),
+			});
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
 				<span class="kw">let </span>env = ImportedBlockInfoEnv {
-					session_window: <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(session_window),
+					runtime_info: <span class="kw-2">&amp;mut </span>runtime_info,
 					assignment_criteria: <span class="kw-2">&amp;</span>MockAssignmentCriteria,
 					keystore: <span class="kw-2">&amp;</span>LocalKeystore::in_memory(),
 				};
 
-				<span class="kw">let </span>info = imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header).<span class="kw">await</span>;
+				<span class="kw">let </span>info = imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header, <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="number">4</span>)).<span class="kw">await</span>;
 
 				<span class="macro">assert_matches!</span>(info, <span class="prelude-val">Err</span>(ImportedBlockInfoError::VrfInfoUnavailable));
 			})
@@ -2291,6 +2327,20 @@
 					}));
 				}
 			);
+
+			<span class="macro">assert_matches!</span>(
+				handle.recv().<span class="kw">await</span>,
+				AllMessages::RuntimeApi(
+					RuntimeApiMessage::Request(
+						req_block_hash,
+						RuntimeApiRequest::SessionInfo(idx, si_tx),
+					)
+				) =&gt; {
+					<span class="macro">assert_eq!</span>(session, idx);
+					<span class="macro">assert_eq!</span>(req_block_hash, hash);
+					si_tx.send(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(session_info.clone()))).unwrap();
+				}
+			);
 		});
 
 		futures::executor::block_on(futures::future::join(test_fut, aux_fut));
@@ -2331,19 +2381,22 @@
 			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
 		<span class="kw">let </span>test_fut = {
-			<span class="kw">let </span>session_window = <span class="prelude-val">None</span>;
+			<span class="kw">let </span><span class="kw-2">mut </span>runtime_info = RuntimeInfo::new_with_config(RuntimeInfoConfig {
+				keystore: <span class="prelude-val">None</span>,
+				session_cache_lru_size: DISPUTE_WINDOW.into(),
+			});
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
 				<span class="kw">let </span>env = ImportedBlockInfoEnv {
-					session_window: <span class="kw-2">&amp;</span>session_window,
+					runtime_info: <span class="kw-2">&amp;mut </span>runtime_info,
 					assignment_criteria: <span class="kw-2">&amp;</span>MockAssignmentCriteria,
 					keystore: <span class="kw-2">&amp;</span>LocalKeystore::in_memory(),
 				};
 
-				<span class="kw">let </span>info = imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header).<span class="kw">await</span>;
+				<span class="kw">let </span>info = imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header, <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="number">6</span>)).<span class="kw">await</span>;
 
-				<span class="macro">assert_matches!</span>(info, <span class="prelude-val">Err</span>(ImportedBlockInfoError::BlockFromAncientSession));
+				<span class="macro">assert_matches!</span>(info, <span class="prelude-val">Err</span>(ImportedBlockInfoError::BlockAlreadyFinalized));
 			})
 		};
 
@@ -2426,18 +2479,21 @@
 				.map(|(r, c, g)| (r.hash(), r.clone(), <span class="kw-2">*</span>c, <span class="kw-2">*</span>g))
 				.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-			<span class="kw">let </span>session_window =
-				<span class="prelude-val">Some</span>(RollingSessionWindow::with_session_info(session, <span class="macro">vec!</span>[session_info]));
+			<span class="kw">let </span><span class="kw-2">mut </span>runtime_info = RuntimeInfo::new_with_config(RuntimeInfoConfig {
+				keystore: <span class="prelude-val">None</span>,
+				session_cache_lru_size: DISPUTE_WINDOW.into(),
+			});
 
 			<span class="kw">let </span>header = header.clone();
 			Box::pin(<span class="kw">async move </span>{
 				<span class="kw">let </span>env = ImportedBlockInfoEnv {
-					session_window: <span class="kw-2">&amp;</span>session_window,
+					runtime_info: <span class="kw-2">&amp;mut </span>runtime_info,
 					assignment_criteria: <span class="kw-2">&amp;</span>MockAssignmentCriteria,
 					keystore: <span class="kw-2">&amp;</span>LocalKeystore::in_memory(),
 				};
 
-				<span class="kw">let </span>info = imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header).<span class="kw">await</span>.unwrap();
+				<span class="kw">let </span>info =
+					imported_block_info(<span class="kw-2">&amp;mut </span>ctx, env, hash, <span class="kw-2">&amp;</span>header, <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="number">4</span>)).<span class="kw">await</span>.unwrap();
 
 				<span class="macro">assert_eq!</span>(info.included_candidates, included_candidates);
 				<span class="macro">assert_eq!</span>(info.session_index, session);
@@ -2489,6 +2545,20 @@
 							allowed_slots: AllowedSlots::PrimarySlots,
 						},
 					}));
+				}
+			);
+
+			<span class="macro">assert_matches!</span>(
+				handle.recv().<span class="kw">await</span>,
+				AllMessages::RuntimeApi(
+					RuntimeApiMessage::Request(
+						req_block_hash,
+						RuntimeApiRequest::SessionInfo(idx, si_tx),
+					)
+				) =&gt; {
+					<span class="macro">assert_eq!</span>(session, idx);
+					<span class="macro">assert_eq!</span>(req_block_hash, hash);
+					si_tx.send(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(session_info.clone()))).unwrap();
 				}
 			);
 		});
@@ -2569,7 +2639,7 @@
 			.map(|(r, c, g)| CandidateEvent::CandidateIncluded(r, Vec::new().into(), c, g))
 			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-		<span class="kw">let </span><span class="kw-2">mut </span>state = single_session_state(session, session_info);
+		<span class="kw">let </span>(state, <span class="kw-2">mut </span>session_info_provider) = single_session_state();
 		overlay_db.write_block_entry(
 			v1::BlockEntry {
 				block_hash: parent_hash,
@@ -2591,9 +2661,16 @@
 		<span class="kw">let </span>test_fut = {
 			Box::pin(<span class="kw">async move </span>{
 				<span class="kw">let </span><span class="kw-2">mut </span>overlay_db = OverlayedBackend::new(<span class="kw-2">&amp;</span>db);
-				<span class="kw">let </span>result = handle_new_head(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>overlay_db, hash, <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="number">1</span>))
-					.<span class="kw">await
-					</span>.unwrap();
+				<span class="kw">let </span>result = handle_new_head(
+					<span class="kw-2">&amp;mut </span>ctx,
+					<span class="kw-2">&amp;</span>state,
+					<span class="kw-2">&amp;mut </span>overlay_db,
+					<span class="kw-2">&amp;mut </span>session_info_provider,
+					hash,
+					<span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="number">1</span>),
+				)
+				.<span class="kw">await
+				</span>.unwrap();
 
 				<span class="kw">let </span>write_ops = overlay_db.into_write_ops();
 				db.write(write_ops).unwrap();
@@ -2624,17 +2701,6 @@
 				)) =&gt; {
 					<span class="macro">assert_eq!</span>(h, hash);
 					<span class="kw">let _ </span>= tx.send(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(header.clone())));
-				}
-			);
-
-			<span class="macro">assert_matches!</span>(
-				handle.recv().<span class="kw">await</span>,
-				AllMessages::RuntimeApi(RuntimeApiMessage::Request(
-					h,
-					RuntimeApiRequest::SessionIndexForChild(c_tx),
-				)) =&gt; {
-					<span class="macro">assert_eq!</span>(h, hash);
-					<span class="kw">let _ </span>= c_tx.send(<span class="prelude-val">Ok</span>(session));
 				}
 			);
 
@@ -2680,6 +2746,20 @@
 							allowed_slots: AllowedSlots::PrimarySlots,
 						},
 					}));
+				}
+			);
+
+			<span class="macro">assert_matches!</span>(
+				handle.recv().<span class="kw">await</span>,
+				AllMessages::RuntimeApi(
+					RuntimeApiMessage::Request(
+						req_block_hash,
+						RuntimeApiRequest::SessionInfo(idx, si_tx),
+					)
+				) =&gt; {
+					<span class="macro">assert_eq!</span>(session, idx);
+					<span class="macro">assert_eq!</span>(req_block_hash, hash);
+					si_tx.send(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(session_info.clone()))).unwrap();
 				}
 			);
 
