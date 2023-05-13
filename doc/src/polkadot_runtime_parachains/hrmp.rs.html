@@ -1568,6 +1568,8 @@
 <a href="#1568" id="1568">1568</a>
 <a href="#1569" id="1569">1569</a>
 <a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2459,19 +2461,16 @@
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), HrmpWatermarkAcceptanceErr&lt;T::BlockNumber&gt;&gt; {
 		<span class="comment">// First, check where the watermark CANNOT legally land.
 		//
-		// (a) For ensuring that messages are eventually, a rule requires each parablock new
-		//     watermark should be greater than the last one.
+		// (a) For ensuring that messages are eventually processed, we require each parablock&#39;s
+		//     watermark to be greater than the last one. The exception to this is if the previous
+		//     watermark was already equal to the current relay-parent number.
 		//
 		// (b) However, a parachain cannot read into &quot;the future&quot;, therefore the watermark should
 		//     not be greater than the relay-chain context block which the parablock refers to.
-		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(last_watermark) = HrmpWatermarks::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient) {
-			<span class="kw">if </span>new_hrmp_watermark &lt;= last_watermark {
-				<span class="kw">return </span><span class="prelude-val">Err</span>(HrmpWatermarkAcceptanceErr::AdvancementRule {
-					new_watermark: new_hrmp_watermark,
-					last_watermark,
-				})
-			}
+		</span><span class="kw">if </span>new_hrmp_watermark == relay_chain_parent_number {
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 		}
+
 		<span class="kw">if </span>new_hrmp_watermark &gt; relay_chain_parent_number {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(HrmpWatermarkAcceptanceErr::AheadRelayParent {
 				new_watermark: new_hrmp_watermark,
@@ -2479,24 +2478,29 @@
 			})
 		}
 
-		<span class="comment">// Second, check where the watermark CAN land. It&#39;s one of the following:
-		//
-		// (a) The relay parent block number.
-		// (b) A relay-chain block in which this para received at least one message.
-		</span><span class="kw">if </span>new_hrmp_watermark == relay_chain_parent_number {
-			<span class="prelude-val">Ok</span>(())
-		} <span class="kw">else </span>{
-			<span class="kw">let </span>digest = HrmpChannelDigests::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient);
-			<span class="kw">if </span>!digest
-				.binary_search_by_key(<span class="kw-2">&amp;</span>new_hrmp_watermark, |(block_no, <span class="kw">_</span>)| <span class="kw-2">*</span>block_no)
-				.is_ok()
-			{
-				<span class="kw">return </span><span class="prelude-val">Err</span>(HrmpWatermarkAcceptanceErr::LandsOnBlockWithNoMessages {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(last_watermark) = HrmpWatermarks::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient) {
+			<span class="kw">if </span>new_hrmp_watermark &lt;= last_watermark {
+				<span class="kw">return </span><span class="prelude-val">Err</span>(HrmpWatermarkAcceptanceErr::AdvancementRule {
 					new_watermark: new_hrmp_watermark,
+					last_watermark,
 				})
 			}
-			<span class="prelude-val">Ok</span>(())
 		}
+
+		<span class="comment">// Second, check where the watermark CAN land. It&#39;s one of the following:
+		//
+		// (a) The relay parent block number (checked above).
+		// (b) A relay-chain block in which this para received at least one message (checked here)
+		</span><span class="kw">let </span>digest = HrmpChannelDigests::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient);
+		<span class="kw">if </span>!digest
+			.binary_search_by_key(<span class="kw-2">&amp;</span>new_hrmp_watermark, |(block_no, <span class="kw">_</span>)| <span class="kw-2">*</span>block_no)
+			.is_ok()
+		{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(HrmpWatermarkAcceptanceErr::LandsOnBlockWithNoMessages {
+				new_watermark: new_hrmp_watermark,
+			})
+		}
+		<span class="prelude-val">Ok</span>(())
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_outbound_hrmp(
