@@ -378,6 +378,14 @@
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -611,7 +619,15 @@
 }
 
 <span class="kw">pub trait </span>DispatchBlob {
-	<span class="doccomment">/// Dispatches an incoming blob and returns the unexpectable weight consumed by the dispatch.
+	<span class="doccomment">/// Takes an incoming blob from over some point-to-point link (usually from some sort of
+	/// inter-consensus bridge) and then does what needs to be done with it. Usually this means
+	/// forwarding it on into some other location sharing our consensus or possibly just enqueuing
+	/// it for execution locally if it is destined for the local chain.
+	///
+	/// NOTE: The API does not provide for any kind of weight or fee management; the size of the
+	/// `blob` is known to the caller and so the operation must have a linear weight relative to
+	/// `blob`&#39;s length. This means that you will generally only want to **enqueue** the blob, not
+	/// enact it. Fees must be handled by the caller.
 	</span><span class="kw">fn </span>dispatch_blob(blob: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchBlobError&gt;;
 }
 
