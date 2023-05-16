@@ -173,6 +173,39 @@
 <a href="#173" id="173">173</a>
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -190,12 +223,15 @@
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use crate</span>::{
-	common::{bytes_to_path, cpu_time_monitor_loop, worker_event_loop},
-	executor_intf::Executor,
+	common::{
+		bytes_to_path, cpu_time_monitor_loop, stringify_panic_payload,
+		thread::{<span class="self">self</span>, WaitOutcome},
+		worker_event_loop,
+	},
+	executor_intf::{Executor, EXECUTE_THREAD_STACK_SIZE},
 	LOG_TARGET,
 };
 <span class="kw">use </span>cpu_time::ProcessTime;
-<span class="kw">use </span>futures::{pin_mut, select_biased, FutureExt};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_node_core_pvf::{
 	framed_recv, framed_send, ExecuteHandshake <span class="kw">as </span>Handshake, ExecuteResponse <span class="kw">as </span>Response,
@@ -242,18 +278,22 @@
 	framed_send(stream, <span class="kw-2">&amp;</span>response.encode()).<span class="kw">await
 </span>}
 
-<span class="doccomment">/// The entrypoint that the spawned execute worker should start with. The `socket_path` specifies
-/// the path to the socket used to communicate with the host. The `node_version`, if `Some`,
-/// is checked against the worker version. A mismatch results in immediate worker termination.
-/// `None` is used for tests and in other situations when version check is not necessary.
+<span class="doccomment">/// The entrypoint that the spawned execute worker should start with.
+///
+/// # Parameters
+///
+/// The `socket_path` specifies the path to the socket used to communicate with the host. The
+/// `node_version`, if `Some`, is checked against the worker version. A mismatch results in
+/// immediate worker termination. `None` is used for tests and in other situations when version
+/// check is not necessary.
 </span><span class="kw">pub fn </span>worker_entrypoint(socket_path: <span class="kw-2">&amp;</span>str, node_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) {
-	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, node_version, |rt_handle, <span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
+	worker_event_loop(<span class="string">&quot;execute&quot;</span>, socket_path, node_version, |<span class="kw-2">mut </span>stream| <span class="kw">async move </span>{
 		<span class="kw">let </span>worker_pid = std::process::id();
 
 		<span class="kw">let </span>handshake = recv_handshake(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="kw">let </span>executor = Arc::new(Executor::new(handshake.executor_params).map_err(|e| {
+		<span class="kw">let </span>executor = Executor::new(handshake.executor_params).map_err(|e| {
 			io::Error::new(io::ErrorKind::Other, <span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, e))
-		})<span class="question-mark">?</span>);
+		})<span class="question-mark">?</span>;
 
 		<span class="kw">loop </span>{
 			<span class="kw">let </span>(artifact_path, params, execution_timeout) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -264,31 +304,49 @@
 				artifact_path.display(),
 			);
 
-			<span class="comment">// Used to signal to the cpu time monitor thread that it can finish.
-			</span><span class="kw">let </span>(finished_tx, finished_rx) = channel::&lt;()&gt;();
+			<span class="comment">// Conditional variable to notify us when a thread is done.
+			</span><span class="kw">let </span>condvar = thread::get_condvar();
+
 			<span class="kw">let </span>cpu_time_start = ProcessTime::now();
 
 			<span class="comment">// Spawn a new thread that runs the CPU time monitor.
-			</span><span class="kw">let </span>cpu_time_monitor_fut = rt_handle
-				.spawn_blocking(<span class="kw">move </span>|| {
-					cpu_time_monitor_loop(cpu_time_start, execution_timeout, finished_rx)
-				})
-				.fuse();
+			</span><span class="kw">let </span>(cpu_time_monitor_tx, cpu_time_monitor_rx) = channel::&lt;()&gt;();
+			<span class="kw">let </span>cpu_time_monitor_thread = thread::spawn_worker_thread(
+				<span class="string">&quot;cpu time monitor thread&quot;</span>,
+				<span class="kw">move </span>|| {
+					cpu_time_monitor_loop(cpu_time_start, execution_timeout, cpu_time_monitor_rx)
+				},
+				Arc::clone(<span class="kw-2">&amp;</span>condvar),
+				WaitOutcome::TimedOut,
+			)<span class="question-mark">?</span>;
 			<span class="kw">let </span>executor_2 = executor.clone();
-			<span class="kw">let </span>execute_fut = rt_handle
-				.spawn_blocking(<span class="kw">move </span>|| {
+			<span class="kw">let </span>execute_thread = thread::spawn_worker_thread_with_stack_size(
+				<span class="string">&quot;execute thread&quot;</span>,
+				<span class="kw">move </span>|| {
 					validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, executor_2, cpu_time_start)
-				})
-				.fuse();
+				},
+				Arc::clone(<span class="kw-2">&amp;</span>condvar),
+				WaitOutcome::Finished,
+				EXECUTE_THREAD_STACK_SIZE,
+			)<span class="question-mark">?</span>;
 
-			<span class="macro">pin_mut!</span>(cpu_time_monitor_fut);
-			<span class="macro">pin_mut!</span>(execute_fut);
+			<span class="kw">let </span>outcome = thread::wait_for_threads(condvar);
 
-			<span class="kw">let </span>response = <span class="macro">select_biased! </span>{
-				<span class="comment">// If this future is not selected, the join handle is dropped and the thread will
-				// finish in the background.
-				</span>cpu_time_monitor_res = cpu_time_monitor_fut =&gt; {
-					<span class="kw">match </span>cpu_time_monitor_res {
+			<span class="kw">let </span>response = <span class="kw">match </span>outcome {
+				WaitOutcome::Finished =&gt; {
+					<span class="kw">let _ </span>= cpu_time_monitor_tx.send(());
+					execute_thread.join().unwrap_or_else(|e| {
+						<span class="comment">// TODO: Use `Panic` error once that is implemented.
+						</span>Response::format_internal(
+							<span class="string">&quot;execute thread error&quot;</span>,
+							<span class="kw-2">&amp;</span>stringify_panic_payload(e),
+						)
+					})
+				},
+				<span class="comment">// If the CPU thread is not selected, we signal it to end, the join handle is
+				// dropped and the thread will finish in the background.
+				</span>WaitOutcome::TimedOut =&gt; {
+					<span class="kw">match </span>cpu_time_monitor_thread.join() {
 						<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(cpu_time_elapsed)) =&gt; {
 							<span class="comment">// Log if we exceed the timeout and the other thread hasn&#39;t finished.
 							</span><span class="macro">gum::warn!</span>(
@@ -300,14 +358,20 @@
 							);
 							Response::TimedOut
 						},
-						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Response::InternalError(<span class="string">&quot;error communicating over finished channel&quot;</span>.into()),
-						<span class="prelude-val">Err</span>(e) =&gt; Response::format_internal(<span class="string">&quot;cpu time monitor thread error&quot;</span>, <span class="kw-2">&amp;</span>e.to_string()),
+						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Response::format_internal(
+							<span class="string">&quot;cpu time monitor thread error&quot;</span>,
+							<span class="string">&quot;error communicating over closed channel&quot;</span>.into(),
+						),
+						<span class="comment">// We can use an internal error here because errors in this thread are
+						// independent of the candidate.
+						</span><span class="prelude-val">Err</span>(e) =&gt; Response::format_internal(
+							<span class="string">&quot;cpu time monitor thread error&quot;</span>,
+							<span class="kw-2">&amp;</span>stringify_panic_payload(e),
+						),
 					}
 				},
-				execute_res = execute_fut =&gt; {
-					<span class="kw">let _ </span>= finished_tx.send(());
-					execute_res.unwrap_or_else(|e| Response::format_internal(<span class="string">&quot;execute thread error&quot;</span>, <span class="kw-2">&amp;</span>e.to_string()))
-				},
+				WaitOutcome::Pending =&gt;
+					<span class="macro">unreachable!</span>(<span class="string">&quot;we run wait_while until the outcome is no longer pending; qed&quot;</span>),
 			};
 
 			send_response(<span class="kw-2">&amp;mut </span>stream, response).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -318,7 +382,7 @@
 <span class="kw">fn </span>validate_using_artifact(
 	artifact_path: <span class="kw-2">&amp;</span>Path,
 	params: <span class="kw-2">&amp;</span>[u8],
-	executor: Arc&lt;Executor&gt;,
+	executor: Executor,
 	cpu_time_start: ProcessTime,
 ) -&gt; Response {
 	<span class="comment">// Check here if the file exists, because the error from Substrate is not match-able.
@@ -338,13 +402,15 @@
 		<span class="prelude-val">Ok</span>(d) =&gt; d,
 	};
 
-	<span class="kw">let </span>duration = cpu_time_start.elapsed();
-
 	<span class="kw">let </span>result_descriptor = <span class="kw">match </span>ValidationResult::decode(<span class="kw-2">&amp;mut &amp;</span>descriptor_bytes[..]) {
 		<span class="prelude-val">Err</span>(err) =&gt;
 			<span class="kw">return </span>Response::format_invalid(<span class="string">&quot;validation result decoding failed&quot;</span>, <span class="kw-2">&amp;</span>err.to_string()),
 		<span class="prelude-val">Ok</span>(r) =&gt; r,
 	};
+
+	<span class="comment">// Include the decoding in the measured time, to prevent any potential attacks exploiting some
+	// bug in decoding.
+	</span><span class="kw">let </span>duration = cpu_time_start.elapsed();
 
 	Response::Ok { result_descriptor, duration }
 }

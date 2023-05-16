@@ -406,30 +406,6 @@
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
 <a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -460,6 +436,42 @@
 	any::{Any, TypeId},
 	path::Path,
 };
+
+<span class="comment">// Wasmtime powers the Substrate Executor. It compiles the wasm bytecode into native code.
+// That native code does not create any stacks and just reuses the stack of the thread that
+// wasmtime was invoked from.
+//
+// Also, we configure the executor to provide the deterministic stack and that requires
+// supplying the amount of the native stack space that wasm is allowed to use. This is
+// realized by supplying the limit into `wasmtime::Config::max_wasm_stack`.
+//
+// There are quirks to that configuration knob:
+//
+// 1. It only limits the amount of stack space consumed by wasm but does not ensure nor check
+//    that the stack space is actually available.
+//
+//    That means, if the calling thread has 1 MiB of stack space left and the wasm code consumes
+//    more, then the wasmtime limit will **not** trigger. Instead, the wasm code will hit the
+//    guard page and the Rust stack overflow handler will be triggered. That leads to an
+//    **abort**.
+//
+// 2. It cannot and does not limit the stack space consumed by Rust code.
+//
+//    Meaning that if the wasm code leaves no stack space for Rust code, then the Rust code
+//    will abort and that will abort the process as well.
+//
+// Typically on Linux the main thread gets the stack size specified by the `ulimit` and
+// typically it&#39;s configured to 8 MiB. Rust&#39;s spawned threads are 2 MiB. OTOH, the
+// NATIVE_STACK_MAX is set to 256 MiB. Not nearly enough.
+//
+// Hence we need to increase it. The simplest way to fix that is to spawn a thread with the desired
+// stack limit.
+//
+// The reasoning why we pick this particular size is:
+//
+// The default Rust thread stack limit 2 MiB + 256 MiB wasm stack.
+</span><span class="doccomment">/// The stack size for the execute thread.
+</span><span class="kw">pub const </span>EXECUTE_THREAD_STACK_SIZE: usize = <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024 </span>+ NATIVE_STACK_MAX <span class="kw">as </span>usize;
 
 <span class="comment">// Memory configuration
 //
@@ -574,60 +586,17 @@
 	<span class="prelude-val">Ok</span>(sem)
 }
 
-<span class="kw">pub struct </span>Executor {
-	thread_pool: rayon::ThreadPool,
+<span class="attr">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Executor {
 	config: Config,
 }
 
 <span class="kw">impl </span>Executor {
 	<span class="kw">pub fn </span>new(params: ExecutorParams) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, String&gt; {
-		<span class="comment">// Wasmtime powers the Substrate Executor. It compiles the wasm bytecode into native code.
-		// That native code does not create any stacks and just reuses the stack of the thread that
-		// wasmtime was invoked from.
-		//
-		// Also, we configure the executor to provide the deterministic stack and that requires
-		// supplying the amount of the native stack space that wasm is allowed to use. This is
-		// realized by supplying the limit into `wasmtime::Config::max_wasm_stack`.
-		//
-		// There are quirks to that configuration knob:
-		//
-		// 1. It only limits the amount of stack space consumed by wasm but does not ensure nor check
-		//    that the stack space is actually available.
-		//
-		//    That means, if the calling thread has 1 MiB of stack space left and the wasm code consumes
-		//    more, then the wasmtime limit will **not** trigger. Instead, the wasm code will hit the
-		//    guard page and the Rust stack overflow handler will be triggered. That leads to an
-		//    **abort**.
-		//
-		// 2. It cannot and does not limit the stack space consumed by Rust code.
-		//
-		//    Meaning that if the wasm code leaves no stack space for Rust code, then the Rust code
-		//    will abort and that will abort the process as well.
-		//
-		// Typically on Linux the main thread gets the stack size specified by the `ulimit` and
-		// typically it&#39;s configured to 8 MiB. Rust&#39;s spawned threads are 2 MiB. OTOH, the
-		// NATIVE_STACK_MAX is set to 256 MiB. Not nearly enough.
-		//
-		// Hence we need to increase it.
-		//
-		// The simplest way to fix that is to spawn a thread with the desired stack limit. In order
-		// to avoid costs of creating a thread, we use a thread pool. The execution is
-		// single-threaded hence the thread pool has only one thread.
-		//
-		// The reasoning why we pick this particular size is:
-		//
-		// The default Rust thread stack limit 2 MiB + 256 MiB wasm stack.
-		</span><span class="kw">let </span>thread_stack_size = <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024 </span>+ NATIVE_STACK_MAX <span class="kw">as </span>usize;
-		<span class="kw">let </span>thread_pool = rayon::ThreadPoolBuilder::new()
-			.num_threads(<span class="number">1</span>)
-			.stack_size(thread_stack_size)
-			.build()
-			.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to create thread pool: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
-
 		<span class="kw">let </span><span class="kw-2">mut </span>config = DEFAULT_CONFIG.clone();
 		config.semantics = params_to_wasmtime_semantics(<span class="kw-2">&amp;</span>params)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{ thread_pool, config })
+		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{ config })
 	}
 
 	<span class="doccomment">/// Executes the given PVF in the form of a compiled artifact and returns the result of execution
@@ -648,42 +617,25 @@
 		compiled_artifact_path: <span class="kw-2">&amp;</span>Path,
 		params: <span class="kw-2">&amp;</span>[u8],
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, String&gt; {
-		<span class="kw">let </span><span class="kw-2">mut </span>result = <span class="prelude-val">None</span>;
-		<span class="self">self</span>.thread_pool.scope({
-			<span class="kw">let </span>result = <span class="kw-2">&amp;mut </span>result;
-			<span class="kw">move </span>|s| {
-				s.spawn(<span class="kw">move </span>|<span class="kw">_</span>| {
-					<span class="comment">// spawn does not return a value, so we need to use a variable to pass the result.
-					</span><span class="kw-2">*</span>result = <span class="prelude-val">Some</span>(
-						do_execute(compiled_artifact_path, <span class="self">self</span>.config.clone(), params)
-							.map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;execute error: {:?}&quot;</span>, err)),
-					);
-				});
-			}
-		});
-		result.unwrap_or_else(|| <span class="prelude-val">Err</span>(<span class="string">&quot;rayon thread pool spawn failed&quot;</span>.to_string()))
+		<span class="kw">let </span><span class="kw-2">mut </span>extensions = sp_externalities::Extensions::new();
+
+		extensions.register(sp_core::traits::ReadRuntimeVersionExt::new(ReadRuntimeVersion));
+
+		<span class="kw">let </span><span class="kw-2">mut </span>ext = ValidationExternalities(extensions);
+
+		<span class="kw">match </span>sc_executor::with_externalities_safe(<span class="kw-2">&amp;mut </span>ext, || {
+			<span class="kw">let </span>runtime = sc_executor_wasmtime::create_runtime_from_artifact::&lt;HostFunctions&gt;(
+				compiled_artifact_path,
+				<span class="self">self</span>.config.clone(),
+			)<span class="question-mark">?</span>;
+			runtime.new_instance()<span class="question-mark">?</span>.call(InvokeMethod::Export(<span class="string">&quot;validate_block&quot;</span>), params)
+		}) {
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(ok)) =&gt; <span class="prelude-val">Ok</span>(ok),
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(err)) | <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
+		}
+		.map_err(|err| <span class="macro">format!</span>(<span class="string">&quot;execute error: {:?}&quot;</span>, err))
 	}
 }
-
-<span class="kw">unsafe fn </span>do_execute(
-	compiled_artifact_path: <span class="kw-2">&amp;</span>Path,
-	config: Config,
-	params: <span class="kw-2">&amp;</span>[u8],
-) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sc_executor_common::error::Error&gt; {
-	<span class="kw">let </span><span class="kw-2">mut </span>extensions = sp_externalities::Extensions::new();
-
-	extensions.register(sp_core::traits::ReadRuntimeVersionExt::new(ReadRuntimeVersion));
-
-	<span class="kw">let </span><span class="kw-2">mut </span>ext = ValidationExternalities(extensions);
-
-	sc_executor::with_externalities_safe(<span class="kw-2">&amp;mut </span>ext, || {
-		<span class="kw">let </span>runtime = sc_executor_wasmtime::create_runtime_from_artifact::&lt;HostFunctions&gt;(
-			compiled_artifact_path,
-			config,
-		)<span class="question-mark">?</span>;
-		runtime.new_instance()<span class="question-mark">?</span>.call(InvokeMethod::Export(<span class="string">&quot;validate_block&quot;</span>), params)
-	})<span class="question-mark">?
-</span>}
 
 <span class="kw">type </span>HostFunctions = (
 	sp_io::misc::HostFunctions,
