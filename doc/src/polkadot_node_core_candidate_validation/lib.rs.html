@@ -832,6 +832,56 @@
 <a href="#832" id="832">832</a>
 <a href="#833" id="833">833</a>
 <a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -858,8 +908,8 @@
 #![warn(missing_docs)]
 
 </span><span class="kw">use </span>polkadot_node_core_pvf::{
-	InvalidCandidate <span class="kw">as </span>WasmInvalidCandidate, PrepareError, PrepareStats, PvfPrepData,
-	ValidationError, ValidationHost,
+	InternalValidationError, InvalidCandidate <span class="kw">as </span>WasmInvalidCandidate, PrepareError, PrepareStats,
+	PvfPrepData, ValidationError, ValidationHost,
 };
 <span class="kw">use </span>polkadot_node_primitives::{
 	BlockData, InvalidCandidate, PoV, ValidationResult, POV_BOMB_LIMIT, VALIDATION_CODE_BOMB_LIMIT,
@@ -885,7 +935,11 @@
 
 <span class="kw">use </span>futures::{channel::oneshot, prelude::<span class="kw-2">*</span>};
 
-<span class="kw">use </span>std::{path::PathBuf, sync::Arc, time::Duration};
+<span class="kw">use </span>std::{
+	path::PathBuf,
+	sync::Arc,
+	time::{Duration, Instant},
+};
 
 <span class="kw">use </span>async_trait::async_trait;
 
@@ -897,11 +951,19 @@
 
 <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;parachain::candidate-validation&quot;</span>;
 
-<span class="doccomment">/// The amount of time to wait before retrying after an AmbiguousWorkerDeath validation error.
+<span class="doccomment">/// The amount of time to wait before retrying after a retry-able backing validation error. We use a lower value for the
+/// backing case, to fit within the lower backing timeout.
 </span><span class="attr">#[cfg(not(test))]
-</span><span class="kw">const </span>PVF_EXECUTION_RETRY_DELAY: Duration = Duration::from_secs(<span class="number">3</span>);
+</span><span class="kw">const </span>PVF_BACKING_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">500</span>);
 <span class="attr">#[cfg(test)]
-</span><span class="kw">const </span>PVF_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">200</span>);
+</span><span class="kw">const </span>PVF_BACKING_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">200</span>);
+<span class="doccomment">/// The amount of time to wait before retrying after a retry-able approval validation error. We use a higher value for
+/// the approval case since we have more time, and if we wait longer it is more likely that transient conditions will
+/// resolve.
+</span><span class="attr">#[cfg(not(test))]
+</span><span class="kw">const </span>PVF_APPROVAL_EXECUTION_RETRY_DELAY: Duration = Duration::from_secs(<span class="number">3</span>);
+<span class="attr">#[cfg(test)]
+</span><span class="kw">const </span>PVF_APPROVAL_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">200</span>);
 
 <span class="comment">// Default PVF timeouts. Must never be changed! Use executor environment parameters in
 // `session_info` pallet to adjust them. See also `PvfTimeoutKind` docs.
@@ -1451,6 +1513,7 @@
 		.validate_candidate_with_retry(
 			raw_validation_code.to_vec(),
 			pvf_exec_timeout(<span class="kw-2">&amp;</span>executor_params, exec_timeout_kind),
+			exec_timeout_kind,
 			params,
 			executor_params,
 		)
@@ -1461,7 +1524,15 @@
 	}
 
 	<span class="kw">match </span>result {
-		<span class="prelude-val">Err</span>(ValidationError::InternalError(e)) =&gt; <span class="prelude-val">Err</span>(ValidationFailed(e)),
+		<span class="prelude-val">Err</span>(ValidationError::InternalError(e)) =&gt; {
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>para_id,
+				<span class="question-mark">?</span>e,
+				<span class="string">&quot;An internal error occurred during validation, will abstain from voting&quot;</span>,
+			);
+			<span class="prelude-val">Err</span>(ValidationFailed(e.to_string()))
+		},
 		<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::HardTimeout)) =&gt;
 			<span class="prelude-val">Ok</span>(ValidationResult::Invalid(InvalidCandidate::Timeout)),
 		<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::WorkerReportedError(e))) =&gt;
@@ -1470,6 +1541,8 @@
 			<span class="prelude-val">Ok</span>(ValidationResult::Invalid(InvalidCandidate::ExecutionError(
 				<span class="string">&quot;ambiguous worker death&quot;</span>.to_string(),
 			))),
+		<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::Panic(err))) =&gt;
+			<span class="prelude-val">Ok</span>(ValidationResult::Invalid(InvalidCandidate::ExecutionError(err))),
 		<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::PrepareError(e))) =&gt; {
 			<span class="comment">// In principle if preparation of the `WASM` fails, the current candidate can not be the
 			// reason for that. So we can&#39;t say whether it is invalid or not. In addition, with
@@ -1532,24 +1605,44 @@
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		raw_validation_code: Vec&lt;u8&gt;,
 		exec_timeout: Duration,
+		exec_timeout_kind: PvfExecTimeoutKind,
 		params: ValidationParams,
 		executor_params: ExecutorParams,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;WasmValidationResult, ValidationError&gt; {
 		<span class="kw">let </span>prep_timeout = pvf_prep_timeout(<span class="kw-2">&amp;</span>executor_params, PvfPrepTimeoutKind::Lenient);
 		<span class="comment">// Construct the PVF a single time, since it is an expensive operation. Cloning it is cheap.
 		</span><span class="kw">let </span>pvf = PvfPrepData::from_code(raw_validation_code, executor_params, prep_timeout);
+		<span class="comment">// We keep track of the total time that has passed and stop retrying if we are taking too long.
+		</span><span class="kw">let </span>total_time_start = Instant::now();
 
 		<span class="kw">let </span><span class="kw-2">mut </span>validation_result =
 			<span class="self">self</span>.validate_candidate(pvf.clone(), exec_timeout, params.encode()).<span class="kw">await</span>;
+		<span class="kw">if </span>validation_result.is_ok() {
+			<span class="kw">return </span>validation_result
+		}
+
+		<span class="kw">let </span>retry_delay = <span class="kw">match </span>exec_timeout_kind {
+			PvfExecTimeoutKind::Backing =&gt; PVF_BACKING_EXECUTION_RETRY_DELAY,
+			PvfExecTimeoutKind::Approval =&gt; PVF_APPROVAL_EXECUTION_RETRY_DELAY,
+		};
 
 		<span class="comment">// Allow limited retries for each kind of error.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>num_internal_retries_left = <span class="number">1</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>num_awd_retries_left = <span class="number">1</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>num_panic_retries_left = <span class="number">1</span>;
 		<span class="kw">loop </span>{
+			<span class="comment">// Stop retrying if we exceeded the timeout.
+			</span><span class="kw">if </span>total_time_start.elapsed() + retry_delay &gt; exec_timeout {
+				<span class="kw">break
+			</span>}
+
 			<span class="kw">match </span>validation_result {
 				<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(
 					WasmInvalidCandidate::AmbiguousWorkerDeath,
 				)) <span class="kw">if </span>num_awd_retries_left &gt; <span class="number">0 </span>=&gt; num_awd_retries_left -= <span class="number">1</span>,
+				<span class="prelude-val">Err</span>(ValidationError::InvalidCandidate(WasmInvalidCandidate::Panic(<span class="kw">_</span>)))
+					<span class="kw">if </span>num_panic_retries_left &gt; <span class="number">0 </span>=&gt;
+					num_panic_retries_left -= <span class="number">1</span>,
 				<span class="prelude-val">Err</span>(ValidationError::InternalError(<span class="kw">_</span>)) <span class="kw">if </span>num_internal_retries_left &gt; <span class="number">0 </span>=&gt;
 					num_internal_retries_left -= <span class="number">1</span>,
 				<span class="kw">_ </span>=&gt; <span class="kw">break</span>,
@@ -1559,11 +1652,14 @@
 			// that the conditions that caused this error may have resolved on their own.
 			</span>{
 				<span class="comment">// Wait a brief delay before retrying.
-				</span>futures_timer::Delay::new(PVF_EXECUTION_RETRY_DELAY).<span class="kw">await</span>;
+				</span>futures_timer::Delay::new(retry_delay).<span class="kw">await</span>;
+
+				<span class="kw">let </span>new_timeout = exec_timeout.saturating_sub(total_time_start.elapsed());
 
 				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
 					<span class="question-mark">?</span>pvf,
+					<span class="question-mark">?</span>new_timeout,
 					<span class="string">&quot;Re-trying failed candidate validation due to possible transient error: {:?}&quot;</span>,
 					validation_result
 				);
@@ -1571,7 +1667,7 @@
 				<span class="comment">// Encode the params again when re-trying. We expect the retry case to be relatively
 				// rare, and we want to avoid unconditionally cloning data.
 				</span>validation_result =
-					<span class="self">self</span>.validate_candidate(pvf.clone(), exec_timeout, params.encode()).<span class="kw">await</span>;
+					<span class="self">self</span>.validate_candidate(pvf.clone(), new_timeout, params.encode()).<span class="kw">await</span>;
 			}
 		}
 
@@ -1594,14 +1690,18 @@
 
 		<span class="kw">let </span>(tx, rx) = oneshot::channel();
 		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.execute_pvf(pvf, exec_timeout, encoded_params, priority, tx).<span class="kw">await </span>{
-			<span class="kw">return </span><span class="prelude-val">Err</span>(ValidationError::InternalError(<span class="macro">format!</span>(
-				<span class="string">&quot;cannot send pvf to the validation host: {:?}&quot;</span>,
+			<span class="kw">return </span><span class="prelude-val">Err</span>(InternalValidationError::HostCommunication(<span class="macro">format!</span>(
+				<span class="string">&quot;cannot send pvf to the validation host, it might have shut down: {:?}&quot;</span>,
 				err
-			)))
+			))
+			.into())
 		}
 
-		rx.<span class="kw">await
-			</span>.map_err(|<span class="kw">_</span>| ValidationError::InternalError(<span class="string">&quot;validation was cancelled&quot;</span>.into()))<span class="question-mark">?
+		rx.<span class="kw">await</span>.map_err(|<span class="kw">_</span>| {
+			ValidationError::from(InternalValidationError::HostCommunication(
+				<span class="string">&quot;validation was cancelled&quot;</span>.into(),
+			))
+		})<span class="question-mark">?
 	</span>}
 
 	<span class="kw">async fn </span>precheck_pvf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pvf: PvfPrepData) -&gt; <span class="prelude-ty">Result</span>&lt;PrepareStats, PrepareError&gt; {

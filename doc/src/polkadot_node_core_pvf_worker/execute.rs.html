@@ -201,11 +201,6 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -235,6 +230,7 @@
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_node_core_pvf::{
 	framed_recv, framed_send, ExecuteHandshake <span class="kw">as </span>Handshake, ExecuteResponse <span class="kw">as </span>Response,
+	InternalValidationError,
 };
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
 <span class="kw">use </span>std::{
@@ -335,13 +331,9 @@
 			<span class="kw">let </span>response = <span class="kw">match </span>outcome {
 				WaitOutcome::Finished =&gt; {
 					<span class="kw">let _ </span>= cpu_time_monitor_tx.send(());
-					execute_thread.join().unwrap_or_else(|e| {
-						<span class="comment">// TODO: Use `Panic` error once that is implemented.
-						</span>Response::format_internal(
-							<span class="string">&quot;execute thread error&quot;</span>,
-							<span class="kw-2">&amp;</span>stringify_panic_payload(e),
-						)
-					})
+					execute_thread
+						.join()
+						.unwrap_or_else(|e| Response::Panic(stringify_panic_payload(e)))
 				},
 				<span class="comment">// If the CPU thread is not selected, we signal it to end, the join handle is
 				// dropped and the thread will finish in the background.
@@ -358,16 +350,14 @@
 							);
 							Response::TimedOut
 						},
-						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; Response::format_internal(
-							<span class="string">&quot;cpu time monitor thread error&quot;</span>,
-							<span class="string">&quot;error communicating over closed channel&quot;</span>.into(),
-						),
-						<span class="comment">// We can use an internal error here because errors in this thread are
-						// independent of the candidate.
-						</span><span class="prelude-val">Err</span>(e) =&gt; Response::format_internal(
-							<span class="string">&quot;cpu time monitor thread error&quot;</span>,
-							<span class="kw-2">&amp;</span>stringify_panic_payload(e),
-						),
+						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt;
+							Response::InternalError(InternalValidationError::CpuTimeMonitorThread(
+								<span class="string">&quot;error communicating over finished channel&quot;</span>.into(),
+							)),
+						<span class="prelude-val">Err</span>(e) =&gt;
+							Response::InternalError(InternalValidationError::CpuTimeMonitorThread(
+								stringify_panic_payload(e),
+							)),
 					}
 				},
 				WaitOutcome::Pending =&gt;
@@ -389,7 +379,7 @@
 	// TODO: Re-evaluate after &lt;https://github.com/paritytech/substrate/issues/13860&gt;.
 	</span><span class="kw">let </span>file_metadata = std::fs::metadata(artifact_path);
 	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = file_metadata {
-		<span class="kw">return </span>Response::format_internal(<span class="string">&quot;execute: could not find or open file&quot;</span>, <span class="kw-2">&amp;</span>err.to_string())
+		<span class="kw">return </span>Response::InternalError(InternalValidationError::CouldNotOpenFile(err.to_string()))
 	}
 
 	<span class="kw">let </span>descriptor_bytes = <span class="kw">match unsafe </span>{

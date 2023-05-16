@@ -5564,7 +5564,7 @@ a possibly transient error, to allow the conditions that led to the error to
 hopefully resolve. We use a more brief delay here (1 second as opposed to 15
 minutes for preparation (see above)), because a successful execution must happen
 in a short amount of time.</p>
-<p>We currently know of at least two specific cases that will lead to a retried
+<p>We currently know of the following specific cases that will lead to a retried
 execution request:</p>
 <ol>
 <li><strong>OOM:</strong> The host might have been temporarily low on memory due to other
@@ -5572,7 +5572,9 @@ processes running on the same machine. <strong>NOTE:</strong> This case will lea
 voting against the candidate (and possibly a dispute) if the retry is still
 not successful.</li>
 <li><strong>Artifact missing:</strong> The prepared artifact might have been deleted due to
-operator error or some bug in the system. We will re-create it on retry.</li>
+operator error or some bug in the system.</li>
+<li><strong>Panic:</strong> The worker thread panicked for some indeterminate reason, which
+may or may not be independent of the candidate or PVF.</li>
 </ol>
 <h4 id="preparation-timeouts"><a class="header" href="#preparation-timeouts">Preparation timeouts</a></h4>
 <p>We use timeouts for both preparation and execution jobs to limit the amount of
@@ -5590,7 +5592,25 @@ jobs using CPU time, rather than wall clock time. This is because the CPU time
 of a process is less variable under different system conditions. When the
 overall system is under heavy load, the wall clock time of a job is affected
 more than the CPU time.</p>
-<footer id="last-change">Last change: 2023-04-20, commit: <a href="https://github.com/paritytech/polkadot/commit/67278e0182">67278e0182</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="provisioner"><a class="header" href="#provisioner">Provisioner</a></h1>
+<h4 id="internal-errors"><a class="header" href="#internal-errors">Internal errors</a></h4>
+<p>In general, for errors not raising a dispute we have to be very careful. This is
+only sound, if we either:</p>
+<ol>
+<li>Ruled out that error in pre-checking. If something is not checked in
+pre-checking, even if independent of the candidate and PVF, we must raise a
+dispute.</li>
+<li>We are 100% confident that it is a hardware/local issue: Like corrupted file,
+etc.</li>
+</ol>
+<p>Reasoning: Otherwise it would be possible to register a PVF where candidates can
+not be checked, but we don't get a dispute - so nobody gets punished. Second, we
+end up with a finality stall that is not going to resolve!</p>
+<p>There are some error conditions where we can't be sure whether the candidate is
+really invalid or some internal glitch occurred, e.g. panics. Whenever we are
+unsure, we can never treat an error as internal as we would abstain from voting.
+So we will first retry the candidate, and if the issue persists we are forced to
+vote invalid.</p>
+<footer id="last-change">Last change: 2023-05-16, commit: <a href="https://github.com/paritytech/polkadot/commit/9420d7dc22">9420d7dc22</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="provisioner"><a class="header" href="#provisioner">Provisioner</a></h1>
 <p>Relay chain block authorship authority is governed by BABE and is beyond the scope of the Overseer and the rest of the subsystems. That said, ultimately the block author needs to select a set of backable parachain candidates and other consensus data, and assemble a block from them. This subsystem is responsible for providing the necessary data to all potential block authors.</p>
 <p>A major feature of the provisioner: this subsystem is responsible for ensuring that parachain block candidates are sufficiently available before sending them to potential block authors.</p>
 <h2 id="provisionable-data"><a class="header" href="#provisionable-data">Provisionable Data</a></h2>

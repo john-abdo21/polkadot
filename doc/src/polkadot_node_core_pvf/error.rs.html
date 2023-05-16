@@ -126,6 +126,50 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -206,9 +250,11 @@
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>ValidationError {
 	<span class="doccomment">/// The error was raised because the candidate is invalid.
+	///
+	/// Whenever we are unsure if the error was due to the candidate or not, we must vote invalid.
 	</span>InvalidCandidate(InvalidCandidate),
-	<span class="doccomment">/// This error is raised due to inability to serve the request.
-	</span>InternalError(String),
+	<span class="doccomment">/// Some internal error occurred.
+	</span>InternalError(InternalValidationError),
 }
 
 <span class="doccomment">/// A description of an error raised during executing a PVF and can be attributed to the combination
@@ -231,7 +277,7 @@
 	///     an `rlimit` (if set) or, again, invited OOM killer. Another possibility is a bug in
 	///     wasmtime allowed the PVF to gain control over the execution worker.
 	///
-	/// We attribute such an event to an invalid candidate in either case.
+	/// We attribute such an event to an *invalid candidate* in either case.
 	///
 	/// The rationale for this is that a glitch may lead to unfair rejecting candidate by a single
 	/// validator. If the glitch is somewhat more persistent the validator will reject all candidate
@@ -241,6 +287,48 @@
 	</span>AmbiguousWorkerDeath,
 	<span class="doccomment">/// PVF execution (compilation is not included) took more time than was allotted.
 	</span>HardTimeout,
+	<span class="doccomment">/// A panic occurred and we can&#39;t be sure whether the candidate is really invalid or some internal glitch occurred.
+	/// Whenever we are unsure, we can never treat an error as internal as we would abstain from voting. This is bad
+	/// because if the issue was due to the candidate, then all validators would abstain, stalling finality on the
+	/// chain. So we will first retry the candidate, and if the issue persists we are forced to vote invalid.
+	</span>Panic(String),
+}
+
+<span class="doccomment">/// Some internal error occurred.
+///
+/// Should only ever be used for validation errors independent of the candidate and PVF, or for errors we ruled out
+/// during pre-checking (so preparation errors are fine).
+</span><span class="attr">#[derive(Debug, Clone, Encode, Decode)]
+</span><span class="kw">pub enum </span>InternalValidationError {
+	<span class="doccomment">/// Some communication error occurred with the host.
+	</span>HostCommunication(String),
+	<span class="doccomment">/// Could not find or open compiled artifact file.
+	</span>CouldNotOpenFile(String),
+	<span class="doccomment">/// An error occurred in the CPU time monitor thread. Should be totally unrelated to validation.
+	</span>CpuTimeMonitorThread(String),
+	<span class="doccomment">/// Some non-deterministic preparation error occurred.
+	</span>NonDeterministicPrepareError(PrepareError),
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>InternalValidationError {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+		<span class="kw">use </span>InternalValidationError::<span class="kw-2">*</span>;
+		<span class="kw">match </span><span class="self">self </span>{
+			HostCommunication(err) =&gt;
+				<span class="macro">write!</span>(f, <span class="string">&quot;validation: some communication error occurred with the host: {}&quot;</span>, err),
+			CouldNotOpenFile(err) =&gt;
+				<span class="macro">write!</span>(f, <span class="string">&quot;validation: could not find or open compiled artifact file: {}&quot;</span>, err),
+			CpuTimeMonitorThread(err) =&gt;
+				<span class="macro">write!</span>(f, <span class="string">&quot;validation: an error occurred in the CPU time monitor thread: {}&quot;</span>, err),
+			NonDeterministicPrepareError(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;validation: prepare: {}&quot;</span>, err),
+		}
+	}
+}
+
+<span class="kw">impl </span>From&lt;InternalValidationError&gt; <span class="kw">for </span>ValidationError {
+	<span class="kw">fn </span>from(error: InternalValidationError) -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>::InternalError(error)
+	}
 }
 
 <span class="kw">impl </span>From&lt;PrepareError&gt; <span class="kw">for </span>ValidationError {
@@ -248,9 +336,9 @@
 		<span class="comment">// Here we need to classify the errors into two errors: deterministic and non-deterministic.
 		// See [`PrepareError::is_deterministic`].
 		</span><span class="kw">if </span>error.is_deterministic() {
-			ValidationError::InvalidCandidate(InvalidCandidate::PrepareError(error.to_string()))
+			<span class="self">Self</span>::InvalidCandidate(InvalidCandidate::PrepareError(error.to_string()))
 		} <span class="kw">else </span>{
-			ValidationError::InternalError(error.to_string())
+			<span class="self">Self</span>::InternalError(InternalValidationError::NonDeterministicPrepareError(error))
 		}
 	}
 }
