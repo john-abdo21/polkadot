@@ -559,6 +559,25 @@
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -740,6 +759,9 @@
 
 	<span class="doccomment">/// Current dispute status, if there is any.
 	</span>dispute_status: <span class="prelude-ty">Option</span>&lt;DisputeStatus&gt;,
+
+	<span class="doccomment">/// Are there `byzantine threshold + 1` invalid votes
+	</span>byzantine_threshold_against: bool,
 }
 
 <span class="kw">impl </span>CandidateVoteState&lt;CandidateVotes&gt; {
@@ -752,7 +774,12 @@
 			valid: ValidCandidateVotes::new(),
 			invalid: BTreeMap::new(),
 		};
-		<span class="self">Self </span>{ votes, own_vote: OwnVoteState::CannotVote, dispute_status: <span class="prelude-val">None </span>}
+		<span class="self">Self </span>{
+			votes,
+			own_vote: OwnVoteState::CannotVote,
+			dispute_status: <span class="prelude-val">None</span>,
+			byzantine_threshold_against: <span class="bool-val">false</span>,
+		}
 	}
 
 	<span class="doccomment">/// Create a new `CandidateVoteState` from already existing votes.
@@ -766,7 +793,7 @@
 		<span class="comment">// We have a dispute, if we have votes on both sides:
 		</span><span class="kw">let </span>is_disputed = !votes.invalid.is_empty() &amp;&amp; !votes.valid.raw().is_empty();
 
-		<span class="kw">let </span>dispute_status = <span class="kw">if </span>is_disputed {
+		<span class="kw">let </span>(dispute_status, byzantine_threshold_against) = <span class="kw">if </span>is_disputed {
 			<span class="kw">let </span><span class="kw-2">mut </span>status = DisputeStatus::active();
 			<span class="kw">let </span>byzantine_threshold = polkadot_primitives::byzantine_threshold(n_validators);
 			<span class="kw">let </span>is_confirmed = votes.voted_indices().len() &gt; byzantine_threshold;
@@ -782,12 +809,12 @@
 			<span class="kw">if </span>concluded_against {
 				status = status.conclude_against(now);
 			};
-			<span class="prelude-val">Some</span>(status)
+			(<span class="prelude-val">Some</span>(status), votes.invalid.len() &gt; byzantine_threshold)
 		} <span class="kw">else </span>{
-			<span class="prelude-val">None
-		</span>};
+			(<span class="prelude-val">None</span>, <span class="bool-val">false</span>)
+		};
 
-		<span class="self">Self </span>{ votes, own_vote, dispute_status }
+		<span class="self">Self </span>{ votes, own_vote, dispute_status, byzantine_threshold_against }
 	}
 
 	<span class="doccomment">/// Import fresh statements.
@@ -889,8 +916,12 @@
 
 	<span class="doccomment">/// Extract `CandidateVotes` for handling import of new statements.
 	</span><span class="kw">fn </span>into_old_state(<span class="self">self</span>) -&gt; (CandidateVotes, CandidateVoteState&lt;()&gt;) {
-		<span class="kw">let </span>CandidateVoteState { votes, own_vote, dispute_status } = <span class="self">self</span>;
-		(votes, CandidateVoteState { votes: (), own_vote, dispute_status })
+		<span class="kw">let </span>CandidateVoteState { votes, own_vote, dispute_status, byzantine_threshold_against } =
+			<span class="self">self</span>;
+		(
+			votes,
+			CandidateVoteState { votes: (), own_vote, dispute_status, byzantine_threshold_against },
+		)
 	}
 }
 
@@ -1036,6 +1067,13 @@
 	<span class="doccomment">/// Whether or not any dispute just concluded either invalid or valid due to the import.
 	</span><span class="kw">pub fn </span>is_freshly_concluded(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 		<span class="self">self</span>.is_freshly_concluded_against() || <span class="self">self</span>.is_freshly_concluded_for()
+	}
+
+	<span class="doccomment">/// Whether or not the invalid vote count for the dispute went beyond the byzantine threshold
+	/// after the last import
+	</span><span class="kw">pub fn </span>has_fresh_byzantine_threshold_against(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		!<span class="self">self</span>.old_state().byzantine_threshold_against &amp;&amp;
+			<span class="self">self</span>.new_state().byzantine_threshold_against
 	}
 
 	<span class="doccomment">/// Modify this `ImportResult`s, by importing additional approval votes.
