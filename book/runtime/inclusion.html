@@ -147,7 +147,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="inclusion-module"><a class="header" href="#inclusion-module">Inclusion Module</a></h1>
-<p>The inclusion module is responsible for inclusion and availability of scheduled parachains and parathreads.</p>
+<p>The inclusion module is responsible for inclusion and availability of scheduled parachains and parathreads. It also manages the UMP dispatch queue of each parachain/thread.</p>
 <h2 id="storage"><a class="header" href="#storage">Storage</a></h2>
 <p>Helper structs:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -180,11 +180,25 @@ PendingAvailability: map ParaId =&gt; CandidatePendingAvailability;
 PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 <span class="boring">}
 </span></code></pre></pre>
+<h2 id="config-dependencies"><a class="header" href="#config-dependencies">Config Dependencies</a></h2>
+<ul>
+<li><code>MessageQueue</code>:
+The message queue provides general queueing and processing functionality. Currently it
+replaces the old <code>UMP</code> dispatch queue. Other use-cases can be implemented as well by
+adding new variants to <code>AggregateMessageOrigin</code>. Normally it should be set to an instance
+of the <code>MessageQueue</code> pallet.</li>
+</ul>
 <h2 id="session-change"><a class="header" href="#session-change">Session Change</a></h2>
 <ol>
 <li>Clear out all candidates pending availability.</li>
 <li>Clear out all validator bitfields.</li>
 </ol>
+<p>Optional:</p>
+<ol>
+<li>The UMP queue of all outgoing paras can be &quot;swept&quot;. This would prevent the dispatch queue from automatically being serviced. It is a consideration for the chain and specific behaviour is not defined.</li>
+</ol>
+<h2 id="initialization"><a class="header" href="#initialization">Initialization</a></h2>
+<p>No initialization routine runs for this module. However, the initialization of the <code>MessageQueue</code> pallet will attempt to process any pending UMP messages.</p>
 <h2 id="routines"><a class="header" href="#routines">Routines</a></h2>
 <p>All failed checks should lead to an unrecoverable error making the block invalid.</p>
 <ul>
@@ -235,7 +249,7 @@ PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 <li>Ensure that any code upgrade scheduled by the candidate does not happen within <code>config.validation_upgrade_cooldown</code> of <code>Paras::last_code_upgrade(para_id, true)</code>, if any, comparing against the value of <code>Paras::FutureCodeUpgrades</code> for the given para ID.</li>
 <li>Check the collator's signature on the candidate data.</li>
 <li>check the backing of the candidate using the signatures and the bitfields, comparing against the validators assigned to the groups, fetched with the <code>group_validators</code> lookup.</li>
-<li>call <code>Ump::check_upward_messages(para, commitments.upward_messages)</code> to check that the upward messages are valid.</li>
+<li>call <code>check_upward_messages(config, para, commitments.upward_messages)</code> to check that the upward messages are valid.</li>
 <li>call <code>Dmp::check_processed_downward_messages(para, commitments.processed_downward_messages)</code> to check that the DMQ is properly drained.</li>
 <li>call <code>Hrmp::check_hrmp_watermark(para, commitments.hrmp_watermark)</code> for each candidate to check rules of processing the HRMP watermark.</li>
 <li>using <code>Hrmp::check_outbound_hrmp(sender, commitments.horizontal_messages)</code> ensure that the each candidate sent a valid set of horizontal messages</li>
@@ -254,7 +268,7 @@ PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 </blockquote>
 <ol>
 <li>Reward all backing validators of each candidate, contained within the <code>backers</code> field.</li>
-<li>call <code>Ump::receive_upward_messages</code> for each backed candidate, using the <a href="../types/messages.html#upward-message"><code>UpwardMessage</code>s</a> from the <a href="../types/candidate.html#candidate-commitments"><code>CandidateCommitments</code></a>.</li>
+<li>call <code>receive_upward_messages</code> for each backed candidate, using the <a href="../types/messages.html#upward-message"><code>UpwardMessage</code>s</a> from the <a href="../types/candidate.html#candidate-commitments"><code>CandidateCommitments</code></a>.</li>
 <li>call <code>Dmp::prune_dmq</code> with the para id of the candidate and the candidate's <code>processed_downward_messages</code>.</li>
 <li>call <code>Hrmp::prune_hrmp</code> with the para id of the candiate and the candidate's <code>hrmp_watermark</code>.</li>
 <li>call <code>Hrmp::queue_outbound_hrmp</code> with the para id of the candidate and the list of horizontal messages taken from the commitment,</li>
@@ -286,7 +300,33 @@ PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 <p><code>collect_disputed(disputed: Vec&lt;CandidateHash&gt;) -&gt; Vec&lt;CoreIndex&gt;</code>: Sweeps through all paras pending availability. If the candidate hash is one of the disputed candidates, then clean up the corresponding storage for that candidate and the commitments. Return a vector of cleaned-up core IDs.</p>
 </li>
 </ul>
-<footer id="last-change">Last change: 2021-12-30, commit: <a href="https://github.com/paritytech/polkadot/commit/5bb1d3ab51">5bb1d3ab51</a></footer>
+<p>These functions were formerly part of the UMP pallet:</p>
+<ul>
+<li><code>check_upward_messages(P: ParaId, Vec&lt;UpwardMessage&gt;)</code>:
+<ol>
+<li>Checks that the parachain is not currently offboarding and error otherwise. </li>
+<li>Checks that there are at most <code>config.max_upward_message_num_per_candidate</code> messages to be enqueued.</li>
+<li>Checks that no message exceeds <code>config.max_upward_message_size</code>.</li>
+<li>Checks that the total resulting queue size would not exceed <code>co</code>.</li>
+<li>Verify that queuing up the messages could not result in exceeding the queue's footprint
+according to the config items <code>config.max_upward_queue_count</code> and <code>config.max_upward_queue_size</code>. The queue's current footprint is provided in <code>well_known_keys</code>
+in order to facilitate oraclisation on to the para.</li>
+</ol>
+</li>
+</ul>
+<p>Candidate Enactment:</p>
+<ul>
+<li><code>receive_upward_messages(P: ParaId, Vec&lt;UpwardMessage&gt;)</code>:
+<ol>
+<li>Process each upward message <code>M</code> in order:
+<ol>
+<li>Place in the dispatch queue according to its para ID (or handle it immediately).</li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+<footer id="last-change">Last change: 2023-05-19, commit: <a href="https://github.com/paritytech/polkadot/commit/7c1dc94292">7c1dc94292</a></footer>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

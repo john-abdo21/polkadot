@@ -334,10 +334,6 @@
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -362,7 +358,7 @@
 </span><span class="kw">use crate</span>::{
 	configuration::{<span class="self">self</span>, HostConfiguration},
 	disputes::{<span class="self">self</span>, DisputesHandler <span class="kw">as _</span>, SlashingHandler <span class="kw">as _</span>},
-	dmp, hrmp, inclusion, paras, scheduler, session_info, shared, ump,
+	dmp, hrmp, inclusion, paras, scheduler, session_info, shared,
 };
 <span class="kw">use </span>frame_support::{
 	traits::{OneSessionHandler, Randomness},
@@ -453,7 +449,6 @@
 		+ session_info::Config
 		+ disputes::Config
 		+ dmp::Config
-		+ ump::Config
 		+ hrmp::Config
 	{
 		<span class="doccomment">/// A randomness beacon.
@@ -508,7 +503,6 @@
 				T::DisputesHandler::initializer_initialize(now) +
 				T::SlashingHandler::initializer_initialize(now) +
 				dmp::Pallet::&lt;T&gt;::initializer_initialize(now) +
-				ump::Pallet::&lt;T&gt;::initializer_initialize(now) +
 				hrmp::Pallet::&lt;T&gt;::initializer_initialize(now);
 
 			HasInitialized::&lt;T&gt;::set(<span class="prelude-val">Some</span>(()));
@@ -519,7 +513,6 @@
 		<span class="kw">fn </span>on_finalize(now: T::BlockNumber) {
 			<span class="comment">// reverse initialization order.
 			</span>hrmp::Pallet::&lt;T&gt;::initializer_finalize();
-			ump::Pallet::&lt;T&gt;::initializer_finalize();
 			dmp::Pallet::&lt;T&gt;::initializer_finalize();
 			T::SlashingHandler::initializer_finalize();
 			T::DisputesHandler::initializer_finalize();
@@ -603,12 +596,11 @@
 
 		<span class="kw">let </span>outgoing_paras = paras::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification);
 		scheduler::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification);
-		inclusion::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification);
+		inclusion::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification, <span class="kw-2">&amp;</span>outgoing_paras);
 		session_info::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification);
 		T::DisputesHandler::initializer_on_new_session(<span class="kw-2">&amp;</span>notification);
 		T::SlashingHandler::initializer_on_new_session(session_index);
 		dmp::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification, <span class="kw-2">&amp;</span>outgoing_paras);
-		ump::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification, <span class="kw-2">&amp;</span>outgoing_paras);
 		hrmp::Pallet::&lt;T&gt;::initializer_on_new_session(<span class="kw-2">&amp;</span>notification, <span class="kw-2">&amp;</span>outgoing_paras);
 	}
 

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["STORAGE_VERSION"],"mod":["v5"]};
+window.SIDEBAR_ITEMS = {"constant":["STORAGE_VERSION"],"mod":["v5","v6"]};

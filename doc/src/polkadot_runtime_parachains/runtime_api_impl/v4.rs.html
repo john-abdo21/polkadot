@@ -421,6 +421,10 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -754,14 +758,18 @@
 	&lt;frame_system::Pallet&lt;T&gt;&gt;::read_events_no_consensus()
 		.into_iter()
 		.filter_map(|record| extract_event(record.event))
-		.map(|event| <span class="kw">match </span>event {
-			RawEvent::&lt;T&gt;::CandidateBacked(c, h, core, group) =&gt;
-				CandidateEvent::CandidateBacked(c, h, core, group),
-			RawEvent::&lt;T&gt;::CandidateIncluded(c, h, core, group) =&gt;
-				CandidateEvent::CandidateIncluded(c, h, core, group),
-			RawEvent::&lt;T&gt;::CandidateTimedOut(c, h, core) =&gt;
-				CandidateEvent::CandidateTimedOut(c, h, core),
-			RawEvent::&lt;T&gt;::__Ignore(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;__Ignore cannot be used&quot;</span>),
+		.filter_map(|event| {
+			<span class="prelude-val">Some</span>(<span class="kw">match </span>event {
+				RawEvent::&lt;T&gt;::CandidateBacked(c, h, core, group) =&gt;
+					CandidateEvent::CandidateBacked(c, h, core, group),
+				RawEvent::&lt;T&gt;::CandidateIncluded(c, h, core, group) =&gt;
+					CandidateEvent::CandidateIncluded(c, h, core, group),
+				RawEvent::&lt;T&gt;::CandidateTimedOut(c, h, core) =&gt;
+					CandidateEvent::CandidateTimedOut(c, h, core),
+				<span class="comment">// Not needed for candidate events.
+				</span>RawEvent::&lt;T&gt;::UpwardMessagesReceived { .. } =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+				RawEvent::&lt;T&gt;::__Ignore(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;__Ignore cannot be used&quot;</span>),
+			})
 		})
 		.collect()
 }

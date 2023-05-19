@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["NeedsDispatch","NextDispatchRoundStartWith","Overweight","OverweightCount","RelayDispatchQueueSize","RelayDispatchQueues"]};

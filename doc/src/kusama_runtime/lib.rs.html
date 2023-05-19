@@ -2381,6 +2381,68 @@
 <a href="#2381" id="2381">2381</a>
 <a href="#2382" id="2382">2382</a>
 <a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
+<a href="#2404" id="2404">2404</a>
+<a href="#2405" id="2405">2405</a>
+<a href="#2406" id="2406">2406</a>
+<a href="#2407" id="2407">2407</a>
+<a href="#2408" id="2408">2408</a>
+<a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
+<a href="#2413" id="2413">2413</a>
+<a href="#2414" id="2414">2414</a>
+<a href="#2415" id="2415">2415</a>
+<a href="#2416" id="2416">2416</a>
+<a href="#2417" id="2417">2417</a>
+<a href="#2418" id="2418">2418</a>
+<a href="#2419" id="2419">2419</a>
+<a href="#2420" id="2420">2420</a>
+<a href="#2421" id="2421">2421</a>
+<a href="#2422" id="2422">2422</a>
+<a href="#2423" id="2423">2423</a>
+<a href="#2424" id="2424">2424</a>
+<a href="#2425" id="2425">2425</a>
+<a href="#2426" id="2426">2426</a>
+<a href="#2427" id="2427">2427</a>
+<a href="#2428" id="2428">2428</a>
+<a href="#2429" id="2429">2429</a>
+<a href="#2430" id="2430">2430</a>
+<a href="#2431" id="2431">2431</a>
+<a href="#2432" id="2432">2432</a>
+<a href="#2433" id="2433">2433</a>
+<a href="#2434" id="2434">2434</a>
+<a href="#2435" id="2435">2435</a>
+<a href="#2436" id="2436">2436</a>
+<a href="#2437" id="2437">2437</a>
+<a href="#2438" id="2438">2438</a>
+<a href="#2439" id="2439">2439</a>
+<a href="#2440" id="2440">2440</a>
+<a href="#2441" id="2441">2441</a>
+<a href="#2442" id="2442">2442</a>
+<a href="#2443" id="2443">2443</a>
+<a href="#2444" id="2444">2444</a>
+<a href="#2445" id="2445">2445</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2422,12 +2484,14 @@
 
 <span class="kw">use </span>runtime_parachains::{
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
-	disputes::slashing <span class="kw">as </span>parachains_slashing, dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp,
-	inclusion <span class="kw">as </span>parachains_inclusion, initializer <span class="kw">as </span>parachains_initializer,
-	origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
+	disputes::slashing <span class="kw">as </span>parachains_slashing,
+	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
+	inclusion::{AggregateMessageOrigin, UmpQueueId},
+	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent, reward_points <span class="kw">as </span>parachains_reward_points,
-	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl, scheduler <span class="kw">as </span>parachains_scheduler,
-	session_info <span class="kw">as </span>parachains_session_info, shared <span class="kw">as </span>parachains_shared, ump <span class="kw">as </span>parachains_ump,
+	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl,
+	scheduler <span class="kw">as </span>parachains_scheduler, session_info <span class="kw">as </span>parachains_session_info,
+	shared <span class="kw">as </span>parachains_shared,
 };
 
 <span class="kw">use </span>authority_discovery_primitives::AuthorityId <span class="kw">as </span>AuthorityDiscoveryId;
@@ -2439,9 +2503,9 @@
 	construct_runtime, parameter_types,
 	traits::{
 		ConstU32, Contains, EitherOf, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem,
-		PrivilegeCmp, StorageMapShim, WithdrawReasons,
+		PrivilegeCmp, ProcessMessage, ProcessMessageError, StorageMapShim, WithdrawReasons,
 	},
-	weights::ConstantMultiplier,
+	weights::{ConstantMultiplier, WeightMeter},
 	PalletId, RuntimeDebug,
 };
 <span class="kw">use </span>frame_system::EnsureRoot;
@@ -2464,6 +2528,7 @@
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
 </span><span class="kw">use </span>sp_version::NativeVersion;
 <span class="kw">use </span>sp_version::RuntimeVersion;
+<span class="kw">use </span>xcm::latest::Junction;
 
 <span class="kw">pub use </span>frame_system::Call <span class="kw">as </span>SystemCall;
 <span class="kw">pub use </span>pallet_balances::Call <span class="kw">as </span>BalancesCall;
@@ -3471,6 +3536,8 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>DisputesHandler = ParasDisputes;
 	<span class="kw">type </span>RewardValidators = parachains_reward_points::RewardValidatorsWithEraPoints&lt;Runtime&gt;;
+	<span class="kw">type </span>MessageQueue = MessageQueue;
+	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_inclusion::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -3481,20 +3548,55 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_paras::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>UnsignedPriority = ParasUnsignedPriority;
+	<span class="kw">type </span>QueueFootprinter = ParaInclusion;
 	<span class="kw">type </span>NextSessionRotation = Babe;
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>FirstMessageFactorPercent: u64 = <span class="number">100</span>;
+	<span class="doccomment">/// Amount of weight that can be spent per block to service messages.
+	///
+	/// # WARNING
+	///
+	/// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
+	</span><span class="kw">pub </span>MessageQueueServiceWeight: Weight = Perbill::from_percent(<span class="number">20</span>) * BlockWeights::get().max_block;
+	<span class="kw">pub const </span>MessageQueueHeapSize: u32 = <span class="number">65_536</span>;
+	<span class="kw">pub const </span>MessageQueueMaxStale: u32 = <span class="number">16</span>;
 }
 
-<span class="kw">impl </span>parachains_ump::Config <span class="kw">for </span>Runtime {
+<span class="doccomment">/// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
+</span><span class="kw">pub struct </span>MessageProcessor;
+<span class="kw">impl </span>ProcessMessage <span class="kw">for </span>MessageProcessor {
+	<span class="kw">type </span>Origin = AggregateMessageOrigin;
+
+	<span class="kw">fn </span>process_message(
+		message: <span class="kw-2">&amp;</span>[u8],
+		origin: <span class="self">Self</span>::Origin,
+		meter: <span class="kw-2">&amp;mut </span>WeightMeter,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ProcessMessageError&gt; {
+		<span class="kw">let </span>para = <span class="kw">match </span>origin {
+			AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) =&gt; para,
+		};
+		xcm_builder::ProcessXcmMessage::&lt;
+			Junction,
+			xcm_executor::XcmExecutor&lt;xcm_config::XcmConfig&gt;,
+			RuntimeCall,
+		&gt;::process_message(message, Junction::Parachain(para.into()), meter)
+	}
+}
+
+<span class="kw">impl </span>pallet_message_queue::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>UmpSink =
-		<span class="kw">crate</span>::parachains_ump::XcmSink&lt;xcm_executor::XcmExecutor&lt;xcm_config::XcmConfig&gt;, Runtime&gt;;
-	<span class="kw">type </span>FirstMessageFactorPercent = FirstMessageFactorPercent;
-	<span class="kw">type </span>ExecuteOverweightOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_ump::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>Size = u32;
+	<span class="kw">type </span>HeapSize = MessageQueueHeapSize;
+	<span class="kw">type </span>MaxStale = MessageQueueMaxStale;
+	<span class="kw">type </span>ServiceWeight = MessageQueueServiceWeight;
+	<span class="attr">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+	</span><span class="kw">type </span>MessageProcessor = MessageProcessor;
+	<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">type </span>MessageProcessor =
+		pallet_message_queue::mock_helpers::NoopMessageProcessor&lt;AggregateMessageOrigin&gt;;
+	<span class="kw">type </span>QueueChangeHandler = ParaInclusion;
+	<span class="kw">type </span>WeightInfo = weights::pallet_message_queue::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>parachains_dmp::Config <span class="kw">for </span>Runtime {}
@@ -3794,7 +3896,6 @@
 		Paras: parachains_paras::{Pallet, Call, Storage, Event, Config, ValidateUnsigned} = <span class="number">56</span>,
 		Initializer: parachains_initializer::{Pallet, Call, Storage} = <span class="number">57</span>,
 		Dmp: parachains_dmp::{Pallet, Storage} = <span class="number">58</span>,
-		Ump: parachains_ump::{Pallet, Call, Storage, Event} = <span class="number">59</span>,
 		Hrmp: parachains_hrmp::{Pallet, Call, Storage, Event&lt;T&gt;, Config} = <span class="number">60</span>,
 		ParaSessionInfo: parachains_session_info::{Pallet, Storage} = <span class="number">61</span>,
 		ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
@@ -3808,6 +3909,9 @@
 
 		<span class="comment">// Pallet for sending XCM.
 		</span>XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config} = <span class="number">99</span>,
+
+		<span class="comment">// Generalized message queue
+		</span>MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">100</span>,
 	}
 }
 
@@ -3868,7 +3972,12 @@
 	);
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
-	</span><span class="kw">pub type </span>Unreleased = SetStorageVersions;
+	</span><span class="kw">pub type </span>Unreleased = (
+		SetStorageVersions,
+		<span class="comment">// Remove UMP dispatch queue &lt;https://github.com/paritytech/polkadot/pull/6271&gt;
+		</span>parachains_configuration::migration::v6::MigrateToV6&lt;Runtime&gt;,
+		ump_migrations::UpdateUmpLimits,
+	);
 
 	<span class="doccomment">/// Migrations that set `StorageVersion`s we missed to set.
 	</span><span class="kw">pub struct </span>SetStorageVersions;
@@ -3893,6 +4002,24 @@
 	}
 }
 
+<span class="doccomment">/// Helpers to configure the ump migrations.
+</span><span class="kw">pub mod </span>ump_migrations {
+	<span class="kw">use </span>runtime_parachains::configuration::migration_ump;
+
+	<span class="kw">pub const </span>MAX_UPWARD_QUEUE_SIZE: u32 = <span class="number">4 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
+	<span class="kw">pub const </span>MAX_UPWARD_QUEUE_COUNT: u32 = <span class="number">699050</span>;
+	<span class="kw">pub const </span>MAX_UPWARD_MESSAGE_SIZE: u32 = (<span class="number">1 </span>&lt;&lt; <span class="number">16</span>) - <span class="number">5</span>; <span class="comment">// Checked in test `max_upward_message_size`.
+	</span><span class="kw">pub const </span>MAX_UPWARD_MESSAGE_NUM_PER_CANDIDATE: u32 = <span class="number">128</span>;
+
+	<span class="kw">pub type </span>UpdateUmpLimits = migration_ump::latest::ScheduleConfigUpdate&lt;
+		<span class="kw">super</span>::Runtime,
+		MAX_UPWARD_QUEUE_SIZE,
+		MAX_UPWARD_QUEUE_COUNT,
+		MAX_UPWARD_MESSAGE_SIZE,
+		MAX_UPWARD_MESSAGE_NUM_PER_CANDIDATE,
+	&gt;;
+}
+
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
 	generic::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, SignedExtra&gt;;
@@ -3909,12 +4036,8 @@
 </span><span class="kw">pub type </span>SignedPayload = generic::SignedPayload&lt;RuntimeCall, SignedExtra&gt;;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
-#[macro_use]
-</span><span class="kw">extern crate </span>frame_benchmarking;
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
 </span><span class="kw">mod </span>benches {
-	<span class="macro">define_benchmarks!</span>(
+	<span class="macro">frame_benchmarking::define_benchmarks!</span>(
 		<span class="comment">// Polkadot
 		// NOTE: Make sure to prefix these with `runtime_common::` so
 		// that the path resolves correctly in the generated file.
@@ -3927,10 +4050,10 @@
 		[runtime_parachains::hrmp, Hrmp]
 		[runtime_parachains::disputes, ParasDisputes]
 		[runtime_parachains::disputes::slashing, ParasSlashing]
+		[runtime_parachains::inclusion, ParaInclusion]
 		[runtime_parachains::initializer, Initializer]
 		[runtime_parachains::paras_inherent, ParaInherent]
 		[runtime_parachains::paras, Paras]
-		[runtime_parachains::ump, Ump]
 		<span class="comment">// Substrate
 		</span>[pallet_balances, Balances]
 		[pallet_balances, NisCounterpartBalances]
@@ -3946,6 +4069,7 @@
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_indices, Indices]
+		[pallet_message_queue, MessageQueue]
 		[pallet_multisig, Multisig]
 		[pallet_nomination_pools, NominationPoolsBench::&lt;Runtime&gt;]
 		[pallet_offences, OffencesBench::&lt;Runtime&gt;]

@@ -411,6 +411,37 @@
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -432,7 +463,10 @@
 </span><span class="kw">pub use </span>codec::Encode;
 <span class="kw">pub use </span>paste;
 
-<span class="kw">pub use </span>frame_support::{traits::Get, weights::Weight};
+<span class="kw">pub use </span>frame_support::{
+	traits::{EnqueueMessage, Get, ProcessMessage, ProcessMessageError, ServiceQueues},
+	weights::{Weight, WeightMeter},
+};
 <span class="kw">pub use </span>sp_io::{hashing::blake2_256, TestExternalities};
 <span class="kw">pub use </span>sp_std::{cell::RefCell, collections::vec_deque::VecDeque, marker::PhantomData};
 
@@ -443,9 +477,10 @@
 };
 <span class="kw">pub use </span>polkadot_runtime_parachains::{
 	dmp,
-	ump::{<span class="self">self</span>, MessageId, UmpSink, XcmSink},
+	inclusion::{AggregateMessageOrigin, UmpQueueId},
 };
 <span class="kw">pub use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedXcm};
+<span class="kw">pub use </span>xcm_builder::ProcessXcmMessage;
 <span class="kw">pub use </span>xcm_executor::XcmExecutor;
 
 <span class="kw">pub trait </span>TestExt {
@@ -513,7 +548,11 @@
 	(
 		<span class="kw">pub struct </span><span class="macro-nonterminal">$name</span>:ident {
 			Runtime = <span class="macro-nonterminal">$runtime</span>:path,
+			RuntimeCall = <span class="macro-nonterminal">$runtime_call</span>:path,
+			RuntimeEvent = <span class="macro-nonterminal">$runtime_event</span>:path,
 			XcmConfig = <span class="macro-nonterminal">$xcm_config</span>:path,
+			MessageQueue = <span class="macro-nonterminal">$mq</span>:path,
+			System = <span class="macro-nonterminal">$system</span>:path,
 			new_ext = <span class="macro-nonterminal">$new_ext</span>:expr,
 		}
 	) =&gt; {
@@ -521,18 +560,37 @@
 
 		<span class="macro-nonterminal">$</span><span class="macro">crate::__impl_ext!</span>(<span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$new_ext</span>);
 
-		<span class="kw">impl </span><span class="macro-nonterminal">$crate::UmpSink </span><span class="kw">for </span><span class="macro-nonterminal">$name </span>{
-			<span class="kw">fn </span>process_upward_message(
-				origin: <span class="macro-nonterminal">$crate::ParaId</span>,
+		<span class="kw">impl </span><span class="macro-nonterminal">$crate::ProcessMessage </span><span class="kw">for </span><span class="macro-nonterminal">$name </span>{
+			<span class="kw">type </span>Origin = <span class="macro-nonterminal">$crate::ParaId</span>;
+
+			<span class="kw">fn </span>process_message(
 				msg: <span class="kw-2">&amp;</span>[u8],
-				max_weight: <span class="macro-nonterminal">$crate::Weight</span>,
-			) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="macro-nonterminal">$crate::Weight</span>, (<span class="macro-nonterminal">$crate::MessageId</span>, <span class="macro-nonterminal">$crate::Weight</span>)&gt; {
-				<span class="kw">use </span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::{<span class="macro-nonterminal">ump::UmpSink</span>, TestExt};
+				para: <span class="self">Self</span>::Origin,
+				meter: <span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$crate::WeightMeter</span>,
+			) -&gt; <span class="prelude-ty">Result</span>&lt;bool, <span class="macro-nonterminal">$crate::ProcessMessageError</span>&gt; {
+				<span class="kw">use </span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::{<span class="macro-nonterminal">Weight</span>, AggregateMessageOrigin, UmpQueueId, ServiceQueues, EnqueueMessage};
+				<span class="kw">use </span><span class="macro-nonterminal">$mq </span><span class="kw">as </span>message_queue;
+				<span class="kw">use </span><span class="macro-nonterminal">$runtime_event </span><span class="kw">as </span>runtime_event;
 
 				<span class="self">Self</span>::execute_with(|| {
-					<span class="macro-nonterminal">$crate::ump::XcmSink</span>::&lt;<span class="macro-nonterminal">$crate::XcmExecutor</span>&lt;<span class="macro-nonterminal">$xcm_config</span>&gt;, <span class="macro-nonterminal">$runtime</span>&gt;::process_upward_message(
-						origin, msg, max_weight,
-					)
+					&lt;<span class="macro-nonterminal">$mq </span><span class="kw">as </span>EnqueueMessage&lt;AggregateMessageOrigin&gt;&gt;::enqueue_message(
+						msg.try_into().expect(<span class="string">&quot;Message too long&quot;</span>),
+						AggregateMessageOrigin::Ump(UmpQueueId::Para(para.clone()))
+					);
+
+					&lt;<span class="macro-nonterminal">$system</span>&gt;::reset_events();
+					&lt;<span class="macro-nonterminal">$mq </span><span class="kw">as </span>ServiceQueues&gt;::service_queues(Weight::MAX);
+					<span class="kw">let </span>events = &lt;<span class="macro-nonterminal">$system</span>&gt;::events();
+					<span class="kw">let </span>event = events.last().expect(<span class="string">&quot;There must be at least one event&quot;</span>);
+
+					<span class="kw">match </span><span class="kw-2">&amp;</span>event.event {
+						runtime_event::MessageQueue(
+								pallet_message_queue::Event::Processed {origin, ..}) =&gt; {
+							<span class="macro">assert_eq!</span>(origin, <span class="kw-2">&amp;</span>AggregateMessageOrigin::Ump(UmpQueueId::Para(para)));
+						},
+						event =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected event: {:#?}&quot;</span>, event),
+					}
+					<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 				})
 			}
 		}
@@ -699,19 +757,23 @@
 
 		<span class="doccomment">/// Process all messages originating from parachains.
 		</span><span class="kw">fn </span>process_para_messages() -&gt; <span class="macro-nonterminal">$crate::XcmResult </span>{
-			<span class="kw">use </span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::{<span class="macro-nonterminal">UmpSink</span>, XcmpMessageHandlerT};
+			<span class="kw">use </span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::{<span class="macro-nonterminal">ProcessMessage</span>, XcmpMessageHandlerT};
 
 			<span class="kw">while let </span><span class="prelude-val">Some</span>((para_id, destination, message)) = <span class="macro-nonterminal">$crate::PARA_MESSAGE_BUS</span>.with(
 				|b| b.borrow_mut().pop_front()) {
 				<span class="kw">match </span>destination.interior() {
 					<span class="macro-nonterminal">$crate::Junctions::Here </span><span class="kw">if </span>destination.parent_count() == <span class="number">1 </span>=&gt; {
 						<span class="kw">let </span>encoded = <span class="macro-nonterminal">$crate::encode_xcm</span>(message, <span class="macro-nonterminal">$crate::MessageKind::Ump</span>);
-						<span class="kw">let </span>r = &lt;<span class="macro-nonterminal">$relay_chain</span>&gt;::process_upward_message(
-							para_id, <span class="kw-2">&amp;</span>encoded[..],
-							<span class="macro-nonterminal">$crate::Weight::MAX</span>,
+						<span class="kw">let </span>r = &lt;<span class="macro-nonterminal">$relay_chain</span>&gt;::process_message(
+							encoded.as_slice(), para_id,
+							<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$crate::WeightMeter::max_limit</span>(),
 						);
-						<span class="kw">if let </span><span class="prelude-val">Err</span>((id, required)) = r {
-							<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro-nonterminal">$crate::XcmError::WeightLimitReached</span>(required));
+						<span class="kw">match </span>r {
+							<span class="prelude-val">Err</span>(<span class="macro-nonterminal">$crate::ProcessMessageError::Overweight</span>(required)) =&gt;
+								<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro-nonterminal">$crate::XcmError::WeightLimitReached</span>(required)),
+							<span class="comment">// Not really the correct error, but there is no &quot;undecodable&quot;.
+							</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro-nonterminal">$crate::XcmError::Unimplemented</span>),
+							<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (),
 						}
 					},
 					$(
@@ -766,7 +828,7 @@
 				destination: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$crate::MultiLocation</span>&gt;,
 				message: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$crate::Xcm</span>&lt;()&gt;&gt;,
 			) -&gt; <span class="macro-nonterminal">$crate::SendResult</span>&lt;(<span class="macro-nonterminal">$crate::ParaId</span>, <span class="macro-nonterminal">$crate::MultiLocation</span>, <span class="macro-nonterminal">$crate::Xcm</span>&lt;()&gt;)&gt; {
-				<span class="kw">use </span><span class="macro-nonterminal">$</span><span class="kw">crate</span>::{<span class="macro-nonterminal">UmpSink</span>, XcmpMessageHandlerT};
+				<span class="kw">use </span><span class="macro-nonterminal">$crate::XcmpMessageHandlerT</span>;
 
 				<span class="kw">let </span>d = destination.take().ok_or(<span class="macro-nonterminal">$crate::SendError::MissingArgument</span>)<span class="question-mark">?</span>;
 				<span class="kw">match </span>(d.interior(), d.parent_count()) {

@@ -1485,7 +1485,7 @@ Scheduled: Vec&lt;CoreAssignment&gt;, // sorted ascending by CoreIndex.
 </li>
 </ul>
 <footer id="last-change">Last change: 2021-10-04, commit: <a href="https://github.com/paritytech/polkadot/commit/1a9239152b">1a9239152b</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="inclusion-module"><a class="header" href="#inclusion-module">Inclusion Module</a></h1>
-<p>The inclusion module is responsible for inclusion and availability of scheduled parachains and parathreads.</p>
+<p>The inclusion module is responsible for inclusion and availability of scheduled parachains and parathreads. It also manages the UMP dispatch queue of each parachain/thread.</p>
 <h2 id="storage-6"><a class="header" href="#storage-6">Storage</a></h2>
 <p>Helper structs:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -1518,11 +1518,25 @@ PendingAvailability: map ParaId =&gt; CandidatePendingAvailability;
 PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 <span class="boring">}
 </span></code></pre></pre>
+<h2 id="config-dependencies"><a class="header" href="#config-dependencies">Config Dependencies</a></h2>
+<ul>
+<li><code>MessageQueue</code>:
+The message queue provides general queueing and processing functionality. Currently it
+replaces the old <code>UMP</code> dispatch queue. Other use-cases can be implemented as well by
+adding new variants to <code>AggregateMessageOrigin</code>. Normally it should be set to an instance
+of the <code>MessageQueue</code> pallet.</li>
+</ul>
 <h2 id="session-change-6"><a class="header" href="#session-change-6">Session Change</a></h2>
 <ol>
 <li>Clear out all candidates pending availability.</li>
 <li>Clear out all validator bitfields.</li>
 </ol>
+<p>Optional:</p>
+<ol>
+<li>The UMP queue of all outgoing paras can be &quot;swept&quot;. This would prevent the dispatch queue from automatically being serviced. It is a consideration for the chain and specific behaviour is not defined.</li>
+</ol>
+<h2 id="initialization-4"><a class="header" href="#initialization-4">Initialization</a></h2>
+<p>No initialization routine runs for this module. However, the initialization of the <code>MessageQueue</code> pallet will attempt to process any pending UMP messages.</p>
 <h2 id="routines-4"><a class="header" href="#routines-4">Routines</a></h2>
 <p>All failed checks should lead to an unrecoverable error making the block invalid.</p>
 <ul>
@@ -1573,7 +1587,7 @@ PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 <li>Ensure that any code upgrade scheduled by the candidate does not happen within <code>config.validation_upgrade_cooldown</code> of <code>Paras::last_code_upgrade(para_id, true)</code>, if any, comparing against the value of <code>Paras::FutureCodeUpgrades</code> for the given para ID.</li>
 <li>Check the collator's signature on the candidate data.</li>
 <li>check the backing of the candidate using the signatures and the bitfields, comparing against the validators assigned to the groups, fetched with the <code>group_validators</code> lookup.</li>
-<li>call <code>Ump::check_upward_messages(para, commitments.upward_messages)</code> to check that the upward messages are valid.</li>
+<li>call <code>check_upward_messages(config, para, commitments.upward_messages)</code> to check that the upward messages are valid.</li>
 <li>call <code>Dmp::check_processed_downward_messages(para, commitments.processed_downward_messages)</code> to check that the DMQ is properly drained.</li>
 <li>call <code>Hrmp::check_hrmp_watermark(para, commitments.hrmp_watermark)</code> for each candidate to check rules of processing the HRMP watermark.</li>
 <li>using <code>Hrmp::check_outbound_hrmp(sender, commitments.horizontal_messages)</code> ensure that the each candidate sent a valid set of horizontal messages</li>
@@ -1592,7 +1606,7 @@ PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 </blockquote>
 <ol>
 <li>Reward all backing validators of each candidate, contained within the <code>backers</code> field.</li>
-<li>call <code>Ump::receive_upward_messages</code> for each backed candidate, using the <a href="runtime/../types/messages.html#upward-message"><code>UpwardMessage</code>s</a> from the <a href="runtime/../types/candidate.html#candidate-commitments"><code>CandidateCommitments</code></a>.</li>
+<li>call <code>receive_upward_messages</code> for each backed candidate, using the <a href="runtime/../types/messages.html#upward-message"><code>UpwardMessage</code>s</a> from the <a href="runtime/../types/candidate.html#candidate-commitments"><code>CandidateCommitments</code></a>.</li>
 <li>call <code>Dmp::prune_dmq</code> with the para id of the candidate and the candidate's <code>processed_downward_messages</code>.</li>
 <li>call <code>Hrmp::prune_hrmp</code> with the para id of the candiate and the candidate's <code>hrmp_watermark</code>.</li>
 <li>call <code>Hrmp::queue_outbound_hrmp</code> with the para id of the candidate and the list of horizontal messages taken from the commitment,</li>
@@ -1624,7 +1638,33 @@ PendingAvailabilityCommitments: map ParaId =&gt; CandidateCommitments;
 <p><code>collect_disputed(disputed: Vec&lt;CandidateHash&gt;) -&gt; Vec&lt;CoreIndex&gt;</code>: Sweeps through all paras pending availability. If the candidate hash is one of the disputed candidates, then clean up the corresponding storage for that candidate and the commitments. Return a vector of cleaned-up core IDs.</p>
 </li>
 </ul>
-<footer id="last-change">Last change: 2021-12-30, commit: <a href="https://github.com/paritytech/polkadot/commit/5bb1d3ab51">5bb1d3ab51</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="parainherent"><a class="header" href="#parainherent"><code>ParaInherent</code></a></h1>
+<p>These functions were formerly part of the UMP pallet:</p>
+<ul>
+<li><code>check_upward_messages(P: ParaId, Vec&lt;UpwardMessage&gt;)</code>:
+<ol>
+<li>Checks that the parachain is not currently offboarding and error otherwise. </li>
+<li>Checks that there are at most <code>config.max_upward_message_num_per_candidate</code> messages to be enqueued.</li>
+<li>Checks that no message exceeds <code>config.max_upward_message_size</code>.</li>
+<li>Checks that the total resulting queue size would not exceed <code>co</code>.</li>
+<li>Verify that queuing up the messages could not result in exceeding the queue's footprint
+according to the config items <code>config.max_upward_queue_count</code> and <code>config.max_upward_queue_size</code>. The queue's current footprint is provided in <code>well_known_keys</code>
+in order to facilitate oraclisation on to the para.</li>
+</ol>
+</li>
+</ul>
+<p>Candidate Enactment:</p>
+<ul>
+<li><code>receive_upward_messages(P: ParaId, Vec&lt;UpwardMessage&gt;)</code>:
+<ol>
+<li>Process each upward message <code>M</code> in order:
+<ol>
+<li>Place in the dispatch queue according to its para ID (or handle it immediately).</li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+<footer id="last-change">Last change: 2023-05-19, commit: <a href="https://github.com/paritytech/polkadot/commit/7c1dc94292">7c1dc94292</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="parainherent"><a class="header" href="#parainherent"><code>ParaInherent</code></a></h1>
 <p>This module is responsible for providing all data given to the runtime by the block author to the various parachains modules. The entry-point is mandatory, in that it must be invoked exactly once within every block, and it is also &quot;inherent&quot;, in that it is provided with no origin by the block author. The data within it carries its own authentication; i.e. the data takes the form of signed statements by validators. If any of the steps within fails, the entry-point is considered as having failed and the block will be invalid.</p>
 <p>This module does not have the same initialization/finalization concerns as the others, as it only requires that entry points be triggered after all modules have initialized and that finalization happens after entry points are triggered. Both of these are assumptions we have already made about the runtime's order of operations, so this module doesn't need to be initialized or finalized by the <code>Initializer</code>.</p>
 <p>There are a couple of important notes to the operations in this inherent as they relate to disputes.</p>
@@ -1741,7 +1781,7 @@ DownwardMessageQueues: map ParaId =&gt; Vec&lt;InboundDownwardMessage&gt;;
 DownwardMessageQueueHeads: map ParaId =&gt; Hash;
 <span class="boring">}
 </span></code></pre></pre>
-<h2 id="initialization-4"><a class="header" href="#initialization-4">Initialization</a></h2>
+<h2 id="initialization-5"><a class="header" href="#initialization-5">Initialization</a></h2>
 <p>No initialization routine runs for this module.</p>
 <h2 id="routines-6"><a class="header" href="#routines-6">Routines</a></h2>
 <p>Candidate Acceptance Function:</p>
@@ -1779,103 +1819,9 @@ DownwardMessageQueueHeads: map ParaId =&gt; Hash;
 </li>
 </ol>
 <footer id="last-change">Last change: 2021-02-15, commit: <a href="https://github.com/paritytech/polkadot/commit/d376fe66a9">d376fe66a9</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="ump-module"><a class="header" href="#ump-module">UMP Module</a></h1>
-<p>A module responsible for Upward Message Passing (UMP). See <a href="runtime/../messaging.html">Messaging Overview</a> for more details.</p>
-<h2 id="storage-9"><a class="header" href="#storage-9">Storage</a></h2>
-<p>Storage related to UMP</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>/// The messages waiting to be handled by the relay-chain originating from a certain parachain.
-///
-/// Note that some upward messages might have been already processed by the inclusion logic. E.g.
-/// channel management messages.
-///
-/// The messages are processed in FIFO order.
-RelayDispatchQueues: map ParaId =&gt; Vec&lt;UpwardMessage&gt;;
-/// Size of the dispatch queues. Caches sizes of the queues in `RelayDispatchQueue`.
-///
-/// First item in the tuple is the count of messages and second
-/// is the total length (in bytes) of the message payloads.
-///
-/// Note that this is an auxilary mapping: it's possible to tell the byte size and the number of
-/// messages only looking at `RelayDispatchQueues`. This mapping is separate to avoid the cost of
-/// loading the whole message queue if only the total size and count are required.
-///
-/// Invariant:
-/// - The set of keys should exactly match the set of keys of `RelayDispatchQueues`.
-RelayDispatchQueueSize: map ParaId =&gt; (u32, u32); // (num_messages, total_bytes)
-/// The ordered list of `ParaId`s that have a `RelayDispatchQueue` entry.
-///
-/// Invariant:
-/// - The set of items from this vector should be exactly the set of the keys in
-///   `RelayDispatchQueues` and `RelayDispatchQueueSize`.
-NeedsDispatch: Vec&lt;ParaId&gt;;
-/// This is the para that gets dispatched first during the next upward dispatchable queue
-/// execution round.
-///
-/// Invariant:
-/// - If `Some(para)`, then `para` must be present in `NeedsDispatch`.
-NextDispatchRoundStartWith: Option&lt;ParaId&gt;;
-<span class="boring">}
-</span></code></pre></pre>
-<h2 id="initialization-5"><a class="header" href="#initialization-5">Initialization</a></h2>
-<p>No initialization routine runs for this module.</p>
-<h2 id="routines-7"><a class="header" href="#routines-7">Routines</a></h2>
-<p>Candidate Acceptance Function:</p>
-<ul>
-<li><code>check_upward_messages(P: ParaId, Vec&lt;UpwardMessage&gt;</code>):
-<ol>
-<li>Checks that there are at most <code>config.max_upward_message_num_per_candidate</code> messages.</li>
-<li>Checks that no message exceeds <code>config.max_upward_message_size</code>.</li>
-<li>Verify that <code>RelayDispatchQueueSize</code> for <code>P</code> has enough capacity for the messages</li>
-</ol>
-</li>
-</ul>
-<p>Candidate Enactment:</p>
-<ul>
-<li><code>receive_upward_messages(P: ParaId, Vec&lt;UpwardMessage&gt;)</code>:
-<ol>
-<li>Process each upward message <code>M</code> in order:
-<ol>
-<li>Append the message to <code>RelayDispatchQueues</code> for <code>P</code></li>
-<li>Increment the size and the count in <code>RelayDispatchQueueSize</code> for <code>P</code>.</li>
-<li>Ensure that <code>P</code> is present in <code>NeedsDispatch</code>.</li>
-</ol>
-</li>
-</ol>
-</li>
-</ul>
-<p>The following routine is meant to execute pending entries in upward message queues. This function doesn't fail, even if
-dispatching any of individual upward messages returns an error.</p>
-<p><code>process_pending_upward_messages()</code>:</p>
-<ol>
-<li>Initialize a cumulative weight counter <code>T</code> to 0</li>
-<li>Iterate over items in <code>NeedsDispatch</code> cyclically, starting with <code>NextDispatchRoundStartWith</code>. If the item specified is <code>None</code> start from the beginning. For each <code>P</code> encountered:</li>
-<li>Dequeue the first upward message <code>D</code> from <code>RelayDispatchQueues</code> for <code>P</code></li>
-<li>Decrement the size of the message from <code>RelayDispatchQueueSize</code> for <code>P</code></li>
-<li>Delegate processing of the message to the runtime. The weight consumed is added to <code>T</code>.</li>
-<li>If <code>T &gt;= config.ump_service_total_weight</code>, set <code>NextDispatchRoundStartWith</code> to <code>P</code> and finish processing.</li>
-<li>If <code>RelayDispatchQueues</code> for <code>P</code> became empty, remove <code>P</code> from <code>NeedsDispatch</code>.</li>
-<li>If <code>NeedsDispatch</code> became empty then finish processing and set <code>NextDispatchRoundStartWith</code> to <code>None</code>.
-&gt; NOTE that in practice we would need to approach the weight calculation more thoroughly, i.e. incorporate all operations
-&gt; that could take place on the course of handling these upward messages.</li>
-</ol>
-<h2 id="session-change-8"><a class="header" href="#session-change-8">Session Change</a></h2>
-<ol>
-<li>For each <code>P</code> in <code>outgoing_paras</code> (generated by <code>Paras::on_new_session</code>):
-<ol>
-<li>Remove <code>RelayDispatchQueueSize</code> of <code>P</code>.</li>
-<li>Remove <code>RelayDispatchQueues</code> of <code>P</code>.</li>
-<li>Remove <code>P</code> if it exists in <code>NeedsDispatch</code>.</li>
-<li>If <code>P</code> is in <code>NextDispatchRoundStartWith</code>, then reset it to <code>None</code></li>
-</ol>
-<ul>
-<li>Note that if we don't remove the open/close requests since they are going to die out naturally at the end of the session.</li>
-</ul>
-</li>
-</ol>
-<footer id="last-change">Last change: 2021-06-03, commit: <a href="https://github.com/paritytech/polkadot/commit/093af45554">093af45554</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="hrmp-module"><a class="header" href="#hrmp-module">HRMP Module</a></h1>
+<footer id="last-change">Last change: 2023-05-19, commit: <a href="https://github.com/paritytech/polkadot/commit/7c1dc94292">7c1dc94292</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="hrmp-module"><a class="header" href="#hrmp-module">HRMP Module</a></h1>
 <p>A module responsible for Horizontally Relay-routed Message Passing (HRMP). See <a href="runtime/../messaging.html">Messaging Overview</a> for more details.</p>
-<h2 id="storage-10"><a class="header" href="#storage-10">Storage</a></h2>
+<h2 id="storage-9"><a class="header" href="#storage-9">Storage</a></h2>
 <p>HRMP related structs:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -1991,7 +1937,7 @@ HrmpChannelDigests: map ParaId =&gt; Vec&lt;(BlockNumber, Vec&lt;ParaId&gt;)&gt;
 </span></code></pre></pre>
 <h2 id="initialization-6"><a class="header" href="#initialization-6">Initialization</a></h2>
 <p>No initialization routine runs for this module.</p>
-<h2 id="routines-8"><a class="header" href="#routines-8">Routines</a></h2>
+<h2 id="routines-7"><a class="header" href="#routines-7">Routines</a></h2>
 <p>Candidate Acceptance Function:</p>
 <ul>
 <li><code>check_hrmp_watermark(P: ParaId, new_hrmp_watermark)</code>:
@@ -2161,7 +2107,7 @@ and append <code>ch</code> to <code>HrmpCloseChannelRequestsList</code>.</li>
 </ol>
 </li>
 </ul>
-<h2 id="session-change-9"><a class="header" href="#session-change-9">Session Change</a></h2>
+<h2 id="session-change-8"><a class="header" href="#session-change-8">Session Change</a></h2>
 <ol>
 <li>For each <code>P</code> in <code>outgoing_paras</code> (generated by <code>Paras::on_new_session</code>):
 <ol>
@@ -2221,7 +2167,7 @@ with the value found in the configuration <code>config.hrmp_recipient_deposit</c
 </ol>
 <footer id="last-change">Last change: 2021-09-09, commit: <a href="https://github.com/paritytech/polkadot/commit/4c8dda20a0">4c8dda20a0</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="session-info"><a class="header" href="#session-info">Session Info</a></h1>
 <p>For disputes and approvals, we need access to information about validator sets from prior sessions. We also often want easy access to the same information about the current session's validator set. This module aggregates and stores this information in a rolling window while providing easy APIs for access.</p>
-<h2 id="storage-11"><a class="header" href="#storage-11">Storage</a></h2>
+<h2 id="storage-10"><a class="header" href="#storage-10">Storage</a></h2>
 <p>Helper structs:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -2282,12 +2228,12 @@ EarliestStoredSession: SessionIndex,
 Sessions: map SessionIndex =&gt; Option&lt;SessionInfo&gt;,
 <span class="boring">}
 </span></code></pre></pre>
-<h2 id="session-change-10"><a class="header" href="#session-change-10">Session Change</a></h2>
+<h2 id="session-change-9"><a class="header" href="#session-change-9">Session Change</a></h2>
 <ol>
 <li>Update <code>EarliestStoredSession</code> based on <code>config.dispute_period</code> and remove all entries from <code>Sessions</code> from the previous value up to the new value.</li>
 <li>Create a new entry in <code>Sessions</code> with information about the current session. Use <code>shared::ActiveValidators</code> to determine the indices into the broader validator sets (validation, assignment, discovery) which are actually used for parachain validation. Only these validators should appear in the <code>SessionInfo</code>.</li>
 </ol>
-<h2 id="routines-9"><a class="header" href="#routines-9">Routines</a></h2>
+<h2 id="routines-8"><a class="header" href="#routines-8">Routines</a></h2>
 <ul>
 <li><code>earliest_stored_session() -&gt; SessionIndex</code>: Yields the earliest session for which we have information stored.</li>
 <li><code>session_info(session: SessionIndex) -&gt; Option&lt;SessionInfo&gt;</code>: Yields the session info for the given session, if stored.</li>
@@ -7147,11 +7093,6 @@ pub enum PvfCheckerMessage { }
 	/// no further messages may be added to it. If it exceeds this then the queue may contain only
 	/// a single message.
 	pub max_upward_queue_size: u32,
-	/// The amount of weight we wish to devote to the processing the dispatchable upward messages
-	/// stage.
-	///
-	/// NOTE that this is a soft limit and could be exceeded.
-	pub ump_service_total_weight: Weight,
 	/// The maximum size of an upward message that can be sent by a candidate.
 	///
 	/// This parameter affects the upper bound of size of `CandidateCommitments`.
@@ -7213,7 +7154,7 @@ pub enum PvfCheckerMessage { }
 }
 <span class="boring">}
 </span></code></pre></pre>
-<footer id="last-change">Last change: 2023-03-24, commit: <a href="https://github.com/paritytech/polkadot/commit/2375a62996">2375a62996</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="message-types"><a class="header" href="#message-types">Message types</a></h1>
+<footer id="last-change">Last change: 2023-05-19, commit: <a href="https://github.com/paritytech/polkadot/commit/7c1dc94292">7c1dc94292</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="message-types"><a class="header" href="#message-types">Message types</a></h1>
 <p>Types of messages that are passed between parachains and the relay chain: UMP, DMP, XCMP.</p>
 <p>There is also HRMP (Horizontally Relay-routed Message Passing) which provides the same functionality
 although with smaller scalability potential.</p>

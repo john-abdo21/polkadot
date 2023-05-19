@@ -1816,6 +1816,61 @@
 <a href="#1816" id="1816">1816</a>
 <a href="#1817" id="1817">1817</a>
 <a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1951,7 +2006,7 @@
 
 <span class="doccomment">/// A declarations of storage keys where an external observer can find some interesting data.
 </span><span class="kw">pub mod </span>well_known_keys {
-	<span class="kw">use super</span>::{HrmpChannelId, Id};
+	<span class="kw">use super</span>::{HrmpChannelId, Id, WellKnownKey};
 	<span class="kw">use </span>hex_literal::hex;
 	<span class="kw">use </span>parity_scale_codec::Encode <span class="kw">as _</span>;
 	<span class="kw">use </span>sp_io::hashing::twox_64;
@@ -2028,6 +2083,7 @@
 	///
 	/// - `count: u32`, the number of messages currently in the queue for given para,
 	/// - `total_size: u32`, the total size of all messages in the queue.
+	</span><span class="attr">#[deprecated = <span class="string">&quot;Use `relay_dispatch_queue_remaining_capacity` instead&quot;</span>]
 	</span><span class="kw">pub fn </span>relay_dispatch_queue_size(para_id: Id) -&gt; Vec&lt;u8&gt; {
 		<span class="kw">let </span>prefix = <span class="macro">hex!</span>[<span class="string">&quot;f5207f03cfdce586301014700e2c2593fad157e461d71fd4c1f936839a5f1f3e&quot;</span>];
 
@@ -2040,6 +2096,24 @@
 				.cloned()
 				.collect()
 		})
+	}
+
+	<span class="doccomment">/// Type safe version of `relay_dispatch_queue_size`.
+	</span><span class="attr">#[deprecated = <span class="string">&quot;Use `relay_dispatch_queue_remaining_capacity` instead&quot;</span>]
+	</span><span class="kw">pub fn </span>relay_dispatch_queue_size_typed(para: Id) -&gt; WellKnownKey&lt;(u32, u32)&gt; {
+		<span class="attr">#[allow(deprecated)]
+		</span>relay_dispatch_queue_size(para).into()
+	}
+
+	<span class="doccomment">/// The upward message dispatch queue remaining capacity for the given para id.
+	///
+	/// The storage entry stores a tuple of two values:
+	///
+	/// - `count: u32`, the number of additional messages which may be enqueued for the given para,
+	/// - `total_size: u32`, the total size of additional messages which may be enqueued for the
+	/// given para.
+	</span><span class="kw">pub fn </span>relay_dispatch_queue_remaining_capacity(para_id: Id) -&gt; WellKnownKey&lt;(u32, u32)&gt; {
+		(<span class="string">b&quot;:relay_dispatch_queue_remaining_capacity&quot;</span>, para_id).encode().into()
 	}
 
 	<span class="doccomment">/// The HRMP channel for the given identifier.
@@ -3521,6 +3595,42 @@
 	</span><span class="kw">pub fn </span>signing_payload(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
 		<span class="kw">const </span>MAGIC: [u8; <span class="number">4</span>] = <span class="kw-2">*</span><span class="string">b&quot;VCPC&quot;</span>; <span class="comment">// for &quot;validation code pre-checking&quot;
 		</span>(MAGIC, <span class="self">self</span>.accept, <span class="self">self</span>.subject, <span class="self">self</span>.session_index, <span class="self">self</span>.validator_index).encode()
+	}
+}
+
+<span class="doccomment">/// A well-known and typed storage key.
+///
+/// Allows for type-safe access to raw well-known storage keys.
+</span><span class="kw">pub struct </span>WellKnownKey&lt;T&gt; {
+	<span class="doccomment">/// The raw storage key.
+	</span><span class="kw">pub </span>key: Vec&lt;u8&gt;,
+	_p: sp_std::marker::PhantomData&lt;T&gt;,
+}
+
+<span class="kw">impl</span>&lt;T&gt; From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>WellKnownKey&lt;T&gt; {
+	<span class="kw">fn </span>from(key: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ key, _p: Default::default() }
+	}
+}
+
+<span class="kw">impl</span>&lt;T&gt; AsRef&lt;[u8]&gt; <span class="kw">for </span>WellKnownKey&lt;T&gt; {
+	<span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+		<span class="self">self</span>.key.as_ref()
+	}
+}
+
+<span class="kw">impl</span>&lt;T: Decode&gt; WellKnownKey&lt;T&gt; {
+	<span class="doccomment">/// Gets the value or `None` if it does not exist or decoding failed.
+	</span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+		sp_io::storage::get(<span class="kw-2">&amp;</span><span class="self">self</span>.key)
+			.and_then(|raw| parity_scale_codec::DecodeAll::decode_all(<span class="kw-2">&amp;mut </span>raw.as_ref()).ok())
+	}
+}
+
+<span class="kw">impl</span>&lt;T: Encode&gt; WellKnownKey&lt;T&gt; {
+	<span class="doccomment">/// Sets the value.
+	</span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) {
+		sp_io::storage::set(<span class="kw-2">&amp;</span><span class="self">self</span>.key, <span class="kw-2">&amp;</span>value.encode());
 	}
 }
 

@@ -2138,6 +2138,29 @@
 <a href="#2138" id="2138">2138</a>
 <a href="#2139" id="2139">2139</a>
 <a href="#2140" id="2140">2140</a>
+<a href="#2141" id="2141">2141</a>
+<a href="#2142" id="2142">2142</a>
+<a href="#2143" id="2143">2143</a>
+<a href="#2144" id="2144">2144</a>
+<a href="#2145" id="2145">2145</a>
+<a href="#2146" id="2146">2146</a>
+<a href="#2147" id="2147">2147</a>
+<a href="#2148" id="2148">2148</a>
+<a href="#2149" id="2149">2149</a>
+<a href="#2150" id="2150">2150</a>
+<a href="#2151" id="2151">2151</a>
+<a href="#2152" id="2152">2152</a>
+<a href="#2153" id="2153">2153</a>
+<a href="#2154" id="2154">2154</a>
+<a href="#2155" id="2155">2155</a>
+<a href="#2156" id="2156">2156</a>
+<a href="#2157" id="2157">2157</a>
+<a href="#2158" id="2158">2158</a>
+<a href="#2159" id="2159">2159</a>
+<a href="#2160" id="2160">2160</a>
+<a href="#2161" id="2161">2161</a>
+<a href="#2162" id="2162">2162</a>
+<a href="#2163" id="2163">2163</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2247,7 +2270,12 @@
 //! ```
 //!
 
-</span><span class="kw">use crate</span>::{configuration, initializer::SessionChangeNotification, shared};
+</span><span class="kw">use crate</span>::{
+	configuration,
+	inclusion::{QueueFootprinter, UmpQueueId},
+	initializer::SessionChangeNotification,
+	shared,
+};
 <span class="kw">use </span>bitvec::{order::Lsb0 <span class="kw">as </span>BitOrderLsb0, vec::BitVec};
 <span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, traits::EstimateNextSessionRotation};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
@@ -2690,6 +2718,12 @@
 		</span><span class="kw">type </span>UnsignedPriority: Get&lt;TransactionPriority&gt;;
 
 		<span class="kw">type </span>NextSessionRotation: EstimateNextSessionRotation&lt;<span class="self">Self</span>::BlockNumber&gt;;
+
+		<span class="doccomment">/// Retrieve how many UMP messages are enqueued for this para-chain.
+		///
+		/// This is used to judge whether or not a para-chain can offboard. Per default this should
+		/// be set to the `ParaInclusion` pallet.
+		</span><span class="kw">type </span>QueueFootprinter: QueueFootprinter&lt;Origin = UmpQueueId&gt;;
 
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.
 		</span><span class="kw">type </span>WeightInfo: WeightInfo;
@@ -3793,12 +3827,13 @@
 	///
 	/// - para is not a stable parachain or parathread (i.e. [`ParaLifecycle::is_stable`] is `false`)
 	/// - para has a pending upgrade.
+	/// - para has unprocessed messages in its UMP queue.
 	///
 	/// No-op if para is not registered at all.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule_para_cleanup(id: ParaId) -&gt; DispatchResult {
 		<span class="comment">// Disallow offboarding in case there is a PVF pre-checking in progress.
 		//
-		// This is not a fundamential limitation but rather simplification: it allows us to get
+		// This is not a fundamental limitation but rather simplification: it allows us to get
 		// away without introducing additional logic for pruning and, more importantly, enacting
 		// ongoing PVF pre-checking votes. It also removes some nasty edge cases.
 		//
@@ -3823,7 +3858,7 @@
 			<span class="prelude-val">Some</span>(ParaLifecycle::Parachain) =&gt; {
 				ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, ParaLifecycle::OffboardingParachain);
 			},
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::&lt;T&gt;::CannotOffboard)<span class="question-mark">?</span>,
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::&lt;T&gt;::CannotOffboard.into()),
 		}
 
 		<span class="kw">let </span>scheduled_session = <span class="self">Self</span>::scheduled_session();
@@ -3832,6 +3867,10 @@
 				v.insert(i, id);
 			}
 		});
+
+		<span class="kw">if </span>&lt;T <span class="kw">as </span>Config&gt;::QueueFootprinter::message_count(UmpQueueId::Para(id)) != <span class="number">0 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(Error::&lt;T&gt;::CannotOffboard.into())
+		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -4124,6 +4163,13 @@
 		} <span class="kw">else </span>{
 			<span class="bool-val">false
 		</span>}
+	}
+
+	<span class="doccomment">/// Returns whether the given ID refers to a para that is offboarding.
+	///
+	/// An invalid or non-offboarding para ID will return `false`.
+	</span><span class="kw">pub fn </span>is_offboarding(id: ParaId) -&gt; bool {
+		ParaLifecycles::&lt;T&gt;::get(<span class="kw-2">&amp;</span>id).map_or(<span class="bool-val">false</span>, |state| state.is_offboarding())
 	}
 
 	<span class="doccomment">/// Whether a para ID corresponds to any live parachain.

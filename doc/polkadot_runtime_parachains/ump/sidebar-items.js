@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["MAX_OVERWEIGHT_MESSAGES","MAX_UPWARD_MESSAGE_SIZE_BOUND"],"enum":["AcceptanceCheckErr"],"mod":["migration","pallet"],"struct":["TestWeightInfo","XcmSink"],"trait":["UmpSink","WeightInfo"],"type":["MessageId","OverweightIndex"]};
