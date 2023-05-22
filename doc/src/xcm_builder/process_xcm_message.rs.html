@@ -152,6 +152,7 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -176,7 +177,6 @@
 };
 <span class="kw">use </span>parity_scale_codec::{Decode, FullCodec, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
-<span class="kw">use </span>sp_io::hashing::blake2_256;
 <span class="kw">use </span>sp_std::{fmt::Debug, marker::PhantomData};
 <span class="kw">use </span>sp_weights::{Weight, WeightMeter};
 <span class="kw">use </span>xcm::prelude::<span class="kw-2">*</span>;
@@ -198,8 +198,8 @@
 		message: <span class="kw-2">&amp;</span>[u8],
 		origin: <span class="self">Self</span>::Origin,
 		meter: <span class="kw-2">&amp;mut </span>WeightMeter,
+		id: <span class="kw-2">&amp;mut </span>XcmHash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ProcessMessageError&gt; {
-		<span class="kw">let </span>hash = blake2_256(message);
 		<span class="kw">let </span>versioned_message = VersionedXcm::&lt;Call&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>message[..])
 			.map_err(|<span class="kw">_</span>| ProcessMessageError::Corrupt)<span class="question-mark">?</span>;
 		<span class="kw">let </span>message = Xcm::&lt;Call&gt;::try_from(versioned_message)
@@ -208,13 +208,13 @@
 		<span class="kw">let </span>required = pre.weight_of();
 		<span class="macro">ensure!</span>(meter.can_accrue(required), ProcessMessageError::Overweight(required));
 
-		<span class="kw">let </span>(consumed, result) =
-			<span class="kw">match </span>XcmExecutor::execute(origin.into(), pre, hash, Weight::zero()) {
-				Outcome::Complete(w) =&gt; (w, <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)),
-				Outcome::Incomplete(w, <span class="kw">_</span>) =&gt; (w, <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)),
-				<span class="comment">// In the error-case we assume the worst case and consume all possible weight.
-				</span>Outcome::Error(<span class="kw">_</span>) =&gt; (required, <span class="prelude-val">Err</span>(ProcessMessageError::Unsupported)),
-			};
+		<span class="kw">let </span>(consumed, result) = <span class="kw">match </span>XcmExecutor::execute(origin.into(), pre, <span class="kw-2">*</span>id, Weight::zero())
+		{
+			Outcome::Complete(w) =&gt; (w, <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)),
+			Outcome::Incomplete(w, <span class="kw">_</span>) =&gt; (w, <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)),
+			<span class="comment">// In the error-case we assume the worst case and consume all possible weight.
+			</span>Outcome::Error(<span class="kw">_</span>) =&gt; (required, <span class="prelude-val">Err</span>(ProcessMessageError::Unsupported)),
+		};
 		meter.defensive_saturating_accrue(consumed);
 		result
 	}
@@ -266,8 +266,9 @@
 			<span class="comment">// Errors if we stay below a weight limit of 1000.
 			</span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
 				<span class="kw">let </span>meter = <span class="kw-2">&amp;mut </span>WeightMeter::from_limit((i * <span class="number">10</span>).into());
+				<span class="kw">let </span><span class="kw-2">mut </span>id = [<span class="number">0</span>; <span class="number">32</span>];
 				<span class="macro">assert_err!</span>(
-					Processor::process_message(msg, ORIGIN, meter),
+					Processor::process_message(msg, ORIGIN, meter, <span class="kw-2">&amp;mut </span>id),
 					Overweight(<span class="number">1000</span>.into())
 				);
 				<span class="macro">assert_eq!</span>(meter.consumed, <span class="number">0</span>.into());
@@ -275,7 +276,8 @@
 
 			<span class="comment">// Works with a limit of 1000.
 			</span><span class="kw">let </span>meter = <span class="kw-2">&amp;mut </span>WeightMeter::from_limit(<span class="number">1000</span>.into());
-			<span class="macro">assert_ok!</span>(Processor::process_message(msg, ORIGIN, meter));
+			<span class="kw">let </span><span class="kw-2">mut </span>id = [<span class="number">0</span>; <span class="number">32</span>];
+			<span class="macro">assert_ok!</span>(Processor::process_message(msg, ORIGIN, meter, <span class="kw-2">&amp;mut </span>id));
 			<span class="macro">assert_eq!</span>(meter.consumed, <span class="number">1000</span>.into());
 		}
 	}
@@ -303,7 +305,7 @@
 	}
 
 	<span class="kw">fn </span>process_raw(raw: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool, ProcessMessageError&gt; {
-		Processor::process_message(raw, ORIGIN, <span class="kw-2">&amp;mut </span>WeightMeter::max_limit())
+		Processor::process_message(raw, ORIGIN, <span class="kw-2">&amp;mut </span>WeightMeter::max_limit(), <span class="kw-2">&amp;mut </span>[<span class="number">0</span>; <span class="number">32</span>])
 	}
 }
 </code></pre></div>
