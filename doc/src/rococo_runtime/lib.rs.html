@@ -2276,6 +2276,90 @@
 <a href="#2276" id="2276">2276</a>
 <a href="#2277" id="2277">2277</a>
 <a href="#2278" id="2278">2278</a>
+<a href="#2279" id="2279">2279</a>
+<a href="#2280" id="2280">2280</a>
+<a href="#2281" id="2281">2281</a>
+<a href="#2282" id="2282">2282</a>
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
+<a href="#2287" id="2287">2287</a>
+<a href="#2288" id="2288">2288</a>
+<a href="#2289" id="2289">2289</a>
+<a href="#2290" id="2290">2290</a>
+<a href="#2291" id="2291">2291</a>
+<a href="#2292" id="2292">2292</a>
+<a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
+<a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
+<a href="#2306" id="2306">2306</a>
+<a href="#2307" id="2307">2307</a>
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a>
+<a href="#2332" id="2332">2332</a>
+<a href="#2333" id="2333">2333</a>
+<a href="#2334" id="2334">2334</a>
+<a href="#2335" id="2335">2335</a>
+<a href="#2336" id="2336">2336</a>
+<a href="#2337" id="2337">2337</a>
+<a href="#2338" id="2338">2338</a>
+<a href="#2339" id="2339">2339</a>
+<a href="#2340" id="2340">2340</a>
+<a href="#2341" id="2341">2341</a>
+<a href="#2342" id="2342">2342</a>
+<a href="#2343" id="2343">2343</a>
+<a href="#2344" id="2344">2344</a>
+<a href="#2345" id="2345">2345</a>
+<a href="#2346" id="2346">2346</a>
+<a href="#2347" id="2347">2347</a>
+<a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
+<a href="#2351" id="2351">2351</a>
+<a href="#2352" id="2352">2352</a>
+<a href="#2353" id="2353">2353</a>
+<a href="#2354" id="2354">2354</a>
+<a href="#2355" id="2355">2355</a>
+<a href="#2356" id="2356">2356</a>
+<a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3805,6 +3889,7 @@
 </span><span class="attr">#[allow(deprecated, missing_docs)]
 </span><span class="kw">pub mod </span>migrations {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::traits::{GetStorageVersion, OnRuntimeUpgrade, StorageVersion};
 
 	<span class="kw">pub type </span>V0940 = ();
 	<span class="kw">pub type </span>V0941 = (); <span class="comment">// Node only release - no migrations.
@@ -3813,8 +3898,91 @@
 		pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	);
 
+	<span class="doccomment">/// Migrations that set `StorageVersion`s we missed to set.
+	///
+	/// It&#39;s *possible* that these pallets have not in fact been migrated to the versions being set,
+	/// which we should keep in mind in the future if we notice any strange behavior.
+	/// We opted to not check exactly what on-chain versions each pallet is at, since it would be
+	/// an involved effort, this is testnet, and no one has complained
+	/// (https://github.com/paritytech/polkadot/issues/6657#issuecomment-1552956439).
+	</span><span class="kw">pub struct </span>SetStorageVersions;
+
+	<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>SetStorageVersions {
+		<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+			<span class="kw">let </span><span class="kw-2">mut </span>writes = <span class="number">0</span>;
+			<span class="kw">let </span><span class="kw-2">mut </span>reads = <span class="number">0</span>;
+
+			<span class="comment">// Council
+			</span><span class="kw">if </span>Council::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				<span class="comment">// Safe to assume Council was created with V4 pallet.
+				</span>StorageVersion::new(<span class="number">4</span>).put::&lt;Council&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// Technical Committee
+			</span><span class="kw">if </span>TechnicalCommittee::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				StorageVersion::new(<span class="number">4</span>).put::&lt;TechnicalCommittee&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// PhragmenElection
+			</span><span class="kw">if </span>PhragmenElection::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				StorageVersion::new(<span class="number">4</span>).put::&lt;PhragmenElection&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// TechnicalMembership
+			</span><span class="kw">if </span>TechnicalMembership::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				StorageVersion::new(<span class="number">4</span>).put::&lt;TechnicalMembership&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// Scheduler
+			</span><span class="kw">if </span>Scheduler::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				StorageVersion::new(<span class="number">4</span>).put::&lt;Scheduler&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// Bounties
+			</span><span class="kw">if </span>Bounties::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				StorageVersion::new(<span class="number">4</span>).put::&lt;Bounties&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// Tips
+			</span><span class="kw">if </span>Tips::on_chain_storage_version() &lt; <span class="number">4 </span>{
+				StorageVersion::new(<span class="number">4</span>).put::&lt;Tips&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// NisCounterpartBalances
+			</span><span class="kw">if </span>NisCounterpartBalances::on_chain_storage_version() &lt; <span class="number">1 </span>{
+				StorageVersion::new(<span class="number">1</span>).put::&lt;NisCounterpartBalances&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			<span class="comment">// Crowdloan
+			</span><span class="kw">if </span>Crowdloan::on_chain_storage_version() &lt; <span class="number">2 </span>{
+				StorageVersion::new(<span class="number">2</span>).put::&lt;Crowdloan&gt;();
+				writes += <span class="number">1</span>;
+			}
+			reads += <span class="number">1</span>;
+
+			RocksDbWeight::get().reads_writes(reads, writes)
+		}
+	}
+
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
 	</span><span class="kw">pub type </span>Unreleased = (
+		SetStorageVersions,
 		<span class="comment">// Remove UMP dispatch queue &lt;https://github.com/paritytech/polkadot/pull/6271&gt;
 		</span>parachains_configuration::migration::v6::MigrateToV6&lt;Runtime&gt;,
 		ump_migrations::UpdateUmpLimits,

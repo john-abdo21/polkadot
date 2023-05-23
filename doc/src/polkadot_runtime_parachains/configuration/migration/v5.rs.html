@@ -500,8 +500,6 @@
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -766,8 +764,6 @@
 	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::TryRuntimeError&gt; {
 		<span class="macro">log::trace!</span>(target: <span class="kw">crate</span>::configuration::LOG_TARGET, <span class="string">&quot;Running pre_upgrade()&quot;</span>);
-
-		<span class="macro">ensure!</span>(StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">4</span>, <span class="string">&quot;The migration requires version 4&quot;</span>);
 		<span class="prelude-val">Ok</span>(Vec::new())
 	}
 
@@ -789,8 +785,8 @@
 	</span><span class="kw">fn </span>post_upgrade(_state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::TryRuntimeError&gt; {
 		<span class="macro">log::trace!</span>(target: <span class="kw">crate</span>::configuration::LOG_TARGET, <span class="string">&quot;Running post_upgrade()&quot;</span>);
 		<span class="macro">ensure!</span>(
-			StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">5</span>,
-			<span class="string">&quot;Storage version should be 5 after the migration&quot;
+			StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() &gt;= <span class="number">5</span>,
+			<span class="string">&quot;Storage version should be greater or equal to 5 after the migration&quot;
 		</span>);
 
 		<span class="prelude-val">Ok</span>(())
