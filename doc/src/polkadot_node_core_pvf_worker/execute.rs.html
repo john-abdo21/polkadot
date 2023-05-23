@@ -201,6 +201,18 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -234,7 +246,7 @@
 };
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationResult;
 <span class="kw">use </span>std::{
-	path::{Path, PathBuf},
+	path::PathBuf,
 	sync::{mpsc::channel, Arc},
 	time::Duration,
 };
@@ -300,6 +312,20 @@
 				artifact_path.display(),
 			);
 
+			<span class="comment">// Get the artifact bytes.
+			//
+			// We do this outside the thread so that we can lock down filesystem access there.
+			</span><span class="kw">let </span>compiled_artifact_blob = <span class="kw">match </span>std::fs::read(artifact_path) {
+				<span class="prelude-val">Ok</span>(bytes) =&gt; bytes,
+				<span class="prelude-val">Err</span>(err) =&gt; {
+					<span class="kw">let </span>response = Response::InternalError(
+						InternalValidationError::CouldNotOpenFile(err.to_string()),
+					);
+					send_response(<span class="kw-2">&amp;mut </span>stream, response).<span class="kw">await</span><span class="question-mark">?</span>;
+					<span class="kw">continue
+				</span>},
+			};
+
 			<span class="comment">// Conditional variable to notify us when a thread is done.
 			</span><span class="kw">let </span>condvar = thread::get_condvar();
 
@@ -319,7 +345,12 @@
 			<span class="kw">let </span>execute_thread = thread::spawn_worker_thread_with_stack_size(
 				<span class="string">&quot;execute thread&quot;</span>,
 				<span class="kw">move </span>|| {
-					validate_using_artifact(<span class="kw-2">&amp;</span>artifact_path, <span class="kw-2">&amp;</span>params, executor_2, cpu_time_start)
+					validate_using_artifact(
+						<span class="kw-2">&amp;</span>compiled_artifact_blob,
+						<span class="kw-2">&amp;</span>params,
+						executor_2,
+						cpu_time_start,
+					)
 				},
 				Arc::clone(<span class="kw-2">&amp;</span>condvar),
 				WaitOutcome::Finished,
@@ -370,23 +401,16 @@
 }
 
 <span class="kw">fn </span>validate_using_artifact(
-	artifact_path: <span class="kw-2">&amp;</span>Path,
+	compiled_artifact_blob: <span class="kw-2">&amp;</span>[u8],
 	params: <span class="kw-2">&amp;</span>[u8],
 	executor: Executor,
 	cpu_time_start: ProcessTime,
 ) -&gt; Response {
-	<span class="comment">// Check here if the file exists, because the error from Substrate is not match-able.
-	// TODO: Re-evaluate after &lt;https://github.com/paritytech/substrate/issues/13860&gt;.
-	</span><span class="kw">let </span>file_metadata = std::fs::metadata(artifact_path);
-	<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = file_metadata {
-		<span class="kw">return </span>Response::InternalError(InternalValidationError::CouldNotOpenFile(err.to_string()))
-	}
-
 	<span class="kw">let </span>descriptor_bytes = <span class="kw">match unsafe </span>{
 		<span class="comment">// SAFETY: this should be safe since the compiled artifact passed here comes from the
 		//         file created by the prepare workers. These files are obtained by calling
 		//         [`executor_intf::prepare`].
-		</span>executor.execute(artifact_path.as_ref(), params)
+		</span>executor.execute(compiled_artifact_blob, params)
 	} {
 		<span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>Response::format_invalid(<span class="string">&quot;execute&quot;</span>, <span class="kw-2">&amp;</span>err),
 		<span class="prelude-val">Ok</span>(d) =&gt; d,
