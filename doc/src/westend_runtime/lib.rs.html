@@ -2066,6 +2066,20 @@
 <a href="#2066" id="2066">2066</a>
 <a href="#2067" id="2067">2067</a>
 <a href="#2068" id="2068">2068</a>
+<a href="#2069" id="2069">2069</a>
+<a href="#2070" id="2070">2070</a>
+<a href="#2071" id="2071">2071</a>
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2402,6 +2416,20 @@
 	<span class="kw">type </span>FullIdentificationOf = pallet_staking::ExposureOf&lt;Runtime&gt;;
 }
 
+<span class="kw">pub struct </span>MaybeSignedPhase;
+
+<span class="kw">impl </span>Get&lt;u32&gt; <span class="kw">for </span>MaybeSignedPhase {
+	<span class="kw">fn </span>get() -&gt; u32 {
+		<span class="comment">// 1 day = 4 eras -&gt; 1 week = 28 eras. We want to disable signed phase once a week to test the fallback unsigned
+		// phase is able to compute elections on Westend.
+		</span><span class="kw">if </span>Staking::current_era().unwrap_or(<span class="number">1</span>) % <span class="number">28 </span>== <span class="number">0 </span>{
+			<span class="number">0
+		</span>} <span class="kw">else </span>{
+			SignedPhase::get()
+		}
+	}
+}
+
 <span class="macro">parameter_types! </span>{
 	<span class="comment">// phase durations. 1/4 of the last session for each.
 	</span><span class="kw">pub </span>SignedPhase: u32 = <span class="macro">prod_or_fast!</span>(
@@ -2483,7 +2511,7 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>EstimateCallFee = TransactionPayment;
-	<span class="kw">type </span>SignedPhase = SignedPhase;
+	<span class="kw">type </span>SignedPhase = MaybeSignedPhase;
 	<span class="kw">type </span>UnsignedPhase = UnsignedPhase;
 	<span class="kw">type </span>SignedMaxSubmissions = SignedMaxSubmissions;
 	<span class="kw">type </span>SignedMaxRefunds = SignedMaxRefunds;
@@ -4113,7 +4141,7 @@
 
 	<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>CleanMigrate {
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::TryRuntimeError&gt; {
 			<span class="prelude-val">Ok</span>(Default::default())
 		}
 
@@ -4125,7 +4153,7 @@
 		}
 
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>post_upgrade(_state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		</span><span class="kw">fn </span>post_upgrade(_state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::TryRuntimeError&gt; {
 			<span class="macro">frame_support::ensure!</span>(
 				!AutoLimits::exists() &amp;&amp; !SignedMigrationMaxLimits::exists(),
 				<span class="string">&quot;State migration clean.&quot;</span>,

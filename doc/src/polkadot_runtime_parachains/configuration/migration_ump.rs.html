@@ -108,7 +108,6 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2021 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -134,7 +133,7 @@
 
 <span class="kw">pub mod </span>latest {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span>frame_support::{pallet_prelude::Weight, traits::OnRuntimeUpgrade};
+	<span class="kw">use </span>frame_support::{ensure, pallet_prelude::Weight, traits::OnRuntimeUpgrade};
 
 	<span class="doccomment">/// Force update the UMP limits in the parachain host config.
 	</span><span class="comment">// NOTE: `OnRuntimeUpgrade` does not have a `self`, so everything must be compile time.
@@ -162,7 +161,7 @@
 		&gt;
 	{
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;sp_std::vec::Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;sp_std::vec::Vec&lt;u8&gt;, sp_runtime::TryRuntimeError&gt; {
 			<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;pre_upgrade&quot;</span>);
 			<span class="kw">let </span><span class="kw-2">mut </span>pending = PendingConfigs::&lt;T&gt;::get();
 			pending.sort_by_key(|(s, <span class="kw">_</span>)| <span class="kw-2">*</span>s);
@@ -199,7 +198,7 @@
 		}
 
 		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>post_upgrade(state: sp_std::vec::Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		</span><span class="kw">fn </span>post_upgrade(state: sp_std::vec::Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::TryRuntimeError&gt; {
 			<span class="macro">log::info!</span>(target: LOG_TARGET, <span class="string">&quot;post_upgrade&quot;</span>);
 			<span class="kw">let </span>old_pending: u32 = Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;Known good&quot;</span>);
 			<span class="kw">let </span><span class="kw-2">mut </span>pending = PendingConfigs::&lt;T&gt;::get();
@@ -210,9 +209,8 @@
 				<span class="string">&quot;Last pending HostConfig upgrade:\n\n{:#?}\n&quot;</span>,
 				pending.last()
 			);
-			<span class="macro">assert_eq!</span>(
-				pending.len(),
-				old_pending <span class="kw">as </span>usize + <span class="number">1</span>,
+			<span class="macro">ensure!</span>(
+				pending.len() == old_pending <span class="kw">as </span>usize + <span class="number">1</span>,
 				<span class="string">&quot;There must be a new pending upgrade enqueued&quot;
 			</span>);
 
