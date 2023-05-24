@@ -149,16 +149,41 @@
                         <h1 id="collation-generation"><a class="header" href="#collation-generation">Collation Generation</a></h1>
 <p>The collation generation subsystem is executed on collator nodes and produces candidates to be distributed to validators. If configured to produce collations for a para, it produces collations and then feeds them to the <a href="collator-protocol.html">Collator Protocol</a> subsystem, which handles the networking.</p>
 <h2 id="protocol"><a class="header" href="#protocol">Protocol</a></h2>
-<p>Input: <code>CollationGenerationMessage</code></p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>enum CollationGenerationMessage {
-  Initialize(CollationGenerationConfig),
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>No more than one initialization message should ever be sent to the collation generation subsystem.</p>
-<p>Output: <code>CollationDistributionMessage</code></p>
+<p>Collation generation for Parachains currently works in the following way:</p>
+<ol>
+<li>A new relay chain block is imported.</li>
+<li>The collation generation subsystem checks if the core associated to
+the parachain is free and if yes, continues.</li>
+<li>Collation generation calls our collator callback to generate a PoV.</li>
+<li>Authoring logic determines if the current node should build a PoV.</li>
+<li>Build new PoV and give it back to collation generation.</li>
+</ol>
+<h2 id="messages"><a class="header" href="#messages">Messages</a></h2>
+<h3 id="incoming"><a class="header" href="#incoming">Incoming</a></h3>
+<ul>
+<li><code>ActiveLeaves</code>
+<ul>
+<li>Notification of a change in the set of active leaves.</li>
+<li>Triggers collation generation procedure outlined in &quot;Protocol&quot; section.</li>
+</ul>
+</li>
+<li><code>CollationGenerationMessage::Initialize</code>
+<ul>
+<li>Initializes the subsystem. Carries a config.</li>
+<li>No more than one initialization message should ever be sent to the collation
+generation subsystem.</li>
+<li>Sent by a collator to initialize this subsystem.</li>
+</ul>
+</li>
+</ul>
+<h3 id="outgoing"><a class="header" href="#outgoing">Outgoing</a></h3>
+<ul>
+<li><code>CollatorProtocolMessage::DistributeCollation</code>
+<ul>
+<li>Provides a generated collation to distribute to validators.</li>
+</ul>
+</li>
+</ul>
 <h2 id="functionality"><a class="header" href="#functionality">Functionality</a></h2>
 <p>The process of generating a collation for a parachain is very parachain-specific. As such, the details of how to do so are left beyond the scope of this description. The subsystem should be implemented as an abstract wrapper, which is aware of this configuration:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -235,20 +260,51 @@ pub struct CollationGenerationConfig {
 <span class="boring">}
 </span></code></pre></pre>
 <p>The configuration should be optional, to allow for the case where the node is not run with the capability to collate.</p>
-<p>On <code>ActiveLeavesUpdate</code>:</p>
+<h3 id="summary-in-plain-english"><a class="header" href="#summary-in-plain-english">Summary in plain English</a></h3>
 <ul>
-<li>If there is no collation generation config, ignore.</li>
-<li>Otherwise, for each <code>activated</code> head in the update:
+<li>
+<p><strong>Collation (output of a collator)</strong></p>
 <ul>
-<li>Determine if the para is scheduled on any core by fetching the <code>availability_cores</code> Runtime API.</li>
-<li>Determine an occupied core assumption to make about the para. Scheduled cores can make <code>OccupiedCoreAssumption::Free</code>.</li>
-<li>Use the Runtime API subsystem to fetch the full validation data.</li>
-<li>Invoke the <code>collator</code>, and use its outputs to produce a <code>CandidateReceipt</code>, signed with the configuration's <code>key</code>.</li>
-<li>Dispatch a <a href="../../types/overseer-protocol.html#collatorprotocolmessage"><code>CollatorProtocolMessage</code></a><code>::DistributeCollation(receipt, pov)</code>.</li>
+<li>Contains the PoV (proof to verify the state transition of the
+parachain) and other data.</li>
+</ul>
+</li>
+<li>
+<p><strong>Collation result</strong></p>
+<ul>
+<li>Contains the collation, and an optional result sender for a
+collation-seconded signal.</li>
+</ul>
+</li>
+<li>
+<p><strong>Collation seconded signal</strong></p>
+<ul>
+<li>The signal that is returned when a collation was seconded by a
+validator.</li>
+</ul>
+</li>
+<li>
+<p><strong>Collation function</strong></p>
+<ul>
+<li>Called with the relay chain block the parablock will be built on top
+of.</li>
+<li>Called with the validation data.
+<ul>
+<li>Provides information about the state of the parachain on the relay
+chain.</li>
 </ul>
 </li>
 </ul>
-<footer id="last-change">Last change: 2023-01-09, commit: <a href="https://github.com/paritytech/polkadot/commit/7b3eb681b3">7b3eb681b3</a></footer>
+</li>
+<li>
+<p><strong>Collation generation config</strong></p>
+<ul>
+<li>Contains collator's authentication key, collator function, and
+parachain ID.</li>
+</ul>
+</li>
+</ul>
+<footer id="last-change">Last change: 2023-05-24, commit: <a href="https://github.com/paritytech/polkadot/commit/67fd3e957e">67fd3e957e</a></footer>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
