@@ -416,6 +416,21 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -439,7 +454,7 @@
 </span><span class="kw">pub mod </span>chain_spec;
 
 <span class="kw">pub use </span>chain_spec::<span class="kw-2">*</span>;
-<span class="kw">use </span>futures::future::Future;
+<span class="kw">use </span>futures::{future::Future, stream::StreamExt};
 <span class="kw">use </span>polkadot_node_primitives::{CollationGenerationConfig, CollatorFn};
 <span class="kw">use </span>polkadot_node_subsystem::messages::{CollationGenerationMessage, CollatorProtocolMessage};
 <span class="kw">use </span>polkadot_overseer::Handle;
@@ -453,8 +468,9 @@
 	ParasCall, ParasSudoWrapperCall, Runtime, SignedExtra, SignedPayload, SudoCall,
 	UncheckedExtrinsic, VERSION,
 };
+
 <span class="kw">use </span>sc_chain_spec::ChainSpec;
-<span class="kw">use </span>sc_client_api::execution_extensions::ExecutionStrategies;
+<span class="kw">use </span>sc_client_api::{execution_extensions::ExecutionStrategies, BlockchainEvents};
 <span class="kw">use </span>sc_network::{
 	config::{NetworkConfiguration, TransportConfig},
 	multiaddr, NetworkStateInfo,
@@ -472,6 +488,7 @@
 <span class="kw">use </span>sp_runtime::{codec::Encode, generic, traits::IdentifyAccount, MultiSigner};
 <span class="kw">use </span>sp_state_machine::BasicExternalities;
 <span class="kw">use </span>std::{
+	collections::HashSet,
 	net::{Ipv4Addr, SocketAddr},
 	path::PathBuf,
 	sync::Arc,
@@ -479,7 +496,6 @@
 <span class="kw">use </span>substrate_test_client::{
 	BlockchainEventsExt, RpcHandlersExt, RpcTransactionError, RpcTransactionOutput,
 };
-
 <span class="doccomment">/// Declare an instance of the native executor named `PolkadotTestExecutorDispatch`. Include the wasm binary as the
 /// equivalent wasm code.
 </span><span class="kw">pub struct </span>PolkadotTestExecutorDispatch;
@@ -751,6 +767,20 @@
 	/// are ever created, thus you should restrict the maximum amount of time of the test execution.
 	</span><span class="kw">pub fn </span>wait_for_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, count: usize) -&gt; <span class="kw">impl </span>Future&lt;Output = ()&gt; {
 		<span class="self">self</span>.client.wait_for_blocks(count)
+	}
+
+	<span class="doccomment">/// Wait for `count` blocks to be finalized and then exit. Similarly with `wait_for_blocks` this function will
+	/// not return if no block are ever finalized.
+	</span><span class="kw">pub async fn </span>wait_for_finalized_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, count: usize) {
+		<span class="kw">let </span><span class="kw-2">mut </span>import_notification_stream = <span class="self">self</span>.client.finality_notification_stream();
+		<span class="kw">let </span><span class="kw-2">mut </span>blocks = HashSet::new();
+
+		<span class="kw">while let </span><span class="prelude-val">Some</span>(notification) = import_notification_stream.next().<span class="kw">await </span>{
+			blocks.insert(notification.hash);
+			<span class="kw">if </span>blocks.len() == count {
+				<span class="kw">break
+			</span>}
+		}
 	}
 
 	<span class="doccomment">/// Register the collator functionality in the overseer of this node.
