@@ -341,7 +341,6 @@
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -378,7 +377,6 @@
 
 </span><span class="kw">use </span>std::{collections::HashMap, time::Duration, u64};
 
-<span class="kw">use </span>futures::channel::mpsc;
 <span class="kw">use </span>polkadot_primitives::{MAX_CODE_SIZE, MAX_POV_SIZE};
 <span class="kw">use </span>strum::{EnumIter, IntoEnumIterator};
 
@@ -488,8 +486,8 @@
 	</span><span class="kw">pub fn </span>get_config(
 		<span class="self">self</span>,
 		req_protocol_names: <span class="kw-2">&amp;</span>ReqProtocolNames,
-	) -&gt; (mpsc::Receiver&lt;network::IncomingRequest&gt;, RequestResponseConfig) {
-		<span class="kw">let </span>(tx, rx) = mpsc::channel(<span class="self">self</span>.get_channel_size());
+	) -&gt; (async_channel::Receiver&lt;network::IncomingRequest&gt;, RequestResponseConfig) {
+		<span class="kw">let </span>(tx, rx) = async_channel::bounded(<span class="self">self</span>.get_channel_size());
 		<span class="kw">let </span>cfg = <span class="self">self</span>.create_config(req_protocol_names, <span class="prelude-val">Some</span>(tx));
 		(rx, cfg)
 	}
@@ -497,7 +495,7 @@
 	<span class="kw">fn </span>create_config(
 		<span class="self">self</span>,
 		req_protocol_names: <span class="kw-2">&amp;</span>ReqProtocolNames,
-		tx: <span class="prelude-ty">Option</span>&lt;mpsc::Sender&lt;network::IncomingRequest&gt;&gt;,
+		tx: <span class="prelude-ty">Option</span>&lt;async_channel::Sender&lt;network::IncomingRequest&gt;&gt;,
 	) -&gt; RequestResponseConfig {
 		<span class="kw">let </span>name = req_protocol_names.get_name(<span class="self">self</span>);
 		<span class="kw">let </span>fallback_names = <span class="self">self</span>.get_fallback_names();
