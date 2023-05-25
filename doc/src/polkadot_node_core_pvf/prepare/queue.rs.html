@@ -789,6 +789,10 @@
 <a href="#789" id="789">789</a>
 <a href="#790" id="790">790</a>
 <a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -808,11 +812,10 @@
 </span><span class="doccomment">//! A queue that handles requests for PVF preparation.
 
 </span><span class="kw">use </span><span class="kw">super</span>::pool::{<span class="self">self</span>, Worker};
-<span class="kw">use crate</span>::{
-	artifacts::ArtifactId, metrics::Metrics, PrepareResult, Priority, PvfPrepData, LOG_TARGET,
-};
+<span class="kw">use crate</span>::{artifacts::ArtifactId, metrics::Metrics, Priority, LOG_TARGET};
 <span class="kw">use </span>always_assert::{always, never};
 <span class="kw">use </span>futures::{channel::mpsc, stream::StreamExt <span class="kw">as _</span>, Future, SinkExt};
+<span class="kw">use </span>polkadot_node_core_pvf_common::{error::PrepareResult, pvf::PvfPrepData};
 <span class="kw">use </span>std::{
 	collections::{HashMap, VecDeque},
 	path::PathBuf,
@@ -1022,7 +1025,7 @@
 	);
 	queue.metrics.prepare_enqueued();
 
-	<span class="kw">let </span>artifact_id = pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_id = ArtifactId::from_pvf_prep_data(<span class="kw-2">&amp;</span>pvf);
 	<span class="kw">if </span><span class="macro">never!</span>(
 		queue.artifact_id_to_job.contains_key(<span class="kw-2">&amp;</span>artifact_id),
 		<span class="string">&quot;second Enqueue sent for a known artifact&quot;
@@ -1130,7 +1133,7 @@
 	// this can&#39;t be None;
 	// qed.
 	</span><span class="kw">let </span>job_data = <span class="macro">never_none!</span>(queue.jobs.remove(job));
-	<span class="kw">let </span>artifact_id = job_data.pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_id = ArtifactId::from_pvf_prep_data(<span class="kw-2">&amp;</span>job_data.pvf);
 
 	queue.artifact_id_to_job.remove(<span class="kw-2">&amp;</span>artifact_id);
 
@@ -1216,7 +1219,7 @@
 </span><span class="kw">async fn </span>assign(queue: <span class="kw-2">&amp;mut </span>Queue, worker: Worker, job: Job) -&gt; <span class="prelude-ty">Result</span>&lt;(), Fatal&gt; {
 	<span class="kw">let </span>job_data = <span class="kw-2">&amp;mut </span>queue.jobs[job];
 
-	<span class="kw">let </span>artifact_id = job_data.pvf.as_artifact_id();
+	<span class="kw">let </span>artifact_id = ArtifactId::from_pvf_prep_data(<span class="kw-2">&amp;</span>job_data.pvf);
 	<span class="kw">let </span>artifact_path = artifact_id.path(<span class="kw-2">&amp;</span>queue.cache_path);
 
 	job_data.worker = <span class="prelude-val">Some</span>(worker);
@@ -1279,11 +1282,10 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use crate</span>::{
-		error::PrepareError, host::tests::TEST_PREPARATION_TIMEOUT, prepare::PrepareStats,
-	};
+	<span class="kw">use </span><span class="kw">crate</span>::host::tests::TEST_PREPARATION_TIMEOUT;
 	<span class="kw">use </span>assert_matches::assert_matches;
 	<span class="kw">use </span>futures::{future::BoxFuture, FutureExt};
+	<span class="kw">use </span>polkadot_node_core_pvf_common::{error::PrepareError, prepare::PrepareStats};
 	<span class="kw">use </span>slotmap::SlotMap;
 	<span class="kw">use </span>std::task::Poll;
 
@@ -1407,7 +1409,10 @@
 			result: <span class="prelude-val">Ok</span>(PrepareStats::default()),
 		});
 
-		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
+		<span class="macro">assert_eq!</span>(
+			test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id,
+			ArtifactId::from_pvf_prep_data(<span class="kw-2">&amp;</span>pvf(<span class="number">1</span>))
+		);
 	}
 
 	<span class="attr">#[tokio::test]
@@ -1526,7 +1531,10 @@
 		<span class="comment">// Since there is still work, the queue requested one extra worker to spawn to handle the
 		// remaining enqueued work items.
 		</span><span class="macro">assert_eq!</span>(test.poll_and_recv_to_pool().<span class="kw">await</span>, pool::ToPool::Spawn);
-		<span class="macro">assert_eq!</span>(test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id, pvf(<span class="number">1</span>).as_artifact_id());
+		<span class="macro">assert_eq!</span>(
+			test.poll_and_recv_from_queue().<span class="kw">await</span>.artifact_id,
+			ArtifactId::from_pvf_prep_data(<span class="kw-2">&amp;</span>pvf(<span class="number">1</span>))
+		);
 	}
 
 	<span class="attr">#[tokio::test]

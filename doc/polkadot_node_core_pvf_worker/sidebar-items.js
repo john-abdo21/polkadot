@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["execute_worker_entrypoint","prepare","prepare_worker_entrypoint","prevalidate"],"macro":["decl_puppet_worker_main","decl_worker_main"]};
