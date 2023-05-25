@@ -1562,14 +1562,6 @@
 <a href="#1562" id="1562">1562</a>
 <a href="#1563" id="1563">1563</a>
 <a href="#1564" id="1564">1564</a>
-<a href="#1565" id="1565">1565</a>
-<a href="#1566" id="1566">1566</a>
-<a href="#1567" id="1567">1567</a>
-<a href="#1568" id="1568">1568</a>
-<a href="#1569" id="1569">1569</a>
-<a href="#1570" id="1570">1570</a>
-<a href="#1571" id="1571">1571</a>
-<a href="#1572" id="1572">1572</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1590,7 +1582,7 @@
 	configuration::{<span class="self">self</span>, HostConfiguration},
 	dmp, ensure_parachain, initializer, paras,
 };
-<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, traits::ReservableCurrency};
+<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, traits::ReservableCurrency, DefaultNoBound};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_parachain::primitives::HorizontalMessages;
@@ -2007,15 +1999,9 @@
 	///    configuration pallet.
 	/// 2. `sender` and `recipient` must be valid paras.
 	</span><span class="attr">#[pallet::genesis_config]
+	#[derive(DefaultNoBound)]
 	</span><span class="kw">pub struct </span>GenesisConfig {
 		preopen_hrmp_channels: Vec&lt;(ParaId, ParaId, u32, u32)&gt;,
-	}
-
-	<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-	</span><span class="kw">impl </span>Default <span class="kw">for </span>GenesisConfig {
-		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-			GenesisConfig { preopen_hrmp_channels: Default::default() }
-		}
 	}
 
 	<span class="attr">#[pallet::genesis_build]
@@ -2193,8 +2179,7 @@
 	}
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">fn </span>initialize_storage&lt;T: Config&gt;(preopen_hrmp_channels: <span class="kw-2">&amp;</span>[(ParaId, ParaId, u32, u32)]) {
+<span class="kw">fn </span>initialize_storage&lt;T: Config&gt;(preopen_hrmp_channels: <span class="kw-2">&amp;</span>[(ParaId, ParaId, u32, u32)]) {
 	<span class="kw">let </span>host_config = configuration::Pallet::&lt;T&gt;::config();
 	<span class="kw">for </span><span class="kw-2">&amp;</span>(sender, recipient, max_capacity, max_message_size) <span class="kw">in </span>preopen_hrmp_channels {
 		<span class="kw">if let </span><span class="prelude-val">Err</span>(err) =
@@ -2206,8 +2191,7 @@
 	&lt;Pallet&lt;T&gt;&gt;::process_hrmp_open_channel_requests(<span class="kw-2">&amp;</span>host_config);
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">fn </span>preopen_hrmp_channel&lt;T: Config&gt;(
+<span class="kw">fn </span>preopen_hrmp_channel&lt;T: Config&gt;(
 	sender: ParaId,
 	recipient: ParaId,
 	max_capacity: u32,
