@@ -346,6 +346,96 @@
 <a href="#346" id="346">346</a>
 <a href="#347" id="347">347</a>
 <a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -371,16 +461,10 @@
 };
 <span class="kw">use </span>polkadot_parachain::primitives::IsSystem;
 <span class="kw">use </span>sp_std::{cell::Cell, marker::PhantomData, ops::ControlFlow, result::Result};
-<span class="kw">use </span>xcm::latest::{
-	Instruction::{<span class="self">self</span>, <span class="kw-2">*</span>},
-	InteriorMultiLocation, Junction, Junctions,
-	Junctions::X1,
-	MultiLocation, Weight,
-	WeightLimit::<span class="kw-2">*</span>,
-};
-<span class="kw">use </span>xcm_executor::traits::{CheckSuspension, OnResponse, ShouldExecute};
+<span class="kw">use </span>xcm::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>xcm_executor::traits::{CheckSuspension, OnResponse, Properties, ShouldExecute};
 
-<span class="doccomment">/// Execution barrier that just takes `max_weight` from `weight_credit`.
+<span class="doccomment">/// Execution barrier that just takes `max_weight` from `properties.weight_credit`.
 ///
 /// Useful to allow XCM execution by local chain users via extrinsics.
 /// E.g. `pallet_xcm::reserve_asset_transfer` to transfer a reserve asset
@@ -391,14 +475,15 @@
 		_origin: <span class="kw-2">&amp;</span>MultiLocation,
 		_instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		max_weight: Weight,
-		weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;TakeWeightCredit origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			_origin, _instructions, max_weight, weight_credit,
+			<span class="string">&quot;TakeWeightCredit origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			_origin, _instructions, max_weight, properties,
 		);
-		<span class="kw-2">*</span>weight_credit = weight_credit
+		properties.weight_credit = properties
+			.weight_credit
 			.checked_sub(<span class="kw-2">&amp;</span>max_weight)
 			.ok_or(ProcessMessageError::Overweight(max_weight))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
@@ -416,12 +501,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		max_weight: Weight,
-		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;AllowTopLevelPaidExecutionFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			origin, instructions, max_weight, _weight_credit,
+			<span class="string">&quot;AllowTopLevelPaidExecutionFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, max_weight, _properties,
 		);
 
 		<span class="macro">ensure!</span>(T::contains(origin), ProcessMessageError::Unsupported);
@@ -514,12 +599,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
 		max_weight: Weight,
-		weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;WithComputedOrigin origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			origin, instructions, max_weight, weight_credit,
+			<span class="string">&quot;WithComputedOrigin origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, max_weight, properties,
 		);
 		<span class="kw">let </span><span class="kw-2">mut </span>actual_origin = <span class="kw-2">*</span>origin;
 		<span class="kw">let </span>skipped = Cell::new(<span class="number">0usize</span>);
@@ -553,8 +638,34 @@
 			<span class="kw-2">&amp;</span>actual_origin,
 			<span class="kw-2">&amp;mut </span>instructions[skipped.get()..],
 			max_weight,
-			weight_credit,
+			properties,
 		)
+	}
+}
+
+<span class="doccomment">/// Sets the message ID to `t` using a `SetTopic(t)` in the last position if present.
+///
+/// Requires some inner barrier to pass on the rest of the message.
+</span><span class="kw">pub struct </span>TrailingSetTopicAsId&lt;InnerBarrier&gt;(PhantomData&lt;InnerBarrier&gt;);
+<span class="kw">impl</span>&lt;InnerBarrier: ShouldExecute&gt; ShouldExecute <span class="kw">for </span>TrailingSetTopicAsId&lt;InnerBarrier&gt; {
+	<span class="kw">fn </span>should_execute&lt;Call&gt;(
+		origin: <span class="kw-2">&amp;</span>MultiLocation,
+		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
+		max_weight: Weight,
+		properties: <span class="kw-2">&amp;mut </span>Properties,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
+		<span class="macro">log::trace!</span>(
+			target: <span class="string">&quot;xcm::barriers&quot;</span>,
+			<span class="string">&quot;TrailingSetTopicAsId origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, max_weight, properties,
+		);
+		<span class="kw">let </span>until = <span class="kw">if let </span><span class="prelude-val">Some</span>(SetTopic(t)) = instructions.last() {
+			properties.message_id = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>t);
+			instructions.len() - <span class="number">1
+		</span>} <span class="kw">else </span>{
+			instructions.len()
+		};
+		InnerBarrier::should_execute(<span class="kw-2">&amp;</span>origin, <span class="kw-2">&amp;mut </span>instructions[..until], max_weight, properties)
 	}
 }
 
@@ -570,12 +681,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
 		max_weight: Weight,
-		weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
-		<span class="kw">if </span>SuspensionChecker::is_suspended(origin, instructions, max_weight, weight_credit) {
+		<span class="kw">if </span>SuspensionChecker::is_suspended(origin, instructions, max_weight, properties) {
 			<span class="prelude-val">Err</span>(ProcessMessageError::Yield)
 		} <span class="kw">else </span>{
-			Inner::should_execute(origin, instructions, max_weight, weight_credit)
+			Inner::should_execute(origin, instructions, max_weight, properties)
 		}
 	}
 }
@@ -590,12 +701,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		_max_weight: Weight,
-		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;AllowUnpaidExecutionFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			origin, instructions, _max_weight, _weight_credit,
+			<span class="string">&quot;AllowUnpaidExecutionFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, _max_weight, _properties,
 		);
 		<span class="macro">ensure!</span>(T::contains(origin), ProcessMessageError::Unsupported);
 		<span class="prelude-val">Ok</span>(())
@@ -612,12 +723,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
 		max_weight: Weight,
-		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;AllowExplicitUnpaidExecutionFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			origin, instructions, max_weight, _weight_credit,
+			<span class="string">&quot;AllowExplicitUnpaidExecutionFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, max_weight, _properties,
 		);
 		<span class="macro">ensure!</span>(T::contains(origin), ProcessMessageError::Unsupported);
 		instructions.matcher().match_next_inst(|inst| <span class="kw">match </span>inst {
@@ -648,12 +759,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		_max_weight: Weight,
-		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;AllowKnownQueryResponses origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			origin, instructions, _max_weight, _weight_credit,
+			<span class="string">&quot;AllowKnownQueryResponses origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, _max_weight, _properties,
 		);
 		instructions
 			.matcher()
@@ -676,12 +787,12 @@
 		origin: <span class="kw-2">&amp;</span>MultiLocation,
 		instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
 		_max_weight: Weight,
-		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::barriers&quot;</span>,
-			<span class="string">&quot;AllowSubscriptionsFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, weight_credit: {:?}&quot;</span>,
-			origin, instructions, _max_weight, _weight_credit,
+			<span class="string">&quot;AllowSubscriptionsFrom origin: {:?}, instructions: {:?}, max_weight: {:?}, properties: {:?}&quot;</span>,
+			origin, instructions, _max_weight, _properties,
 		);
 		<span class="macro">ensure!</span>(T::contains(origin), ProcessMessageError::Unsupported);
 		instructions
@@ -692,6 +803,75 @@
 				<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ProcessMessageError::BadFormat),
 			})<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// Deny executing the XCM if it matches any of the Deny filter regardless of anything else.
+/// If it passes the Deny, and matches one of the Allow cases then it is let through.
+</span><span class="kw">pub struct </span>DenyThenTry&lt;Deny, Allow&gt;(PhantomData&lt;Deny&gt;, PhantomData&lt;Allow&gt;)
+<span class="kw">where
+	</span>Deny: ShouldExecute,
+	Allow: ShouldExecute;
+
+<span class="kw">impl</span>&lt;Deny, Allow&gt; ShouldExecute <span class="kw">for </span>DenyThenTry&lt;Deny, Allow&gt;
+<span class="kw">where
+	</span>Deny: ShouldExecute,
+	Allow: ShouldExecute,
+{
+	<span class="kw">fn </span>should_execute&lt;RuntimeCall&gt;(
+		origin: <span class="kw-2">&amp;</span>MultiLocation,
+		message: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
+		max_weight: Weight,
+		properties: <span class="kw-2">&amp;mut </span>Properties,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
+		Deny::should_execute(origin, message, max_weight, properties)<span class="question-mark">?</span>;
+		Allow::should_execute(origin, message, max_weight, properties)
+	}
+}
+
+<span class="comment">// See issue &lt;https://github.com/paritytech/polkadot/issues/5233&gt;
+</span><span class="kw">pub struct </span>DenyReserveTransferToRelayChain;
+<span class="kw">impl </span>ShouldExecute <span class="kw">for </span>DenyReserveTransferToRelayChain {
+	<span class="kw">fn </span>should_execute&lt;RuntimeCall&gt;(
+		origin: <span class="kw-2">&amp;</span>MultiLocation,
+		message: <span class="kw-2">&amp;mut </span>[Instruction&lt;RuntimeCall&gt;],
+		_max_weight: Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), ProcessMessageError&gt; {
+		message.matcher().match_next_inst_while(
+			|<span class="kw">_</span>| <span class="bool-val">true</span>,
+			|inst| <span class="kw">match </span>inst {
+				InitiateReserveWithdraw {
+					reserve: MultiLocation { parents: <span class="number">1</span>, interior: Here },
+					..
+				} |
+				DepositReserveAsset {
+					dest: MultiLocation { parents: <span class="number">1</span>, interior: Here }, ..
+				} |
+				TransferReserveAsset {
+					dest: MultiLocation { parents: <span class="number">1</span>, interior: Here }, ..
+				} =&gt; {
+					<span class="prelude-val">Err</span>(ProcessMessageError::Unsupported) <span class="comment">// Deny
+				</span>},
+
+				<span class="comment">// An unexpected reserve transfer has arrived from the Relay Chain. Generally,
+				// `IsReserve` should not allow this, but we just log it here.
+				</span>ReserveAssetDeposited { .. }
+					<span class="kw">if </span><span class="macro">matches!</span>(origin, MultiLocation { parents: <span class="number">1</span>, interior: Here }) =&gt;
+				{
+					<span class="macro">log::warn!</span>(
+						target: <span class="string">&quot;xcm::barrier&quot;</span>,
+						<span class="string">&quot;Unexpected ReserveAssetDeposited from the Relay Chain&quot;</span>,
+					);
+					<span class="prelude-val">Ok</span>(ControlFlow::Continue(()))
+				},
+
+				<span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(ControlFlow::Continue(())),
+			},
+		)<span class="question-mark">?</span>;
+
+		<span class="comment">// Permit everything else
+		</span><span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>

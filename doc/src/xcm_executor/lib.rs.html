@@ -998,6 +998,9 @@
 <a href="#998" id="998">998</a>
 <a href="#999" id="999">999</a>
 <a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1031,8 +1034,8 @@
 <span class="kw">pub mod </span>traits;
 <span class="kw">use </span>traits::{
 	validate_export, AssetExchange, AssetLock, CallDispatcher, ClaimAssets, ConvertOrigin,
-	DropAssets, Enact, ExportXcm, FeeManager, FeeReason, OnResponse, ShouldExecute, TransactAsset,
-	VersionChangeNotifier, WeightBounds, WeightTrader,
+	DropAssets, Enact, ExportXcm, FeeManager, FeeReason, OnResponse, Properties, ShouldExecute,
+	TransactAsset, VersionChangeNotifier, WeightBounds, WeightTrader,
 };
 
 <span class="kw">mod </span>assets;
@@ -1193,8 +1196,8 @@
 	<span class="kw">fn </span>execute(
 		origin: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 		WeighedMessage(xcm_weight, <span class="kw-2">mut </span>message): WeighedMessage&lt;Config::RuntimeCall&gt;,
-		message_hash: XcmHash,
-		<span class="kw-2">mut </span>weight_credit: Weight,
+		id: <span class="kw-2">&amp;mut </span>XcmHash,
+		weight_credit: Weight,
 	) -&gt; Outcome {
 		<span class="kw">let </span>origin = origin.into();
 		<span class="macro">log::trace!</span>(
@@ -1204,24 +1207,27 @@
 			message,
 			weight_credit,
 		);
+		<span class="kw">let </span><span class="kw-2">mut </span>properties = Properties { weight_credit, message_id: <span class="prelude-val">None </span>};
 		<span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Config::Barrier::should_execute(
 			<span class="kw-2">&amp;</span>origin,
 			message.inner_mut(),
 			xcm_weight,
-			<span class="kw-2">&amp;mut </span>weight_credit,
+			<span class="kw-2">&amp;mut </span>properties,
 		) {
 			<span class="macro">log::trace!</span>(
 				target: <span class="string">&quot;xcm::execute_xcm_in_credit&quot;</span>,
-				<span class="string">&quot;Barrier blocked execution! Error: {:?}. (origin: {:?}, message: {:?}, weight_credit: {:?})&quot;</span>,
+				<span class="string">&quot;Barrier blocked execution! Error: {:?}. (origin: {:?}, message: {:?}, properties: {:?})&quot;</span>,
 				e,
 				origin,
 				message,
-				weight_credit,
+				properties,
 			);
 			<span class="kw">return </span>Outcome::Error(XcmError::Barrier)
 		}
 
-		<span class="kw">let </span><span class="kw-2">mut </span>vm = <span class="self">Self</span>::new(origin, message_hash);
+		<span class="kw-2">*</span>id = properties.message_id.unwrap_or(<span class="kw-2">*</span>id);
+
+		<span class="kw">let </span><span class="kw-2">mut </span>vm = <span class="self">Self</span>::new(origin, <span class="kw-2">*</span>id);
 
 		<span class="kw">while </span>!message.<span class="number">0</span>.is_empty() {
 			<span class="kw">let </span>result = vm.process(message);
@@ -1272,12 +1278,12 @@
 }
 
 <span class="kw">impl</span>&lt;Config: config::Config&gt; XcmExecutor&lt;Config&gt; {
-	<span class="kw">pub fn </span>new(origin: <span class="kw">impl </span>Into&lt;MultiLocation&gt;, message_hash: XcmHash) -&gt; <span class="self">Self </span>{
+	<span class="kw">pub fn </span>new(origin: <span class="kw">impl </span>Into&lt;MultiLocation&gt;, message_id: XcmHash) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>origin = origin.into();
 		<span class="self">Self </span>{
 			holding: Assets::new(),
 			holding_limit: Config::MaxAssetsIntoHolding::get() <span class="kw">as </span>usize,
-			context: XcmContext { origin: <span class="prelude-val">Some</span>(origin), message_hash, topic: <span class="prelude-val">None </span>},
+			context: XcmContext { origin: <span class="prelude-val">Some</span>(origin), message_id, topic: <span class="prelude-val">None </span>},
 			original_origin: origin,
 			trader: Config::Trader::new(),
 			error: <span class="prelude-val">None</span>,

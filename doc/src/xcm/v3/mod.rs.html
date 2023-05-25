@@ -1410,6 +1410,14 @@
 <a href="#1410" id="1410">1410</a>
 <a href="#1411" id="1411">1411</a>
 <a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1596,7 +1604,7 @@
 			NetworkId::{<span class="self">self</span>, <span class="kw-2">*</span>},
 			OriginKind, Outcome, PalletInfo, Parent, ParentThen, PreparedMessage, QueryId,
 			QueryResponseInfo, Response, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult, SendError, SendResult, SendXcm,
-			Unwrappable,
+			Unwrappable, Weight,
 			WeightLimit::{<span class="self">self</span>, <span class="kw-2">*</span>},
 			WildFungibility::{<span class="self">self</span>, Fungible <span class="kw">as </span>WildFungible, NonFungible <span class="kw">as </span>WildNonFungible},
 			WildMultiAsset::{<span class="self">self</span>, <span class="kw-2">*</span>},
@@ -1749,19 +1757,27 @@
 <span class="doccomment">/// Contextual data pertaining to a specific list of XCM instructions.
 </span><span class="attr">#[derive(Clone, Eq, PartialEq, Encode, Decode, Debug)]
 </span><span class="kw">pub struct </span>XcmContext {
-	<span class="doccomment">/// The `MultiLocation` origin of the corresponding XCM.
+	<span class="doccomment">/// The current value of the Origin register of the XCVM.
 	</span><span class="kw">pub </span>origin: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;,
-	<span class="doccomment">/// The hash of the XCM.
-	</span><span class="kw">pub </span>message_hash: XcmHash,
-	<span class="doccomment">/// The topic of the XCM.
+	<span class="doccomment">/// The identity of the XCM; this may be a hash of its versioned encoding but could also be
+	/// a high-level identity set by an appropriate barrier.
+	</span><span class="kw">pub </span>message_id: XcmHash,
+	<span class="doccomment">/// The current value of the Topic register of the XCVM.
 	</span><span class="kw">pub </span>topic: <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">32</span>]&gt;,
 }
 
 <span class="kw">impl </span>XcmContext {
-	<span class="doccomment">/// Constructor which sets the message hash to the supplied parameter and leaves the origin and
+	<span class="doccomment">/// Constructor which sets the message ID to the supplied parameter and leaves the origin and
 	/// topic unset.
-	</span><span class="kw">pub fn </span>with_message_hash(message_hash: XcmHash) -&gt; XcmContext {
-		XcmContext { origin: <span class="prelude-val">None</span>, message_hash, topic: <span class="prelude-val">None </span>}
+	</span><span class="attr">#[deprecated = <span class="string">&quot;Use `with_message_id` instead.&quot;</span>]
+	</span><span class="kw">pub fn </span>with_message_hash(message_id: XcmHash) -&gt; XcmContext {
+		XcmContext { origin: <span class="prelude-val">None</span>, message_id, topic: <span class="prelude-val">None </span>}
+	}
+
+	<span class="doccomment">/// Constructor which sets the message ID to the supplied parameter and leaves the origin and
+	/// topic unset.
+	</span><span class="kw">pub fn </span>with_message_id(message_id: XcmHash) -&gt; XcmContext {
+		XcmContext { origin: <span class="prelude-val">None</span>, message_id, topic: <span class="prelude-val">None </span>}
 	}
 }
 
@@ -2345,7 +2361,7 @@
 	</span>UnlockAsset { asset: MultiAsset, target: MultiLocation },
 
 	<span class="doccomment">/// Asset (`asset`) has been locked on the `origin` system and may not be transferred. It may
-	/// only be unlocked with the receipt of the `UnlockAsset`  instruction from this chain.
+	/// only be unlocked with the receipt of the `UnlockAsset` instruction from this chain.
 	///
 	/// - `asset`: The asset(s) which are now unlockable from this origin.
 	/// - `owner`: The owner of the asset on the chain in which it was locked. This may be a

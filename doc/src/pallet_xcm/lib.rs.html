@@ -2220,6 +2220,34 @@
 <a href="#2220" id="2220">2220</a>
 <a href="#2221" id="2221">2221</a>
 <a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
+<a href="#2234" id="2234">2234</a>
+<a href="#2235" id="2235">2235</a>
+<a href="#2236" id="2236">2236</a>
+<a href="#2237" id="2237">2237</a>
+<a href="#2238" id="2238">2238</a>
+<a href="#2239" id="2239">2239</a>
+<a href="#2240" id="2240">2240</a>
+<a href="#2241" id="2241">2241</a>
+<a href="#2242" id="2242">2242</a>
+<a href="#2243" id="2243">2243</a>
+<a href="#2244" id="2244">2244</a>
+<a href="#2245" id="2245">2245</a>
+<a href="#2246" id="2246">2246</a>
+<a href="#2247" id="2247">2247</a>
+<a href="#2248" id="2248">2248</a>
+<a href="#2249" id="2249">2249</a>
+<a href="#2250" id="2250">2250</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2262,7 +2290,7 @@
 };
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, prelude::<span class="kw-2">*</span>, result::Result, vec};
 <span class="kw">use </span>xcm::{latest::QueryResponseInfo, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>xcm_executor::traits::{Convert, ConvertOrigin};
+<span class="kw">use </span>xcm_executor::traits::{Convert, ConvertOrigin, Properties};
 
 <span class="kw">use </span>frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo},
@@ -2494,52 +2522,49 @@
 	#[pallet::generate_deposit(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>deposit_event)]
 	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
 		<span class="doccomment">/// Execution of an XCM message was attempted.
-		///
-		/// \[ outcome \]
-		</span>Attempted(xcm::latest::Outcome),
+		</span>Attempted { outcome: xcm::latest::Outcome },
 		<span class="doccomment">/// A XCM message was sent.
-		///
-		/// \[ origin, destination, message \]
-		</span>Sent(MultiLocation, MultiLocation, Xcm&lt;()&gt;),
+		</span>Sent {
+			origin: MultiLocation,
+			destination: MultiLocation,
+			message: Xcm&lt;()&gt;,
+			message_id: XcmHash,
+		},
 		<span class="doccomment">/// Query response received which does not match a registered query. This may be because a
 		/// matching query was never registered, it may be because it is a duplicate response, or
 		/// because the query timed out.
-		///
-		/// \[ origin location, id \]
-		</span>UnexpectedResponse(MultiLocation, QueryId),
+		</span>UnexpectedResponse { origin: MultiLocation, query_id: QueryId },
 		<span class="doccomment">/// Query response has been received and is ready for taking with `take_response`. There is
 		/// no registered notification call.
-		///
-		/// \[ id, response \]
-		</span>ResponseReady(QueryId, Response),
+		</span>ResponseReady { query_id: QueryId, response: Response },
 		<span class="doccomment">/// Query response has been received and query is removed. The registered notification has
 		/// been dispatched and executed successfully.
-		///
-		/// \[ id, pallet index, call index \]
-		</span>Notified(QueryId, u8, u8),
+		</span>Notified { query_id: QueryId, pallet_index: u8, call_index: u8 },
 		<span class="doccomment">/// Query response has been received and query is removed. The registered notification could
 		/// not be dispatched because the dispatch weight is greater than the maximum weight
 		/// originally budgeted by this runtime for the query result.
-		///
-		/// \[ id, pallet index, call index, actual weight, max budgeted weight \]
-		</span>NotifyOverweight(QueryId, u8, u8, Weight, Weight),
+		</span>NotifyOverweight {
+			query_id: QueryId,
+			pallet_index: u8,
+			call_index: u8,
+			actual_weight: Weight,
+			max_budgeted_weight: Weight,
+		},
 		<span class="doccomment">/// Query response has been received and query is removed. There was a general error with
 		/// dispatching the notification call.
-		///
-		/// \[ id, pallet index, call index \]
-		</span>NotifyDispatchError(QueryId, u8, u8),
+		</span>NotifyDispatchError { query_id: QueryId, pallet_index: u8, call_index: u8 },
 		<span class="doccomment">/// Query response has been received and query is removed. The dispatch was unable to be
 		/// decoded into a `Call`; this might be due to dispatch function having a signature which
 		/// is not `(origin, QueryId, Response)`.
-		///
-		/// \[ id, pallet index, call index \]
-		</span>NotifyDecodeFailed(QueryId, u8, u8),
+		</span>NotifyDecodeFailed { query_id: QueryId, pallet_index: u8, call_index: u8 },
 		<span class="doccomment">/// Expected query response has been received but the origin location of the response does
 		/// not match that expected. The query remains registered for a later, valid, response to
 		/// be received and acted upon.
-		///
-		/// \[ origin location, id, expected location \]
-		</span>InvalidResponder(MultiLocation, QueryId, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;),
+		</span>InvalidResponder {
+			origin: MultiLocation,
+			query_id: QueryId,
+			expected_location: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;,
+		},
 		<span class="doccomment">/// Expected query response has been received but the expected origin location placed in
 		/// storage by this runtime previously cannot be decoded. The query remains registered.
 		///
@@ -2547,38 +2572,29 @@
 		/// runtime should be readable prior to query timeout) and dangerous since the possibly
 		/// valid response will be dropped. Manual governance intervention is probably going to be
 		/// needed.
-		///
-		/// \[ origin location, id \]
-		</span>InvalidResponderVersion(MultiLocation, QueryId),
+		</span>InvalidResponderVersion { origin: MultiLocation, query_id: QueryId },
 		<span class="doccomment">/// Received query response has been read and removed.
-		///
-		/// \[ id \]
-		</span>ResponseTaken(QueryId),
+		</span>ResponseTaken { query_id: QueryId },
 		<span class="doccomment">/// Some assets have been placed in an asset trap.
-		///
-		/// \[ hash, origin, assets \]
-		</span>AssetsTrapped(H256, MultiLocation, VersionedMultiAssets),
+		</span>AssetsTrapped { hash: H256, origin: MultiLocation, assets: VersionedMultiAssets },
 		<span class="doccomment">/// An XCM version change notification message has been attempted to be sent.
 		///
 		/// The cost of sending it (borne by the chain) is included.
-		///
-		/// \[ destination, result, cost \]
-		</span>VersionChangeNotified(MultiLocation, XcmVersion, MultiAssets),
+		</span>VersionChangeNotified {
+			destination: MultiLocation,
+			result: XcmVersion,
+			cost: MultiAssets,
+			message_id: XcmHash,
+		},
 		<span class="doccomment">/// The supported version of a location has been changed. This might be through an
 		/// automatic notification or a manual intervention.
-		///
-		/// \[ location, XCM version \]
-		</span>SupportedVersionChanged(MultiLocation, XcmVersion),
+		</span>SupportedVersionChanged { location: MultiLocation, version: XcmVersion },
 		<span class="doccomment">/// A given location which had a version change subscription was dropped owing to an error
 		/// sending the notification to it.
-		///
-		/// \[ location, query ID, error \]
-		</span>NotifyTargetSendFail(MultiLocation, QueryId, XcmError),
+		</span>NotifyTargetSendFail { location: MultiLocation, query_id: QueryId, error: XcmError },
 		<span class="doccomment">/// A given location which had a version change subscription was dropped owing to an error
 		/// migrating the location to our new XCM format.
-		///
-		/// \[ location, query ID \]
-		</span>NotifyTargetMigrationFail(VersionedMultiLocation, QueryId),
+		</span>NotifyTargetMigrationFail { location: VersionedMultiLocation, query_id: QueryId },
 		<span class="doccomment">/// Expected query response has been received but the expected querier location placed in
 		/// storage by this runtime previously cannot be decoded. The query remains registered.
 		///
@@ -2586,36 +2602,35 @@
 		/// runtime should be readable prior to query timeout) and dangerous since the possibly
 		/// valid response will be dropped. Manual governance intervention is probably going to be
 		/// needed.
-		///
-		/// \[ origin location, id \]
-		</span>InvalidQuerierVersion(MultiLocation, QueryId),
+		</span>InvalidQuerierVersion { origin: MultiLocation, query_id: QueryId },
 		<span class="doccomment">/// Expected query response has been received but the querier location of the response does
 		/// not match the expected. The query remains registered for a later, valid, response to
 		/// be received and acted upon.
-		///
-		/// \[ origin location, id, expected querier, maybe actual querier \]
-		</span>InvalidQuerier(MultiLocation, QueryId, MultiLocation, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;),
+		</span>InvalidQuerier {
+			origin: MultiLocation,
+			query_id: QueryId,
+			expected_querier: MultiLocation,
+			maybe_actual_querier: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;,
+		},
 		<span class="doccomment">/// A remote has requested XCM version change notification from us and we have honored it.
 		/// A version information message is sent to them and its cost is included.
-		///
-		/// \[ destination location, cost \]
-		</span>VersionNotifyStarted(MultiLocation, MultiAssets),
-		<span class="doccomment">/// We have requested that a remote chain sends us XCM version change notifications.
-		///
-		/// \[ destination location, cost \]
-		</span>VersionNotifyRequested(MultiLocation, MultiAssets),
+		</span>VersionNotifyStarted { destination: MultiLocation, cost: MultiAssets, message_id: XcmHash },
+		<span class="doccomment">/// We have requested that a remote chain send us XCM version change notifications.
+		</span>VersionNotifyRequested {
+			destination: MultiLocation,
+			cost: MultiAssets,
+			message_id: XcmHash,
+		},
 		<span class="doccomment">/// We have requested that a remote chain stops sending us XCM version change notifications.
-		///
-		/// \[ destination location, cost \]
-		</span>VersionNotifyUnrequested(MultiLocation, MultiAssets),
+		</span>VersionNotifyUnrequested {
+			destination: MultiLocation,
+			cost: MultiAssets,
+			message_id: XcmHash,
+		},
 		<span class="doccomment">/// Fees were paid from a location for an operation (often for using `SendXcm`).
-		///
-		/// \[ paying location, fees \]
-		</span>FeesPaid(MultiLocation, MultiAssets),
+		</span>FeesPaid { paying: MultiLocation, fees: MultiAssets },
 		<span class="doccomment">/// Some assets have been claimed from an asset trap
-		///
-		/// \[ hash, origin, assets \]
-		</span>AssetsClaimed(H256, MultiLocation, VersionedMultiAssets),
+		</span>AssetsClaimed { hash: H256, origin: MultiLocation, assets: VersionedMultiAssets },
 	}
 
 	<span class="attr">#[pallet::origin]
@@ -3015,8 +3030,10 @@
 			<span class="kw">let </span>dest = MultiLocation::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 			<span class="kw">let </span>message: Xcm&lt;()&gt; = (<span class="kw-2">*</span>message).try_into().map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
-			<span class="self">Self</span>::send_xcm(interior, dest, message.clone()).map_err(Error::&lt;T&gt;::from)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::deposit_event(Event::Sent(origin_location, dest, message));
+			<span class="kw">let </span>message_id =
+				<span class="self">Self</span>::send_xcm(interior, dest, message.clone()).map_err(Error::&lt;T&gt;::from)<span class="question-mark">?</span>;
+			<span class="kw">let </span>e = Event::Sent { origin: origin_location, destination: dest, message, message_id };
+			<span class="self">Self</span>::deposit_event(e);
 			<span class="prelude-val">Ok</span>(())
 		}
 
@@ -3149,7 +3166,7 @@
 			);
 			<span class="kw">let </span>result =
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(outcome.weight_used().saturating_add(T::WeightInfo::execute())).into());
-			<span class="self">Self</span>::deposit_event(Event::Attempted(outcome));
+			<span class="self">Self</span>::deposit_event(Event::Attempted { outcome });
 			result
 		}
 
@@ -3164,16 +3181,16 @@
 		</span><span class="kw">pub fn </span>force_xcm_version(
 			origin: OriginFor&lt;T&gt;,
 			location: Box&lt;MultiLocation&gt;,
-			xcm_version: XcmVersion,
+			version: XcmVersion,
 		) -&gt; DispatchResult {
 			T::AdminOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>location = <span class="kw-2">*</span>location;
 			SupportedVersion::&lt;T&gt;::insert(
 				XCM_VERSION,
 				LatestVersionedMultiLocation(<span class="kw-2">&amp;</span>location),
-				xcm_version,
+				version,
 			);
-			<span class="self">Self</span>::deposit_event(Event::SupportedVersionChanged(location, xcm_version));
+			<span class="self">Self</span>::deposit_event(Event::SupportedVersionChanged { location, version });
 			<span class="prelude-val">Ok</span>(())
 		}
 
@@ -3417,7 +3434,7 @@
 		<span class="kw">let </span>hash = message.using_encoded(sp_io::hashing::blake2_256);
 		<span class="kw">let </span>outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
-		<span class="self">Self</span>::deposit_event(Event::Attempted(outcome));
+		<span class="self">Self</span>::deposit_event(Event::Attempted { outcome });
 		<span class="prelude-val">Ok</span>(())
 	}
 
@@ -3478,7 +3495,7 @@
 		<span class="kw">let </span>hash = message.using_encoded(sp_io::hashing::blake2_256);
 		<span class="kw">let </span>outcome =
 			T::XcmExecutor::execute_xcm_in_credit(origin_location, message, hash, weight, weight);
-		<span class="self">Self</span>::deposit_event(Event::Attempted(outcome));
+		<span class="self">Self</span>::deposit_event(Event::Attempted { outcome });
 		<span class="prelude-val">Ok</span>(())
 	}
 
@@ -3553,14 +3570,19 @@
 				<span class="kw">let </span>message =
 					Xcm(<span class="macro">vec!</span>[QueryResponse { query_id, response, max_weight, querier: <span class="prelude-val">None </span>}]);
 				<span class="kw">let </span>event = <span class="kw">match </span>send_xcm::&lt;T::XcmRouter&gt;(new_key, message) {
-					<span class="prelude-val">Ok</span>((_hash, cost)) =&gt; {
+					<span class="prelude-val">Ok</span>((message_id, cost)) =&gt; {
 						<span class="kw">let </span>value = (query_id, max_weight, xcm_version);
 						VersionNotifyTargets::&lt;T&gt;::insert(XCM_VERSION, key, value);
-						Event::VersionChangeNotified(new_key, xcm_version, cost)
+						Event::VersionChangeNotified {
+							destination: new_key,
+							result: xcm_version,
+							cost,
+							message_id,
+						}
 					},
 					<span class="prelude-val">Err</span>(e) =&gt; {
 						VersionNotifyTargets::&lt;T&gt;::remove(XCM_VERSION, key);
-						Event::NotifyTargetSendFail(new_key, query_id, e.into())
+						Event::NotifyTargetSendFail { location: new_key, query_id, error: e.into() }
 					},
 				};
 				<span class="self">Self</span>::deposit_event(event);
@@ -3579,7 +3601,10 @@
 					<span class="kw">let </span>new_key = <span class="kw">match </span>MultiLocation::try_from(old_key.clone()) {
 						<span class="prelude-val">Ok</span>(k) =&gt; k,
 						<span class="prelude-val">Err</span>(()) =&gt; {
-							<span class="self">Self</span>::deposit_event(Event::NotifyTargetMigrationFail(old_key, value.<span class="number">0</span>));
+							<span class="self">Self</span>::deposit_event(Event::NotifyTargetMigrationFail {
+								location: old_key,
+								query_id: value.<span class="number">0</span>,
+							});
 							weight_used.saturating_accrue(vnt_migrate_fail_weight);
 							<span class="kw">if </span>weight_used.any_gte(weight_cutoff) {
 								<span class="kw">return </span>(weight_used, <span class="prelude-val">Some</span>(stage))
@@ -3602,15 +3627,24 @@
 							querier: <span class="prelude-val">None</span>,
 						}]);
 						<span class="kw">let </span>event = <span class="kw">match </span>send_xcm::&lt;T::XcmRouter&gt;(new_key, message) {
-							<span class="prelude-val">Ok</span>((_hash, cost)) =&gt; {
+							<span class="prelude-val">Ok</span>((message_id, cost)) =&gt; {
 								VersionNotifyTargets::&lt;T&gt;::insert(
 									XCM_VERSION,
 									versioned_key,
 									(query_id, max_weight, xcm_version),
 								);
-								Event::VersionChangeNotified(new_key, xcm_version, cost)
+								Event::VersionChangeNotified {
+									destination: new_key,
+									result: xcm_version,
+									cost,
+									message_id,
+								}
 							},
-							<span class="prelude-val">Err</span>(e) =&gt; Event::NotifyTargetSendFail(new_key, query_id, e.into()),
+							<span class="prelude-val">Err</span>(e) =&gt; Event::NotifyTargetSendFail {
+								location: new_key,
+								query_id,
+								error: e.into(),
+							},
 						};
 						<span class="self">Self</span>::deposit_event(event);
 						weight_used.saturating_accrue(vnt_notify_migrate_weight);
@@ -3637,8 +3671,8 @@
 		});
 		<span class="comment">// TODO #3735: Correct weight.
 		</span><span class="kw">let </span>instruction = SubscribeVersion { query_id, max_response_weight: Weight::zero() };
-		<span class="kw">let </span>(_hash, cost) = send_xcm::&lt;T::XcmRouter&gt;(dest, Xcm(<span class="macro">vec!</span>[instruction]))<span class="question-mark">?</span>;
-		<span class="self">Self</span>::deposit_event(Event::VersionNotifyRequested(dest, cost));
+		<span class="kw">let </span>(message_id, cost) = send_xcm::&lt;T::XcmRouter&gt;(dest, Xcm(<span class="macro">vec!</span>[instruction]))<span class="question-mark">?</span>;
+		<span class="self">Self</span>::deposit_event(Event::VersionNotifyRequested { destination: dest, cost, message_id });
 		VersionNotifiers::&lt;T&gt;::insert(XCM_VERSION, <span class="kw-2">&amp;</span>versioned_dest, query_id);
 		<span class="kw">let </span>query_status =
 			QueryStatus::VersionNotifier { origin: versioned_dest, is_active: <span class="bool-val">false </span>};
@@ -3652,8 +3686,12 @@
 		<span class="kw">let </span>versioned_dest = LatestVersionedMultiLocation(<span class="kw-2">&amp;</span>dest);
 		<span class="kw">let </span>query_id = VersionNotifiers::&lt;T&gt;::take(XCM_VERSION, versioned_dest)
 			.ok_or(XcmError::InvalidLocation)<span class="question-mark">?</span>;
-		<span class="kw">let </span>(_hash, cost) = send_xcm::&lt;T::XcmRouter&gt;(dest, Xcm(<span class="macro">vec!</span>[UnsubscribeVersion]))<span class="question-mark">?</span>;
-		<span class="self">Self</span>::deposit_event(Event::VersionNotifyUnrequested(dest, cost));
+		<span class="kw">let </span>(message_id, cost) = send_xcm::&lt;T::XcmRouter&gt;(dest, Xcm(<span class="macro">vec!</span>[UnsubscribeVersion]))<span class="question-mark">?</span>;
+		<span class="self">Self</span>::deposit_event(Event::VersionNotifyUnrequested {
+			destination: dest,
+			cost,
+			message_id,
+		});
 		Queries::&lt;T&gt;::remove(query_id);
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -3811,7 +3849,7 @@
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(QueryStatus::Ready { response, at }) = Queries::&lt;T&gt;::get(query_id) {
 			<span class="kw">let </span>response = response.try_into().ok()<span class="question-mark">?</span>;
 			Queries::&lt;T&gt;::remove(query_id);
-			<span class="self">Self</span>::deposit_event(Event::ResponseTaken(query_id));
+			<span class="self">Self</span>::deposit_event(Event::ResponseTaken { query_id });
 			<span class="prelude-val">Some</span>((response, at))
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
@@ -3845,7 +3883,7 @@
 	</span><span class="kw">fn </span>charge_fees(location: MultiLocation, assets: MultiAssets) -&gt; DispatchResult {
 		T::XcmExecutor::charge_fees(location, assets.clone())
 			.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::FeesNotMet)<span class="question-mark">?</span>;
-		<span class="self">Self</span>::deposit_event(Event::FeesPaid(location, assets));
+		<span class="self">Self</span>::deposit_event(Event::FeesPaid { paying: location, fees: assets });
 		<span class="prelude-val">Ok</span>(())
 	}
 }
@@ -4083,8 +4121,12 @@
 		<span class="kw">let </span>xcm_version = T::AdvertisedXcmVersion::get();
 		<span class="kw">let </span>response = Response::Version(xcm_version);
 		<span class="kw">let </span>instruction = QueryResponse { query_id, response, max_weight, querier: <span class="prelude-val">None </span>};
-		<span class="kw">let </span>(_hash, cost) = send_xcm::&lt;T::XcmRouter&gt;(<span class="kw-2">*</span>dest, Xcm(<span class="macro">vec!</span>[instruction]))<span class="question-mark">?</span>;
-		<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::VersionNotifyStarted(<span class="kw-2">*</span>dest, cost));
+		<span class="kw">let </span>(message_id, cost) = send_xcm::&lt;T::XcmRouter&gt;(<span class="kw-2">*</span>dest, Xcm(<span class="macro">vec!</span>[instruction]))<span class="question-mark">?</span>;
+		<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::VersionNotifyStarted {
+			destination: <span class="kw-2">*</span>dest,
+			cost,
+			message_id,
+		});
 
 		<span class="kw">let </span>value = (query_id, max_weight, xcm_version);
 		VersionNotifyTargets::&lt;T&gt;::insert(XCM_VERSION, versioned_dest, value);
@@ -4113,7 +4155,7 @@
 		<span class="kw">let </span>versioned = VersionedMultiAssets::from(MultiAssets::from(assets));
 		<span class="kw">let </span>hash = BlakeTwo256::hash_of(<span class="kw-2">&amp;</span>(<span class="kw-2">&amp;</span>origin, <span class="kw-2">&amp;</span>versioned));
 		AssetTraps::&lt;T&gt;::mutate(hash, |n| <span class="kw-2">*</span>n += <span class="number">1</span>);
-		<span class="self">Self</span>::deposit_event(Event::AssetsTrapped(hash, <span class="kw-2">*</span>origin, versioned));
+		<span class="self">Self</span>::deposit_event(Event::AssetsTrapped { hash, origin: <span class="kw-2">*</span>origin, assets: versioned });
 		<span class="comment">// TODO #3735: Put the real weight in there.
 		</span>Weight::zero()
 	}
@@ -4142,7 +4184,7 @@
 			<span class="number">1 </span>=&gt; AssetTraps::&lt;T&gt;::remove(hash),
 			n =&gt; AssetTraps::&lt;T&gt;::insert(hash, n - <span class="number">1</span>),
 		}
-		<span class="self">Self</span>::deposit_event(Event::AssetsClaimed(hash, <span class="kw-2">*</span>origin, versioned));
+		<span class="self">Self</span>::deposit_event(Event::AssetsClaimed { hash, origin: <span class="kw-2">*</span>origin, assets: versioned });
 		<span class="kw">return </span><span class="bool-val">true
 	</span>}
 }
@@ -4175,19 +4217,28 @@
 		max_weight: Weight,
 		_context: <span class="kw-2">&amp;</span>XcmContext,
 	) -&gt; Weight {
+		<span class="kw">let </span>origin = <span class="kw-2">*</span>origin;
 		<span class="kw">match </span>(response, Queries::&lt;T&gt;::get(query_id)) {
 			(
 				Response::Version(v),
 				<span class="prelude-val">Some</span>(QueryStatus::VersionNotifier { origin: expected_origin, is_active }),
 			) =&gt; {
 				<span class="kw">let </span>origin: MultiLocation = <span class="kw">match </span>expected_origin.try_into() {
-					<span class="prelude-val">Ok</span>(o) <span class="kw">if </span><span class="kw-2">&amp;</span>o == origin =&gt; o,
+					<span class="prelude-val">Ok</span>(o) <span class="kw">if </span>o == origin =&gt; o,
 					<span class="prelude-val">Ok</span>(o) =&gt; {
-						<span class="self">Self</span>::deposit_event(Event::InvalidResponder(<span class="kw-2">*</span>origin, query_id, <span class="prelude-val">Some</span>(o)));
+						<span class="self">Self</span>::deposit_event(Event::InvalidResponder {
+							origin,
+							query_id,
+							expected_location: <span class="prelude-val">Some</span>(o),
+						});
 						<span class="kw">return </span>Weight::zero()
 					},
 					<span class="kw">_ </span>=&gt; {
-						<span class="self">Self</span>::deposit_event(Event::InvalidResponder(<span class="kw-2">*</span>origin, query_id, <span class="prelude-val">None</span>));
+						<span class="self">Self</span>::deposit_event(Event::InvalidResponder {
+							origin,
+							query_id,
+							expected_location: <span class="prelude-val">None</span>,
+						});
 						<span class="comment">// TODO #3735: Correct weight for this.
 						</span><span class="kw">return </span>Weight::zero()
 					},
@@ -4205,7 +4256,10 @@
 					LatestVersionedMultiLocation(<span class="kw-2">&amp;</span>origin),
 					v,
 				);
-				<span class="self">Self</span>::deposit_event(Event::SupportedVersionChanged(origin, v));
+				<span class="self">Self</span>::deposit_event(Event::SupportedVersionChanged {
+					location: origin,
+					version: v,
+				});
 				Weight::zero()
 			},
 			(
@@ -4216,33 +4270,33 @@
 					<span class="kw">let </span>match_querier = <span class="kw">match </span>MultiLocation::try_from(match_querier) {
 						<span class="prelude-val">Ok</span>(mq) =&gt; mq,
 						<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-							<span class="self">Self</span>::deposit_event(Event::InvalidQuerierVersion(<span class="kw-2">*</span>origin, query_id));
+							<span class="self">Self</span>::deposit_event(Event::InvalidQuerierVersion { origin, query_id });
 							<span class="kw">return </span>Weight::zero()
 						},
 					};
 					<span class="kw">if </span>querier.map_or(<span class="bool-val">true</span>, |q| q != <span class="kw-2">&amp;</span>match_querier) {
-						<span class="self">Self</span>::deposit_event(Event::InvalidQuerier(
-							<span class="kw-2">*</span>origin,
+						<span class="self">Self</span>::deposit_event(Event::InvalidQuerier {
+							origin,
 							query_id,
-							match_querier,
-							querier.cloned(),
-						));
+							expected_querier: match_querier,
+							maybe_actual_querier: querier.cloned(),
+						});
 						<span class="kw">return </span>Weight::zero()
 					}
 				}
 				<span class="kw">let </span>responder = <span class="kw">match </span>MultiLocation::try_from(responder) {
 					<span class="prelude-val">Ok</span>(r) =&gt; r,
 					<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-						<span class="self">Self</span>::deposit_event(Event::InvalidResponderVersion(<span class="kw-2">*</span>origin, query_id));
+						<span class="self">Self</span>::deposit_event(Event::InvalidResponderVersion { origin, query_id });
 						<span class="kw">return </span>Weight::zero()
 					},
 				};
-				<span class="kw">if </span>origin != <span class="kw-2">&amp;</span>responder {
-					<span class="self">Self</span>::deposit_event(Event::InvalidResponder(
-						<span class="kw-2">*</span>origin,
+				<span class="kw">if </span>origin != responder {
+					<span class="self">Self</span>::deposit_event(Event::InvalidResponder {
+						origin,
 						query_id,
-						<span class="prelude-val">Some</span>(responder),
-					));
+						expected_location: <span class="prelude-val">Some</span>(responder),
+					});
 					<span class="kw">return </span>Weight::zero()
 				}
 				<span class="kw">return match </span>maybe_notify {
@@ -4257,29 +4311,29 @@
 							Queries::&lt;T&gt;::remove(query_id);
 							<span class="kw">let </span>weight = call.get_dispatch_info().weight;
 							<span class="kw">if </span>weight.any_gt(max_weight) {
-								<span class="kw">let </span>e = Event::NotifyOverweight(
+								<span class="kw">let </span>e = Event::NotifyOverweight {
 									query_id,
 									pallet_index,
 									call_index,
-									weight,
-									max_weight,
-								);
+									actual_weight: weight,
+									max_budgeted_weight: max_weight,
+								};
 								<span class="self">Self</span>::deposit_event(e);
 								<span class="kw">return </span>Weight::zero()
 							}
-							<span class="kw">let </span>dispatch_origin = Origin::Response(<span class="kw-2">*</span>origin).into();
+							<span class="kw">let </span>dispatch_origin = Origin::Response(origin).into();
 							<span class="kw">match </span>call.dispatch(dispatch_origin) {
 								<span class="prelude-val">Ok</span>(post_info) =&gt; {
-									<span class="kw">let </span>e = Event::Notified(query_id, pallet_index, call_index);
+									<span class="kw">let </span>e = Event::Notified { query_id, pallet_index, call_index };
 									<span class="self">Self</span>::deposit_event(e);
 									post_info.actual_weight
 								},
 								<span class="prelude-val">Err</span>(error_and_info) =&gt; {
-									<span class="kw">let </span>e = Event::NotifyDispatchError(
+									<span class="kw">let </span>e = Event::NotifyDispatchError {
 										query_id,
 										pallet_index,
 										call_index,
-									);
+									};
 									<span class="self">Self</span>::deposit_event(e);
 									<span class="comment">// Not much to do with the result as it is. It&#39;s up to the parachain to ensure that the
 									// message makes sense.
@@ -4288,13 +4342,14 @@
 							}
 							.unwrap_or(weight)
 						} <span class="kw">else </span>{
-							<span class="kw">let </span>e = Event::NotifyDecodeFailed(query_id, pallet_index, call_index);
+							<span class="kw">let </span>e =
+								Event::NotifyDecodeFailed { query_id, pallet_index, call_index };
 							<span class="self">Self</span>::deposit_event(e);
 							Weight::zero()
 						}
 					},
 					<span class="prelude-val">None </span>=&gt; {
-						<span class="kw">let </span>e = Event::ResponseReady(query_id, response.clone());
+						<span class="kw">let </span>e = Event::ResponseReady { query_id, response: response.clone() };
 						<span class="self">Self</span>::deposit_event(e);
 						<span class="kw">let </span>at = frame_system::Pallet::&lt;T&gt;::current_block_number();
 						<span class="kw">let </span>response = response.into();
@@ -4304,7 +4359,8 @@
 				}
 			},
 			<span class="kw">_ </span>=&gt; {
-				<span class="self">Self</span>::deposit_event(Event::UnexpectedResponse(<span class="kw-2">*</span>origin, query_id));
+				<span class="kw">let </span>e = Event::UnexpectedResponse { origin, query_id };
+				<span class="self">Self</span>::deposit_event(e);
 				Weight::zero()
 			},
 		}
@@ -4316,7 +4372,7 @@
 		_origin: <span class="kw-2">&amp;</span>MultiLocation,
 		_instructions: <span class="kw-2">&amp;mut </span>[Instruction&lt;Call&gt;],
 		_max_weight: Weight,
-		_weight_credit: <span class="kw-2">&amp;mut </span>Weight,
+		_properties: <span class="kw-2">&amp;mut </span>Properties,
 	) -&gt; bool {
 		XcmExecutionSuspended::&lt;T&gt;::get()
 	}

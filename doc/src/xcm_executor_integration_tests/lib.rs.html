@@ -353,9 +353,9 @@
 	client.state_at(block_hash).expect(<span class="string">&quot;state should exist&quot;</span>).inspect_state(|| {
 		<span class="macro">assert!</span>(polkadot_test_runtime::System::events().iter().any(|r| <span class="macro">matches!</span>(
 			r.event,
-			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::Attempted(
-				Outcome::Complete(<span class="kw">_</span>)
-			)),
+			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::Attempted {
+				outcome: Outcome::Complete(<span class="kw">_</span>)
+			}),
 		)));
 	});
 }
@@ -406,9 +406,9 @@
 	client.state_at(block_hash).expect(<span class="string">&quot;state should exist&quot;</span>).inspect_state(|| {
 		<span class="macro">assert!</span>(polkadot_test_runtime::System::events().iter().any(|r| <span class="macro">matches!</span>(
 			r.event,
-			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::Attempted(
-				Outcome::Incomplete(<span class="kw">_</span>, XcmError::ExceedsStackLimit)
-			)),
+			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::Attempted {
+				outcome: Outcome::Incomplete(<span class="kw">_</span>, XcmError::ExceedsStackLimit)
+			}),
 		)));
 	});
 }
@@ -483,10 +483,10 @@
 	client.state_at(block_hash).expect(<span class="string">&quot;state should exist&quot;</span>).inspect_state(|| {
 		<span class="macro">assert!</span>(polkadot_test_runtime::System::events().iter().any(|r| <span class="macro">matches!</span>(
 			r.event,
-			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::ResponseReady(
-				q,
-				Response::ExecutionResult(<span class="prelude-val">None</span>),
-			)) <span class="kw">if </span>q == query_id,
+			polkadot_test_runtime::RuntimeEvent::Xcm(pallet_xcm::Event::ResponseReady {
+				query_id: q,
+				response: Response::ExecutionResult(<span class="prelude-val">None</span>),
+			}) <span class="kw">if </span>q == query_id,
 		)));
 		<span class="macro">assert_eq!</span>(
 			polkadot_test_runtime::Xcm::query(query_id),
