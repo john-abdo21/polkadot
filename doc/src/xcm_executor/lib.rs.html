@@ -1001,6 +1001,19 @@
 <a href="#1001" id="1001">1001</a>
 <a href="#1002" id="1002">1002</a>
 <a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1879,9 +1892,11 @@
 			RequestUnlock { asset, locker } =&gt; {
 				<span class="kw">let </span>origin = <span class="kw-2">*</span><span class="self">self</span>.origin_ref().ok_or(XcmError::BadOrigin)<span class="question-mark">?</span>;
 				<span class="kw">let </span>remote_asset = <span class="self">Self</span>::try_reanchor(asset.clone(), <span class="kw-2">&amp;</span>locker)<span class="question-mark">?</span>.<span class="number">0</span>;
+				<span class="kw">let </span>remote_target = <span class="self">Self</span>::try_reanchor_multilocation(origin, <span class="kw-2">&amp;</span>locker)<span class="question-mark">?</span>.<span class="number">0</span>;
 				<span class="kw">let </span>reduce_ticket =
 					Config::AssetLocker::prepare_reduce_unlockable(locker, asset, origin)<span class="question-mark">?</span>;
-				<span class="kw">let </span>msg = Xcm::&lt;()&gt;(<span class="macro">vec!</span>[UnlockAsset { asset: remote_asset, target: origin }]);
+				<span class="kw">let </span>msg =
+					Xcm::&lt;()&gt;(<span class="macro">vec!</span>[UnlockAsset { asset: remote_asset, target: remote_target }]);
 				<span class="kw">let </span>(ticket, price) = validate_send::&lt;Config::XcmSender&gt;(locker, msg)<span class="question-mark">?</span>;
 				<span class="self">self</span>.take_fee(price, FeeReason::RequestUnlock)<span class="question-mark">?</span>;
 				reduce_ticket.enact()<span class="question-mark">?</span>;
@@ -1991,6 +2006,17 @@
 			.reanchored(<span class="kw-2">&amp;</span>destination, reanchor_context)
 			.map_err(|()| XcmError::ReanchorFailed)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>((asset, reanchor_context))
+	}
+
+	<span class="kw">fn </span>try_reanchor_multilocation(
+		location: MultiLocation,
+		destination: <span class="kw-2">&amp;</span>MultiLocation,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, InteriorMultiLocation), XcmError&gt; {
+		<span class="kw">let </span>reanchor_context = Config::UniversalLocation::get();
+		<span class="kw">let </span>location = location
+			.reanchored(<span class="kw-2">&amp;</span>destination, reanchor_context)
+			.map_err(|<span class="kw">_</span>| XcmError::ReanchorFailed)<span class="question-mark">?</span>;
+		<span class="prelude-val">Ok</span>((location, reanchor_context))
 	}
 
 	<span class="doccomment">/// NOTE: Any assets which were unable to be reanchored are introduced into `failed_bin`.

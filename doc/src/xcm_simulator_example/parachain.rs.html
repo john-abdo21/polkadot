@@ -447,6 +447,23 @@
 <a href="#447" id="447">447</a>
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -466,9 +483,10 @@
 </span><span class="doccomment">//! Parachain runtime mock.
 
 </span><span class="kw">use </span>codec::{Decode, Encode};
+<span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, EnsureOriginWithArg, Everything, EverythingBut, Nothing},
+	traits::{ContainsPair, EnsureOrigin, EnsureOriginWithArg, Everything, EverythingBut, Nothing},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
 
@@ -476,7 +494,7 @@
 <span class="kw">use </span>sp_core::{ConstU32, H256};
 <span class="kw">use </span>sp_runtime::{
 	testing::Header,
-	traits::{Hash, IdentityLookup},
+	traits::{Get, Hash, IdentityLookup},
 	AccountId32,
 };
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
@@ -687,7 +705,7 @@
 	<span class="kw">type </span>Trader = FixedRateOfFungible&lt;KsmPerSecondPerByte, ()&gt;;
 	<span class="kw">type </span>ResponseHandler = ();
 	<span class="kw">type </span>AssetTrap = ();
-	<span class="kw">type </span>AssetLocker = ();
+	<span class="kw">type </span>AssetLocker = PolkadotXcm;
 	<span class="kw">type </span>AssetExchanger = ();
 	<span class="kw">type </span>AssetClaims = ();
 	<span class="kw">type </span>SubscriptionService = ();
@@ -774,7 +792,7 @@
 				<span class="prelude-val">Ok</span>(xcm) =&gt; {
 					<span class="kw">let </span>location = (Parent, Parachain(sender.into()));
 					<span class="kw">match </span>T::XcmExecutor::execute_xcm(location, xcm, message_hash, max_weight) {
-						Outcome::Error(e) =&gt; (<span class="prelude-val">Err</span>(e.clone()), Event::Fail(<span class="prelude-val">Some</span>(hash), e)),
+						Outcome::Error(e) =&gt; (<span class="prelude-val">Err</span>(e), Event::Fail(<span class="prelude-val">Some</span>(hash), e)),
 						Outcome::Complete(w) =&gt; (<span class="prelude-val">Ok</span>(w), Event::Success(<span class="prelude-val">Some</span>(hash))),
 						<span class="comment">// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
@@ -798,7 +816,7 @@
 				<span class="kw">let _ </span>= XcmpMessageFormat::decode(<span class="kw-2">&amp;mut </span>data_ref)
 					.expect(<span class="string">&quot;Simulator encodes with versioned xcm format; qed&quot;</span>);
 
-				<span class="kw">let </span><span class="kw-2">mut </span>remaining_fragments = <span class="kw-2">&amp;</span>data_ref[..];
+				<span class="kw">let </span><span class="kw-2">mut </span>remaining_fragments = data_ref;
 				<span class="kw">while </span>!remaining_fragments.is_empty() {
 					<span class="kw">if let </span><span class="prelude-val">Ok</span>(xcm) =
 						VersionedXcm::&lt;T::RuntimeCall&gt;::decode(<span class="kw-2">&amp;mut </span>remaining_fragments)
@@ -852,6 +870,22 @@
 	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(Parent.into());
 }
 
+<span class="kw">pub struct </span>TrustedLockerCase&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: Get&lt;(MultiLocation, MultiAssetFilter)&gt;&gt; ContainsPair&lt;MultiLocation, MultiAsset&gt;
+	<span class="kw">for </span>TrustedLockerCase&lt;T&gt;
+{
+	<span class="kw">fn </span>contains(origin: <span class="kw-2">&amp;</span>MultiLocation, asset: <span class="kw-2">&amp;</span>MultiAsset) -&gt; bool {
+		<span class="kw">let </span>(o, a) = T::get();
+		a.matches(asset) &amp;&amp; <span class="kw-2">&amp;</span>o == origin
+	}
+}
+
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub </span>RelayTokenForRelay: (MultiLocation, MultiAssetFilter) = (Parent.into(), Wild(AllOf { id: Concrete(Parent.into()), fun: WildFungible }));
+}
+
+<span class="kw">pub type </span>TrustedLockers = TrustedLockerCase&lt;RelayTokenForRelay&gt;;
+
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>SendXcmOrigin = EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
@@ -869,7 +903,7 @@
 	<span class="kw">type </span>AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>CurrencyMatcher = ();
-	<span class="kw">type </span>TrustedLockers = ();
+	<span class="kw">type </span>TrustedLockers = TrustedLockers;
 	<span class="kw">type </span>SovereignAccountOf = LocationToAccountId;
 	<span class="kw">type </span>MaxLockers = ConstU32&lt;<span class="number">8</span>&gt;;
 	<span class="kw">type </span>MaxRemoteLockConsumers = ConstU32&lt;<span class="number">0</span>&gt;;

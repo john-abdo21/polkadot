@@ -627,6 +627,28 @@
 <a href="#627" id="627">627</a>
 <a href="#628" id="628">628</a>
 <a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -901,7 +923,7 @@
 	}
 
 	<span class="attr">#[test]
-	</span><span class="kw">fn </span>remote_locking() {
+	</span><span class="kw">fn </span>remote_locking_and_unlocking() {
 		MockNet::reset();
 
 		<span class="kw">let </span>locked_amount = <span class="number">100</span>;
@@ -909,7 +931,7 @@
 		ParaB::execute_with(|| {
 			<span class="kw">let </span>message = Xcm(<span class="macro">vec!</span>[LockAsset {
 				asset: (Here, locked_amount).into(),
-				unlocker: (Parachain(<span class="number">1</span>),).into(),
+				unlocker: Parachain(<span class="number">1</span>).into(),
 			}]);
 			<span class="macro">assert_ok!</span>(ParachainPalletXcm::send_xcm(Here, Parent, message.clone()));
 		});
@@ -933,6 +955,28 @@
 					owner: (Parent, Parachain(<span class="number">2</span>)).into(),
 					asset: (Parent, locked_amount).into()
 				}])]
+			);
+		});
+
+		ParaB::execute_with(|| {
+			<span class="comment">// Request unlocking part of the funds on the relay chain
+			</span><span class="kw">let </span>message = Xcm(<span class="macro">vec!</span>[RequestUnlock {
+				asset: (Parent, locked_amount - <span class="number">50</span>).into(),
+				locker: Parent.into(),
+			}]);
+			<span class="macro">assert_ok!</span>(ParachainPalletXcm::send_xcm(Here, (Parent, Parachain(<span class="number">1</span>)), message));
+		});
+
+		Relay::execute_with(|| {
+			<span class="kw">use </span>pallet_balances::{BalanceLock, Reasons};
+			<span class="comment">// Lock is reduced
+			</span><span class="macro">assert_eq!</span>(
+				relay_chain::Balances::locks(<span class="kw-2">&amp;</span>child_account_id(<span class="number">2</span>)),
+				<span class="macro">vec!</span>[BalanceLock {
+					id: <span class="kw-2">*</span><span class="string">b&quot;py/xcmlk&quot;</span>,
+					amount: locked_amount - <span class="number">50</span>,
+					reasons: Reasons::All
+				}]
 			);
 		});
 	}
