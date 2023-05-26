@@ -375,6 +375,59 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -393,7 +446,7 @@
 
 </span><span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>polkadot_primitives::{
-	runtime_api::ParachainHost, Block, BlockNumber, CandidateCommitments, CandidateEvent,
+	runtime_api::ParachainHost, vstaging, Block, BlockNumber, CandidateCommitments, CandidateEvent,
 	CandidateHash, CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams,
 	GroupRotationInfo, Hash, Id, InboundDownwardMessage, InboundHrmpMessage,
 	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes,
@@ -558,6 +611,34 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		at: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;, ApiError&gt;;
+
+	<span class="doccomment">/// Returns a list of validators that lost a past session dispute and need to be slashed.
+	///
+	/// WARNING: This is a staging method! Do not use on production runtimes!
+	</span><span class="kw">async fn </span>unapplied_slashes(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		at: Hash,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash, vstaging::slashing::PendingSlashes)&gt;, ApiError&gt;;
+
+	<span class="doccomment">/// Returns a merkle proof of a validator session key in a past session.
+	///
+	/// WARNING: This is a staging method! Do not use on production runtimes!
+	</span><span class="kw">async fn </span>key_ownership_proof(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		at: Hash,
+		validator_id: ValidatorId,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;vstaging::slashing::OpaqueKeyOwnershipProof&gt;, ApiError&gt;;
+
+	<span class="doccomment">/// Submits an unsigned extrinsic to slash validators who lost a dispute about
+	/// a candidate of a past session.
+	///
+	/// WARNING: This is a staging method! Do not use on production runtimes!
+	</span><span class="kw">async fn </span>submit_report_dispute_lost(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		at: Hash,
+		dispute_proof: vstaging::slashing::DisputeProof,
+		key_ownership_proof: vstaging::slashing::OpaqueKeyOwnershipProof,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;()&gt;, ApiError&gt;;
 
 	<span class="doccomment">/// Get the execution environment parameter set by parent hash, if stored
 	</span><span class="kw">async fn </span>session_executor_params(
@@ -750,6 +831,31 @@
 		at: Hash,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt;, ApiError&gt; {
 		<span class="self">self</span>.runtime_api().disputes(at)
+	}
+
+	<span class="kw">async fn </span>unapplied_slashes(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		at: Hash,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(SessionIndex, CandidateHash, vstaging::slashing::PendingSlashes)&gt;, ApiError&gt; {
+		<span class="self">self</span>.runtime_api().unapplied_slashes(at)
+	}
+
+	<span class="kw">async fn </span>key_ownership_proof(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		at: Hash,
+		validator_id: ValidatorId,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;vstaging::slashing::OpaqueKeyOwnershipProof&gt;, ApiError&gt; {
+		<span class="self">self</span>.runtime_api().key_ownership_proof(at, validator_id)
+	}
+
+	<span class="kw">async fn </span>submit_report_dispute_lost(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		at: Hash,
+		dispute_proof: vstaging::slashing::DisputeProof,
+		key_ownership_proof: vstaging::slashing::OpaqueKeyOwnershipProof,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;()&gt;, ApiError&gt; {
+		<span class="self">self</span>.runtime_api()
+			.submit_report_dispute_lost(at, dispute_proof, key_ownership_proof)
 	}
 }
 </code></pre></div>

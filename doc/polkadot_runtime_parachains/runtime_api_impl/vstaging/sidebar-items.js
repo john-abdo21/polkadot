@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {};
+window.SIDEBAR_ITEMS = {"fn":["get_session_disputes","submit_unsigned_slashing_report","unapplied_slashes"]};

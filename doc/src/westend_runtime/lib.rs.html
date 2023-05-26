@@ -2097,6 +2097,34 @@
 <a href="#2097" id="2097">2097</a>
 <a href="#2098" id="2098">2098</a>
 <a href="#2099" id="2099">2099</a>
+<a href="#2100" id="2100">2100</a>
+<a href="#2101" id="2101">2101</a>
+<a href="#2102" id="2102">2102</a>
+<a href="#2103" id="2103">2103</a>
+<a href="#2104" id="2104">2104</a>
+<a href="#2105" id="2105">2105</a>
+<a href="#2106" id="2106">2106</a>
+<a href="#2107" id="2107">2107</a>
+<a href="#2108" id="2108">2108</a>
+<a href="#2109" id="2109">2109</a>
+<a href="#2110" id="2110">2110</a>
+<a href="#2111" id="2111">2111</a>
+<a href="#2112" id="2112">2112</a>
+<a href="#2113" id="2113">2113</a>
+<a href="#2114" id="2114">2114</a>
+<a href="#2115" id="2115">2115</a>
+<a href="#2116" id="2116">2116</a>
+<a href="#2117" id="2117">2117</a>
+<a href="#2118" id="2118">2118</a>
+<a href="#2119" id="2119">2119</a>
+<a href="#2120" id="2120">2120</a>
+<a href="#2121" id="2121">2121</a>
+<a href="#2122" id="2122">2122</a>
+<a href="#2123" id="2123">2123</a>
+<a href="#2124" id="2124">2124</a>
+<a href="#2125" id="2125">2125</a>
+<a href="#2126" id="2126">2126</a>
+<a href="#2127" id="2127">2127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2138,12 +2166,12 @@
 <span class="kw">use </span>pallet_transaction_payment::{CurrencyAdapter, FeeDetails, RuntimeDispatchInfo};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>primitives::{
-	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
+	vstaging, AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
 	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo, Hash,
 	Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, Moment, Nonce,
 	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes,
 	SessionInfo, Signature, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
-	ValidatorSignature,
+	ValidatorSignature, PARACHAIN_KEY_TYPE_ID,
 };
 <span class="kw">use </span>runtime_common::{
 	assigned_slots, auctions, crowdloan, elections::OnChainAccuracy, impl_runtime_weights,
@@ -2157,7 +2185,9 @@
 	inclusion::{AggregateMessageOrigin, UmpQueueId},
 	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent, reward_points <span class="kw">as </span>parachains_reward_points,
-	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl,
+	runtime_api_impl::{
+		v4 <span class="kw">as </span>parachains_runtime_api_impl, vstaging <span class="kw">as </span>parachains_runtime_api_impl_staging,
+	},
 	scheduler <span class="kw">as </span>parachains_scheduler, session_info <span class="kw">as </span>parachains_session_info,
 	shared <span class="kw">as </span>parachains_shared,
 };
@@ -3571,7 +3601,8 @@
 		}
 	}
 
-	<span class="kw">impl </span>primitives::runtime_api::ParachainHost&lt;Block, Hash, BlockNumber&gt; <span class="kw">for </span>Runtime {
+	<span class="attr">#[api_version(<span class="number">5</span>)]
+	</span><span class="kw">impl </span>primitives::runtime_api::ParachainHost&lt;Block, Hash, BlockNumber&gt; <span class="kw">for </span>Runtime {
 		<span class="kw">fn </span>validators() -&gt; Vec&lt;ValidatorId&gt; {
 			parachains_runtime_api_impl::validators::&lt;Runtime&gt;()
 		}
@@ -3675,6 +3706,31 @@
 
 		<span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt; {
 			parachains_runtime_api_impl::get_session_disputes::&lt;Runtime&gt;()
+		}
+
+		<span class="kw">fn </span>unapplied_slashes(
+		) -&gt; Vec&lt;(SessionIndex, CandidateHash, vstaging::slashing::PendingSlashes)&gt; {
+			parachains_runtime_api_impl_staging::unapplied_slashes::&lt;Runtime&gt;()
+		}
+
+		<span class="kw">fn </span>key_ownership_proof(
+			validator_id: ValidatorId,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;vstaging::slashing::OpaqueKeyOwnershipProof&gt; {
+			<span class="kw">use </span>parity_scale_codec::Encode;
+
+			Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
+				.map(|p| p.encode())
+				.map(vstaging::slashing::OpaqueKeyOwnershipProof::new)
+		}
+
+		<span class="kw">fn </span>submit_report_dispute_lost(
+			dispute_proof: vstaging::slashing::DisputeProof,
+			key_ownership_proof: vstaging::slashing::OpaqueKeyOwnershipProof,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+			parachains_runtime_api_impl_staging::submit_unsigned_slashing_report::&lt;Runtime&gt;(
+				dispute_proof,
+				key_ownership_proof,
+			)
 		}
 	}
 

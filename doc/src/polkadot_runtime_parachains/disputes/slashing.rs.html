@@ -724,44 +724,6 @@
 <a href="#724" id="724">724</a>
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
-<a href="#727" id="727">727</a>
-<a href="#728" id="728">728</a>
-<a href="#729" id="729">729</a>
-<a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
-<a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
-<a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
-<a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -813,8 +775,10 @@
 	weights::Weight,
 };
 
-<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
-<span class="kw">use </span>primitives::{CandidateHash, SessionIndex, ValidatorId, ValidatorIndex};
+<span class="kw">use </span>primitives::{
+	vstaging::slashing::{DisputeProof, DisputesTimeSlot, PendingSlashes, SlashingOffenceKind},
+	CandidateHash, SessionIndex, ValidatorId, ValidatorIndex,
+};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::{
 	traits::Convert,
@@ -822,15 +786,12 @@
 		InvalidTransaction, TransactionPriority, TransactionSource, TransactionValidity,
 		TransactionValidityError, ValidTransaction,
 	},
-	KeyTypeId, Perbill, RuntimeDebug,
+	KeyTypeId, Perbill,
 };
 <span class="kw">use </span>sp_session::{GetSessionNumber, GetValidatorCount};
 <span class="kw">use </span>sp_staking::offence::{DisableStrategy, Kind, Offence, OffenceError, ReportOffence};
 <span class="kw">use </span>sp_std::{
-	collections::{
-		btree_map::{BTreeMap, Entry},
-		btree_set::BTreeSet,
-	},
+	collections::{btree_map::Entry, btree_set::BTreeSet},
 	prelude::<span class="kw-2">*</span>,
 };
 
@@ -856,23 +817,8 @@
 	<span class="kw">const </span>MAX_VALIDATORS: u32 = M;
 }
 
-<span class="doccomment">/// Timeslots should uniquely identify offences and are used for the offence
-/// deduplication.
-</span><span class="attr">#[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
-</span><span class="kw">pub struct </span>DisputesTimeSlot {
-	<span class="comment">// The order of these matters for `derive(Ord)`.
-	</span>session_index: SessionIndex,
-	candidate_hash: CandidateHash,
-}
-
-<span class="kw">impl </span>DisputesTimeSlot {
-	<span class="kw">pub fn </span>new(session_index: SessionIndex, candidate_hash: CandidateHash) -&gt; <span class="self">Self </span>{
-		<span class="self">Self </span>{ session_index, candidate_hash }
-	}
-}
-
 <span class="doccomment">/// An offence that is filed when a series of validators lost a dispute.
-</span><span class="attr">#[derive(RuntimeDebug, TypeInfo)]
+</span><span class="attr">#[derive(TypeInfo)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Clone, PartialEq, Eq))]
 </span><span class="kw">pub struct </span>SlashingOffence&lt;KeyOwnerIdentification&gt; {
 	<span class="doccomment">/// The size of the validator set in that session.
@@ -1085,39 +1031,6 @@
 	<span class="kw">fn </span>initializer_on_new_session(session_index: SessionIndex) {
 		Pallet::&lt;T&gt;::initializer_on_new_session(session_index)
 	}
-}
-
-<span class="attr">#[derive(PartialEq, Eq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
-</span><span class="kw">pub enum </span>SlashingOffenceKind {
-	<span class="attr">#[codec(index = <span class="number">0</span>)]
-	</span>ForInvalid,
-	<span class="attr">#[codec(index = <span class="number">1</span>)]
-	</span>AgainstValid,
-}
-
-<span class="doccomment">/// We store most of the information about a lost dispute on chain. This struct
-/// is required to identify and verify it.
-</span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-</span><span class="kw">pub struct </span>DisputeProof {
-	<span class="doccomment">/// Time slot when the dispute occured.
-	</span><span class="kw">pub </span>time_slot: DisputesTimeSlot,
-	<span class="doccomment">/// The dispute outcome.
-	</span><span class="kw">pub </span>kind: SlashingOffenceKind,
-	<span class="doccomment">/// The index of the validator who lost a dispute.
-	</span><span class="kw">pub </span>validator_index: ValidatorIndex,
-	<span class="doccomment">/// The parachain session key of the validator.
-	</span><span class="kw">pub </span>validator_id: ValidatorId,
-}
-
-<span class="doccomment">/// Slashes that are waiting to be applied once we have validator key
-/// identification.
-</span><span class="attr">#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
-</span><span class="kw">pub struct </span>PendingSlashes {
-	<span class="doccomment">/// Indices and keys of the validators who lost a dispute and are pending
-	/// slashes.
-	</span><span class="kw">pub </span>keys: BTreeMap&lt;ValidatorIndex, ValidatorId&gt;,
-	<span class="doccomment">/// The dispute outcome.
-	</span><span class="kw">pub </span>kind: SlashingOffenceKind,
 }
 
 <span class="doccomment">/// A trait that defines methods to report an offence (after the slashing report
@@ -1366,6 +1279,17 @@
 
 		<span class="kw">let </span>old_session = session_index - config.dispute_period - <span class="number">1</span>;
 		<span class="kw">let _ </span>= &lt;UnappliedSlashes&lt;T&gt;&gt;::clear_prefix(old_session, REMOVE_LIMIT, <span class="prelude-val">None</span>);
+	}
+
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unapplied_slashes() -&gt; Vec&lt;(SessionIndex, CandidateHash, PendingSlashes)&gt; {
+		&lt;UnappliedSlashes&lt;T&gt;&gt;::iter().collect()
+	}
+
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>submit_unsigned_slashing_report(
+		dispute_proof: DisputeProof,
+		key_ownership_proof: &lt;T <span class="kw">as </span>Config&gt;::KeyOwnerProof,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+		T::HandleReports::submit_unsigned_slashing_report(dispute_proof, key_ownership_proof).ok()
 	}
 }
 

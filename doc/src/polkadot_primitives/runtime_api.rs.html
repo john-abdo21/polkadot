@@ -220,6 +220,24 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -333,10 +351,10 @@
 //! from the stable primitives.
 
 </span><span class="kw">use crate</span>::{
-	BlockNumber, CandidateCommitments, CandidateEvent, CandidateHash, CommittedCandidateReceipt,
-	CoreState, DisputeState, ExecutorParams, GroupRotationInfo, OccupiedCoreAssumption,
-	PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes, SessionIndex, SessionInfo,
-	ValidatorId, ValidatorIndex, ValidatorSignature,
+	vstaging, BlockNumber, CandidateCommitments, CandidateEvent, CandidateHash,
+	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo,
+	OccupiedCoreAssumption, PersistedValidationData, PvfCheckStatement, ScrapedOnChainVotes,
+	SessionIndex, SessionInfo, ValidatorId, ValidatorIndex, ValidatorSignature,
 };
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_core_primitives <span class="kw">as </span>pcp;
@@ -440,6 +458,24 @@
 
 		<span class="doccomment">/// Returns execution parameters for the session.
 		</span><span class="kw">fn </span>session_executor_params(session_index: SessionIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ExecutorParams&gt;;
+
+		<span class="doccomment">/// Returns a list of validators that lost a past session dispute and need to be slashed.
+		</span><span class="attr">#[api_version(<span class="number">5</span>)]
+		</span><span class="kw">fn </span>unapplied_slashes() -&gt; Vec&lt;(SessionIndex, CandidateHash, vstaging::slashing::PendingSlashes)&gt;;
+
+		<span class="doccomment">/// Returns a merkle proof of a validator session key.
+		</span><span class="attr">#[api_version(<span class="number">5</span>)]
+		</span><span class="kw">fn </span>key_ownership_proof(
+			validator_id: ValidatorId,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;vstaging::slashing::OpaqueKeyOwnershipProof&gt;;
+
+		<span class="doccomment">/// Submit an unsigned extrinsic to slash validators who lost a dispute about
+		/// a candidate of a past session.
+		</span><span class="attr">#[api_version(<span class="number">5</span>)]
+		</span><span class="kw">fn </span>submit_report_dispute_lost(
+			dispute_proof: vstaging::slashing::DisputeProof,
+			key_ownership_proof: vstaging::slashing::OpaqueKeyOwnershipProof,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt;;
 	}
 }
 </code></pre></div>

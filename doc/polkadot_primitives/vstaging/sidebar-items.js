@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AsyncBackingParams"]};
+window.SIDEBAR_ITEMS = {"mod":["slashing"],"struct":["AsyncBackingParams"]};
