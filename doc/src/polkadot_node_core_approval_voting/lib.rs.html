@@ -2819,13 +2819,6 @@
 <a href="#2819" id="2819">2819</a>
 <a href="#2820" id="2820">2820</a>
 <a href="#2821" id="2821">2821</a>
-<a href="#2822" id="2822">2822</a>
-<a href="#2823" id="2823">2823</a>
-<a href="#2824" id="2824">2824</a>
-<a href="#2825" id="2825">2825</a>
-<a href="#2826" id="2826">2826</a>
-<a href="#2827" id="2827">2827</a>
-<a href="#2828" id="2828">2828</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2944,8 +2937,6 @@
 </span><span class="kw">pub struct </span>Config {
 	<span class="doccomment">/// The column family in the DB where approval-voting data is stored.
 	</span><span class="kw">pub </span>col_approval_data: u32,
-	<span class="doccomment">/// The of the DB where rolling session info is stored.
-	</span><span class="kw">pub </span>col_session_data: u32,
 	<span class="doccomment">/// The slot duration of the consensus algorithm, in milliseconds. Should be evenly
 	/// divisible by 500.
 	</span><span class="kw">pub </span>slot_duration_millis: u64,
@@ -3185,10 +3176,7 @@
 			keystore,
 			slot_duration_millis: config.slot_duration_millis,
 			db,
-			db_config: DatabaseConfig {
-				col_approval_data: config.col_approval_data,
-				col_session_data: config.col_session_data,
-			},
+			db_config: DatabaseConfig { col_approval_data: config.col_approval_data },
 			mode: Mode::Syncing(sync_oracle),
 			metrics,
 		}
@@ -3197,10 +3185,8 @@
 	<span class="doccomment">/// Revert to the block corresponding to the specified `hash`.
 	/// The operation is not allowed for blocks older than the last finalized one.
 	</span><span class="kw">pub fn </span>revert_to(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: Hash) -&gt; <span class="prelude-ty">Result</span>&lt;(), SubsystemError&gt; {
-		<span class="kw">let </span>config = approval_db::v1::Config {
-			col_approval_data: <span class="self">self</span>.db_config.col_approval_data,
-			col_session_data: <span class="self">self</span>.db_config.col_session_data,
-		};
+		<span class="kw">let </span>config =
+			approval_db::v1::Config { col_approval_data: <span class="self">self</span>.db_config.col_approval_data };
 		<span class="kw">let </span><span class="kw-2">mut </span>backend = approval_db::v1::DbBackend::new(<span class="self">self</span>.db.clone(), config);
 		<span class="kw">let </span><span class="kw-2">mut </span>overlay = OverlayedBackend::new(<span class="kw-2">&amp;</span>backend);
 

@@ -213,12 +213,18 @@
 
 	<span class="kw">pub mod </span>v2 {
 		<span class="kw">pub const </span>NUM_COLUMNS: u32 = <span class="number">6</span>;
+
+		<span class="attr">#[cfg(test)]
+		</span><span class="kw">pub const </span>COL_SESSION_WINDOW_DATA: u32 = <span class="number">5</span>;
+	}
+
+	<span class="kw">pub mod </span>v3 {
+		<span class="kw">pub const </span>NUM_COLUMNS: u32 = <span class="number">5</span>;
 		<span class="kw">pub const </span>COL_AVAILABILITY_DATA: u32 = <span class="number">0</span>;
 		<span class="kw">pub const </span>COL_AVAILABILITY_META: u32 = <span class="number">1</span>;
 		<span class="kw">pub const </span>COL_APPROVAL_DATA: u32 = <span class="number">2</span>;
 		<span class="kw">pub const </span>COL_CHAIN_SELECTION_DATA: u32 = <span class="number">3</span>;
 		<span class="kw">pub const </span>COL_DISPUTE_COORDINATOR_DATA: u32 = <span class="number">4</span>;
-		<span class="kw">pub const </span>COL_SESSION_WINDOW_DATA: u32 = <span class="number">5</span>;
 
 		<span class="kw">pub const </span>ORDERED_COL: <span class="kw-2">&amp;</span>[u32] =
 			<span class="kw-2">&amp;</span>[COL_AVAILABILITY_META, COL_CHAIN_SELECTION_DATA, COL_DISPUTE_COORDINATOR_DATA];
@@ -239,19 +245,16 @@
 	</span><span class="kw">pub </span>col_chain_selection_data: u32,
 	<span class="doccomment">/// The column used by dispute coordinator for data.
 	</span><span class="kw">pub </span>col_dispute_coordinator_data: u32,
-	<span class="doccomment">/// The column used for session window data.
-	</span><span class="kw">pub </span>col_session_window_data: u32,
 }
 
 <span class="doccomment">/// The real columns used by the parachains DB.
 </span><span class="attr">#[cfg(any(test, feature = <span class="string">&quot;full-node&quot;</span>))]
 </span><span class="kw">pub const </span>REAL_COLUMNS: ColumnsConfig = ColumnsConfig {
-	col_availability_data: columns::v2::COL_AVAILABILITY_DATA,
-	col_availability_meta: columns::v2::COL_AVAILABILITY_META,
-	col_approval_data: columns::v2::COL_APPROVAL_DATA,
-	col_chain_selection_data: columns::v2::COL_CHAIN_SELECTION_DATA,
-	col_dispute_coordinator_data: columns::v2::COL_DISPUTE_COORDINATOR_DATA,
-	col_session_window_data: columns::v2::COL_SESSION_WINDOW_DATA,
+	col_availability_data: columns::v3::COL_AVAILABILITY_DATA,
+	col_availability_meta: columns::v3::COL_AVAILABILITY_META,
+	col_approval_data: columns::v3::COL_APPROVAL_DATA,
+	col_chain_selection_data: columns::v3::COL_CHAIN_SELECTION_DATA,
+	col_dispute_coordinator_data: columns::v3::COL_DISPUTE_COORDINATOR_DATA,
 };
 
 <span class="attr">#[derive(PartialEq)]
@@ -299,20 +302,17 @@
 
 	<span class="kw">let </span>path = root.join(<span class="string">&quot;parachains&quot;</span>).join(<span class="string">&quot;db&quot;</span>);
 
-	<span class="kw">let </span><span class="kw-2">mut </span>db_config = DatabaseConfig::with_columns(columns::v2::NUM_COLUMNS);
+	<span class="kw">let </span><span class="kw-2">mut </span>db_config = DatabaseConfig::with_columns(columns::v3::NUM_COLUMNS);
 
 	<span class="kw">let _ </span>= db_config
 		.memory_budget
-		.insert(columns::v2::COL_AVAILABILITY_DATA, cache_sizes.availability_data);
+		.insert(columns::v3::COL_AVAILABILITY_DATA, cache_sizes.availability_data);
 	<span class="kw">let _ </span>= db_config
 		.memory_budget
-		.insert(columns::v2::COL_AVAILABILITY_META, cache_sizes.availability_meta);
+		.insert(columns::v3::COL_AVAILABILITY_META, cache_sizes.availability_meta);
 	<span class="kw">let _ </span>= db_config
 		.memory_budget
-		.insert(columns::v2::COL_APPROVAL_DATA, cache_sizes.approval_data);
-	<span class="kw">let _ </span>= db_config
-		.memory_budget
-		.insert(columns::v2::COL_SESSION_WINDOW_DATA, cache_sizes.session_data);
+		.insert(columns::v3::COL_APPROVAL_DATA, cache_sizes.approval_data);
 
 	<span class="kw">let </span>path_str = path
 		.to_str()
@@ -323,7 +323,7 @@
 	<span class="kw">let </span>db = Database::open(<span class="kw-2">&amp;</span>db_config, <span class="kw-2">&amp;</span>path_str)<span class="question-mark">?</span>;
 	<span class="kw">let </span>db = polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new(
 		db,
-		columns::v2::ORDERED_COL,
+		columns::v3::ORDERED_COL,
 	);
 
 	<span class="prelude-val">Ok</span>(Arc::new(db))
@@ -343,12 +343,12 @@
 	std::fs::create_dir_all(<span class="kw-2">&amp;</span>path_str)<span class="question-mark">?</span>;
 	upgrade::try_upgrade_db(<span class="kw-2">&amp;</span>path, DatabaseKind::ParityDB)<span class="question-mark">?</span>;
 
-	<span class="kw">let </span>db = parity_db::Db::open_or_create(<span class="kw-2">&amp;</span>upgrade::paritydb_version_2_config(<span class="kw-2">&amp;</span>path))
+	<span class="kw">let </span>db = parity_db::Db::open_or_create(<span class="kw-2">&amp;</span>upgrade::paritydb_version_3_config(<span class="kw-2">&amp;</span>path))
 		.map_err(|err| io::Error::new(io::ErrorKind::Other, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err)))<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>db = polkadot_node_subsystem_util::database::paritydb_impl::DbAdapter::new(
 		db,
-		columns::v2::ORDERED_COL,
+		columns::v3::ORDERED_COL,
 	);
 	<span class="prelude-val">Ok</span>(Arc::new(db))
 }

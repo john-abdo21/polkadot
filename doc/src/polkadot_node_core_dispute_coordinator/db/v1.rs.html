@@ -680,6 +680,10 @@
 <a href="#680" id="680">680</a>
 <a href="#681" id="681">681</a>
 <a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -697,6 +701,12 @@
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="doccomment">//! `V1` database for the dispute coordinator.
+//!
+//! Note that the version here differs from the actual version of the parachains
+//! database (check `CURRENT_VERSION` in `node/service/src/parachains_db/upgrade.rs`).
+//! The code in this module implements the way dispute coordinator works with
+//! the dispute data in the database. Any breaking changes here will still
+//! require a db migration (check `node/service/src/parachains_db/upgrade.rs`).
 
 </span><span class="kw">use </span>polkadot_node_primitives::DisputeStatus;
 <span class="kw">use </span>polkadot_node_subsystem_util::database::{DBTransaction, Database};
@@ -888,8 +898,6 @@
 </span><span class="kw">pub struct </span>ColumnConfiguration {
 	<span class="doccomment">/// The column in the key-value DB where data is stored.
 	</span><span class="kw">pub </span>col_dispute_data: u32,
-	<span class="doccomment">/// The column in the key-value DB where session data is stored.
-	</span><span class="kw">pub </span>col_session_data: u32,
 }
 
 <span class="doccomment">/// Tracked votes on candidates, for the purposes of dispute resolution.
@@ -1060,7 +1068,7 @@
 		<span class="kw">let </span>db = kvdb_memorydb::create(<span class="number">1</span>);
 		<span class="kw">let </span>db = polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new(db, <span class="kw-2">&amp;</span>[<span class="number">0</span>]);
 		<span class="kw">let </span>store = Arc::new(db);
-		<span class="kw">let </span>config = ColumnConfiguration { col_dispute_data: <span class="number">0</span>, col_session_data: <span class="number">1 </span>};
+		<span class="kw">let </span>config = ColumnConfiguration { col_dispute_data: <span class="number">0 </span>};
 		DbBackend::new(store, config, Metrics::default())
 	}
 

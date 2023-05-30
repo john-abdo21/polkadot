@@ -1386,7 +1386,6 @@
 <a href="#1386" id="1386">1386</a>
 <a href="#1387" id="1387">1387</a>
 <a href="#1388" id="1388">1388</a>
-<a href="#1389" id="1389">1389</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1694,13 +1693,12 @@
 				<span class="prelude-val">Ok</span>(session_idx)
 					<span class="kw">if </span><span class="self">self</span>.gaps_in_cache || session_idx &gt; <span class="self">self</span>.highest_session_seen =&gt;
 				{
-					<span class="comment">// If error has occurred during last session caching - fetch the whole window
-					// Otherwise - cache only the new sessions
-					</span><span class="kw">let </span>lower_bound = <span class="kw">if </span><span class="self">self</span>.gaps_in_cache {
-						session_idx.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>)
-					} <span class="kw">else </span>{
-						<span class="self">self</span>.highest_session_seen + <span class="number">1
-					</span>};
+					<span class="comment">// Fetch the last `DISPUTE_WINDOW` number of sessions unless there are no gaps in
+					// cache and we are not missing too many `SessionInfo`s
+					</span><span class="kw">let </span><span class="kw-2">mut </span>lower_bound = session_idx.saturating_sub(DISPUTE_WINDOW.get() - <span class="number">1</span>);
+					<span class="kw">if </span>!<span class="self">self</span>.gaps_in_cache &amp;&amp; <span class="self">self</span>.highest_session_seen &gt; lower_bound {
+						lower_bound = <span class="self">self</span>.highest_session_seen + <span class="number">1
+					</span>}
 
 					<span class="comment">// There is a new session. Perform a dummy fetch to cache it.
 					</span><span class="kw">for </span>idx <span class="kw">in </span>lower_bound..=session_idx {

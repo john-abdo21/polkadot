@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["SessionWindowUpdate","SessionsUnavailableReason"],"macro":["new_session_window_size"],"struct":["DatabaseParams","RollingSessionWindow","SessionWindowSize","SessionsUnavailable","SessionsUnavailableInfo"]};
