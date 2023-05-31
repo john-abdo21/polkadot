@@ -94,6 +94,75 @@
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -110,8 +179,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>xcm::latest::{
-	Error <span class="kw">as </span>XcmError, MultiLocation, QueryId, Response, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult, Weight, XcmContext,
+</span><span class="kw">use </span><span class="kw">crate</span>::Xcm;
+<span class="kw">use </span>core::result;
+<span class="kw">use </span>frame_support::{
+	dispatch::fmt::Debug,
+	pallet_prelude::{Get, TypeInfo},
+};
+<span class="kw">use </span>parity_scale_codec::{FullCodec, MaxEncodedLen};
+<span class="kw">use </span>sp_arithmetic::traits::Zero;
+<span class="kw">use </span>xcm::latest::{
+	Error <span class="kw">as </span>XcmError, InteriorMultiLocation, MultiLocation, QueryId, Response,
+	<span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult, Weight, XcmContext,
 };
 
 <span class="doccomment">/// Define what needs to be done upon receiving a query response.
@@ -189,6 +267,66 @@
 	<span class="kw">fn </span>is_subscribed(<span class="kw">_</span>: <span class="kw-2">&amp;</span>MultiLocation) -&gt; bool {
 		<span class="bool-val">false
 	</span>}
+}
+
+<span class="doccomment">/// The possible state of an XCM query response.
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>QueryResponseStatus&lt;BlockNumber&gt; {
+	<span class="doccomment">/// The response has arrived, and includes the inner Response and the block number it arrived at.
+	</span>Ready { response: Response, at: BlockNumber },
+	<span class="doccomment">/// The response has not yet arrived, the XCM might still be executing or the response might be in transit.
+	</span>Pending { timeout: BlockNumber },
+	<span class="doccomment">/// No response with the given `QueryId` was found, or the response was already queried and removed from local storage.
+	</span>NotFound,
+	<span class="doccomment">/// Got an unexpected XCM version.
+	</span>UnexpectedVersion,
+}
+
+<span class="doccomment">/// Provides methods to expect responses from XCMs and query their status.
+</span><span class="kw">pub trait </span>QueryHandler {
+	<span class="kw">type </span>QueryId: From&lt;u64&gt;
+		+ FullCodec
+		+ MaxEncodedLen
+		+ TypeInfo
+		+ Clone
+		+ Eq
+		+ PartialEq
+		+ Debug
+		+ Copy;
+	<span class="kw">type </span>BlockNumber: Zero;
+	<span class="kw">type </span>Error;
+	<span class="kw">type </span>UniversalLocation: Get&lt;InteriorMultiLocation&gt;;
+
+	<span class="doccomment">/// Attempt to create a new query ID and register it as a query that is yet to respond.
+	</span><span class="kw">fn </span>new_query(
+		responder: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
+		timeout: <span class="self">Self</span>::BlockNumber,
+		match_querier: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
+	) -&gt; QueryId;
+
+	<span class="doccomment">/// Consume `message` and return another which is equivalent to it except that it reports
+	/// back the outcome.
+	///
+	/// - `message`: The message whose outcome should be reported.
+	/// - `responder`: The origin from which a response should be expected.
+	/// - `timeout`: The block number after which it is permissible to return `NotFound` from `take_response`.
+	///
+	/// `report_outcome` may return an error if the `responder` is not invertible.
+	///
+	/// It is assumed that the querier of the response will be `Here`.
+	/// The response can be queried with `take_response`.
+	</span><span class="kw">fn </span>report_outcome(
+		message: <span class="kw-2">&amp;mut </span>Xcm&lt;()&gt;,
+		responder: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
+		timeout: <span class="self">Self</span>::BlockNumber,
+	) -&gt; result::Result&lt;<span class="self">Self</span>::QueryId, <span class="self">Self</span>::Error&gt;;
+
+	<span class="doccomment">/// Attempt to remove and return the response of query with ID `query_id`.
+	</span><span class="kw">fn </span>take_response(id: <span class="self">Self</span>::QueryId) -&gt; QueryResponseStatus&lt;<span class="self">Self</span>::BlockNumber&gt;;
+
+	<span class="doccomment">/// Makes sure to expect a response with the given id.
+	</span><span class="attr">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">fn </span>expect_response(id: <span class="self">Self</span>::QueryId, response: Response);
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xcm_executor" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
