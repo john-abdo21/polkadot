@@ -2382,6 +2382,12 @@
 <a href="#2382" id="2382">2382</a>
 <a href="#2383" id="2383">2383</a>
 <a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2454,7 +2460,6 @@
 <span class="kw">use </span>pallet_session::historical <span class="kw">as </span>session_historical;
 <span class="kw">use </span>pallet_transaction_payment::{CurrencyAdapter, FeeDetails, RuntimeDispatchInfo};
 <span class="kw">use </span>sp_core::{ConstU128, OpaqueMetadata, H256};
-<span class="kw">use </span>sp_mmr_primitives <span class="kw">as </span>mmr;
 <span class="kw">use </span>sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -3665,6 +3670,16 @@
 		pallet_beefy::EquivocationReportSystem&lt;<span class="self">Self</span>, Offences, Historical, ReportLongevity&gt;;
 }
 
+<span class="doccomment">/// MMR helper types.
+</span><span class="kw">mod </span>mmr {
+	<span class="kw">use </span><span class="kw">super</span>::Runtime;
+	<span class="kw">pub use </span>pallet_mmr::primitives::<span class="kw-2">*</span>;
+
+	<span class="kw">pub type </span>Leaf = &lt;&lt;Runtime <span class="kw">as </span>pallet_mmr::Config&gt;::LeafData <span class="kw">as </span>LeafDataProvider&gt;::LeafData;
+	<span class="kw">pub type </span>Hashing = &lt;Runtime <span class="kw">as </span>pallet_mmr::Config&gt;::Hashing;
+	<span class="kw">pub type </span>Hash = &lt;Hashing <span class="kw">as </span>sp_runtime::traits::Hash&gt;::Output;
+}
+
 <span class="kw">impl </span>pallet_mmr::Config <span class="kw">for </span>Runtime {
 	<span class="kw">const </span>INDEXING_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = mmr::INDEXING_PREFIX;
 	<span class="kw">type </span>Hashing = Keccak256;
@@ -3698,7 +3713,7 @@
 			.filter_map(|id| Paras::para_head(<span class="kw-2">&amp;</span>id).map(|head| (id.into(), head.<span class="number">0</span>)))
 			.collect();
 		para_heads.sort();
-		binary_merkle_tree::merkle_root::&lt;&lt;Runtime <span class="kw">as </span>pallet_mmr::Config&gt;::Hashing, <span class="kw">_</span>&gt;(
+		binary_merkle_tree::merkle_root::&lt;mmr::Hashing, <span class="kw">_</span>&gt;(
 			para_heads.into_iter().map(|pair| pair.encode()),
 		)
 		.into()
@@ -4115,8 +4130,6 @@
 	);
 }
 
-<span class="kw">pub type </span>MmrHashing = &lt;Runtime <span class="kw">as </span>pallet_mmr::Config&gt;::Hashing;
-
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;disable-runtime-api&quot;</span>))]
 </span><span class="macro">sp_api::impl_runtime_apis! </span>{
 	<span class="kw">impl </span>sp_api::Core&lt;Block&gt; <span class="kw">for </span>Runtime {
@@ -4356,8 +4369,8 @@
 	}
 
 	<span class="attr">#[api_version(<span class="number">2</span>)]
-	</span><span class="kw">impl </span>mmr::MmrApi&lt;Block, Hash, BlockNumber&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>mmr_root() -&gt; <span class="prelude-ty">Result</span>&lt;Hash, mmr::Error&gt; {
+	</span><span class="kw">impl </span>mmr::MmrApi&lt;Block, mmr::Hash, BlockNumber&gt; <span class="kw">for </span>Runtime {
+		<span class="kw">fn </span>mmr_root() -&gt; <span class="prelude-ty">Result</span>&lt;mmr::Hash, mmr::Error&gt; {
 			<span class="prelude-val">Ok</span>(Mmr::mmr_root())
 		}
 
@@ -4368,7 +4381,7 @@
 		<span class="kw">fn </span>generate_proof(
 			block_numbers: Vec&lt;BlockNumber&gt;,
 			best_known_block_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
-		) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;mmr::EncodableOpaqueLeaf&gt;, mmr::Proof&lt;Hash&gt;), mmr::Error&gt; {
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;mmr::EncodableOpaqueLeaf&gt;, mmr::Proof&lt;mmr::Hash&gt;), mmr::Error&gt; {
 			Mmr::generate_proof(block_numbers, best_known_block_number).map(
 				|(leaves, proof)| {
 					(
@@ -4382,24 +4395,23 @@
 			)
 		}
 
-		<span class="kw">fn </span>verify_proof(leaves: Vec&lt;mmr::EncodableOpaqueLeaf&gt;, proof: mmr::Proof&lt;Hash&gt;)
+		<span class="kw">fn </span>verify_proof(leaves: Vec&lt;mmr::EncodableOpaqueLeaf&gt;, proof: mmr::Proof&lt;mmr::Hash&gt;)
 			-&gt; <span class="prelude-ty">Result</span>&lt;(), mmr::Error&gt;
 		{
-			<span class="kw">pub type </span>MmrLeaf = &lt;&lt;Runtime <span class="kw">as </span>pallet_mmr::Config&gt;::LeafData <span class="kw">as </span>mmr::LeafDataProvider&gt;::LeafData;
 			<span class="kw">let </span>leaves = leaves.into_iter().map(|leaf|
 				leaf.into_opaque_leaf()
 				.try_decode()
-				.ok_or(mmr::Error::Verify)).collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;MmrLeaf&gt;, mmr::Error&gt;&gt;()<span class="question-mark">?</span>;
+				.ok_or(mmr::Error::Verify)).collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;mmr::Leaf&gt;, mmr::Error&gt;&gt;()<span class="question-mark">?</span>;
 			Mmr::verify_leaves(leaves, proof)
 		}
 
 		<span class="kw">fn </span>verify_proof_stateless(
-			root: Hash,
+			root: mmr::Hash,
 			leaves: Vec&lt;mmr::EncodableOpaqueLeaf&gt;,
-			proof: mmr::Proof&lt;Hash&gt;
+			proof: mmr::Proof&lt;mmr::Hash&gt;
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), mmr::Error&gt; {
 			<span class="kw">let </span>nodes = leaves.into_iter().map(|leaf|mmr::DataOrHash::Data(leaf.into_opaque_leaf())).collect();
-			pallet_mmr::verify_leaves_proof::&lt;MmrHashing, <span class="kw">_</span>&gt;(root, nodes, proof)
+			pallet_mmr::verify_leaves_proof::&lt;mmr::Hashing, <span class="kw">_</span>&gt;(root, nodes, proof)
 		}
 	}
 
