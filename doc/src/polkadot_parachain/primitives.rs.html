@@ -398,6 +398,25 @@
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -423,14 +442,9 @@
 <span class="kw">use </span>frame_support::weights::Weight;
 <span class="kw">use </span>parity_scale_codec::{CompactAs, Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
-<span class="kw">use </span>sp_core::{RuntimeDebug, TypeId};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>sp_core::{bytes, RuntimeDebug, TypeId};
 <span class="kw">use </span>sp_runtime::traits::Hash <span class="kw">as _</span>;
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span>serde::{Deserialize, Serialize};
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">use </span>sp_core::bytes;
 
 <span class="kw">use </span>polkadot_core_primitives::{Hash, OutboundHrmpMessage};
 
@@ -439,10 +453,21 @@
 
 <span class="doccomment">/// Parachain head data included in the chain.
 </span><span class="attr">#[derive(
-	PartialEq, Eq, Clone, PartialOrd, Ord, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo,
+	PartialEq,
+	Eq,
+	Clone,
+	PartialOrd,
+	Ord,
+	Encode,
+	Decode,
+	RuntimeDebug,
+	derive_more::From,
+	TypeInfo,
+	Serialize,
+	Deserialize,
 )]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash, Default))]
-</span><span class="kw">pub struct </span>HeadData(<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, serde(with = <span class="string">&quot;bytes&quot;</span>))] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Hash, Default))]
+</span><span class="kw">pub struct </span>HeadData(<span class="attr">#[serde(with = <span class="string">&quot;bytes&quot;</span>)] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
 
 <span class="kw">impl </span>HeadData {
 	<span class="doccomment">/// Returns the hash of this head data.
@@ -452,9 +477,20 @@
 }
 
 <span class="doccomment">/// Parachain validation code.
-</span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, derive_more::From, TypeInfo)]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash))]
-</span><span class="kw">pub struct </span>ValidationCode(<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, serde(with = <span class="string">&quot;bytes&quot;</span>))] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
+</span><span class="attr">#[derive(
+	PartialEq,
+	Eq,
+	Clone,
+	Encode,
+	Decode,
+	RuntimeDebug,
+	derive_more::From,
+	TypeInfo,
+	Serialize,
+	Deserialize,
+)]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Hash))]
+</span><span class="kw">pub struct </span>ValidationCode(<span class="attr">#[serde(with = <span class="string">&quot;bytes&quot;</span>)] </span><span class="kw">pub </span>Vec&lt;u8&gt;);
 
 <span class="kw">impl </span>ValidationCode {
 	<span class="doccomment">/// Get the blake2-256 hash of the validation code bytes.
@@ -529,9 +565,11 @@
 	PartialEq,
 	PartialOrd,
 	RuntimeDebug,
+	serde::Serialize,
+	serde::Deserialize,
 	TypeInfo,
 )]
-#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(serde::Serialize, serde::Deserialize, derive_more::Display))]
+#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(derive_more::Display))]
 </span><span class="kw">pub struct </span>Id(u32);
 
 <span class="kw">impl </span>TypeId <span class="kw">for </span>Id {
