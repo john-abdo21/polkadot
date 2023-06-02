@@ -257,6 +257,37 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -289,8 +320,9 @@
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_node_core_pvf_common::{
 	error::{PrepareError, PrepareResult},
+	executor_intf::Executor,
 	framed_recv, framed_send,
-	prepare::{MemoryStats, PrepareStats},
+	prepare::{MemoryStats, PrepareJobKind, PrepareStats},
 	pvf::PvfPrepData,
 	worker::{
 		bytes_to_path, cpu_time_monitor_loop, stringify_panic_payload,
@@ -299,6 +331,7 @@
 	},
 	ProcessTime,
 };
+<span class="kw">use </span>polkadot_primitives::ExecutorParams;
 <span class="kw">use </span>std::{
 	path::PathBuf,
 	sync::{mpsc::channel, Arc},
@@ -376,7 +409,7 @@
 		<span class="kw">let </span>worker_pid = std::process::id();
 
 		<span class="kw">loop </span>{
-			<span class="kw">let </span>(pvf, dest) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
+			<span class="kw">let </span>(pvf, temp_artifact_dest) = recv_request(<span class="kw-2">&amp;mut </span>stream).<span class="kw">await</span><span class="question-mark">?</span>;
 			<span class="macro">gum::debug!</span>(
 				target: LOG_TARGET,
 				%worker_pid,
@@ -384,6 +417,8 @@
 			);
 
 			<span class="kw">let </span>preparation_timeout = pvf.prep_timeout();
+			<span class="kw">let </span>prepare_job_kind = pvf.prep_kind();
+			<span class="kw">let </span>executor_params = (<span class="kw-2">*</span>pvf.executor_params()).clone();
 
 			<span class="comment">// Conditional variable to notify us when a thread is done.
 			</span><span class="kw">let </span>condvar = thread::get_condvar();
@@ -410,11 +445,23 @@
 			</span><span class="kw">let </span>prepare_thread = thread::spawn_worker_thread(
 				<span class="string">&quot;prepare thread&quot;</span>,
 				<span class="kw">move </span>|| {
-					<span class="kw">let </span>result = prepare_artifact(pvf, cpu_time_start);
+					<span class="attr">#[allow(unused_mut)]
+					</span><span class="kw">let </span><span class="kw-2">mut </span>result = prepare_artifact(pvf, cpu_time_start);
 
 					<span class="comment">// Get the `ru_maxrss` stat. If supported, call getrusage for the thread.
 					</span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-					</span><span class="kw">let </span>result = result.map(|(artifact, elapsed)| (artifact, elapsed, get_max_rss_thread()));
+					</span><span class="kw">let </span><span class="kw-2">mut </span>result = result.map(|(artifact, elapsed)| (artifact, elapsed, get_max_rss_thread()));
+
+					<span class="comment">// If we are pre-checking, check for runtime construction errors.
+					//
+					// As pre-checking is more strict than just preparation in terms of memory and
+					// time, it is okay to do extra checks here. This takes negligible time anyway.
+					</span><span class="kw">if let </span>PrepareJobKind::Prechecking = prepare_job_kind {
+						result = result.and_then(|output| {
+							runtime_construction_check(output.<span class="number">0</span>.as_ref(), executor_params)<span class="question-mark">?</span>;
+							<span class="prelude-val">Ok</span>(output)
+						});
+					}
 
 					result
 				},
@@ -462,9 +509,9 @@
 								target: LOG_TARGET,
 								%worker_pid,
 								<span class="string">&quot;worker: writing artifact to {}&quot;</span>,
-								dest.display(),
+								temp_artifact_dest.display(),
 							);
-							tokio::fs::write(<span class="kw-2">&amp;</span>dest, <span class="kw-2">&amp;</span>artifact).<span class="kw">await</span><span class="question-mark">?</span>;
+							tokio::fs::write(<span class="kw-2">&amp;</span>temp_artifact_dest, <span class="kw-2">&amp;</span>artifact).<span class="kw">await</span><span class="question-mark">?</span>;
 
 							<span class="prelude-val">Ok</span>(PrepareStats { cpu_time_elapsed, memory_stats })
 						},
@@ -515,6 +562,21 @@
 		<span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(PrepareError::Preparation(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err))),
 	}
 	.map(|artifact| (artifact, cpu_time_start.elapsed()))
+}
+
+<span class="doccomment">/// Try constructing the runtime to catch any instantiation errors during pre-checking.
+</span><span class="kw">fn </span>runtime_construction_check(
+	artifact_bytes: <span class="kw-2">&amp;</span>[u8],
+	executor_params: ExecutorParams,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), PrepareError&gt; {
+	<span class="kw">let </span>executor = Executor::new(executor_params)
+		.map_err(|e| PrepareError::RuntimeConstruction(<span class="macro">format!</span>(<span class="string">&quot;cannot create executor: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+
+	<span class="comment">// SAFETY: We just compiled this artifact.
+	</span><span class="kw">let </span>result = <span class="kw">unsafe </span>{ executor.create_runtime_from_bytes(<span class="kw-2">&amp;</span>artifact_bytes) };
+	result
+		.map(|_runtime| ())
+		.map_err(|err| PrepareError::RuntimeConstruction(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, err)))
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="polkadot_node_core_pvf_prepare_worker" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0 (84c898d65 2023-04-16)" data-search-js="search-8a59a8356673ec1f.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

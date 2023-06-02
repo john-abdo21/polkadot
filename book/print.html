@@ -647,7 +647,12 @@ things simple but at the same time that makes HRMP more demanding in terms of re
 </ul>
 <p>As a result of this issue we need a fairly hard guarantee that the PVFs of registered parachains/threads can be compiled within a reasonable amount of time.</p>
 <h2 id="solution"><a class="header" href="#solution">Solution</a></h2>
-<p>The problem is solved by having a pre-checking process which is run when a new validation code is included in the chain. A new PVF can be added in two cases:</p>
+<p>The problem is solved by having a pre-checking process.</p>
+<h3 id="pre-checking"><a class="header" href="#pre-checking">Pre-checking</a></h3>
+<p>Pre-checking mostly consists of attempting to prepare (compile) the PVF WASM blob. We use more strict limits (e.g. timeouts) here compared to regular preparation for execution. This way errors during preparation later are likely unrelated to the PVF itself, as it already passed pre-checking. We can treat such errors as local node issues.</p>
+<p>We also have an additional step where we attempt to instantiate the WASM runtime without running it. This is unrelated to preparation so we don't time it, but it does help us catch more issues.</p>
+<h3 id="protocol"><a class="header" href="#protocol">Protocol</a></h3>
+<p>Pre-checking is run when a new validation code is included in the chain. A new PVF can be added in two cases:</p>
 <ul>
 <li>A new parachain or parathread is registered.</li>
 <li>An existing parachain or parathread signalled an upgrade of its validation code.</li>
@@ -664,14 +669,15 @@ new PVF pre-checking vote will be started. Instead, the operation just subscribe
 </ol>
 <p>In case PVF pre-checking process was concluded with rejection, then all the operations that are subscribed to the rejected PVF pre-checking process will be processed as follows. That is, onboarding or upgrading will be cancelled.</p>
 <p>The logic described above is implemented by the <a href="runtime/paras.html">paras</a> module.</p>
+<h3 id="subsystem"><a class="header" href="#subsystem">Subsystem</a></h3>
 <p>On the node-side, there is a PVF pre-checking <a href="node/utility/pvf-prechecker.html">subsystem</a> that scans the chain for new PVFs via using <a href="runtime-api/pvf-prechecking.html">runtime APIs</a>. Upon finding a new PVF, the subsystem will initiate a PVF pre-checking request and wait for the result. Whenever the result is obtained, the subsystem will use the <a href="runtime-api/pvf-prechecking.html">runtime API</a> to submit a vote for the PVF. The vote is an unsigned transaction. The vote will be distributed via the gossip similarly to a normal transaction. Eventually a block producer will include the vote into the block where it will be handled by the <a href="runtime/paras.html">runtime</a>.</p>
 <h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
 <p>Parachains' and parathreads' validation function is described by a wasm module that we refer to as a PVF.</p>
 <p>In order to make the PVF usable for candidate validation it has to be registered on-chain.</p>
-<p>As part of the registration process, it has to go through pre-checking. Pre-checking is a game of attempting preparation and reporting the results back on-chain.</p>
+<p>As part of the registration process, it has to go through pre-checking. Pre-checking is a game of attempting preparation and additional checks, and reporting the results back on-chain.</p>
 <p>We define preparation as a process that: validates the consistency of the wasm binary (aka prevalidation) and the compilation of the wasm module into machine code (referred to as an artifact).</p>
 <p>Besides pre-checking, preparation can also be triggered by execution, since a compiled artifact is needed for the execution. If an artifact already exists, execution will skip preparation. If it does do preparation, execution uses a more lenient timeout than preparation, to avoid the situation where honest validators fail on valid, pre-checked PVFs.</p>
-<footer id="last-change">Last change: 2023-03-15, commit: <a href="https://github.com/paritytech/polkadot/commit/5434628907">5434628907</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-architecture"><a class="header" href="#runtime-architecture">Runtime Architecture</a></h1>
+<footer id="last-change">Last change: 2023-06-02, commit: <a href="https://github.com/paritytech/polkadot/commit/d67d47f4bc">d67d47f4bc</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-architecture"><a class="header" href="#runtime-architecture">Runtime Architecture</a></h1>
 <p>It's clear that we want to separate different aspects of the runtime logic into different modules. Modules define their own storage, routines, and entry-points. They also define initialization and finalization logic.</p>
 <p>Due to the (lack of) guarantees provided by a particular blockchain-runtime framework, there is no defined or dependable order in which modules' initialization or finalization logic will run. Supporting this blockchain-runtime framework is important enough to include that same uncertainty in our model of runtime modules in this guide. Furthermore, initialization logic of modules can trigger the entry-points or routines of other modules. This is one architectural pressure against dividing the runtime logic into multiple modules. However, in this case the benefits of splitting things up outweigh the costs, provided that we take certain precautions against initialization and entry-point races.</p>
 <p>We also expect, although it's beyond the scope of this guide, that these runtime modules will exist alongside various other modules. This has two facets to consider. First, even if the modules that we describe here don't invoke each others' entry points or routines during initialization, we still have to protect against those other modules doing that. Second, some of those modules are expected to provide governance capabilities for the chain. Configuration exposed by parachain-host modules is mostly for the benefit of these governance modules, to allow the operators or community of the chain to tweak parameters.</p>
@@ -2897,7 +2903,7 @@ The subsystem which provides us with viable leaves is the <a href="node/utility/
 and then forwards them to <strong>Collator Protocol</strong> to circulate to validators.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="collation-generation"><a class="header" href="#collation-generation">Collation Generation</a></h1>
 <p>The collation generation subsystem is executed on collator nodes and produces candidates to be distributed to validators. If configured to produce collations for a para, it produces collations and then feeds them to the <a href="node/collators/collator-protocol.html">Collator Protocol</a> subsystem, which handles the networking.</p>
-<h2 id="protocol"><a class="header" href="#protocol">Protocol</a></h2>
+<h2 id="protocol-1"><a class="header" href="#protocol-1">Protocol</a></h2>
 <p>Collation generation for Parachains currently works in the following way:</p>
 <ol>
 <li>A new relay chain block is imported.</li>
@@ -3062,7 +3068,7 @@ parachain ID.</li>
 <p>TODO: note the incremental validation function Ximin proposes at https://github.com/paritytech/polkadot/issues/1348</p>
 </blockquote>
 <p>As this network protocol serves as a bridge between collators and validators, it communicates primarily with one subsystem on behalf of each. As a collator, this will receive messages from the <a href="node/collators/collation-generation.html"><code>CollationGeneration</code></a> subsystem. As a validator, this will communicate only with the <a href="node/collators/../backing/candidate-backing.html"><code>CandidateBacking</code></a>.</p>
-<h2 id="protocol-1"><a class="header" href="#protocol-1">Protocol</a></h2>
+<h2 id="protocol-2"><a class="header" href="#protocol-2">Protocol</a></h2>
 <p>Input: <a href="node/collators/../../types/overseer-protocol.html#collator-protocol-message"><code>CollatorProtocolMessage</code></a></p>
 <p>Output:</p>
 <ul>
@@ -3126,7 +3132,7 @@ parachain ID.</li>
 <p>Its role is to produce backable candidates for inclusion in new relay-chain blocks. It does so by issuing signed <a href="node/backing/../../types/backing.html#statement-type"><code>Statement</code>s</a> and tracking received statements signed by other validators. Once enough statements are received, they can be combined into backing for specific candidates.</p>
 <p>Note that though the candidate backing subsystem attempts to produce as many backable candidates as possible, it does <em>not</em> attempt to choose a single authoritative one. The choice of which actually gets included is ultimately up to the block author, by whatever metrics it may use; those are opaque to this subsystem.</p>
 <p>Once a sufficient quorum has agreed that a candidate is valid, this subsystem notifies the <a href="node/backing/../utility/provisioner.html">Provisioner</a>, which in turn engages block production mechanisms to include the parablock.</p>
-<h2 id="protocol-2"><a class="header" href="#protocol-2">Protocol</a></h2>
+<h2 id="protocol-3"><a class="header" href="#protocol-3">Protocol</a></h2>
 <p>Input: <a href="node/backing/../../types/overseer-protocol.html#candidate-backing-message"><code>CandidateBackingMessage</code></a></p>
 <p>Output:</p>
 <ul>
@@ -3236,7 +3242,7 @@ Dispatch a <code>CandidateValidationMessage::Validate(validation function, candi
 <p>Dispatch a <a href="node/backing/../../types/overseer-protocol.html#statement-distribution-message"><code>StatementDistributionMessage</code></a><code>::Share(relay_parent, SignedFullStatement)</code>.</p>
 <footer id="last-change">Last change: 2022-08-16, commit: <a href="https://github.com/paritytech/polkadot/commit/fd31407737">fd31407737</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="statement-distribution"><a class="header" href="#statement-distribution">Statement Distribution</a></h1>
 <p>The Statement Distribution Subsystem is responsible for distributing statements about seconded candidates between validators.</p>
-<h2 id="protocol-3"><a class="header" href="#protocol-3">Protocol</a></h2>
+<h2 id="protocol-4"><a class="header" href="#protocol-4">Protocol</a></h2>
 <p><code>PeerSet</code>: <code>Validation</code></p>
 <p>Input:</p>
 <ul>
@@ -3327,7 +3333,7 @@ backing (<code>pov_requester</code> module).</li>
 <p>The backing subsystem is responsible of making available data available in the
 local <code>Availability Store</code> upon validation. This subsystem will serve any
 network requests by querying that store.</p>
-<h2 id="protocol-4"><a class="header" href="#protocol-4">Protocol</a></h2>
+<h2 id="protocol-5"><a class="header" href="#protocol-5">Protocol</a></h2>
 <p>This subsystem does not handle any peer set messages, but the <code>pov_requester</code>
 does connect to validators of the same backing group on the validation peer
 set, to ensure fast propagation of statements between those validators and for
@@ -3393,7 +3399,7 @@ happens in the <code>responder</code> module.</p>
 <footer id="last-change">Last change: 2021-12-13, commit: <a href="https://github.com/paritytech/polkadot/commit/853eaa6d0a">853eaa6d0a</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="availability-recovery"><a class="header" href="#availability-recovery">Availability Recovery</a></h1>
 <p>This subsystem is the inverse of the <a href="node/availability/availability-distribution.html">Availability Distribution</a> subsystem: validators will serve the availability chunks kept in the availability store to nodes who connect to them. And the subsystem will also implement the other side: the logic for nodes to connect to validators, request availability pieces, and reconstruct the <code>AvailableData</code>.</p>
 <p>This version of the availability recovery subsystem is based off of direct connections to validators. In order to recover any given <code>AvailableData</code>, we must recover at least <code>f + 1</code> pieces from validators of the session. Thus, we will connect to and query randomly chosen validators until we have received <code>f + 1</code> pieces.</p>
-<h2 id="protocol-5"><a class="header" href="#protocol-5">Protocol</a></h2>
+<h2 id="protocol-6"><a class="header" href="#protocol-6">Protocol</a></h2>
 <p><code>PeerSet</code>: <code>Validation</code></p>
 <p>Input:</p>
 <ul>
@@ -3551,7 +3557,7 @@ const N_PARALLEL: usize = 50;
 </ul>
 <footer id="last-change">Last change: 2022-04-21, commit: <a href="https://github.com/paritytech/polkadot/commit/55bf03157f">55bf03157f</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="bitfield-distribution"><a class="header" href="#bitfield-distribution">Bitfield Distribution</a></h1>
 <p>Validators vote on the availability of a backed candidate by issuing signed bitfields, where each bit corresponds to a single candidate. These bitfields can be used to compactly determine which backed candidates are available or not based on a 2/3+ quorum.</p>
-<h2 id="protocol-6"><a class="header" href="#protocol-6">Protocol</a></h2>
+<h2 id="protocol-7"><a class="header" href="#protocol-7">Protocol</a></h2>
 <p><code>PeerSet</code>: <code>Validation</code></p>
 <p>Input:
 <a href="node/availability/../../types/overseer-protocol.html#bitfield-distribution-message"><code>BitfieldDistributionMessage</code></a> which are gossiped to all peers, no matter if validator or not.</p>
@@ -3573,7 +3579,7 @@ Accept and distribute only one bitfield per validator.</p>
 <p>Peers connecting after a set of valid bitfield gossip messages was received, those messages must be cached and sent upon connection of new peers or re-connecting peers.</p>
 <footer id="last-change">Last change: 2020-08-05, commit: <a href="https://github.com/paritytech/polkadot/commit/125efa9996">125efa9996</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="bitfield-signing"><a class="header" href="#bitfield-signing">Bitfield Signing</a></h1>
 <p>Validators vote on the availability of a backed candidate by issuing signed bitfields, where each bit corresponds to a single candidate. These bitfields can be used to compactly determine which backed candidates are available or not based on a 2/3+ quorum.</p>
-<h2 id="protocol-7"><a class="header" href="#protocol-7">Protocol</a></h2>
+<h2 id="protocol-8"><a class="header" href="#protocol-8">Protocol</a></h2>
 <p>Input:</p>
 <p>There is no dedicated input mechanism for bitfield signing. Instead, Bitfield Signing produces a bitfield representing the current state of availability on <code>StartWork</code>.</p>
 <p>Output:</p>
@@ -3603,7 +3609,7 @@ If not running as a validator, do nothing.</p>
 <p>The core of this subsystem is a Tick-based timer loop, where Ticks are 500ms. We also reason about time in terms of <code>DelayTranche</code>s, which measure the number of ticks elapsed since a block was produced. We track metadata for all un-finalized but included candidates. We compute our local assignments to check each candidate, as well as which <code>DelayTranche</code> those assignments may be minimally triggered at. As the same candidate may appear in more than one block, we must produce our potential assignments for each (Block, Candidate) pair. The timing loop is based on waiting for assignments to become no-shows or waiting to broadcast and begin our own assignment to check.</p>
 <p>Another main component of this subsystem is the logic for determining when a (Block, Candidate) pair has been approved and when to broadcast and trigger our own assignment. Once a (Block, Candidate) pair has been approved, we mark a corresponding bit in the <code>BlockEntry</code> that indicates the candidate has been approved under the block. When we trigger our own assignment, we broadcast it via Approval Distribution, begin fetching the data from Availability Recovery, and then pass it through to the Candidate Validation. Once these steps are successful, we issue our approval vote. If any of these steps fail, we don't issue any vote and will &quot;no-show&quot; from the perspective of other validators in addition a dispute is raised via the dispute-coordinator, by sending <code>IssueLocalStatement</code>.</p>
 <p>Where this all fits into Polkadot is via block finality. Our goal is to not finalize any block containing a candidate that is not approved. We provide a hook for a custom GRANDPA voting rule - GRANDPA makes requests of the form (target, minimum) consisting of a target block (i.e. longest chain) that it would like to finalize, and a minimum block which, due to the rules of GRANDPA, must be voted on. The minimum is typically the last finalized block, but may be beyond it, in the case of having a last-round-estimate beyond the last finalized. Thus, our goal is to inform GRANDPA of some block between target and minimum which we believe can be finalized safely. We do this by iterating backwards from the target to the minimum and finding the longest continuous chain from minimum where all candidates included by those blocks have been approved.</p>
-<h2 id="protocol-8"><a class="header" href="#protocol-8">Protocol</a></h2>
+<h2 id="protocol-9"><a class="header" href="#protocol-9">Protocol</a></h2>
 <p>Input:</p>
 <ul>
 <li><code>ApprovalVotingMessage::CheckAndImportAssignment</code></li>
@@ -4017,7 +4023,7 @@ Aggression Level 0: The basic behaviors described above.
 Aggression Level 1: The originator of a message sends to all peers. Other peers follow the rules above.
 Aggression Level 2: All peers send all messages to all their row and column neighbors. This means that each validator will, on average, receive each message approximately 2*sqrt(n) times.</p>
 <p>These aggression levels are chosen based on how long a block has taken to finalize: assignments and approvals related to the unfinalized block will be propagated with more aggression. In particular, it's only the earliest unfinalized blocks that aggression should be applied to, because descendants may be unfinalized only by virtue of being descendants.</p>
-<h2 id="protocol-9"><a class="header" href="#protocol-9">Protocol</a></h2>
+<h2 id="protocol-10"><a class="header" href="#protocol-10">Protocol</a></h2>
 <p>Input:</p>
 <ul>
 <li><code>ApprovalDistributionMessage::NewBlocks</code></li>
@@ -4824,7 +4830,7 @@ pub enum DisputeStatus {
 }
 <span class="boring">}
 </span></code></pre></pre>
-<h2 id="protocol-10"><a class="header" href="#protocol-10">Protocol</a></h2>
+<h2 id="protocol-11"><a class="header" href="#protocol-11">Protocol</a></h2>
 <p>Input: <a href="node/disputes/../../types/overseer-protocol.html#dispute-coordinator-message"><code>DisputeCoordinatorMessage</code></a></p>
 <p>Output:</p>
 <ul>
@@ -4948,7 +4954,7 @@ be aware of a dispute and have the relevant votes.</p>
 <li>be resilient when it comes to spam</li>
 <li>be simple and boring: We want disputes to work when they happen</li>
 </ul>
-<h2 id="protocol-11"><a class="header" href="#protocol-11">Protocol</a></h2>
+<h2 id="protocol-12"><a class="header" href="#protocol-12">Protocol</a></h2>
 <p>Distributing disputes needs to be a reliable protocol. We would like to make as
 sure as possible that our vote got properly delivered to all concerned
 validators. For this to work, this subsystem won't be gossip based, but instead
@@ -5360,7 +5366,7 @@ enum State {
 </span></code></pre></pre>
 <p>We maintain the invariant that if a candidate has a meta entry, its available data exists on disk if <code>data_available</code> is true. All chunks mentioned in the meta entry are available.</p>
 <p>Additionally, there is exactly one <code>prune_by_time</code> entry which holds the candidate hash unless the state is <code>Unfinalized</code>. There may be zero, one, or many &quot;unfinalized&quot; keys with the given candidate, and this will correspond to the <code>state</code> of the meta entry.</p>
-<h2 id="protocol-12"><a class="header" href="#protocol-12">Protocol</a></h2>
+<h2 id="protocol-13"><a class="header" href="#protocol-13">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#availability-store-message"><code>AvailabilityStoreMessage</code></a></p>
 <p>Output:</p>
 <ul>
@@ -5519,7 +5525,7 @@ to be run very often.</li>
 <footer id="last-change">Last change: 2021-07-14, commit: <a href="https://github.com/paritytech/polkadot/commit/8a6af4412f">8a6af4412f</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="candidate-validation"><a class="header" href="#candidate-validation">Candidate Validation</a></h1>
 <p>This subsystem is responsible for handling candidate validation requests. It is a simple request/response server.</p>
 <p>A variety of subsystems want to know if a parachain block candidate is valid. None of them care about the detailed mechanics of how a candidate gets validated, just the results. This subsystem handles those details.</p>
-<h2 id="protocol-13"><a class="header" href="#protocol-13">Protocol</a></h2>
+<h2 id="protocol-14"><a class="header" href="#protocol-14">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#validation-request-type"><code>CandidateValidationMessage</code></a></p>
 <p>Output: Validation result via the provided response side-channel.</p>
 <h2 id="functionality-12"><a class="header" href="#functionality-12">Functionality</a></h2>
@@ -5629,7 +5635,7 @@ vote invalid.</p>
 <h3 id="dispute-inherent"><a class="header" href="#dispute-inherent">Dispute Inherent</a></h3>
 <p>The dispute inherent is similar to a misbehavior report in that it is an attestation of misbehavior on the part of a validator or group of validators. Unlike a misbehavior report, it is not self-contained: resolution requires coordinated action by several validators. The canonical example of a dispute inherent involves an approval checker discovering that a set of validators has improperly approved an invalid parachain block: resolving this requires the entire validator set to re-validate the block, so that the minority can be slashed.</p>
 <p>Dispute resolution is complex and is explained in substantially more detail <a href="node/utility/../../runtime/disputes.html">here</a>.</p>
-<h2 id="protocol-14"><a class="header" href="#protocol-14">Protocol</a></h2>
+<h2 id="protocol-15"><a class="header" href="#protocol-15">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#provisioner-message"><code>ProvisionerMessage</code></a>. Backed candidates come from the <a href="node/utility/../backing/candidate-backing.html">Candidate Backing subsystem</a>, signed bitfields come from the <a href="node/utility/../availability/bitfield-distribution.html">Bitfield Distribution subsystem</a>, and disputes come from the <a href="node/utility/../disputes/dispute-coordinator.html">Disputes Subsystem</a>. Misbehavior reports are currently sent from the <a href="node/utility/../backing/candidate-backing.html">Candidate Backing subsystem</a> and contain the following misbehaviors:</p>
 <ol>
 <li><code>Misbehavior::ValidityDoubleVote</code></li>
@@ -5734,7 +5740,7 @@ vote invalid.</p>
 <li>The network provides peer-set management utilities for discovering the peer-IDs of validators and a means of dialing peers with given IDs.</li>
 </ul>
 <p>The network bridge makes use of the peer-set feature, but is not generic over peer-set. Instead, it exposes two peer-sets that event producers can attach to: <code>Validation</code> and <code>Collation</code>. More information can be found on the documentation of the <a href="node/utility/../../types/overseer-protocol.html#network-bridge-message"><code>NetworkBridgeMessage</code></a>.</p>
-<h2 id="protocol-15"><a class="header" href="#protocol-15">Protocol</a></h2>
+<h2 id="protocol-16"><a class="header" href="#protocol-16">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#network-bridge-message"><code>NetworkBridgeMessage</code></a></p>
 <p>Output:</p>
 <ul>
@@ -5841,12 +5847,12 @@ and handle view updates.</p>
 <blockquote>
 <p>TODO</p>
 </blockquote>
-<h2 id="protocol-16"><a class="header" href="#protocol-16">Protocol</a></h2>
+<h2 id="protocol-17"><a class="header" href="#protocol-17">Protocol</a></h2>
 <h2 id="functionality-15"><a class="header" href="#functionality-15">Functionality</a></h2>
 <h2 id="jobs-if-any"><a class="header" href="#jobs-if-any">Jobs, if any</a></h2>
 <footer id="last-change">Last change: 2020-07-07, commit: <a href="https://github.com/paritytech/polkadot/commit/482abf8c6b">482abf8c6b</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-api"><a class="header" href="#runtime-api">Runtime API</a></h1>
 <p>The Runtime API subsystem is responsible for providing a single point of access to runtime state data via a set of pre-determined queries. This prevents shared ownership of a blockchain client resource by providing</p>
-<h2 id="protocol-17"><a class="header" href="#protocol-17">Protocol</a></h2>
+<h2 id="protocol-18"><a class="header" href="#protocol-18">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#runtime-api-message"><code>RuntimeApiMessage</code></a></p>
 <p>Output: None</p>
 <h2 id="functionality-16"><a class="header" href="#functionality-16">Functionality</a></h2>
@@ -5857,7 +5863,7 @@ and handle view updates.</p>
 </blockquote>
 <footer id="last-change">Last change: 2022-03-09, commit: <a href="https://github.com/paritytech/polkadot/commit/88d66ac669">88d66ac669</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="chain-api"><a class="header" href="#chain-api">Chain API</a></h1>
 <p>The Chain API subsystem is responsible for providing a single point of access to chain state data via a set of pre-determined queries.</p>
-<h2 id="protocol-18"><a class="header" href="#protocol-18">Protocol</a></h2>
+<h2 id="protocol-19"><a class="header" href="#protocol-19">Protocol</a></h2>
 <p>Input: <a href="node/utility/../../types/overseer-protocol.html#chain-api-message"><code>ChainApiMessage</code></a></p>
 <p>Output: None</p>
 <h2 id="functionality-17"><a class="header" href="#functionality-17">Functionality</a></h2>
@@ -5899,7 +5905,7 @@ and handle view updates.</p>
 <p>Detect stagnant blocks and apply the stagnant definition to all descendants. Update the set of viable leaves accordingly.</p>
 <footer id="last-change">Last change: 2023-01-19, commit: <a href="https://github.com/paritytech/polkadot/commit/b4b57fe865">b4b57fe865</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="pvf-pre-checker"><a class="header" href="#pvf-pre-checker">PVF Pre-checker</a></h1>
 <p>The PVF pre-checker is a subsystem that is responsible for watching the relay chain for new PVFs that require pre-checking. Head over to <a href="node/utility/../../pvf-prechecking.html">overview</a> for the PVF pre-checking process overview.</p>
-<h2 id="protocol-19"><a class="header" href="#protocol-19">Protocol</a></h2>
+<h2 id="protocol-20"><a class="header" href="#protocol-20">Protocol</a></h2>
 <p>There is no dedicated input mechanism for PVF pre-checker. Instead, PVF pre-checker looks on the <code>ActiveLeavesUpdate</code> event stream for work.</p>
 <p>This subsytem does not produce any output messages either. The subsystem will, however, send messages to the <a href="node/utility/runtime-api.html">Runtime API</a> subsystem to query for the pending PVFs and to submit votes. In addition to that, it will also communicate with <a href="node/utility/candidate-validation.html">Candidate Validation</a> Subsystem to request PVF pre-check.</p>
 <h2 id="functionality-18"><a class="header" href="#functionality-18">Functionality</a></h2>
@@ -7690,8 +7696,8 @@ exactly one downward message queue.</li>
 <li><strong>Preimage:</strong> In our context, if <code>H(X) = Y</code> where <code>H</code> is a hash function and <code>Y</code> is the hash, then <code>X</code> is the hash preimage.</li>
 <li><strong>Proof-of-Validity (PoV):</strong> A stateless-client proof that a parachain candidate is valid, with respect to some validation function.</li>
 <li><strong>PVF:</strong> Parachain Validation Function. The validation code that is run by validators on parachains or parathreads.</li>
-<li><strong>PVF Prechecking:</strong> This is the process of initially checking the PVF when it is first added. We attempt preparation of the PVF and make sure it succeeds within a given timeout.</li>
-<li><strong>PVF Preparation:</strong> This is the process of preparing the WASM blob and includes both prevalidation and compilation. As prevalidation is pretty minimal right now, preparation mostly consists of compilation.</li>
+<li><strong>PVF Prechecking:</strong> This is the process of initially checking the PVF when it is first added. We attempt preparation of the PVF and make sure it succeeds within a given timeout, plus some additional checks.</li>
+<li><strong>PVF Preparation:</strong> This is the process of preparing the WASM blob and includes both prevalidation and compilation. As there is no prevalidation right now, preparation just consists of compilation.</li>
 <li><strong>Relay Parent:</strong> A block in the relay chain, referred to in a context where work is being done in the context of the state at this block.</li>
 <li><strong>Runtime:</strong> The relay-chain state machine.</li>
 <li><strong>Runtime Module:</strong> See Module.</li>
@@ -7705,7 +7711,7 @@ exactly one downward message queue.</li>
 </ul>
 <h2 id="see-also"><a class="header" href="#see-also">See Also</a></h2>
 <p>Also of use is the <a href="https://substrate.dev/docs/en/knowledgebase/getting-started/glossary">Substrate Glossary</a>.</p>
-<footer id="last-change">Last change: 2022-11-30, commit: <a href="https://github.com/paritytech/polkadot/commit/6343ae7774">6343ae7774</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h1>
+<footer id="last-change">Last change: 2023-06-02, commit: <a href="https://github.com/paritytech/polkadot/commit/d67d47f4bc">d67d47f4bc</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h1>
 <ul>
 <li>Polkadot Wiki on Consensus: <a href="https://wiki.polkadot.network/docs/learn-consensus">https://wiki.polkadot.network/docs/learn-consensus</a></li>
 <li>Polkadot Spec: <a href="https://github.com/w3f/polkadot-spec">https://github.com/w3f/polkadot-spec</a></li>

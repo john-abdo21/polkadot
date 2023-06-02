@@ -106,6 +106,29 @@
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -122,7 +145,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+</span><span class="kw">use </span><span class="kw">crate</span>::prepare::PrepareJobKind;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>polkadot_parachain::primitives::ValidationCodeHash;
 <span class="kw">use </span>polkadot_primitives::ExecutorParams;
 <span class="kw">use </span>sp_core::blake2_256;
@@ -147,6 +171,8 @@
 	</span>executor_params: Arc&lt;ExecutorParams&gt;,
 	<span class="doccomment">/// Preparation timeout
 	</span>prep_timeout: Duration,
+	<span class="doccomment">/// The kind of preparation job.
+	</span>prep_kind: PrepareJobKind,
 }
 
 <span class="kw">impl </span>PvfPrepData {
@@ -155,11 +181,12 @@
 		code: Vec&lt;u8&gt;,
 		executor_params: ExecutorParams,
 		prep_timeout: Duration,
+		prep_kind: PrepareJobKind,
 	) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>code = Arc::new(code);
 		<span class="kw">let </span>code_hash = blake2_256(<span class="kw-2">&amp;</span>code).into();
 		<span class="kw">let </span>executor_params = Arc::new(executor_params);
-		<span class="self">Self </span>{ code, code_hash, executor_params, prep_timeout }
+		<span class="self">Self </span>{ code, code_hash, executor_params, prep_timeout, prep_kind }
 	}
 
 	<span class="doccomment">/// Returns validation code hash for the PVF
@@ -182,17 +209,36 @@
 		<span class="self">self</span>.prep_timeout
 	}
 
+	<span class="doccomment">/// Returns preparation kind.
+	</span><span class="kw">pub fn </span>prep_kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PrepareJobKind {
+		<span class="self">self</span>.prep_kind
+	}
+
 	<span class="doccomment">/// Creates a structure for tests.
 	</span><span class="attr">#[doc(hidden)]
 	</span><span class="kw">pub fn </span>from_discriminator_and_timeout(num: u32, timeout: Duration) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span>descriminator_buf = num.to_le_bytes().to_vec();
-		<span class="self">Self</span>::from_code(descriminator_buf, ExecutorParams::default(), timeout)
+		<span class="self">Self</span>::from_code(
+			descriminator_buf,
+			ExecutorParams::default(),
+			timeout,
+			PrepareJobKind::Compilation,
+		)
 	}
 
 	<span class="doccomment">/// Creates a structure for tests.
 	</span><span class="attr">#[doc(hidden)]
 	</span><span class="kw">pub fn </span>from_discriminator(num: u32) -&gt; <span class="self">Self </span>{
 		<span class="self">Self</span>::from_discriminator_and_timeout(num, <span class="kw">crate</span>::tests::TEST_PREPARATION_TIMEOUT)
+	}
+
+	<span class="doccomment">/// Creates a structure for tests.
+	</span><span class="attr">#[doc(hidden)]
+	</span><span class="kw">pub fn </span>from_discriminator_precheck(num: u32) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span><span class="kw-2">mut </span>pvf =
+			<span class="self">Self</span>::from_discriminator_and_timeout(num, <span class="kw">crate</span>::tests::TEST_PREPARATION_TIMEOUT);
+		pvf.prep_kind = PrepareJobKind::Prechecking;
+		pvf
 	}
 }
 

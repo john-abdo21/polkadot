@@ -163,7 +163,12 @@
 </ul>
 <p>As a result of this issue we need a fairly hard guarantee that the PVFs of registered parachains/threads can be compiled within a reasonable amount of time.</p>
 <h2 id="solution"><a class="header" href="#solution">Solution</a></h2>
-<p>The problem is solved by having a pre-checking process which is run when a new validation code is included in the chain. A new PVF can be added in two cases:</p>
+<p>The problem is solved by having a pre-checking process.</p>
+<h3 id="pre-checking"><a class="header" href="#pre-checking">Pre-checking</a></h3>
+<p>Pre-checking mostly consists of attempting to prepare (compile) the PVF WASM blob. We use more strict limits (e.g. timeouts) here compared to regular preparation for execution. This way errors during preparation later are likely unrelated to the PVF itself, as it already passed pre-checking. We can treat such errors as local node issues.</p>
+<p>We also have an additional step where we attempt to instantiate the WASM runtime without running it. This is unrelated to preparation so we don't time it, but it does help us catch more issues.</p>
+<h3 id="protocol"><a class="header" href="#protocol">Protocol</a></h3>
+<p>Pre-checking is run when a new validation code is included in the chain. A new PVF can be added in two cases:</p>
 <ul>
 <li>A new parachain or parathread is registered.</li>
 <li>An existing parachain or parathread signalled an upgrade of its validation code.</li>
@@ -180,14 +185,15 @@ new PVF pre-checking vote will be started. Instead, the operation just subscribe
 </ol>
 <p>In case PVF pre-checking process was concluded with rejection, then all the operations that are subscribed to the rejected PVF pre-checking process will be processed as follows. That is, onboarding or upgrading will be cancelled.</p>
 <p>The logic described above is implemented by the <a href="runtime/paras.html">paras</a> module.</p>
+<h3 id="subsystem"><a class="header" href="#subsystem">Subsystem</a></h3>
 <p>On the node-side, there is a PVF pre-checking <a href="node/utility/pvf-prechecker.html">subsystem</a> that scans the chain for new PVFs via using <a href="runtime-api/pvf-prechecking.html">runtime APIs</a>. Upon finding a new PVF, the subsystem will initiate a PVF pre-checking request and wait for the result. Whenever the result is obtained, the subsystem will use the <a href="runtime-api/pvf-prechecking.html">runtime API</a> to submit a vote for the PVF. The vote is an unsigned transaction. The vote will be distributed via the gossip similarly to a normal transaction. Eventually a block producer will include the vote into the block where it will be handled by the <a href="runtime/paras.html">runtime</a>.</p>
 <h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
 <p>Parachains' and parathreads' validation function is described by a wasm module that we refer to as a PVF.</p>
 <p>In order to make the PVF usable for candidate validation it has to be registered on-chain.</p>
-<p>As part of the registration process, it has to go through pre-checking. Pre-checking is a game of attempting preparation and reporting the results back on-chain.</p>
+<p>As part of the registration process, it has to go through pre-checking. Pre-checking is a game of attempting preparation and additional checks, and reporting the results back on-chain.</p>
 <p>We define preparation as a process that: validates the consistency of the wasm binary (aka prevalidation) and the compilation of the wasm module into machine code (referred to as an artifact).</p>
 <p>Besides pre-checking, preparation can also be triggered by execution, since a compiled artifact is needed for the execution. If an artifact already exists, execution will skip preparation. If it does do preparation, execution uses a more lenient timeout than preparation, to avoid the situation where honest validators fail on valid, pre-checked PVFs.</p>
-<footer id="last-change">Last change: 2023-03-15, commit: <a href="https://github.com/paritytech/polkadot/commit/5434628907">5434628907</a></footer>
+<footer id="last-change">Last change: 2023-06-02, commit: <a href="https://github.com/paritytech/polkadot/commit/d67d47f4bc">d67d47f4bc</a></footer>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

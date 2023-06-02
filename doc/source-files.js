@@ -34,7 +34,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_node_core_pvf":["",[["execute",[],["mod.rs","queue.rs","worker_intf.rs"]],["prepare",[],["mod.rs","pool.rs","queue.rs","worker_intf.rs"]]],["artifacts.rs","error.rs","host.rs","lib.rs","metrics.rs","priority.rs","testing.rs","worker_intf.rs"]],\
 "polkadot_node_core_pvf_checker":["",[],["interest_view.rs","lib.rs","metrics.rs","runtime_api.rs"]],\
 "polkadot_node_core_pvf_common":["",[],["error.rs","execute.rs","executor_intf.rs","lib.rs","prepare.rs","pvf.rs","worker.rs"]],\
-"polkadot_node_core_pvf_execute_worker":["",[],["executor_intf.rs","lib.rs"]],\
+"polkadot_node_core_pvf_execute_worker":["",[],["lib.rs"]],\
 "polkadot_node_core_pvf_prepare_worker":["",[],["executor_intf.rs","lib.rs","memory_stats.rs"]],\
 "polkadot_node_core_runtime_api":["",[],["cache.rs","lib.rs","metrics.rs"]],\
 "polkadot_node_jaeger":["",[],["config.rs","errors.rs","lib.rs","spans.rs"]],\

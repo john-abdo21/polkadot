@@ -104,6 +104,11 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -135,6 +140,8 @@
 	</span>Prevalidation(String),
 	<span class="doccomment">/// Compilation failed for the given PVF.
 	</span>Preparation(String),
+	<span class="doccomment">/// Instantiation of the WASM module instance failed.
+	</span>RuntimeConstruction(String),
 	<span class="doccomment">/// An unexpected panic has occurred in the preparation worker.
 	</span>Panic(String),
 	<span class="doccomment">/// Failed to prepare the PVF due to the time limit.
@@ -161,6 +168,8 @@
 		<span class="kw">match </span><span class="self">self </span>{
 			Prevalidation(<span class="kw">_</span>) | Preparation(<span class="kw">_</span>) | Panic(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
 			TimedOut | IoErr(<span class="kw">_</span>) | CreateTmpFileErr(<span class="kw">_</span>) | RenameTmpFileErr(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			<span class="comment">// Can occur due to issues with the PVF, but also due to local errors.
+			</span>RuntimeConstruction(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 		}
 	}
 }
@@ -171,6 +180,7 @@
 		<span class="kw">match </span><span class="self">self </span>{
 			Prevalidation(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prevalidation: {}&quot;</span>, err),
 			Preparation(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;preparation: {}&quot;</span>, err),
+			RuntimeConstruction(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;runtime construction: {}&quot;</span>, err),
 			Panic(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;panic: {}&quot;</span>, err),
 			TimedOut =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: timeout&quot;</span>),
 			IoErr(err) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;prepare: io error while receiving response: {}&quot;</span>, err),
