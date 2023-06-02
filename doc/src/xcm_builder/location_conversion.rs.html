@@ -715,12 +715,6 @@
 <a href="#715" id="715">715</a>
 <a href="#716" id="716">716</a>
 <a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
-<a href="#720" id="720">720</a>
-<a href="#721" id="721">721</a>
-<a href="#722" id="722">722</a>
-<a href="#723" id="723">723</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -960,18 +954,11 @@
 /// network (provided by `Network`) and the `AccountId`&#39;s `[u8; 32]` datum for the `id`.
 </span><span class="kw">pub struct </span>AliasesIntoAccountId32&lt;Network, AccountId&gt;(PhantomData&lt;(Network, AccountId)&gt;);
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Network: Get&lt;<span class="prelude-ty">Option</span>&lt;NetworkId&gt;&gt;, AccountId: Clone + Into&lt;[u8; <span class="number">32</span>]&gt; + Clone&gt;
-	Convert&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AccountId, MultiLocation&gt; <span class="kw">for </span>AliasesIntoAccountId32&lt;Network, AccountId&gt;
+	sp_runtime::traits::Convert&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AccountId, MultiLocation&gt;
+	<span class="kw">for </span>AliasesIntoAccountId32&lt;Network, AccountId&gt;
 {
-	<span class="kw">fn </span>convert(who: <span class="kw-2">&amp;</span>AccountId) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AccountId&gt; {
-		<span class="prelude-val">Ok</span>(AccountId32 { network: Network::get(), id: who.clone().into() }.into())
-	}
-}
-
-<span class="kw">impl</span>&lt;Network: Get&lt;<span class="prelude-ty">Option</span>&lt;NetworkId&gt;&gt;, AccountId: Into&lt;[u8; <span class="number">32</span>]&gt; + Clone&gt;
-	Convert&lt;AccountId, MultiLocation&gt; <span class="kw">for </span>AliasesIntoAccountId32&lt;Network, AccountId&gt;
-{
-	<span class="kw">fn </span>convert(who: AccountId) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, AccountId&gt; {
-		<span class="prelude-val">Ok</span>(AccountId32 { network: Network::get(), id: who.into() }.into())
+	<span class="kw">fn </span>convert(who: <span class="kw-2">&amp;</span>AccountId) -&gt; MultiLocation {
+		AccountId32 { network: Network::get(), id: who.clone().into() }.into()
 	}
 }
 
@@ -1036,7 +1023,8 @@
 	}
 
 	<span class="kw">fn </span>reverse_ref(<span class="kw">_</span>: <span class="kw">impl </span>Borrow&lt;AccountId&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, ()&gt; {
-		<span class="comment">// if this will be needed, we could implement some kind of guessing, if we have configuration for supported networkId+paraId
+		<span class="comment">// if this is ever be needed, we could implement some kind of guessing, if we have
+		// configuration for supported networkId+paraId
 		</span><span class="prelude-val">Err</span>(())
 	}
 }
