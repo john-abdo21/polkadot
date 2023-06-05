@@ -724,6 +724,7 @@
 <a href="#724" id="724">724</a>
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1188,16 +1189,13 @@
 		) -&gt; DispatchResultWithPostInfo {
 			ensure_none(origin)<span class="question-mark">?</span>;
 
+			<span class="kw">let </span>validator_set_count = key_owner_proof.validator_count() <span class="kw">as </span>ValidatorSetCount;
 			<span class="comment">// check the membership proof to extract the offender&#39;s id
 			</span><span class="kw">let </span>key = (primitives::PARACHAIN_KEY_TYPE_ID, dispute_proof.validator_id.clone());
 			<span class="kw">let </span>offender = T::KeyOwnerProofSystem::check_proof(key, key_owner_proof)
 				.ok_or(Error::&lt;T&gt;::InvalidKeyOwnershipProof)<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>session_index = dispute_proof.time_slot.session_index;
-			<span class="kw">let </span>validator_set_count = <span class="kw">crate</span>::session_info::Pallet::&lt;T&gt;::session_info(session_index)
-				.ok_or(Error::&lt;T&gt;::InvalidSessionIndex)<span class="question-mark">?
-				</span>.discovery_keys
-				.len() <span class="kw">as </span>ValidatorSetCount;
 
 			<span class="comment">// check that there is a pending slash for the given
 			// validator index and candidate hash
@@ -1431,23 +1429,27 @@
 		};
 
 		<span class="kw">match </span>SubmitTransaction::&lt;T, Call&lt;T&gt;&gt;::submit_unsigned_transaction(call.into()) {
-			<span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">log::info!</span>(
-				target: LOG_TARGET,
-				<span class="string">&quot;Submitted dispute slashing report, session({}), index({}), kind({:?})&quot;</span>,
-				session_index,
-				validator_index,
-				kind,
-			),
-			<span class="prelude-val">Err</span>(()) =&gt; <span class="macro">log::error!</span>(
-				target: LOG_TARGET,
-				<span class="string">&quot;Error submitting dispute slashing report, session({}), index({}), kind({:?})&quot;</span>,
-				session_index,
-				validator_index,
-				kind,
-			),
+			<span class="prelude-val">Ok</span>(()) =&gt; {
+				<span class="macro">log::info!</span>(
+					target: LOG_TARGET,
+					<span class="string">&quot;Submitted dispute slashing report, session({}), index({}), kind({:?})&quot;</span>,
+					session_index,
+					validator_index,
+					kind,
+				);
+				<span class="prelude-val">Ok</span>(())
+			},
+			<span class="prelude-val">Err</span>(()) =&gt; {
+				<span class="macro">log::error!</span>(
+					target: LOG_TARGET,
+					<span class="string">&quot;Error submitting dispute slashing report, session({}), index({}), kind({:?})&quot;</span>,
+					session_index,
+					validator_index,
+					kind,
+				);
+				<span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(<span class="string">&quot;&quot;</span>))
+			},
 		}
-
-		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>
