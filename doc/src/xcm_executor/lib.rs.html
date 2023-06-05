@@ -1014,6 +1014,14 @@
 <a href="#1014" id="1014">1014</a>
 <a href="#1015" id="1015">1015</a>
 <a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1930,7 +1938,15 @@
 				<span class="self">self</span>.context.topic = <span class="prelude-val">None</span>;
 				<span class="prelude-val">Ok</span>(())
 			},
-			AliasOrigin(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(XcmError::NoPermission),
+			AliasOrigin(target) =&gt; {
+				<span class="kw">let </span>origin = <span class="self">self</span>.origin_ref().ok_or(XcmError::BadOrigin)<span class="question-mark">?</span>;
+				<span class="kw">if </span>Config::Aliasers::contains(origin, <span class="kw-2">&amp;</span>target) {
+					<span class="self">self</span>.context.origin = <span class="prelude-val">Some</span>(target);
+					<span class="prelude-val">Ok</span>(())
+				} <span class="kw">else </span>{
+					<span class="prelude-val">Err</span>(XcmError::NoPermission)
+				}
+			},
 			UnpaidExecution { check_origin, .. } =&gt; {
 				<span class="macro">ensure!</span>(
 					check_origin.is_none() || <span class="self">self</span>.context.origin == check_origin,
