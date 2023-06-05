@@ -342,6 +342,8 @@
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -367,7 +369,9 @@
 };
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>, result};
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_executor::traits::{Convert, Error <span class="kw">as </span>MatchError, MatchesNonFungibles, TransactAsset};
+<span class="kw">use </span>xcm_executor::traits::{
+	ConvertLocation, Error <span class="kw">as </span>MatchError, MatchesNonFungibles, TransactAsset,
+};
 
 <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;xcm::nonfungibles_adapter&quot;</span>;
 
@@ -377,7 +381,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: nonfungibles::Transfer&lt;AccountId&gt;,
 		Matcher: MatchesNonFungibles&lt;Assets::CollectionId, Assets::ItemId&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 	</span>&gt; TransactAsset <span class="kw">for </span>NonFungiblesTransferAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;
 {
@@ -397,8 +401,8 @@
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
-		<span class="kw">let </span>destination = AccountIdConverter::convert_ref(to)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>destination = AccountIdConverter::convert_location(to)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Assets::transfer(<span class="kw-2">&amp;</span>class, <span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;</span>destination)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(what.clone().into())
@@ -417,7 +421,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: nonfungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesNonFungibles&lt;Assets::CollectionId, Assets::ItemId&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone + Eq, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckAsset: AssetChecking&lt;Assets::CollectionId&gt;,
 		CheckingAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;AccountId&gt;&gt;,
@@ -459,7 +463,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: nonfungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesNonFungibles&lt;Assets::CollectionId, Assets::ItemId&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone + Eq, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckAsset: AssetChecking&lt;Assets::CollectionId&gt;,
 		CheckingAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;AccountId&gt;&gt;,
@@ -559,8 +563,8 @@
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
-		<span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>who = AccountIdConverter::convert_location(who)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Assets::mint_into(<span class="kw-2">&amp;</span>class, <span class="kw-2">&amp;</span>instance, <span class="kw-2">&amp;</span>who)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))
 	}
@@ -578,8 +582,8 @@
 			maybe_context,
 		);
 		<span class="comment">// Check we handle this asset.
-		</span><span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		</span><span class="kw">let </span>who = AccountIdConverter::convert_location(who)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		<span class="kw">let </span>(class, instance) = Matcher::matches_nonfungibles(what)<span class="question-mark">?</span>;
 		Assets::burn(<span class="kw-2">&amp;</span>class, <span class="kw-2">&amp;</span>instance, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>who))
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
@@ -598,7 +602,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: nonfungibles::Mutate&lt;AccountId&gt; + nonfungibles::Transfer&lt;AccountId&gt;,
 		Matcher: MatchesNonFungibles&lt;Assets::CollectionId, Assets::ItemId&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone + Eq, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckAsset: AssetChecking&lt;Assets::CollectionId&gt;,
 		CheckingAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;AccountId&gt;&gt;,

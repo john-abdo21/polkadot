@@ -434,7 +434,7 @@
 };
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>, result};
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_executor::traits::{Convert, Error <span class="kw">as </span>MatchError, MatchesFungibles, TransactAsset};
+<span class="kw">use </span>xcm_executor::traits::{ConvertLocation, Error <span class="kw">as </span>MatchError, MatchesFungibles, TransactAsset};
 
 <span class="doccomment">/// `TransactAsset` implementation to convert a `fungibles` implementation to become usable in XCM.
 </span><span class="kw">pub struct </span>FungiblesTransferAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;(
@@ -443,7 +443,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 	</span>&gt; TransactAsset <span class="kw">for </span>FungiblesTransferAdapter&lt;Assets, Matcher, AccountIdConverter, AccountId&gt;
 {
@@ -460,10 +460,10 @@
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(asset_id, amount) = Matcher::matches_fungibles(what)<span class="question-mark">?</span>;
-		<span class="kw">let </span>source = AccountIdConverter::convert_ref(from)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
-		<span class="kw">let </span>dest = AccountIdConverter::convert_ref(to)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>source = AccountIdConverter::convert_location(from)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>dest = AccountIdConverter::convert_location(to)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Assets::transfer(asset_id, <span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>dest, amount, Preserve)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(what.clone().into())
@@ -559,7 +559,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckAsset: AssetChecking&lt;Assets::AssetId&gt;,
 		CheckingAccount: Get&lt;AccountId&gt;,
@@ -594,7 +594,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckAsset: AssetChecking&lt;Assets::AssetId&gt;,
 		CheckingAccount: Get&lt;AccountId&gt;,
@@ -692,8 +692,8 @@
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(asset_id, amount) = Matcher::matches_fungibles(what)<span class="question-mark">?</span>;
-		<span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>who = AccountIdConverter::convert_location(who)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>who, amount)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
@@ -711,8 +711,8 @@
 		);
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>(asset_id, amount) = Matcher::matches_fungibles(what)<span class="question-mark">?</span>;
-		<span class="kw">let </span>who = AccountIdConverter::convert_ref(who)
-			.map_err(|()| MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
+		<span class="kw">let </span>who = AccountIdConverter::convert_location(who)
+			.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Assets::burn_from(asset_id, <span class="kw-2">&amp;</span>who, amount, Exact, Polite)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(what.clone().into())
@@ -730,7 +730,7 @@
 <span class="kw">impl</span>&lt;
 		Assets: fungibles::Mutate&lt;AccountId&gt;,
 		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckAsset: AssetChecking&lt;Assets::AssetId&gt;,
 		CheckingAccount: Get&lt;AccountId&gt;,

@@ -257,7 +257,7 @@
 <span class="kw">use </span>sp_std::{marker::PhantomData, result};
 <span class="kw">use </span>xcm::latest::{Error <span class="kw">as </span>XcmError, MultiAsset, MultiLocation, <span class="prelude-ty">Result</span>, XcmContext};
 <span class="kw">use </span>xcm_executor::{
-	traits::{Convert, MatchesFungible, TransactAsset},
+	traits::{ConvertLocation, MatchesFungible, TransactAsset},
 	Assets,
 };
 
@@ -299,7 +299,7 @@
 ///     pub CheckingAccount: AccountId = PalletId(*b&quot;checking&quot;).into_account_truncating();
 /// }
 ///
-/// /// Some items that implement `Convert&lt;MultiLocation, AccountId&gt;`. Can be more, but for now we just assume we accept
+/// /// Some items that implement `ConvertLocation&lt;AccountId&gt;`. Can be more, but for now we just assume we accept
 /// /// messages from the parent (relay chain).
 /// pub type LocationConverter = (ParentIsPreset&lt;AccountId&gt;);
 ///
@@ -327,7 +327,7 @@
 <span class="kw">impl</span>&lt;
 		Currency: frame_support::traits::Currency&lt;AccountId&gt;,
 		Matcher: MatchesFungible&lt;Currency::Balance&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckedAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;(AccountId, MintLocation)&gt;&gt;,
 	&gt; CurrencyAdapter&lt;Currency, Matcher, AccountIdConverter, AccountId, CheckedAccount&gt;
@@ -368,7 +368,7 @@
 <span class="kw">impl</span>&lt;
 		Currency: frame_support::traits::Currency&lt;AccountId&gt;,
 		Matcher: MatchesFungible&lt;Currency::Balance&gt;,
-		AccountIdConverter: Convert&lt;MultiLocation, AccountId&gt;,
+		AccountIdConverter: ConvertLocation&lt;AccountId&gt;,
 		AccountId: Clone, <span class="comment">// can&#39;t get away without it since Currency is generic over it.
 		</span>CheckedAccount: Get&lt;<span class="prelude-ty">Option</span>&lt;(AccountId, MintLocation)&gt;&gt;,
 	&gt; TransactAsset
@@ -431,7 +431,7 @@
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>amount = Matcher::matches_fungible(<span class="kw-2">&amp;</span>what).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">let </span>who =
-			AccountIdConverter::convert_ref(who).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
+			AccountIdConverter::convert_location(who).ok_or(Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		<span class="kw">let </span>_imbalance = Currency::deposit_creating(<span class="kw-2">&amp;</span>who, amount);
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -445,7 +445,7 @@
 		<span class="comment">// Check we handle this asset.
 		</span><span class="kw">let </span>amount = Matcher::matches_fungible(what).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">let </span>who =
-			AccountIdConverter::convert_ref(who).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
+			AccountIdConverter::convert_location(who).ok_or(Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Currency::withdraw(<span class="kw-2">&amp;</span>who, amount, WithdrawReasons::TRANSFER, AllowDeath)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(what.clone().into())
@@ -460,9 +460,9 @@
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::currency_adapter&quot;</span>, <span class="string">&quot;internal_transfer_asset asset: {:?}, from: {:?}, to: {:?}&quot;</span>, asset, from, to);
 		<span class="kw">let </span>amount = Matcher::matches_fungible(asset).ok_or(Error::AssetNotHandled)<span class="question-mark">?</span>;
 		<span class="kw">let </span>from =
-			AccountIdConverter::convert_ref(from).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
+			AccountIdConverter::convert_location(from).ok_or(Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		<span class="kw">let </span>to =
-			AccountIdConverter::convert_ref(to).map_err(|()| Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
+			AccountIdConverter::convert_location(to).ok_or(Error::AccountIdConversionFailed)<span class="question-mark">?</span>;
 		Currency::transfer(<span class="kw-2">&amp;</span>from, <span class="kw-2">&amp;</span>to, amount, AllowDeath)
 			.map_err(|e| XcmError::FailedToTransactAsset(e.into()))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(asset.clone().into())

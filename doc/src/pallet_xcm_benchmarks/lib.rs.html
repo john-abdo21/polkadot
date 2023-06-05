@@ -132,7 +132,7 @@
 <span class="kw">use </span>frame_benchmarking::{account, BenchmarkError};
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_executor::{traits::Convert, Config <span class="kw">as </span>XcmConfig};
+<span class="kw">use </span>xcm_executor::{traits::ConvertLocation, Config <span class="kw">as </span>XcmConfig};
 
 <span class="kw">pub mod </span>fungible;
 <span class="kw">pub mod </span>generic;
@@ -149,7 +149,7 @@
 	</span><span class="kw">type </span>XcmConfig: XcmConfig;
 
 	<span class="doccomment">/// A converter between a multi-location to a sovereign account.
-	</span><span class="kw">type </span>AccountIdConverter: Convert&lt;MultiLocation, <span class="self">Self</span>::AccountId&gt;;
+	</span><span class="kw">type </span>AccountIdConverter: ConvertLocation&lt;<span class="self">Self</span>::AccountId&gt;;
 
 	<span class="doccomment">/// Does any necessary setup to create a valid destination for XCM messages.
 	/// Returns that destination&#39;s multi-location to be used in benchmarks.
@@ -214,7 +214,7 @@
 
 <span class="kw">pub fn </span>account_and_location&lt;T: Config&gt;(index: u32) -&gt; (T::AccountId, MultiLocation) {
 	<span class="kw">let </span>location: MultiLocation = account_id_junction::&lt;T&gt;(index).into();
-	<span class="kw">let </span>account = T::AccountIdConverter::convert(location.clone()).unwrap();
+	<span class="kw">let </span>account = T::AccountIdConverter::convert_location(<span class="kw-2">&amp;</span>location).unwrap();
 
 	(account, location)
 }

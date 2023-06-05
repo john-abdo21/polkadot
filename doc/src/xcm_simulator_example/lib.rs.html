@@ -670,7 +670,7 @@
 
 <span class="kw">use </span>frame_support::sp_tracing;
 <span class="kw">use </span>xcm::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>xcm_executor::traits::Convert;
+<span class="kw">use </span>xcm_executor::traits::ConvertLocation;
 <span class="kw">use </span>xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
 
 <span class="kw">pub const </span>ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([<span class="number">0u8</span>; <span class="number">32</span>]);
@@ -718,27 +718,27 @@
 
 <span class="kw">pub fn </span>parent_account_id() -&gt; parachain::AccountId {
 	<span class="kw">let </span>location = (Parent,);
-	parachain::LocationToAccountId::convert(location.into()).unwrap()
+	parachain::LocationToAccountId::convert_location(<span class="kw-2">&amp;</span>location.into()).unwrap()
 }
 
 <span class="kw">pub fn </span>child_account_id(para: u32) -&gt; relay_chain::AccountId {
 	<span class="kw">let </span>location = (Parachain(para),);
-	relay_chain::LocationToAccountId::convert(location.into()).unwrap()
+	relay_chain::LocationToAccountId::convert_location(<span class="kw-2">&amp;</span>location.into()).unwrap()
 }
 
 <span class="kw">pub fn </span>child_account_account_id(para: u32, who: sp_runtime::AccountId32) -&gt; relay_chain::AccountId {
 	<span class="kw">let </span>location = (Parachain(para), AccountId32 { network: <span class="prelude-val">None</span>, id: who.into() });
-	relay_chain::LocationToAccountId::convert(location.into()).unwrap()
+	relay_chain::LocationToAccountId::convert_location(<span class="kw-2">&amp;</span>location.into()).unwrap()
 }
 
 <span class="kw">pub fn </span>sibling_account_account_id(para: u32, who: sp_runtime::AccountId32) -&gt; parachain::AccountId {
 	<span class="kw">let </span>location = (Parent, Parachain(para), AccountId32 { network: <span class="prelude-val">None</span>, id: who.into() });
-	parachain::LocationToAccountId::convert(location.into()).unwrap()
+	parachain::LocationToAccountId::convert_location(<span class="kw-2">&amp;</span>location.into()).unwrap()
 }
 
 <span class="kw">pub fn </span>parent_account_account_id(who: sp_runtime::AccountId32) -&gt; parachain::AccountId {
 	<span class="kw">let </span>location = (Parent, AccountId32 { network: <span class="prelude-val">None</span>, id: who.into() });
-	parachain::LocationToAccountId::convert(location.into()).unwrap()
+	parachain::LocationToAccountId::convert_location(<span class="kw-2">&amp;</span>location.into()).unwrap()
 }
 
 <span class="kw">pub fn </span>para_ext(para_id: u32) -&gt; sp_io::TestExternalities {

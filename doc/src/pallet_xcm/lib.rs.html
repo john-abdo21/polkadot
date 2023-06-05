@@ -2296,7 +2296,7 @@
 };
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, prelude::<span class="kw-2">*</span>, result::Result, vec};
 <span class="kw">use </span>xcm::{latest::QueryResponseInfo, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>xcm_executor::traits::{Convert, ConvertOrigin, Properties};
+<span class="kw">use </span>xcm_executor::traits::{ConvertOrigin, Properties};
 
 <span class="kw">use </span>frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo},
@@ -2308,8 +2308,8 @@
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_executor::{
 	traits::{
-		CheckSuspension, ClaimAssets, DropAssets, MatchesFungible, OnResponse, QueryHandler,
-		QueryResponseStatus, VersionChangeNotifier, WeightBounds,
+		CheckSuspension, ClaimAssets, ConvertLocation, DropAssets, MatchesFungible, OnResponse,
+		QueryHandler, QueryResponseStatus, VersionChangeNotifier, WeightBounds,
 	},
 	Assets,
 };
@@ -2503,7 +2503,7 @@
 		</span><span class="kw">type </span>TrustedLockers: ContainsPair&lt;MultiLocation, MultiAsset&gt;;
 
 		<span class="doccomment">/// How to get an `AccountId` value from a `MultiLocation`, useful for handling asset locks.
-		</span><span class="kw">type </span>SovereignAccountOf: Convert&lt;MultiLocation, <span class="self">Self</span>::AccountId&gt;;
+		</span><span class="kw">type </span>SovereignAccountOf: ConvertLocation&lt;<span class="self">Self</span>::AccountId&gt;;
 
 		<span class="doccomment">/// The maximum number of local XCM locks that a single account may have.
 		</span><span class="kw">type </span>MaxLockers: Get&lt;u32&gt;;
@@ -4006,7 +4006,7 @@
 		owner: MultiLocation,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;LockTicket&lt;T&gt;, xcm_executor::traits::LockError&gt; {
 		<span class="kw">use </span>xcm_executor::traits::LockError::<span class="kw-2">*</span>;
-		<span class="kw">let </span>sovereign_account = T::SovereignAccountOf::convert_ref(<span class="kw-2">&amp;</span>owner).map_err(|<span class="kw">_</span>| BadOwner)<span class="question-mark">?</span>;
+		<span class="kw">let </span>sovereign_account = T::SovereignAccountOf::convert_location(<span class="kw-2">&amp;</span>owner).ok_or(BadOwner)<span class="question-mark">?</span>;
 		<span class="kw">let </span>amount = T::CurrencyMatcher::matches_fungible(<span class="kw-2">&amp;</span>asset).ok_or(UnknownAsset)<span class="question-mark">?</span>;
 		<span class="macro">ensure!</span>(T::Currency::free_balance(<span class="kw-2">&amp;</span>sovereign_account) &gt;= amount, AssetNotOwned);
 		<span class="kw">let </span>locks = LockedFungibles::&lt;T&gt;::get(<span class="kw-2">&amp;</span>sovereign_account).unwrap_or_default();
@@ -4021,7 +4021,7 @@
 		owner: MultiLocation,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;UnlockTicket&lt;T&gt;, xcm_executor::traits::LockError&gt; {
 		<span class="kw">use </span>xcm_executor::traits::LockError::<span class="kw-2">*</span>;
-		<span class="kw">let </span>sovereign_account = T::SovereignAccountOf::convert_ref(<span class="kw-2">&amp;</span>owner).map_err(|<span class="kw">_</span>| BadOwner)<span class="question-mark">?</span>;
+		<span class="kw">let </span>sovereign_account = T::SovereignAccountOf::convert_location(<span class="kw-2">&amp;</span>owner).ok_or(BadOwner)<span class="question-mark">?</span>;
 		<span class="kw">let </span>amount = T::CurrencyMatcher::matches_fungible(<span class="kw-2">&amp;</span>asset).ok_or(UnknownAsset)<span class="question-mark">?</span>;
 		<span class="macro">ensure!</span>(T::Currency::free_balance(<span class="kw-2">&amp;</span>sovereign_account) &gt;= amount, AssetNotOwned);
 		<span class="kw">let </span>locks = LockedFungibles::&lt;T&gt;::get(<span class="kw-2">&amp;</span>sovereign_account).unwrap_or_default();
@@ -4043,7 +4043,7 @@
 			NonFungible(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Unimplemented),
 		};
 		owner.remove_network_id();
-		<span class="kw">let </span>account = T::SovereignAccountOf::convert_ref(<span class="kw-2">&amp;</span>owner).map_err(|<span class="kw">_</span>| BadOwner)<span class="question-mark">?</span>;
+		<span class="kw">let </span>account = T::SovereignAccountOf::convert_location(<span class="kw-2">&amp;</span>owner).ok_or(BadOwner)<span class="question-mark">?</span>;
 		<span class="kw">let </span>locker = locker.into();
 		<span class="kw">let </span>owner = owner.into();
 		<span class="kw">let </span>id: VersionedAssetId = asset.id.into();
@@ -4071,7 +4071,7 @@
 			NonFungible(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Unimplemented),
 		};
 		owner.remove_network_id();
-		<span class="kw">let </span>sovereign_account = T::SovereignAccountOf::convert_ref(<span class="kw-2">&amp;</span>owner).map_err(|<span class="kw">_</span>| BadOwner)<span class="question-mark">?</span>;
+		<span class="kw">let </span>sovereign_account = T::SovereignAccountOf::convert_location(<span class="kw-2">&amp;</span>owner).ok_or(BadOwner)<span class="question-mark">?</span>;
 		<span class="kw">let </span>locker = locker.into();
 		<span class="kw">let </span>owner = owner.into();
 		<span class="kw">let </span>id: VersionedAssetId = asset.id.into();
