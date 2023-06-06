@@ -1867,6 +1867,20 @@
 <a href="#1867" id="1867">1867</a>
 <a href="#1868" id="1868">1868</a>
 <a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2594,6 +2608,21 @@
 	) <span class="kw">where
 		</span>R: CryptoRng + Rng,
 	{
+		<span class="kw">let </span>_span = <span class="self">self
+			</span>.spans
+			.get(<span class="kw-2">&amp;</span>assignment.block_hash)
+			.map(|span| {
+				span.child(<span class="kw">if </span>source.peer_id().is_some() {
+					<span class="string">&quot;peer-import-and-distribute-assignment&quot;
+				</span>} <span class="kw">else </span>{
+					<span class="string">&quot;local-import-and-distribute-assignment&quot;
+				</span>})
+			})
+			.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>assignment.block_hash, <span class="string">&quot;distribute-assignment&quot;</span>))
+			.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, assignment.block_hash))
+			.with_optional_peer_id(source.peer_id().as_ref())
+			.with_stage(jaeger::Stage::ApprovalDistribution);
+
 		<span class="kw">let </span>block_hash = assignment.block_hash;
 		<span class="kw">let </span>validator_index = assignment.validator;
 
@@ -2854,6 +2883,21 @@
 		source: MessageSource,
 		vote: IndirectSignedApprovalVote,
 	) {
+		<span class="kw">let </span>_span = <span class="self">self
+			</span>.spans
+			.get(<span class="kw-2">&amp;</span>vote.block_hash)
+			.map(|span| {
+				span.child(<span class="kw">if </span>source.peer_id().is_some() {
+					<span class="string">&quot;peer-import-and-distribute-approval&quot;
+				</span>} <span class="kw">else </span>{
+					<span class="string">&quot;local-import-and-distribute-approval&quot;
+				</span>})
+			})
+			.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>vote.block_hash, <span class="string">&quot;distribute-approval&quot;</span>))
+			.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, vote.block_hash))
+			.with_optional_peer_id(source.peer_id().as_ref())
+			.with_stage(jaeger::Stage::ApprovalDistribution);
+
 		<span class="kw">let </span>block_hash = vote.block_hash;
 		<span class="kw">let </span>validator_index = vote.validator;
 		<span class="kw">let </span>candidate_index = vote.candidate_index;
@@ -3593,14 +3637,6 @@
 				state.handle_new_blocks(ctx, metrics, metas, rng).<span class="kw">await</span>;
 			},
 			ApprovalDistributionMessage::DistributeAssignment(cert, candidate_index) =&gt; {
-				<span class="kw">let </span>_span = state
-					.spans
-					.get(<span class="kw-2">&amp;</span>cert.block_hash)
-					.map(|span| span.child(<span class="string">&quot;import-and-distribute-assignment&quot;</span>))
-					.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>cert.block_hash, <span class="string">&quot;distribute-assignment&quot;</span>))
-					.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, cert.block_hash))
-					.with_stage(jaeger::Stage::ApprovalDistribution);
-
 				<span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
 					<span class="string">&quot;Distributing our assignment on candidate (block={}, index={})&quot;</span>,
@@ -3620,14 +3656,6 @@
 					.<span class="kw">await</span>;
 			},
 			ApprovalDistributionMessage::DistributeApproval(vote) =&gt; {
-				<span class="kw">let </span>_span = state
-					.spans
-					.get(<span class="kw-2">&amp;</span>vote.block_hash)
-					.map(|span| span.child(<span class="string">&quot;import-and-distribute-approval&quot;</span>))
-					.unwrap_or_else(|| jaeger::Span::new(<span class="kw-2">&amp;</span>vote.block_hash, <span class="string">&quot;distribute-approval&quot;</span>))
-					.with_string_tag(<span class="string">&quot;block-hash&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, vote.block_hash))
-					.with_stage(jaeger::Stage::ApprovalDistribution);
-
 				<span class="macro">gum::debug!</span>(
 					target: LOG_TARGET,
 					<span class="string">&quot;Distributing our approval vote on candidate (block={}, index={})&quot;</span>,
