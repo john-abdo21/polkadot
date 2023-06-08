@@ -500,6 +500,15 @@
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -629,27 +638,35 @@
 	<span class="kw">pub </span>minimum_validation_upgrade_delay: BlockNumber,
 }
 
-<span class="attr">#[frame_support::storage_alias]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>V4ActiveConfig&lt;T: Config&gt; =
-	StorageValue&lt;Pallet&lt;T&gt;, V4HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;, OptionQuery&gt;;
+<span class="kw">mod </span>v4 {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="attr">#[frame_support::storage_alias]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>V4PendingConfigs&lt;T: Config&gt; = StorageValue&lt;
-	Pallet&lt;T&gt;,
-	Vec&lt;(SessionIndex, V4HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;,
-	OptionQuery,
-&gt;;
+	<span class="attr">#[frame_support::storage_alias]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ActiveConfig&lt;T: Config&gt; =
+		StorageValue&lt;Pallet&lt;T&gt;, V4HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;, OptionQuery&gt;;
 
-<span class="attr">#[frame_support::storage_alias]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>V5ActiveConfig&lt;T: Config&gt; =
-	StorageValue&lt;Pallet&lt;T&gt;, V5HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;, OptionQuery&gt;;
+	<span class="attr">#[frame_support::storage_alias]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PendingConfigs&lt;T: Config&gt; = StorageValue&lt;
+		Pallet&lt;T&gt;,
+		Vec&lt;(SessionIndex, V4HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;,
+		OptionQuery,
+	&gt;;
+}
 
-<span class="attr">#[frame_support::storage_alias]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>V5PendingConfigs&lt;T: Config&gt; = StorageValue&lt;
-	Pallet&lt;T&gt;,
-	Vec&lt;(SessionIndex, V5HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;,
-	OptionQuery,
-&gt;;
+<span class="kw">mod </span>v5 {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+	<span class="attr">#[frame_support::storage_alias]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ActiveConfig&lt;T: Config&gt; =
+		StorageValue&lt;Pallet&lt;T&gt;, V5HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;, OptionQuery&gt;;
+
+	<span class="attr">#[frame_support::storage_alias]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PendingConfigs&lt;T: Config&gt; = StorageValue&lt;
+		Pallet&lt;T&gt;,
+		Vec&lt;(SessionIndex, V5HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;,
+		OptionQuery,
+	&gt;;
+}
 
 <span class="kw">impl</span>&lt;BlockNumber: Default + From&lt;u32&gt;&gt; Default <span class="kw">for </span>V4HostConfiguration&lt;BlockNumber&gt; {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
@@ -768,6 +785,7 @@
 	}
 
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+		<span class="macro">log::info!</span>(target: configuration::LOG_TARGET, <span class="string">&quot;MigrateToV5 started&quot;</span>);
 		<span class="kw">if </span>StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">4 </span>{
 			<span class="kw">let </span>weight_consumed = migrate_to_v5::&lt;T&gt;();
 
@@ -854,13 +872,13 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 		}
 	};
 
-	<span class="kw">let </span>v4 = V4ActiveConfig::&lt;T&gt;::get()
+	<span class="kw">let </span>v4 = v4::ActiveConfig::&lt;T&gt;::get()
 		.defensive_proof(<span class="string">&quot;Could not decode old config&quot;</span>)
 		.unwrap_or_default();
 	<span class="kw">let </span>v5 = translate(v4);
-	V5ActiveConfig::&lt;T&gt;::set(<span class="prelude-val">Some</span>(v5));
+	v5::ActiveConfig::&lt;T&gt;::set(<span class="prelude-val">Some</span>(v5));
 
-	<span class="kw">let </span>pending_v4 = V4PendingConfigs::&lt;T&gt;::get()
+	<span class="kw">let </span>pending_v4 = v4::PendingConfigs::&lt;T&gt;::get()
 		.defensive_proof(<span class="string">&quot;Could not decode old pending&quot;</span>)
 		.unwrap_or_default();
 	<span class="kw">let </span><span class="kw-2">mut </span>pending_v5 = Vec::new();
@@ -869,7 +887,7 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 		<span class="kw">let </span>v5 = translate(v4);
 		pending_v5.push((session, v5));
 	}
-	V5PendingConfigs::&lt;T&gt;::set(<span class="prelude-val">Some</span>(pending_v5.clone()));
+	v5::PendingConfigs::&lt;T&gt;::set(<span class="prelude-val">Some</span>(pending_v5.clone()));
 
 	<span class="kw">let </span>num_configs = (pending_v5.len() + <span class="number">1</span>) <span class="kw">as </span>u64;
 	T::DbWeight::get().reads_writes(num_configs, num_configs)
@@ -899,8 +917,8 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 		// doesn&#39;t need to be read and also leaving it as one line allows to easily copy it.
 		</span><span class="kw">let </span>raw_config = <span class="macro">hex_literal::hex!</span>[<span class="string">&quot;0000a000005000000a00000000c8000000c800000a0000000a000000100e0000580200000000500000c800000700e8764817020040011e00000000000000005039278c0400000000000000000000005039278c0400000000000000000000e8030000009001001e00000000000000009001008070000000000000000000000a0000000a0000000a00000001000000010500000001c80000000600000058020000580200000200000059000000000000001e000000280000000700c817a80402004001010200000014000000&quot;</span>];
 
-		<span class="kw">let </span>v4 = v5::V4HostConfiguration::&lt;primitives::BlockNumber&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>raw_config[..])
-			.unwrap();
+		<span class="kw">let </span>v4 =
+			V4HostConfiguration::&lt;primitives::BlockNumber&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>raw_config[..]).unwrap();
 
 		<span class="comment">// We check only a sample of the values here. If we missed any fields or messed up data types
 		// that would skew all the fields coming after.
@@ -923,7 +941,7 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 		// We specify only the picked fields and the rest should be provided by the `Default`
 		// implementation. That implementation is copied over between the two types and should work
 		// fine.
-		</span><span class="kw">let </span>v4 = v5::V4HostConfiguration::&lt;primitives::BlockNumber&gt; {
+		</span><span class="kw">let </span>v4 = V4HostConfiguration::&lt;primitives::BlockNumber&gt; {
 			ump_max_individual_weight: Weight::from_parts(<span class="number">0x71616e6f6e0au64</span>, <span class="number">0x71616e6f6e0au64</span>),
 			needed_approvals: <span class="number">69</span>,
 			thread_availability_period: <span class="number">55</span>,
@@ -940,13 +958,13 @@ minimum_validation_upgrade_delay         : pre.minimum_validation_upgrade_delay,
 
 		new_test_ext(Default::default()).execute_with(|| {
 			<span class="comment">// Implant the v4 version in the state.
-			</span>V4ActiveConfig::&lt;Test&gt;::set(<span class="prelude-val">Some</span>(v4));
-			V4PendingConfigs::&lt;Test&gt;::set(<span class="prelude-val">Some</span>(pending_configs));
+			</span>v4::ActiveConfig::&lt;Test&gt;::set(<span class="prelude-val">Some</span>(v4));
+			v4::PendingConfigs::&lt;Test&gt;::set(<span class="prelude-val">Some</span>(pending_configs));
 
 			migrate_to_v5::&lt;Test&gt;();
 
-			<span class="kw">let </span>v5 = V5ActiveConfig::&lt;Test&gt;::get().unwrap();
-			<span class="kw">let </span><span class="kw-2">mut </span>configs_to_check = V5PendingConfigs::&lt;Test&gt;::get().unwrap();
+			<span class="kw">let </span>v5 = v5::ActiveConfig::&lt;Test&gt;::get().unwrap();
+			<span class="kw">let </span><span class="kw-2">mut </span>configs_to_check = v5::PendingConfigs::&lt;Test&gt;::get().unwrap();
 			configs_to_check.push((<span class="number">0</span>, v5.clone()));
 
 			<span class="kw">for </span>(<span class="kw">_</span>, v4) <span class="kw">in </span>configs_to_check {
