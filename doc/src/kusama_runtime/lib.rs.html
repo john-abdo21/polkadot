@@ -2448,6 +2448,32 @@
 <a href="#2448" id="2448">2448</a>
 <a href="#2449" id="2449">2449</a>
 <a href="#2450" id="2450">2450</a>
+<a href="#2451" id="2451">2451</a>
+<a href="#2452" id="2452">2452</a>
+<a href="#2453" id="2453">2453</a>
+<a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
+<a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
+<a href="#2462" id="2462">2462</a>
+<a href="#2463" id="2463">2463</a>
+<a href="#2464" id="2464">2464</a>
+<a href="#2465" id="2465">2465</a>
+<a href="#2466" id="2466">2466</a>
+<a href="#2467" id="2467">2467</a>
+<a href="#2468" id="2468">2468</a>
+<a href="#2469" id="2469">2469</a>
+<a href="#2470" id="2470">2470</a>
+<a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2473,11 +2499,12 @@
 </span><span class="kw">use </span>pallet_nis::WithMaximumOf;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>primitives::{
-	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
+	slashing, AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
 	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo, Hash,
 	Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, Moment, Nonce,
 	OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes, SessionInfo, Signature,
 	ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex, LOWEST_PUBLIC_ID,
+	PARACHAIN_KEY_TYPE_ID,
 };
 <span class="kw">use </span>runtime_common::{
 	auctions, claims, crowdloan, impl_runtime_weights, impls::DealWithFees, paras_registrar,
@@ -2494,7 +2521,7 @@
 	inclusion::{AggregateMessageOrigin, UmpQueueId},
 	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent, reward_points <span class="kw">as </span>parachains_reward_points,
-	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl,
+	runtime_api_impl::v5 <span class="kw">as </span>parachains_runtime_api_impl,
 	scheduler <span class="kw">as </span>parachains_scheduler, session_info <span class="kw">as </span>parachains_session_info,
 	shared <span class="kw">as </span>parachains_shared,
 };
@@ -4271,6 +4298,31 @@
 
 		<span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt; {
 			parachains_runtime_api_impl::get_session_disputes::&lt;Runtime&gt;()
+		}
+
+		<span class="kw">fn </span>unapplied_slashes(
+		) -&gt; Vec&lt;(SessionIndex, CandidateHash, slashing::PendingSlashes)&gt; {
+			parachains_runtime_api_impl::unapplied_slashes::&lt;Runtime&gt;()
+		}
+
+		<span class="kw">fn </span>key_ownership_proof(
+			validator_id: ValidatorId,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;slashing::OpaqueKeyOwnershipProof&gt; {
+			<span class="kw">use </span>parity_scale_codec::Encode;
+
+			Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
+				.map(|p| p.encode())
+				.map(slashing::OpaqueKeyOwnershipProof::new)
+		}
+
+		<span class="kw">fn </span>submit_report_dispute_lost(
+			dispute_proof: slashing::DisputeProof,
+			key_ownership_proof: slashing::OpaqueKeyOwnershipProof,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+			parachains_runtime_api_impl::submit_unsigned_slashing_report::&lt;Runtime&gt;(
+				dispute_proof,
+				key_ownership_proof,
+			)
 		}
 	}
 

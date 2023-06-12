@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["v4","vstaging"]};
+window.SIDEBAR_ITEMS = {"mod":["v5","vstaging"]};

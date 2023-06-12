@@ -2418,7 +2418,7 @@
 </span><span class="kw">use </span>pallet_nis::WithMaximumOf;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>primitives::{
-	vstaging, AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
+	slashing, AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
 	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo, Hash,
 	Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, Moment, Nonce,
 	OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes, SessionInfo, Signature,
@@ -2439,7 +2439,7 @@
 	inclusion::{AggregateMessageOrigin, UmpQueueId},
 	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
 	paras_inherent <span class="kw">as </span>parachains_paras_inherent,
-	runtime_api_impl::v4 <span class="kw">as </span>parachains_runtime_api_impl,
+	runtime_api_impl::v5 <span class="kw">as </span>parachains_runtime_api_impl,
 	scheduler <span class="kw">as </span>parachains_scheduler, session_info <span class="kw">as </span>parachains_session_info,
 	shared <span class="kw">as </span>parachains_shared,
 };
@@ -4310,25 +4310,25 @@
 		}
 
 		<span class="kw">fn </span>unapplied_slashes(
-		) -&gt; Vec&lt;(SessionIndex, CandidateHash, vstaging::slashing::PendingSlashes)&gt; {
-			runtime_parachains::runtime_api_impl::vstaging::unapplied_slashes::&lt;Runtime&gt;()
+		) -&gt; Vec&lt;(SessionIndex, CandidateHash, slashing::PendingSlashes)&gt; {
+			parachains_runtime_api_impl::unapplied_slashes::&lt;Runtime&gt;()
 		}
 
 		<span class="kw">fn </span>key_ownership_proof(
 			validator_id: ValidatorId,
-		) -&gt; <span class="prelude-ty">Option</span>&lt;vstaging::slashing::OpaqueKeyOwnershipProof&gt; {
+		) -&gt; <span class="prelude-ty">Option</span>&lt;slashing::OpaqueKeyOwnershipProof&gt; {
 			<span class="kw">use </span>parity_scale_codec::Encode;
 
 			Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
 				.map(|p| p.encode())
-				.map(vstaging::slashing::OpaqueKeyOwnershipProof::new)
+				.map(slashing::OpaqueKeyOwnershipProof::new)
 		}
 
 		<span class="kw">fn </span>submit_report_dispute_lost(
-			dispute_proof: vstaging::slashing::DisputeProof,
-			key_ownership_proof: vstaging::slashing::OpaqueKeyOwnershipProof,
+			dispute_proof: slashing::DisputeProof,
+			key_ownership_proof: slashing::OpaqueKeyOwnershipProof,
 		) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
-			runtime_parachains::runtime_api_impl::vstaging::submit_unsigned_slashing_report::&lt;Runtime&gt;(
+			parachains_runtime_api_impl::submit_unsigned_slashing_report::&lt;Runtime&gt;(
 				dispute_proof,
 				key_ownership_proof,
 			)

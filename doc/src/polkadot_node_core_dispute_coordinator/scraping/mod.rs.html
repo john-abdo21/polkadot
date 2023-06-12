@@ -479,6 +479,13 @@
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -506,13 +513,13 @@
 <span class="kw">use </span>polkadot_node_primitives::{DISPUTE_CANDIDATE_LIFETIME_AFTER_FINALIZATION, MAX_FINALITY_LAG};
 <span class="kw">use </span>polkadot_node_subsystem::{
 	messages::ChainApiMessage, overseer, ActivatedLeaf, ActiveLeavesUpdate, ChainApiError,
-	SubsystemSender,
+	RuntimeApiError, SubsystemSender,
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::runtime::{
-	get_candidate_events, get_on_chain_votes, get_unapplied_slashes,
+	<span class="self">self</span>, get_candidate_events, get_on_chain_votes, get_unapplied_slashes,
 };
 <span class="kw">use </span>polkadot_primitives::{
-	vstaging, BlockNumber, CandidateEvent, CandidateHash, CandidateReceipt, Hash,
+	slashing::PendingSlashes, BlockNumber, CandidateEvent, CandidateHash, CandidateReceipt, Hash,
 	ScrapedOnChainVotes, SessionIndex,
 };
 
@@ -548,7 +555,7 @@
 </span><span class="kw">pub struct </span>ScrapedUpdates {
 	<span class="kw">pub </span>on_chain_votes: Vec&lt;ScrapedOnChainVotes&gt;,
 	<span class="kw">pub </span>included_receipts: Vec&lt;CandidateReceipt&gt;,
-	<span class="kw">pub </span>unapplied_slashes: Vec&lt;(SessionIndex, CandidateHash, vstaging::slashing::PendingSlashes)&gt;,
+	<span class="kw">pub </span>unapplied_slashes: Vec&lt;(SessionIndex, CandidateHash, PendingSlashes)&gt;,
 }
 
 <span class="kw">impl </span>ScrapedUpdates {
@@ -751,8 +758,15 @@
 			<span class="prelude-val">Ok</span>(unapplied_slashes) =&gt; {
 				scraped_updates.unapplied_slashes = unapplied_slashes;
 			},
-			<span class="prelude-val">Err</span>(error) =&gt; {
+			<span class="prelude-val">Err</span>(runtime::Error::RuntimeRequest(RuntimeApiError::NotSupported { .. })) =&gt; {
 				<span class="macro">gum::debug!</span>(
+					target: LOG_TARGET,
+					block_hash = <span class="question-mark">?</span>activated.hash,
+					<span class="string">&quot;Fetching unapplied slashes not yet supported.&quot;</span>,
+				);
+			},
+			<span class="prelude-val">Err</span>(error) =&gt; {
+				<span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
 					block_hash = <span class="question-mark">?</span>activated.hash,
 					<span class="question-mark">?</span>error,

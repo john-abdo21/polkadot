@@ -1530,6 +1530,27 @@
 <a href="#1530" id="1530">1530</a>
 <a href="#1531" id="1531">1531</a>
 <a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1569,10 +1590,10 @@
 		ApprovalVotingMessage, BlockDescription, ChainSelectionMessage, DisputeCoordinatorMessage,
 		DisputeDistributionMessage, ImportStatementsResult,
 	},
-	overseer, ActivatedLeaf, ActiveLeavesUpdate, FromOrchestra, OverseerSignal,
+	overseer, ActivatedLeaf, ActiveLeavesUpdate, FromOrchestra, OverseerSignal, RuntimeApiError,
 };
 <span class="kw">use </span>polkadot_node_subsystem_util::runtime::{
-	key_ownership_proof, submit_report_dispute_lost, RuntimeInfo,
+	<span class="self">self</span>, key_ownership_proof, submit_report_dispute_lost, RuntimeInfo,
 };
 <span class="kw">use </span>polkadot_primitives::{
 	vstaging, BlockNumber, CandidateHash, CandidateReceipt, CompactStatement, DisputeStatement,
@@ -1956,8 +1977,19 @@
 							dispute_proofs.push(dispute_proof);
 						},
 						<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {},
-						<span class="prelude-val">Err</span>(error) =&gt; {
+						<span class="prelude-val">Err</span>(runtime::Error::RuntimeRequest(RuntimeApiError::NotSupported {
+							..
+						})) =&gt; {
 							<span class="macro">gum::debug!</span>(
+								target: LOG_TARGET,
+								<span class="question-mark">?</span>session_index,
+								<span class="question-mark">?</span>candidate_hash,
+								<span class="question-mark">?</span>validator_id,
+								<span class="string">&quot;Key ownership proof not yet supported.&quot;</span>,
+							);
+						},
+						<span class="prelude-val">Err</span>(error) =&gt; {
+							<span class="macro">gum::warn!</span>(
 								target: LOG_TARGET,
 								<span class="question-mark">?</span>error,
 								<span class="question-mark">?</span>session_index,
@@ -2012,6 +2044,16 @@
 				.<span class="kw">await</span>;
 
 				<span class="kw">match </span>res {
+					<span class="prelude-val">Err</span>(runtime::Error::RuntimeRequest(RuntimeApiError::NotSupported {
+						..
+					})) =&gt; {
+						<span class="macro">gum::debug!</span>(
+							target: LOG_TARGET,
+							<span class="question-mark">?</span>session_index,
+							<span class="question-mark">?</span>candidate_hash,
+							<span class="string">&quot;Reporting pending slash not yet supported&quot;</span>,
+						);
+					},
 					<span class="prelude-val">Err</span>(error) =&gt; {
 						<span class="macro">gum::warn!</span>(
 							target: LOG_TARGET,

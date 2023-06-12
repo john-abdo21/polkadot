@@ -1080,6 +1080,53 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1108,9 +1155,10 @@
 
 <span class="kw">use </span>polkadot_runtime_parachains::{
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
-	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
-	initializer <span class="kw">as </span>parachains_initializer, origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
-	paras_inherent <span class="kw">as </span>parachains_paras_inherent, runtime_api_impl::v4 <span class="kw">as </span>runtime_impl,
+	disputes::slashing <span class="kw">as </span>parachains_slashing, dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp,
+	inclusion <span class="kw">as </span>parachains_inclusion, initializer <span class="kw">as </span>parachains_initializer,
+	origin <span class="kw">as </span>parachains_origin, paras <span class="kw">as </span>parachains_paras,
+	paras_inherent <span class="kw">as </span>parachains_paras_inherent, runtime_api_impl::v5 <span class="kw">as </span>runtime_impl,
 	scheduler <span class="kw">as </span>parachains_scheduler, session_info <span class="kw">as </span>parachains_session_info,
 	shared <span class="kw">as </span>parachains_shared,
 };
@@ -1120,19 +1168,19 @@
 <span class="kw">use </span>frame_election_provider_support::{onchain, SequentialPhragmen};
 <span class="kw">use </span>frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, WithdrawReasons},
+	traits::{Everything, KeyOwnerProofSystem, WithdrawReasons},
 };
 <span class="kw">use </span>pallet_grandpa::{fg_primitives, AuthorityId <span class="kw">as </span>GrandpaId};
 <span class="kw">use </span>pallet_session::historical <span class="kw">as </span>session_historical;
 <span class="kw">use </span>pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
 <span class="kw">use </span>polkadot_runtime_parachains::reward_points::RewardValidatorsWithEraPoints;
 <span class="kw">use </span>primitives::{
-	AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
+	slashing, AccountId, AccountIndex, Balance, BlockNumber, CandidateEvent, CandidateHash,
 	CommittedCandidateReceipt, CoreState, DisputeState, ExecutorParams, GroupRotationInfo,
 	Hash <span class="kw">as </span>HashT, Id <span class="kw">as </span>ParaId, InboundDownwardMessage, InboundHrmpMessage, Moment, Nonce,
 	OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
 	SessionInfo <span class="kw">as </span>SessionInfoData, Signature, ValidationCode, ValidationCodeHash, ValidatorId,
-	ValidatorIndex,
+	ValidatorIndex, PARACHAIN_KEY_TYPE_ID,
 };
 <span class="kw">use </span>runtime_common::{
 	claims, impl_runtime_weights, paras_sudo_wrapper, BlockHashCount, BlockLength,
@@ -1149,7 +1197,7 @@
 		SaturatedConversion, StaticLookup, Verify,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill,
+	ApplyExtrinsicResult, KeyTypeId, Perbill,
 };
 <span class="kw">use </span>sp_staking::SessionIndex;
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
@@ -1252,6 +1300,8 @@
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>storage EpochDuration: u64 = EPOCH_DURATION_IN_SLOTS <span class="kw">as </span>u64;
 	<span class="kw">pub </span>storage ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
+	<span class="kw">pub </span>ReportLongevity: u64 =
+		BondingDuration::get() <span class="kw">as </span>u64 * SessionsPerEra::get() <span class="kw">as </span>u64 * EpochDuration::get();
 }
 
 <span class="kw">impl </span>pallet_babe::Config <span class="kw">for </span>Runtime {
@@ -1267,7 +1317,8 @@
 
 	<span class="kw">type </span>MaxAuthorities = MaxAuthorities;
 
-	<span class="kw">type </span>KeyOwnerProof = sp_core::Void;
+	<span class="kw">type </span>KeyOwnerProof =
+		&lt;Historical <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, pallet_babe::AuthorityId)&gt;&gt;::Proof;
 
 	<span class="kw">type </span>EquivocationReportSystem = ();
 }
@@ -1566,8 +1617,25 @@
 <span class="kw">impl </span>parachains_disputes::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RewardValidators = ();
-	<span class="kw">type </span>SlashingHandler = ();
+	<span class="kw">type </span>SlashingHandler = parachains_slashing::SlashValidatorsForDisputes&lt;ParasSlashing&gt;;
 	<span class="kw">type </span>WeightInfo = parachains_disputes::TestWeightInfo;
+}
+
+<span class="kw">impl </span>parachains_slashing::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>KeyOwnerProofSystem = Historical;
+	<span class="kw">type </span>KeyOwnerProof =
+		&lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(KeyTypeId, ValidatorId)&gt;&gt;::Proof;
+	<span class="kw">type </span>KeyOwnerIdentification = &lt;<span class="self">Self</span>::KeyOwnerProofSystem <span class="kw">as </span>KeyOwnerProofSystem&lt;(
+		KeyTypeId,
+		ValidatorId,
+	)&gt;&gt;::IdentificationTuple;
+	<span class="kw">type </span>HandleReports = parachains_slashing::SlashingReportHandler&lt;
+		<span class="self">Self</span>::KeyOwnerIdentification,
+		Offences,
+		ReportLongevity,
+	&gt;;
+	<span class="kw">type </span>WeightInfo = parachains_disputes::slashing::TestWeightInfo;
+	<span class="kw">type </span>BenchmarkingConfig = parachains_slashing::BenchConfig&lt;<span class="number">1000</span>&gt;;
 }
 
 <span class="kw">impl </span>parachains_paras_inherent::Config <span class="kw">for </span>Runtime {
@@ -1753,6 +1821,7 @@
 		Dmp: parachains_dmp::{Pallet, Storage},
 		Xcm: pallet_xcm::{Pallet, Call, Event&lt;T&gt;, Origin},
 		ParasDisputes: parachains_disputes::{Pallet, Storage, Event&lt;T&gt;},
+		ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned},
 
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
 
@@ -1972,6 +2041,31 @@
 
 		<span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumber&gt;)&gt; {
 			runtime_impl::get_session_disputes::&lt;Runtime&gt;()
+		}
+
+		<span class="kw">fn </span>unapplied_slashes(
+		) -&gt; Vec&lt;(SessionIndex, CandidateHash, slashing::PendingSlashes)&gt; {
+			runtime_impl::unapplied_slashes::&lt;Runtime&gt;()
+		}
+
+		<span class="kw">fn </span>key_ownership_proof(
+			validator_id: ValidatorId,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;slashing::OpaqueKeyOwnershipProof&gt; {
+			<span class="kw">use </span>parity_scale_codec::Encode;
+
+			Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
+				.map(|p| p.encode())
+				.map(slashing::OpaqueKeyOwnershipProof::new)
+		}
+
+		<span class="kw">fn </span>submit_report_dispute_lost(
+			dispute_proof: slashing::DisputeProof,
+			key_ownership_proof: slashing::OpaqueKeyOwnershipProof,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
+			runtime_impl::submit_unsigned_slashing_report::&lt;Runtime&gt;(
+				dispute_proof,
+				key_ownership_proof,
+			)
 		}
 	}
 
