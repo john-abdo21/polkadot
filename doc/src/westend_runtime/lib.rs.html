@@ -2128,6 +2128,12 @@
 <a href="#2128" id="2128">2128</a>
 <a href="#2129" id="2129">2129</a>
 <a href="#2130" id="2130">2130</a>
+<a href="#2131" id="2131">2131</a>
+<a href="#2132" id="2132">2132</a>
+<a href="#2133" id="2133">2133</a>
+<a href="#2134" id="2134">2134</a>
+<a href="#2135" id="2135">2135</a>
+<a href="#2136" id="2136">2136</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2246,13 +2252,13 @@
 	spec_name: <span class="macro">create_runtime_str!</span>(<span class="string">&quot;westend&quot;</span>),
 	impl_name: <span class="macro">create_runtime_str!</span>(<span class="string">&quot;parity-westend&quot;</span>),
 	authoring_version: <span class="number">2</span>,
-	spec_version: <span class="number">9410</span>,
+	spec_version: <span class="number">9430</span>,
 	impl_version: <span class="number">0</span>,
 	<span class="attr">#[cfg(not(feature = <span class="string">&quot;disable-runtime-api&quot;</span>))]
 	</span>apis: RUNTIME_API_VERSIONS,
 	<span class="attr">#[cfg(feature = <span class="string">&quot;disable-runtime-api&quot;</span>)]
 	</span>apis: <span class="macro">sp_version::create_apis_vec!</span>[[]],
-	transaction_version: <span class="number">20</span>,
+	transaction_version: <span class="number">22</span>,
 	state_version: <span class="number">1</span>,
 };
 
@@ -3405,8 +3411,13 @@
 ///
 /// This contains the combined migrations of the last 10 releases. It allows to skip runtime
 /// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
-</span><span class="kw">pub type </span>Migrations =
-	(migrations::V0940, migrations::V0941, migrations::V0942, migrations::Unreleased);
+</span><span class="kw">pub type </span>Migrations = (
+	migrations::V0940,
+	migrations::V0941,
+	migrations::V0942,
+	migrations::V0943,
+	migrations::Unreleased,
+);
 
 <span class="doccomment">/// The runtime migrations per release.
 </span><span class="attr">#[allow(deprecated, missing_docs)]
@@ -3428,6 +3439,12 @@
 		parachains_configuration::migration::v5::MigrateToV5&lt;Runtime&gt;,
 		pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
 	);
+	<span class="kw">pub type </span>V0943 = (
+		SetStorageVersions,
+		<span class="comment">// Remove UMP dispatch queue &lt;https://github.com/paritytech/polkadot/pull/6271&gt;
+		</span>parachains_configuration::migration::v6::MigrateToV6&lt;Runtime&gt;,
+		ump_migrations::UpdateUmpLimits,
+	);
 
 	<span class="doccomment">/// Migrations that set `StorageVersion`s we missed to set.
 	</span><span class="kw">pub struct </span>SetStorageVersions;
@@ -3444,12 +3461,7 @@
 	}
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
-	</span><span class="kw">pub type </span>Unreleased = (
-		SetStorageVersions,
-		<span class="comment">// Remove UMP dispatch queue &lt;https://github.com/paritytech/polkadot/pull/6271&gt;
-		</span>parachains_configuration::migration::v6::MigrateToV6&lt;Runtime&gt;,
-		ump_migrations::UpdateUmpLimits,
-	);
+	</span><span class="kw">pub type </span>Unreleased = ();
 }
 
 <span class="doccomment">/// Helpers to configure all migrations.

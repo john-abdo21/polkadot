@@ -4,5 +4,5 @@
 "polkadot_test_runtime":[["impl GetCallMetadata for <a class=\"enum\" href=\"polkadot_test_runtime/enum.RuntimeCall.html\" title=\"enum polkadot_test_runtime::RuntimeCall\">RuntimeCall</a>"]],
 "rococo_runtime":[["impl GetCallMetadata for <a class=\"enum\" href=\"rococo_runtime/enum.RuntimeCall.html\" title=\"enum rococo_runtime::RuntimeCall\">RuntimeCall</a>"]],
 "westend_runtime":[["impl GetCallMetadata for <a class=\"enum\" href=\"westend_runtime/enum.RuntimeCall.html\" title=\"enum westend_runtime::RuntimeCall\">RuntimeCall</a>"]],
-"xcm_fuzzer":[["impl GetCallMetadata for <a class=\"enum\" href=\"xcm_fuzzer/relay_chain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::relay_chain::RuntimeCall\">RuntimeCall</a>"],["impl GetCallMetadata for <a class=\"enum\" href=\"xcm_fuzzer/parachain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::parachain::RuntimeCall\">RuntimeCall</a>"]]
+"xcm_fuzzer":[["impl GetCallMetadata for <a class=\"enum\" href=\"xcm_fuzzer/parachain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::parachain::RuntimeCall\">RuntimeCall</a>"],["impl GetCallMetadata for <a class=\"enum\" href=\"xcm_fuzzer/relay_chain/enum.RuntimeCall.html\" title=\"enum xcm_fuzzer::relay_chain::RuntimeCall\">RuntimeCall</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
