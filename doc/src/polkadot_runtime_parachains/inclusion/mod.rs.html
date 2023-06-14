@@ -1304,55 +1304,6 @@
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
-<a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
-<a href="#1309" id="1309">1309</a>
-<a href="#1310" id="1310">1310</a>
-<a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
-<a href="#1315" id="1315">1315</a>
-<a href="#1316" id="1316">1316</a>
-<a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
-<a href="#1321" id="1321">1321</a>
-<a href="#1322" id="1322">1322</a>
-<a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
-<a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1378,7 +1329,6 @@
 </span><span class="kw">use crate</span>::{
 	configuration::{<span class="self">self</span>, HostConfiguration},
 	disputes, dmp, hrmp, paras,
-	paras_inherent::DisputedBitfield,
 	scheduler::CoreAssignment,
 	shared,
 };
@@ -1394,8 +1344,8 @@
 <span class="kw">use </span>primitives::{
 	supermajority_threshold, well_known_keys, AvailabilityBitfield, BackedCandidate,
 	CandidateCommitments, CandidateDescriptor, CandidateHash, CandidateReceipt,
-	CommittedCandidateReceipt, CoreIndex, GroupIndex, Hash, HeadData, Id <span class="kw">as </span>ParaId, SigningContext,
-	UncheckedSignedAvailabilityBitfields, UpwardMessage, ValidatorId, ValidatorIndex,
+	CommittedCandidateReceipt, CoreIndex, GroupIndex, Hash, HeadData, Id <span class="kw">as </span>ParaId,
+	SignedAvailabilityBitfields, SigningContext, UpwardMessage, ValidatorId, ValidatorIndex,
 	ValidityAttestation,
 };
 <span class="kw">use </span>scale_info::TypeInfo;
@@ -1446,19 +1396,6 @@
 	bitfield: AvailabilityBitfield, <span class="comment">// one bit per core.
 	</span>submitted_at: N,                <span class="comment">// for accounting, as meaning of bits may change over time.
 </span>}
-
-<span class="doccomment">/// Determines if all checks should be applied or if a subset was already completed
-/// in a code path that will be executed afterwards or was already executed before.
-</span><span class="attr">#[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>FullCheck {
-	<span class="doccomment">/// Yes, do a full check, skip nothing.
-	</span>Yes,
-	<span class="doccomment">/// Skip a subset of checks that are already completed before.
-	///
-	/// Attention: Should only be used when absolutely sure that the required
-	/// checks are completed before.
-	</span>Skip,
-}
 
 <span class="doccomment">/// A backed candidate pending availability.
 </span><span class="attr">#[derive(Encode, Decode, PartialEq, TypeInfo)]
@@ -1852,13 +1789,17 @@
 
 	<span class="doccomment">/// Extract the freed cores based on cores that became available.
 	///
+	/// Bitfields are expected to have been sanitized already. E.g. via `sanitize_bitfields`!
+	///
 	/// Updates storage items `PendingAvailability` and `AvailabilityBitfields`.
+	///
+	/// Returns a `Vec` of `CandidateHash`es and their respective `AvailabilityCore`s that became available,
+	/// and cores free.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update_pending_availability_and_get_freed_cores&lt;F&gt;(
 		expected_bits: usize,
 		validators: <span class="kw-2">&amp;</span>[ValidatorId],
-		signed_bitfields: UncheckedSignedAvailabilityBitfields,
+		signed_bitfields: SignedAvailabilityBitfields,
 		core_lookup: F,
-		enact_candidate: bool,
 	) -&gt; Vec&lt;(CoreIndex, CandidateHash)&gt;
 	<span class="kw">where
 		</span>F: Fn(CoreIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ParaId&gt;,
@@ -1873,9 +1814,8 @@
 		<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
 		<span class="kw">for </span>(checked_bitfield, validator_index) <span class="kw">in
 			</span>signed_bitfields.into_iter().map(|signed_bitfield| {
-				<span class="comment">// extracting unchecked data, since it&#39;s checked in `fn sanitize_bitfields` already.
-				</span><span class="kw">let </span>validator_idx = signed_bitfield.unchecked_validator_index();
-				<span class="kw">let </span>checked_bitfield = signed_bitfield.unchecked_into_payload();
+				<span class="kw">let </span>validator_idx = signed_bitfield.validator_index();
+				<span class="kw">let </span>checked_bitfield = signed_bitfield.into_payload();
 				(checked_bitfield, validator_idx)
 			}) {
 			<span class="kw">for </span>(bit_idx, <span class="kw">_</span>) <span class="kw">in </span>checked_bitfield.<span class="number">0</span>.iter().enumerate().filter(|(<span class="kw">_</span>, is_av)| <span class="kw-2">**</span>is_av) {
@@ -1930,20 +1870,18 @@
 					</span>},
 				};
 
-				<span class="kw">if </span>enact_candidate {
-					<span class="kw">let </span>receipt = CommittedCandidateReceipt {
-						descriptor: pending_availability.descriptor,
-						commitments,
-					};
-					<span class="kw">let </span>_weight = <span class="self">Self</span>::enact_candidate(
-						pending_availability.relay_parent_number,
-						receipt,
-						pending_availability.backers,
-						pending_availability.availability_votes,
-						pending_availability.core,
-						pending_availability.backing_group,
-					);
-				}
+				<span class="kw">let </span>receipt = CommittedCandidateReceipt {
+					descriptor: pending_availability.descriptor,
+					commitments,
+				};
+				<span class="kw">let </span>_weight = <span class="self">Self</span>::enact_candidate(
+					pending_availability.relay_parent_number,
+					receipt,
+					pending_availability.backers,
+					pending_availability.availability_votes,
+					pending_availability.core,
+					pending_availability.backing_group,
+				);
 
 				freed_cores.push((pending_availability.core, pending_availability.hash));
 			} <span class="kw">else </span>{
@@ -1952,42 +1890,6 @@
 		}
 
 		freed_cores
-	}
-
-	<span class="doccomment">/// Process a set of incoming bitfields.
-	///
-	/// Returns a `Vec` of `CandidateHash`es and their respective `AvailabilityCore`s that became available,
-	/// and cores free.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_bitfields(
-		expected_bits: usize,
-		signed_bitfields: UncheckedSignedAvailabilityBitfields,
-		disputed_bitfield: DisputedBitfield,
-		core_lookup: <span class="kw">impl </span>Fn(CoreIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ParaId&gt;,
-		full_check: FullCheck,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(CoreIndex, CandidateHash)&gt;, <span class="kw">crate</span>::inclusion::Error&lt;T&gt;&gt; {
-		<span class="kw">let </span>validators = shared::Pallet::&lt;T&gt;::active_validator_keys();
-		<span class="kw">let </span>session_index = shared::Pallet::&lt;T&gt;::session_index();
-		<span class="kw">let </span>parent_hash = frame_system::Pallet::&lt;T&gt;::parent_hash();
-
-		<span class="kw">let </span>checked_bitfields = <span class="kw">crate</span>::paras_inherent::assure_sanity_bitfields::&lt;T&gt;(
-			signed_bitfields,
-			disputed_bitfield,
-			expected_bits,
-			parent_hash,
-			session_index,
-			<span class="kw-2">&amp;</span>validators[..],
-			full_check,
-		)<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>freed_cores = <span class="self">Self</span>::update_pending_availability_and_get_freed_cores::&lt;<span class="kw">_</span>&gt;(
-			expected_bits,
-			<span class="kw-2">&amp;</span>validators[..],
-			checked_bitfields,
-			core_lookup,
-			<span class="bool-val">true</span>,
-		);
-
-		<span class="prelude-val">Ok</span>(freed_cores)
 	}
 
 	<span class="doccomment">/// Process candidates that have been backed. Provide the relay storage root, a set of candidates

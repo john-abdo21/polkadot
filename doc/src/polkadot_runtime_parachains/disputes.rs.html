@@ -1289,77 +1289,6 @@
 <a href="#1289" id="1289">1289</a>
 <a href="#1290" id="1290">1290</a>
 <a href="#1291" id="1291">1291</a>
-<a href="#1292" id="1292">1292</a>
-<a href="#1293" id="1293">1293</a>
-<a href="#1294" id="1294">1294</a>
-<a href="#1295" id="1295">1295</a>
-<a href="#1296" id="1296">1296</a>
-<a href="#1297" id="1297">1297</a>
-<a href="#1298" id="1298">1298</a>
-<a href="#1299" id="1299">1299</a>
-<a href="#1300" id="1300">1300</a>
-<a href="#1301" id="1301">1301</a>
-<a href="#1302" id="1302">1302</a>
-<a href="#1303" id="1303">1303</a>
-<a href="#1304" id="1304">1304</a>
-<a href="#1305" id="1305">1305</a>
-<a href="#1306" id="1306">1306</a>
-<a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
-<a href="#1309" id="1309">1309</a>
-<a href="#1310" id="1310">1310</a>
-<a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
-<a href="#1315" id="1315">1315</a>
-<a href="#1316" id="1316">1316</a>
-<a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
-<a href="#1321" id="1321">1321</a>
-<a href="#1322" id="1322">1322</a>
-<a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
-<a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
-<a href="#1356" id="1356">1356</a>
-<a href="#1357" id="1357">1357</a>
-<a href="#1358" id="1358">1358</a>
-<a href="#1359" id="1359">1359</a>
-<a href="#1360" id="1360">1360</a>
-<a href="#1361" id="1361">1361</a>
-<a href="#1362" id="1362">1362</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1498,19 +1427,6 @@
 	<span class="kw">fn </span>initializer_on_new_session(<span class="kw">_</span>: SessionIndex) {}
 }
 
-<span class="doccomment">/// Binary discriminator to determine if the expensive signature
-/// checks are necessary.
-</span><span class="attr">#[derive(Clone, Copy)]
-</span><span class="kw">pub enum </span>VerifyDisputeSignatures {
-	<span class="doccomment">/// Yes, verify the signatures.
-	</span>Yes,
-	<span class="doccomment">/// No, skip the signature verification.
-	///
-	/// Only done if there exists an invariant that
-	/// can guaranteed the signature was checked before.
-	</span>Skip,
-}
-
 <span class="doccomment">/// Provide a `Ordering` for the two provided dispute statement sets according to the
 /// following prioritization:
 ///  1. Prioritize local disputes over remote disputes
@@ -1546,36 +1462,6 @@
 	}
 }
 
-<span class="kw">use </span><span class="kw">super</span>::paras_inherent::IsSortedBy;
-
-<span class="doccomment">/// Returns `true` if duplicate items were found, otherwise `false`.
-///
-/// `check_equal(a: &amp;T, b: &amp;T)` _must_ return `true`, iff `a` and `b` are equal, otherwise `false.
-/// The definition of _equal_ is to be defined by the user.
-///
-/// Attention: Requires the input `iter` to be sorted, such that _equals_
-/// would be adjacent in respect whatever `check_equal` defines as equality!
-</span><span class="kw">fn </span>contains_duplicates_in_sorted_iter&lt;
-	<span class="lifetime">&#39;a</span>,
-	T: <span class="lifetime">&#39;a</span>,
-	I: <span class="lifetime">&#39;a </span>+ IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;,
-	C: <span class="lifetime">&#39;static </span>+ FnMut(<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) -&gt; bool,
-&gt;(
-	iter: I,
-	<span class="kw-2">mut </span>check_equal: C,
-) -&gt; bool {
-	<span class="kw">let </span><span class="kw-2">mut </span>iter = iter.into_iter();
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>previous) = iter.next() {
-		<span class="kw">while let </span><span class="prelude-val">Some</span>(current) = iter.next() {
-			<span class="kw">if </span>check_equal(previous, current) {
-				<span class="kw">return </span><span class="bool-val">true
-			</span>}
-			previous = current;
-		}
-	}
-	<span class="kw">return </span><span class="bool-val">false
-</span>}
-
 <span class="doccomment">/// Hook into disputes handling.
 ///
 /// Allows decoupling parachains handling from disputes so that it can
@@ -1584,23 +1470,6 @@
 	<span class="doccomment">/// Whether the chain is frozen, if the chain is frozen it will not accept
 	/// any new parachain blocks for backing or inclusion.
 	</span><span class="kw">fn </span>is_frozen() -&gt; bool;
-
-	<span class="doccomment">/// Assure sanity
-	</span><span class="kw">fn </span>assure_deduplicated_and_sorted(statement_sets: <span class="kw-2">&amp;</span>MultiDisputeStatementSet) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
-		<span class="kw">if </span>!IsSortedBy::is_sorted_by(
-			statement_sets.as_slice(),
-			dispute_ordering_compare::&lt;<span class="self">Self</span>, BlockNumber&gt;,
-		) {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(())
-		}
-		<span class="comment">// Sorted, so according to session and candidate hash, this will detect duplicates.
-		</span><span class="kw">if </span>contains_duplicates_in_sorted_iter(statement_sets, |previous, current| {
-			current.session == previous.session &amp;&amp; current.candidate_hash == previous.candidate_hash
-		}) {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(())
-		}
-		<span class="prelude-val">Ok</span>(())
-	}
 
 	<span class="doccomment">/// Remove dispute statement duplicates and sort the non-duplicates based on
 	/// local (lower indicies) vs remotes (higher indices) and age (older with lower indices).
@@ -1636,7 +1505,6 @@
 	</span><span class="kw">fn </span>filter_dispute_data(
 		statement_set: DisputeStatementSet,
 		post_conclusion_acceptance_period: BlockNumber,
-		verify_sigs: VerifyDisputeSignatures,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;CheckedDisputeStatementSet&gt;;
 
 	<span class="doccomment">/// Handle sets of dispute statements corresponding to 0 or more candidates.
@@ -1684,7 +1552,6 @@
 	<span class="kw">fn </span>filter_dispute_data(
 		_set: DisputeStatementSet,
 		_post_conclusion_acceptance_period: BlockNumber,
-		_verify_sigs: VerifyDisputeSignatures,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;CheckedDisputeStatementSet&gt; {
 		<span class="prelude-val">None
 	</span>}
@@ -1733,14 +1600,9 @@
 	<span class="kw">fn </span>filter_dispute_data(
 		set: DisputeStatementSet,
 		post_conclusion_acceptance_period: T::BlockNumber,
-		verify_sigs: VerifyDisputeSignatures,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;CheckedDisputeStatementSet&gt; {
-		pallet::Pallet::&lt;T&gt;::filter_dispute_data(
-			<span class="kw-2">&amp;</span>set,
-			post_conclusion_acceptance_period,
-			verify_sigs,
-		)
-		.filter_statement_set(set)
+		pallet::Pallet::&lt;T&gt;::filter_dispute_data(<span class="kw-2">&amp;</span>set, post_conclusion_acceptance_period)
+			.filter_statement_set(set)
 	}
 
 	<span class="kw">fn </span>process_checked_multi_dispute_data(
@@ -2367,7 +2229,6 @@
 	</span><span class="kw">fn </span>filter_dispute_data(
 		set: <span class="kw-2">&amp;</span>DisputeStatementSet,
 		post_conclusion_acceptance_period: &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber,
-		verify_sigs: VerifyDisputeSignatures,
 	) -&gt; StatementSetFilter {
 		<span class="kw">let </span><span class="kw-2">mut </span>filter = StatementSetFilter::RemoveIndices(Vec::new());
 
@@ -2430,29 +2291,26 @@
 					</span>},
 				};
 
-				<span class="comment">// Avoid checking signatures repeatedly.
-				</span><span class="kw">if let </span>VerifyDisputeSignatures::Yes = verify_sigs {
-					<span class="comment">// Check signature after attempting import.
-					//
-					// Since we expect that this filter will be applied to
-					// disputes long after they&#39;re concluded, 99% of the time,
-					// the duplicate filter above will catch them before needing
-					// to do a heavy signature check.
-					//
-					// This is only really important until the post-conclusion acceptance threshold
-					// is reached, and then no part of this loop will be hit.
-					</span><span class="kw">if let </span><span class="prelude-val">Err</span>(()) = check_signature(
-						<span class="kw-2">&amp;</span>validator_public,
-						set.candidate_hash,
-						set.session,
-						statement,
-						signature,
-					) {
-						importer.undo(undo);
-						filter.remove_index(i);
-						<span class="kw">continue
-					</span>}
-				}
+				<span class="comment">// Check signature after attempting import.
+				//
+				// Since we expect that this filter will be applied to
+				// disputes long after they&#39;re concluded, 99% of the time,
+				// the duplicate filter above will catch them before needing
+				// to do a heavy signature check.
+				//
+				// This is only really important until the post-conclusion acceptance threshold
+				// is reached, and then no part of this loop will be hit.
+				</span><span class="kw">if let </span><span class="prelude-val">Err</span>(()) = check_signature(
+					<span class="kw-2">&amp;</span>validator_public,
+					set.candidate_hash,
+					set.session,
+					statement,
+					signature,
+				) {
+					importer.undo(undo);
+					filter.remove_index(i);
+					<span class="kw">continue
+				</span>};
 			}
 
 			importer.finish()

@@ -1671,7 +1671,7 @@ in order to facilitate oraclisation on to the para.</li>
 </li>
 </ul>
 <footer id="last-change">Last change: 2023-05-19, commit: <a href="https://github.com/paritytech/polkadot/commit/7c1dc94292">7c1dc94292</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="parainherent"><a class="header" href="#parainherent"><code>ParaInherent</code></a></h1>
-<p>This module is responsible for providing all data given to the runtime by the block author to the various parachains modules. The entry-point is mandatory, in that it must be invoked exactly once within every block, and it is also &quot;inherent&quot;, in that it is provided with no origin by the block author. The data within it carries its own authentication; i.e. the data takes the form of signed statements by validators. If any of the steps within fails, the entry-point is considered as having failed and the block will be invalid.</p>
+<p>This module is responsible for providing all data given to the runtime by the block author to the various parachains modules. The entry-point is mandatory, in that it must be invoked exactly once within every block, and it is also &quot;inherent&quot;, in that it is provided with no origin by the block author. The data within it carries its own authentication; i.e. the data takes the form of signed statements by validators. Invalid data will be filtered and not applied.</p>
 <p>This module does not have the same initialization/finalization concerns as the others, as it only requires that entry points be triggered after all modules have initialized and that finalization happens after entry points are triggered. Both of these are assumptions we have already made about the runtime's order of operations, so this module doesn't need to be initialized or finalized by the <code>Initializer</code>.</p>
 <p>There are a couple of important notes to the operations in this inherent as they relate to disputes.</p>
 <ol>
@@ -1699,77 +1699,29 @@ OnChainVotes: Option&lt;ScrapedOnChainVotes&gt;,
 </ol>
 <h2 id="entry-points-1"><a class="header" href="#entry-points-1">Entry Points</a></h2>
 <ul>
-<li>
-<p><code>enter</code>: This entry-point accepts one parameter: <a href="runtime/../types/runtime.html#ParaInherentData"><code>ParaInherentData</code></a>.</p>
-<ol>
-<li>Ensure the origin is none.</li>
-<li>Ensure <code>Included</code> is set as <code>None</code>.</li>
-<li>Set <code>Included</code> as <code>Some</code>.</li>
-<li>Unpack <code>ParachainsInherentData</code> into <code>signed_bitfields</code>, <code>backed_candidates</code>, <code>parent_header</code>, and <code>disputes</code>.</li>
-<li>Hash the parent header and make sure that it corresponds to the block hash of the parent (tracked by the <code>frame_system</code> FRAME module).</li>
-<li>Calculate the <code>candidate_weight</code>, <code>bitfields_weight</code>, and <code>disputes_weight</code>.</li>
-<li>If the sum of <code>candidate_weight</code>, <code>bitfields_weight</code>, and <code>disputes_weight</code> is greater than the max block weight we do the following with the goal of prioritizing the inclusion of disputes without making it game-able by block authors:
-<ol>
-<li>clear <code>bitfields</code> and set <code>bitfields_weight</code> equal to 0.</li>
-<li>clear <code>backed_candidates</code> and set <code>candidate_weight</code> equal to 0.</li>
-<li>invoke <code>limit_disputes</code> on the <code>disputes</code> with the max block weight iff the disputes weight is greater than the max block weight.</li>
-</ol>
-</li>
-<li>Invoke <code>Disputes::provide_multi_dispute_data</code>.</li>
-<li>If <code>Disputes::is_frozen</code>, return.</li>
-<li>If there are any concluded disputes from the current session, invoke <code>Inclusion::collect_disputed</code> with the disputed candidates. Annotate each returned core with <code>FreedReason::Concluded</code>, sort them, and invoke <code>Scheduler::free_cores</code> with them.</li>
-<li>The <code>Bitfields</code> are first forwarded to the <code>Inclusion::process_bitfields</code> routine, returning a set included candidates and the respective freed cores. Provide the number of availability cores (<code>Scheduler::availability_cores().len()</code>) as the expected number of bits and a <code>Scheduler::core_para</code> as a core-lookup to the <code>process_bitfields</code> routine. Annotate each of these freed cores with <code>FreedReason::Concluded</code>.</li>
-<li>For each freed candidate from the <code>Inclusion::process_bitfields</code> call, invoke <code>Disputes::note_included(current_session, candidate)</code>.</li>
-<li>If <code>Scheduler::availability_timeout_predicate</code> is <code>Some</code>, invoke <code>Inclusion::collect_pending</code> using it and annotate each of those freed cores with <code>FreedReason::TimedOut</code>.</li>
-<li>Combine and sort the the bitfield-freed cores and the timed-out cores.</li>
-<li>Invoke <code>Scheduler::clear</code></li>
-<li>Invoke <code>Scheduler::schedule(freed_cores, System::current_block())</code></li>
-<li>Extract <code>parent_storage_root</code> from the parent header,</li>
-<li>If <code>Disputes::concluded_invalid(current_session, candidate)</code> is true for any of the <code>backed_candidates</code>, fail.</li>
-<li>Invoke the <code>Inclusion::process_candidates</code> routine with the parameters <code>(parent_storage_root, backed_candidates, Scheduler::scheduled(), Scheduler::group_validators)</code>.</li>
-<li>Deconstruct the returned <code>ProcessedCandidates</code> value into <code>occupied</code> core indices, and backing validators by candidate <code>backing_validators_per_candidate</code> represented by <code>Vec&lt;(CandidateReceipt, Vec&lt;(ValidatorIndex, ValidityAttestation)&gt;)&gt;</code>.</li>
-<li>Set <code>OnChainVotes</code> to <code>ScrapedOnChainVotes</code>, based on the <code>current_session</code>, concluded <code>disputes</code>, and <code>backing_validators_per_candidate</code>.</li>
-<li>Call <code>Scheduler::occupied</code> using the <code>occupied</code> core indices of the returned  above, first sorting the list of assigned core indices.</li>
-<li>Call the <code>Ump::process_pending_upward_messages</code> routine to execute all messages in upward dispatch queues.</li>
-<li>If all of the above succeeds, set <code>Included</code> to <code>Some(())</code>.</li>
-</ol>
-</li>
-<li>
-<p><code>create_inherent</code>: This entry-point accepts one parameter: <code>InherentData</code>.</p>
-<ol>
-<li>Invoke <a href="runtime/parainherent.html#routines"><code>create_inherent_inner(InherentData)</code></a>, the unit testable logic for filtering and sanitzing the inherent data used when invoking <code>enter</code>. Save the result as <code>inherent_data</code>.</li>
-<li>If the <code>inherent_data</code> is an <code>Err</code> variant, return the <code>enter</code> call signature with all inherent data cleared else return the <code>enter</code> call signature with <code>inherent_data</code> passed in as the <code>data</code> param.</li>
-</ol>
-</li>
+<li><code>enter</code>: This entry-point accepts one parameter: <a href="runtime/../types/runtime.html#ParaInherentData"><code>ParaInherentData</code></a>.</li>
+<li><code>create_inherent</code>: This entry-point accepts one parameter: <code>InherentData</code>.</li>
 </ul>
-<h1 id="routines-5"><a class="header" href="#routines-5">Routines</a></h1>
-<ul>
-<li><code>create_inherent_inner(data: &amp;InherentData) -&gt; Option&lt;ParachainsInherentData&lt;T::Header&gt;&gt;</code>
-<ol>
-<li>Unpack <code>InherentData</code> into its parts, <code>bitfields</code>, <code>backed_candidates</code>, <code>disputes</code> and the <code>parent_header</code>. If data cannot be unpacked return <code>None</code>.</li>
-<li>Hash the <code>parent_header</code> and make sure that it corresponds to the block hash of the parent (tracked by the <code>frame_system</code> FRAME module).</li>
-<li>Invoke <code>Disputes::filter_multi_dispute_data</code> to remove duplicates et al from <code>disputes</code>.</li>
-<li>Run the following within a  <code>with_transaction</code> closure to avoid side effects (we are essentially replicating the logic that would otherwise happen within <code>enter</code> so we can get the filtered bitfields and the <code>concluded_invalid_disputes</code> + <code>scheduled</code> to use in filtering the <code>backed_candidates</code>.):</li>
-<li>Invoke <code>Disputes::provide_multi_dispute_data</code>.</li>
-<li>Collect <code>current_concluded_invalid_disputes</code>, the disputed candidate hashes from the current session that have concluded invalid.</li>
-<li>Collect <code>concluded_invalid_disputes</code>, the disputed candidate hashes from the given <code>backed_candidates</code>.</li>
-<li>Invoke <code>Inclusion::collect_disputed</code> with the newly disputed candidates. Annotate each returned core with <code>FreedReason::Concluded</code>, sort them, and invoke <code>Scheduler::free_cores</code> with them.</li>
-<li>Collect filtered <code>bitfields</code> by invoking <a href="runtime/inclusion.html#Routines"><code>sanitize_bitfields&lt;false&gt;</code></a>.</li>
-<li>Collect <code>freed_concluded</code> by invoking <code>update_pending_availability_and_get_freed_cores</code> on the filtered bitfields.</li>
-<li>Collect all <code>freed</code> cores by invoking <code>collect_all_freed_cores</code> on <code>freed_concluding</code>.</li>
-<li>Invoke <code>scheduler::Pallet&lt;T&gt;&gt;::clear()</code>.</li>
-<li>Invoke <code>scheduler::Pallet&lt;T&gt;&gt;::schedule</code> with <code>freed</code> and the current block number to create the same schedule of the cores that <code>enter</code> will create.</li>
-<li>Read the new <code>&lt;scheduler::Pallet&lt;T&gt;&gt;::scheduled()</code> into <code>schedule</code>.</li>
-<li>From the <code>with_transaction</code> closure return <code>concluded_invalid_disputes</code>, <code>bitfields</code>, and <code>scheduled</code>.</li>
-<li>Invoke <code>sanitize_backed_candidates</code> using the <code>scheduled</code> return from the <code>with_transaction</code> and pass the closure <code>|candidate_hash: CandidateHash| -&gt; bool { DisputesHandler::concluded_invalid(current_session, candidate_hash) }</code> for the param <code>candidate_has_concluded_invalid_dispute</code>.</li>
-<li>create a <code>rng</code> from <code>rand_chacha::ChaChaRng::from_seed(compute_entropy::&lt;T&gt;(parent_hash))</code>.</li>
-<li>Invoke <code>limit_disputes</code> with the max block weight and <code>rng</code>, storing the returned weigh in <code>remaining_weight</code>.</li>
-<li>Fill up the remaining of the block weight with backed candidates and bitfields by invoking <code>apply_weight_limit</code> with <code>remaining_weigh</code> and <code>rng</code>.</li>
-<li>Return <code>Some(ParachainsInherentData { bitfields, backed_candidates, disputes, parent_header }</code>.</li>
-</ol>
-</li>
-</ul>
-<footer id="last-change">Last change: 2021-11-16, commit: <a href="https://github.com/paritytech/polkadot/commit/c198d26d3f">c198d26d3f</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="dmp-module"><a class="header" href="#dmp-module">DMP Module</a></h1>
+<p>Both entry points share mostly the same code. <code>create_inherent</code> will
+meaningfully limit inherent data to adhere to the weight limit, in addition to
+sanitizing any inputs and filtering out invalid data. Conceptually it is part of
+the block production. The <code>enter</code> call on the other hand is part of block import
+and consumes/imports the data previously produced by <code>create_inherent</code>.</p>
+<p>In practice both calls process inherent data and apply it to the state. Block
+production and block import should arrive at the same new state. Hence we re-use
+the same logic to ensure this is the case.</p>
+<p>The only real difference between the two is, that on <code>create_inherent</code> we
+actually need the processed and filtered inherent data to build the block, while
+on <code>enter</code> the processed data should for one be identical to the incoming
+inherent data (assuming honest block producers) and second it is irrelevant, as
+we are not building a block but just processing it, so the processed inherent
+data is simply dropped.</p>
+<p>This also means that the <code>enter</code> function keeps data around for no good reason.
+This seems acceptable though as the size of a block is rather limited.
+Nevertheless if we ever wanted to optimize this we can easily implement an
+inherent collector that has two implementations, where one clones and stores the
+data and the other just passes it on.</p>
+<footer id="last-change">Last change: 2023-06-14, commit: <a href="https://github.com/paritytech/polkadot/commit/59072a3a84">59072a3a84</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="dmp-module"><a class="header" href="#dmp-module">DMP Module</a></h1>
 <p>A module responsible for Downward Message Processing (DMP). See <a href="runtime/../messaging.html">Messaging Overview</a> for more details.</p>
 <h2 id="storage-8"><a class="header" href="#storage-8">Storage</a></h2>
 <p>Storage layout required for implementation of DMP.</p>
@@ -1789,7 +1741,7 @@ DownwardMessageQueueHeads: map ParaId =&gt; Hash;
 </span></code></pre></pre>
 <h2 id="initialization-5"><a class="header" href="#initialization-5">Initialization</a></h2>
 <p>No initialization routine runs for this module.</p>
-<h2 id="routines-6"><a class="header" href="#routines-6">Routines</a></h2>
+<h2 id="routines-5"><a class="header" href="#routines-5">Routines</a></h2>
 <p>Candidate Acceptance Function:</p>
 <ul>
 <li><code>check_processed_downward_messages(P: ParaId, processed_downward_messages: u32)</code>:
@@ -1943,7 +1895,7 @@ HrmpChannelDigests: map ParaId =&gt; Vec&lt;(BlockNumber, Vec&lt;ParaId&gt;)&gt;
 </span></code></pre></pre>
 <h2 id="initialization-6"><a class="header" href="#initialization-6">Initialization</a></h2>
 <p>No initialization routine runs for this module.</p>
-<h2 id="routines-7"><a class="header" href="#routines-7">Routines</a></h2>
+<h2 id="routines-6"><a class="header" href="#routines-6">Routines</a></h2>
 <p>Candidate Acceptance Function:</p>
 <ul>
 <li><code>check_hrmp_watermark(P: ParaId, new_hrmp_watermark)</code>:
@@ -2239,7 +2191,7 @@ Sessions: map SessionIndex =&gt; Option&lt;SessionInfo&gt;,
 <li>Update <code>EarliestStoredSession</code> based on <code>config.dispute_period</code> and remove all entries from <code>Sessions</code> from the previous value up to the new value.</li>
 <li>Create a new entry in <code>Sessions</code> with information about the current session. Use <code>shared::ActiveValidators</code> to determine the indices into the broader validator sets (validation, assignment, discovery) which are actually used for parachain validation. Only these validators should appear in the <code>SessionInfo</code>.</li>
 </ol>
-<h2 id="routines-8"><a class="header" href="#routines-8">Routines</a></h2>
+<h2 id="routines-7"><a class="header" href="#routines-7">Routines</a></h2>
 <ul>
 <li><code>earliest_stored_session() -&gt; SessionIndex</code>: Yields the earliest session for which we have information stored.</li>
 <li><code>session_info(session: SessionIndex) -&gt; Option&lt;SessionInfo&gt;</code>: Yields the session info for the given session, if stored.</li>

@@ -112,18 +112,6 @@
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -146,22 +134,20 @@
 <span class="kw">use </span>primitives::metric_definitions::{
 	PARACHAIN_CREATE_INHERENT_BITFIELDS_SIGNATURE_CHECKS,
 	PARACHAIN_INHERENT_DATA_BITFIELDS_PROCESSED, PARACHAIN_INHERENT_DATA_CANDIDATES_PROCESSED,
-	PARACHAIN_INHERENT_DATA_DISPUTE_SETS_INCLUDED, PARACHAIN_INHERENT_DATA_DISPUTE_SETS_PROCESSED,
-	PARACHAIN_INHERENT_DATA_WEIGHT, PARACHAIN_VERIFY_DISPUTE_SIGNATURE,
+	PARACHAIN_INHERENT_DATA_DISPUTE_SETS_PROCESSED, PARACHAIN_INHERENT_DATA_WEIGHT,
+	PARACHAIN_VERIFY_DISPUTE_SIGNATURE,
 };
 
 <span class="kw">pub struct </span>Metrics {
 	<span class="doccomment">/// Samples inherent data weight.
 	</span>inherent_data_weight: CounterVec,
-	<span class="doccomment">/// Counts how many inherent bitfields processed in `enter_inner`.
+	<span class="doccomment">/// Counts how many inherent bitfields processed in `process_inherent_data`.
 	</span>bitfields_processed: Counter,
-	<span class="doccomment">/// Counts how many parachain candidates processed in `enter_inner`.
+	<span class="doccomment">/// Counts how many parachain candidates processed in `process_inherent_data`.
 	</span>candidates_processed: CounterVec,
-	<span class="doccomment">/// Counts dispute statements sets processed in `enter_inner`.
+	<span class="doccomment">/// Counts dispute statements sets processed in `process_inherent_data`.
 	</span>dispute_sets_processed: CounterVec,
-	<span class="doccomment">/// Counts dispute statements sets included in `enter_inner`.
-	</span>disputes_included: Counter,
-	<span class="doccomment">/// Counts bitfield signature checks in `enter_inner`.
+	<span class="doccomment">/// Counts bitfield signature checks in `process_inherent_data`.
 	</span>bitfields_signature_checks: CounterVec,
 
 	<span class="doccomment">/// Histogram with the time spent checking a validator signature of a dispute statement
@@ -194,20 +180,15 @@
 		<span class="self">self</span>.candidates_processed.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;sanitized&quot;</span>]).inc_by(value);
 	}
 
-	<span class="doccomment">/// Increment the total number of parachain candidates received in `enter_inner`.
+	<span class="doccomment">/// Increment the total number of parachain candidates received in `process_inherent_data`.
 	</span><span class="kw">pub fn </span>on_candidates_processed_total(<span class="kw-2">&amp;</span><span class="self">self</span>, value: u64) {
 		<span class="self">self</span>.candidates_processed.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;total&quot;</span>]).inc_by(value);
 	}
 
 	<span class="doccomment">/// Sample the relay chain freeze events causing runtime to not process candidates in
-	/// `enter_inner`.
+	/// `process_inherent_data`.
 	</span><span class="kw">pub fn </span>on_relay_chain_freeze(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 		<span class="self">self</span>.dispute_sets_processed.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;frozen&quot;</span>]).inc();
-	}
-
-	<span class="doccomment">/// Sample the number of dispute sets processed from the current session.
-	</span><span class="kw">pub fn </span>on_current_session_disputes_processed(<span class="kw-2">&amp;</span><span class="self">self</span>, value: u64) {
-		<span class="self">self</span>.dispute_sets_processed.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;current&quot;</span>]).inc_by(value);
 	}
 
 	<span class="doccomment">/// Increment the number of disputes that have concluded as invalid.
@@ -220,10 +201,6 @@
 	<span class="doccomment">/// Increment the number of disputes imported.
 	</span><span class="kw">pub fn </span>on_disputes_imported(<span class="kw-2">&amp;</span><span class="self">self</span>, value: u64) {
 		<span class="self">self</span>.dispute_sets_processed.with_label_values(<span class="kw-2">&amp;</span>[<span class="string">&quot;imported&quot;</span>]).inc_by(value);
-	}
-
-	<span class="kw">pub fn </span>on_disputes_included(<span class="kw-2">&amp;</span><span class="self">self</span>, value: u64) {
-		<span class="self">self</span>.disputes_included.inc_by(value);
 	}
 
 	<span class="kw">pub fn </span>on_valid_bitfield_signature(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -244,7 +221,6 @@
 	bitfields_processed: Counter::new(PARACHAIN_INHERENT_DATA_BITFIELDS_PROCESSED),
 	candidates_processed: CounterVec::new(PARACHAIN_INHERENT_DATA_CANDIDATES_PROCESSED),
 	dispute_sets_processed: CounterVec::new(PARACHAIN_INHERENT_DATA_DISPUTE_SETS_PROCESSED),
-	disputes_included: Counter::new(PARACHAIN_INHERENT_DATA_DISPUTE_SETS_INCLUDED),
 	bitfields_signature_checks: CounterVec::new(
 		PARACHAIN_CREATE_INHERENT_BITFIELDS_SIGNATURE_CHECKS,
 	),
