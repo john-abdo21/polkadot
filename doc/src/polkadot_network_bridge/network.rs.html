@@ -258,13 +258,13 @@
 <span class="kw">use </span>sc_network::{
 	config::parse_addr, multiaddr::Multiaddr, types::ProtocolName, Event <span class="kw">as </span>NetworkEvent,
 	IfDisconnected, NetworkEventStream, NetworkNotification, NetworkPeers, NetworkRequest,
-	NetworkService, OutboundFailure, RequestFailure,
+	NetworkService, OutboundFailure, ReputationChange, RequestFailure,
 };
 
 <span class="kw">use </span>polkadot_node_network_protocol::{
 	peer_set::{PeerSet, PeerSetProtocolNames, ProtocolVersion},
 	request_response::{OutgoingRequest, Recipient, ReqProtocolNames, Requests},
-	PeerId, UnifiedReputationChange <span class="kw">as </span>Rep,
+	PeerId,
 };
 <span class="kw">use </span>polkadot_primitives::{AuthorityDiscoveryId, Block, Hash};
 
@@ -340,7 +340,7 @@
 	);
 
 	<span class="doccomment">/// Report a given peer as either beneficial (+) or costly (-) according to the given scalar.
-	</span><span class="kw">fn </span>report_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, who: PeerId, cost_benefit: Rep);
+	</span><span class="kw">fn </span>report_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, who: PeerId, rep: ReputationChange);
 
 	<span class="doccomment">/// Disconnect a given peer from the protocol specified without harming reputation.
 	</span><span class="kw">fn </span>disconnect_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, who: PeerId, protocol: ProtocolName);
@@ -367,8 +367,8 @@
 		NetworkService::remove_peers_from_reserved_set(<span class="kw-2">&amp;**</span><span class="self">self</span>, protocol, peers);
 	}
 
-	<span class="kw">fn </span>report_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, who: PeerId, cost_benefit: Rep) {
-		NetworkService::report_peer(<span class="kw-2">&amp;**</span><span class="self">self</span>, who, cost_benefit.into_base_rep());
+	<span class="kw">fn </span>report_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, who: PeerId, rep: ReputationChange) {
+		NetworkService::report_peer(<span class="kw-2">&amp;**</span><span class="self">self</span>, who, rep);
 	}
 
 	<span class="kw">fn </span>disconnect_peer(<span class="kw-2">&amp;</span><span class="self">self</span>, who: PeerId, protocol: ProtocolName) {

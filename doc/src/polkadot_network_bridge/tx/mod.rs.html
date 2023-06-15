@@ -367,6 +367,19 @@
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -393,14 +406,16 @@
 };
 
 <span class="kw">use </span>polkadot_node_subsystem::{
-	errors::SubsystemError, messages::NetworkBridgeTxMessage, overseer, FromOrchestra,
-	OverseerSignal, SpawnedSubsystem,
+	errors::SubsystemError,
+	messages::{NetworkBridgeTxMessage, ReportPeerMessage},
+	overseer, FromOrchestra, OverseerSignal, SpawnedSubsystem,
 };
 
 <span class="doccomment">/// Peer set info for network initialization.
 ///
 /// To be added to [`NetworkConfiguration::extra_sets`].
 </span><span class="kw">pub use </span>polkadot_node_network_protocol::peer_set::{peer_sets_info, IsAuthority};
+<span class="kw">use </span>sc_network::ReputationChange;
 
 <span class="kw">use </span><span class="kw">crate</span>::validator_discovery;
 
@@ -517,13 +532,24 @@
 	AD: validator_discovery::AuthorityDiscovery + Clone,
 {
 	<span class="kw">match </span>msg {
-		NetworkBridgeTxMessage::ReportPeer(peer, rep) =&gt; {
-			<span class="kw">if </span>!rep.is_benefit() {
+		NetworkBridgeTxMessage::ReportPeer(ReportPeerMessage::Single(peer, rep)) =&gt; {
+			<span class="kw">if </span>!rep.value.is_positive() {
 				<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="question-mark">?</span>peer, <span class="question-mark">?</span>rep, action = <span class="string">&quot;ReportPeer&quot;</span>);
 			}
 
 			metrics.on_report_event();
 			network_service.report_peer(peer, rep);
+		},
+		NetworkBridgeTxMessage::ReportPeer(ReportPeerMessage::Batch(batch)) =&gt; {
+			<span class="kw">for </span>(peer, score) <span class="kw">in </span>batch {
+				<span class="kw">let </span>rep = ReputationChange::new(score, <span class="string">&quot;Aggregated reputation change&quot;</span>);
+				<span class="kw">if </span>!rep.value.is_positive() {
+					<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="question-mark">?</span>peer, <span class="question-mark">?</span>rep, action = <span class="string">&quot;ReportPeer&quot;</span>);
+				}
+
+				metrics.on_report_event();
+				network_service.report_peer(peer, rep);
+			}
 		},
 		NetworkBridgeTxMessage::DisconnectPeer(peer, peer_set) =&gt; {
 			<span class="macro">gum::trace!</span>(

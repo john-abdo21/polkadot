@@ -87,6 +87,7 @@
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -131,7 +132,7 @@
 	///
 	/// The whole range of an `i32` should be used, so order of magnitude of
 	/// something malicious should be `1&lt;&lt;20` (give or take).
-	</span><span class="kw">const fn </span>cost_or_benefit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+	</span><span class="kw">pub const fn </span>cost_or_benefit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
 		<span class="kw">match </span><span class="self">self </span>{
 			<span class="self">Self</span>::CostMinor(<span class="kw">_</span>) =&gt; -<span class="number">100_000</span>,
 			<span class="self">Self</span>::CostMajor(<span class="kw">_</span>) =&gt; -<span class="number">300_000</span>,
@@ -170,10 +171,11 @@
 			<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 		}
 	}
+}
 
-	<span class="doccomment">/// Convert into a base reputation as used with substrate.
-	</span><span class="kw">pub const fn </span>into_base_rep(<span class="self">self</span>) -&gt; ReputationChange {
-		ReputationChange::new(<span class="self">self</span>.cost_or_benefit(), <span class="self">self</span>.description())
+<span class="kw">impl </span>From&lt;UnifiedReputationChange&gt; <span class="kw">for </span>ReputationChange {
+	<span class="kw">fn </span>from(value: UnifiedReputationChange) -&gt; <span class="self">Self </span>{
+		ReputationChange::new(value.cost_or_benefit(), value.description())
 	}
 }
 </code></pre></div>

@@ -187,6 +187,7 @@
 	FutureExt, TryFutureExt,
 };
 
+<span class="kw">use </span>polkadot_node_subsystem_util::reputation::ReputationAggregator;
 <span class="kw">use </span>sp_keystore::KeystorePtr;
 
 <span class="kw">use </span>polkadot_node_network_protocol::{
@@ -195,9 +196,7 @@
 };
 <span class="kw">use </span>polkadot_primitives::CollatorPair;
 
-<span class="kw">use </span>polkadot_node_subsystem::{
-	errors::SubsystemError, messages::NetworkBridgeTxMessage, overseer, SpawnedSubsystem,
-};
+<span class="kw">use </span>polkadot_node_subsystem::{errors::SubsystemError, overseer, SpawnedSubsystem};
 
 <span class="kw">mod </span>error;
 
@@ -283,6 +282,7 @@
 
 <span class="doccomment">/// Modify the reputation of a peer based on its behavior.
 </span><span class="kw">async fn </span>modify_reputation(
+	reputation: <span class="kw-2">&amp;mut </span>ReputationAggregator,
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::CollatorProtocolSenderTrait,
 	peer: PeerId,
 	rep: Rep,
@@ -294,7 +294,7 @@
 		<span class="string">&quot;reputation change for peer&quot;</span>,
 	);
 
-	sender.send_message(NetworkBridgeTxMessage::ReportPeer(peer, rep)).<span class="kw">await</span>;
+	reputation.modify(sender, peer, rep).<span class="kw">await</span>;
 }
 
 <span class="doccomment">/// Wait until tick and return the timestamp for the following one.
