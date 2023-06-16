@@ -1991,6 +1991,8 @@
 <a href="#1991" id="1991">1991</a>
 <a href="#1992" id="1992">1992</a>
 <a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2070,7 +2072,7 @@
 
 <span class="doccomment">/// The `ChainSpec` parameterized for the polkadot runtime.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;polkadot-native&quot;</span>)]
-</span><span class="kw">pub type </span>PolkadotChainSpec = service::GenericChainSpec&lt;polkadot::GenesisConfig, Extensions&gt;;
+</span><span class="kw">pub type </span>PolkadotChainSpec = service::GenericChainSpec&lt;polkadot::RuntimeGenesisConfig, Extensions&gt;;
 
 <span class="comment">// Dummy chain spec, in case when we don&#39;t have the native runtime.
 </span><span class="kw">pub type </span>DummyChainSpec = service::GenericChainSpec&lt;(), Extensions&gt;;
@@ -2081,7 +2083,7 @@
 
 <span class="doccomment">/// The `ChainSpec` parameterized for the kusama runtime.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;kusama-native&quot;</span>)]
-</span><span class="kw">pub type </span>KusamaChainSpec = service::GenericChainSpec&lt;kusama::GenesisConfig, Extensions&gt;;
+</span><span class="kw">pub type </span>KusamaChainSpec = service::GenericChainSpec&lt;kusama::RuntimeGenesisConfig, Extensions&gt;;
 
 <span class="doccomment">/// The `ChainSpec` parameterized for the kusama runtime.
 </span><span class="comment">// Dummy chain spec, but that is fine when we don&#39;t have the native runtime.
@@ -2090,7 +2092,7 @@
 
 <span class="doccomment">/// The `ChainSpec` parameterized for the westend runtime.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
-</span><span class="kw">pub type </span>WestendChainSpec = service::GenericChainSpec&lt;westend::GenesisConfig, Extensions&gt;;
+</span><span class="kw">pub type </span>WestendChainSpec = service::GenericChainSpec&lt;westend::RuntimeGenesisConfig, Extensions&gt;;
 
 <span class="doccomment">/// The `ChainSpec` parameterized for the westend runtime.
 </span><span class="comment">// Dummy chain spec, but that is fine when we don&#39;t have the native runtime.
@@ -2116,7 +2118,7 @@
 #[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
 </span><span class="kw">pub struct </span>RococoGenesisExt {
 	<span class="doccomment">/// The runtime genesis config.
-	</span>runtime_genesis_config: rococo::GenesisConfig,
+	</span>runtime_genesis_config: rococo::RuntimeGenesisConfig,
 	<span class="doccomment">/// The session length in blocks.
 	///
 	/// If `None` is supplied, the default value is used.
@@ -2294,7 +2296,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;polkadot-native&quot;</span>)]
-</span><span class="kw">fn </span>polkadot_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; polkadot::GenesisConfig {
+</span><span class="kw">fn </span>polkadot_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; polkadot::RuntimeGenesisConfig {
 	<span class="comment">// subkey inspect &quot;$SECRET&quot;
 	</span><span class="kw">let </span>endowed_accounts = <span class="macro">vec!</span>[];
 
@@ -2312,7 +2314,7 @@
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* DOT;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* DOT;
 
-	polkadot::GenesisConfig {
+	polkadot::RuntimeGenesisConfig {
 		system: polkadot::SystemConfig { code: wasm_binary.to_vec() },
 		balances: polkadot::BalancesConfig {
 			balances: endowed_accounts
@@ -2382,7 +2384,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
-</span><span class="kw">fn </span>westend_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; westend::GenesisConfig {
+</span><span class="kw">fn </span>westend_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; westend::RuntimeGenesisConfig {
 	<span class="kw">use </span>hex_literal::hex;
 	<span class="kw">use </span>sp_core::crypto::UncheckedInto;
 
@@ -2503,7 +2505,7 @@
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* WND;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* WND;
 
-	westend::GenesisConfig {
+	westend::RuntimeGenesisConfig {
 		system: westend::SystemConfig { code: wasm_binary.to_vec() },
 		balances: westend::BalancesConfig {
 			balances: endowed_accounts
@@ -2567,7 +2569,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;kusama-native&quot;</span>)]
-</span><span class="kw">fn </span>kusama_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; kusama::GenesisConfig {
+</span><span class="kw">fn </span>kusama_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; kusama::RuntimeGenesisConfig {
 	<span class="kw">use </span>hex_literal::hex;
 	<span class="kw">use </span>sp_core::crypto::UncheckedInto;
 
@@ -2693,7 +2695,7 @@
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* KSM;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* KSM;
 
-	kusama::GenesisConfig {
+	kusama::RuntimeGenesisConfig {
 		system: kusama::SystemConfig { code: wasm_binary.to_vec() },
 		balances: kusama::BalancesConfig {
 			balances: endowed_accounts
@@ -2756,7 +2758,9 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
-</span><span class="kw">fn </span>rococo_staging_testnet_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::GenesisConfig {
+</span><span class="kw">fn </span>rococo_staging_testnet_config_genesis(
+	wasm_binary: <span class="kw-2">&amp;</span>[u8],
+) -&gt; rococo_runtime::RuntimeGenesisConfig {
 	<span class="kw">use </span>hex_literal::hex;
 	<span class="kw">use </span>sp_core::crypto::UncheckedInto;
 
@@ -2999,7 +3003,7 @@
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* ROC;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* ROC;
 
-	rococo_runtime::GenesisConfig {
+	rococo_runtime::RuntimeGenesisConfig {
 		system: rococo_runtime::SystemConfig { code: wasm_binary.to_vec() },
 		balances: rococo_runtime::BalancesConfig {
 			balances: endowed_accounts
@@ -3279,7 +3283,7 @@
 	]
 }
 
-<span class="doccomment">/// Helper function to create polkadot `GenesisConfig` for testing
+<span class="doccomment">/// Helper function to create polkadot `RuntimeGenesisConfig` for testing
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;polkadot-native&quot;</span>)]
 </span><span class="kw">pub fn </span>polkadot_testnet_genesis(
 	wasm_binary: <span class="kw-2">&amp;</span>[u8],
@@ -3295,13 +3299,13 @@
 	)&gt;,
 	_root_key: AccountId,
 	endowed_accounts: <span class="prelude-ty">Option</span>&lt;Vec&lt;AccountId&gt;&gt;,
-) -&gt; polkadot::GenesisConfig {
+) -&gt; polkadot::RuntimeGenesisConfig {
 	<span class="kw">let </span>endowed_accounts: Vec&lt;AccountId&gt; = endowed_accounts.unwrap_or_else(testnet_accounts);
 
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* DOT;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* DOT;
 
-	polkadot::GenesisConfig {
+	polkadot::RuntimeGenesisConfig {
 		system: polkadot::SystemConfig { code: wasm_binary.to_vec() },
 		indices: polkadot::IndicesConfig { indices: <span class="macro">vec!</span>[] },
 		balances: polkadot::BalancesConfig {
@@ -3366,7 +3370,7 @@
 	}
 }
 
-<span class="doccomment">/// Helper function to create kusama `GenesisConfig` for testing
+<span class="doccomment">/// Helper function to create kusama `RuntimeGenesisConfig` for testing
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;kusama-native&quot;</span>)]
 </span><span class="kw">pub fn </span>kusama_testnet_genesis(
 	wasm_binary: <span class="kw-2">&amp;</span>[u8],
@@ -3382,13 +3386,13 @@
 	)&gt;,
 	_root_key: AccountId,
 	endowed_accounts: <span class="prelude-ty">Option</span>&lt;Vec&lt;AccountId&gt;&gt;,
-) -&gt; kusama::GenesisConfig {
+) -&gt; kusama::RuntimeGenesisConfig {
 	<span class="kw">let </span>endowed_accounts: Vec&lt;AccountId&gt; = endowed_accounts.unwrap_or_else(testnet_accounts);
 
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* KSM;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* KSM;
 
-	kusama::GenesisConfig {
+	kusama::RuntimeGenesisConfig {
 		system: kusama::SystemConfig { code: wasm_binary.to_vec() },
 		indices: kusama::IndicesConfig { indices: <span class="macro">vec!</span>[] },
 		balances: kusama::BalancesConfig {
@@ -3446,7 +3450,7 @@
 	}
 }
 
-<span class="doccomment">/// Helper function to create westend `GenesisConfig` for testing
+<span class="doccomment">/// Helper function to create westend `RuntimeGenesisConfig` for testing
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
 </span><span class="kw">pub fn </span>westend_testnet_genesis(
 	wasm_binary: <span class="kw-2">&amp;</span>[u8],
@@ -3462,13 +3466,13 @@
 	)&gt;,
 	root_key: AccountId,
 	endowed_accounts: <span class="prelude-ty">Option</span>&lt;Vec&lt;AccountId&gt;&gt;,
-) -&gt; westend::GenesisConfig {
+) -&gt; westend::RuntimeGenesisConfig {
 	<span class="kw">let </span>endowed_accounts: Vec&lt;AccountId&gt; = endowed_accounts.unwrap_or_else(testnet_accounts);
 
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* WND;
 	<span class="kw">const </span>STASH: u128 = <span class="number">100 </span>* WND;
 
-	westend::GenesisConfig {
+	westend::RuntimeGenesisConfig {
 		system: westend::SystemConfig { code: wasm_binary.to_vec() },
 		indices: westend::IndicesConfig { indices: <span class="macro">vec!</span>[] },
 		balances: westend::BalancesConfig {
@@ -3527,7 +3531,7 @@
 	}
 }
 
-<span class="doccomment">/// Helper function to create rococo `GenesisConfig` for testing
+<span class="doccomment">/// Helper function to create rococo `RuntimeGenesisConfig` for testing
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
 </span><span class="kw">pub fn </span>rococo_testnet_genesis(
 	wasm_binary: <span class="kw-2">&amp;</span>[u8],
@@ -3544,12 +3548,12 @@
 	)&gt;,
 	root_key: AccountId,
 	endowed_accounts: <span class="prelude-ty">Option</span>&lt;Vec&lt;AccountId&gt;&gt;,
-) -&gt; rococo_runtime::GenesisConfig {
+) -&gt; rococo_runtime::RuntimeGenesisConfig {
 	<span class="kw">let </span>endowed_accounts: Vec&lt;AccountId&gt; = endowed_accounts.unwrap_or_else(testnet_accounts);
 
 	<span class="kw">const </span>ENDOWMENT: u128 = <span class="number">1_000_000 </span>* ROC;
 
-	rococo_runtime::GenesisConfig {
+	rococo_runtime::RuntimeGenesisConfig {
 		system: rococo_runtime::SystemConfig { code: wasm_binary.to_vec() },
 		beefy: Default::default(),
 		indices: rococo_runtime::IndicesConfig { indices: <span class="macro">vec!</span>[] },
@@ -3612,7 +3616,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;polkadot-native&quot;</span>)]
-</span><span class="kw">fn </span>polkadot_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; polkadot::GenesisConfig {
+</span><span class="kw">fn </span>polkadot_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; polkadot::RuntimeGenesisConfig {
 	polkadot_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[get_authority_keys_from_seed_no_beefy(<span class="string">&quot;Alice&quot;</span>)],
@@ -3622,7 +3626,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;kusama-native&quot;</span>)]
-</span><span class="kw">fn </span>kusama_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; kusama::GenesisConfig {
+</span><span class="kw">fn </span>kusama_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; kusama::RuntimeGenesisConfig {
 	kusama_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[get_authority_keys_from_seed_no_beefy(<span class="string">&quot;Alice&quot;</span>)],
@@ -3632,7 +3636,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
-</span><span class="kw">fn </span>westend_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; westend::GenesisConfig {
+</span><span class="kw">fn </span>westend_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; westend::RuntimeGenesisConfig {
 	westend_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[get_authority_keys_from_seed_no_beefy(<span class="string">&quot;Alice&quot;</span>)],
@@ -3642,7 +3646,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
-</span><span class="kw">fn </span>rococo_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::GenesisConfig {
+</span><span class="kw">fn </span>rococo_development_config_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::RuntimeGenesisConfig {
 	rococo_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[get_authority_keys_from_seed(<span class="string">&quot;Alice&quot;</span>)],
@@ -3779,7 +3783,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;polkadot-native&quot;</span>)]
-</span><span class="kw">fn </span>polkadot_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; polkadot::GenesisConfig {
+</span><span class="kw">fn </span>polkadot_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; polkadot::RuntimeGenesisConfig {
 	polkadot_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[
@@ -3811,7 +3815,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;kusama-native&quot;</span>)]
-</span><span class="kw">fn </span>kusama_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; kusama::GenesisConfig {
+</span><span class="kw">fn </span>kusama_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; kusama::RuntimeGenesisConfig {
 	kusama_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[
@@ -3843,7 +3847,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;westend-native&quot;</span>)]
-</span><span class="kw">fn </span>westend_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; westend::GenesisConfig {
+</span><span class="kw">fn </span>westend_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; westend::RuntimeGenesisConfig {
 	westend_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[
@@ -3875,7 +3879,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
-</span><span class="kw">fn </span>rococo_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::GenesisConfig {
+</span><span class="kw">fn </span>rococo_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::RuntimeGenesisConfig {
 	rococo_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[get_authority_keys_from_seed(<span class="string">&quot;Alice&quot;</span>), get_authority_keys_from_seed(<span class="string">&quot;Bob&quot;</span>)],
@@ -3909,7 +3913,7 @@
 
 <span class="doccomment">/// Wococo is a temporary testnet that uses almost the same runtime as rococo.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
-</span><span class="kw">fn </span>wococo_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::GenesisConfig {
+</span><span class="kw">fn </span>wococo_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::RuntimeGenesisConfig {
 	rococo_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[
@@ -3948,7 +3952,7 @@
 
 <span class="doccomment">/// `Versi` is a temporary testnet that uses the same runtime as rococo.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;rococo-native&quot;</span>)]
-</span><span class="kw">fn </span>versi_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::GenesisConfig {
+</span><span class="kw">fn </span>versi_local_testnet_genesis(wasm_binary: <span class="kw-2">&amp;</span>[u8]) -&gt; rococo_runtime::RuntimeGenesisConfig {
 	rococo_testnet_genesis(
 		wasm_binary,
 		<span class="macro">vec!</span>[
