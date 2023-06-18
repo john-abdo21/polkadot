@@ -2475,9 +2475,6 @@
 <a href="#2475" id="2475">2475</a>
 <a href="#2476" id="2476">2476</a>
 <a href="#2477" id="2477">2477</a>
-<a href="#2478" id="2478">2478</a>
-<a href="#2479" id="2479">2479</a>
-<a href="#2480" id="2480">2480</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2584,6 +2581,9 @@
 
 <span class="comment">// Voter bag threshold definitions.
 </span><span class="kw">mod </span>bag_thresholds;
+
+<span class="comment">// Historical information of society finances.
+</span><span class="kw">mod </span>past_payouts;
 
 <span class="comment">// XCM configurations.
 </span><span class="kw">pub mod </span>xcm_config;
@@ -3343,14 +3343,6 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>CandidateDeposit: Balance = <span class="number">10 </span>* QUID;
-	<span class="kw">pub const </span>WrongSideDeduction: Balance = <span class="number">2 </span>* QUID;
-	<span class="kw">pub const </span>MaxStrikes: u32 = <span class="number">10</span>;
-	<span class="kw">pub const </span>RotationPeriod: BlockNumber = <span class="number">7 </span>* DAYS;
-	<span class="kw">pub const </span>PeriodSpend: Balance = <span class="number">500 </span>* QUID;
-	<span class="kw">pub const </span>MaxLockDuration: BlockNumber = <span class="number">36 </span>* <span class="number">30 </span>* DAYS;
-	<span class="kw">pub const </span>ChallengePeriod: BlockNumber = <span class="number">7 </span>* DAYS;
-	<span class="kw">pub const </span>MaxCandidateIntake: u32 = <span class="number">1</span>;
 	<span class="kw">pub const </span>SocietyPalletId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;py/socie&quot;</span>);
 }
 
@@ -3358,18 +3350,17 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>Randomness = pallet_babe::RandomnessFromOneEpochAgo&lt;Runtime&gt;;
-	<span class="kw">type </span>CandidateDeposit = CandidateDeposit;
-	<span class="kw">type </span>WrongSideDeduction = WrongSideDeduction;
-	<span class="kw">type </span>MaxStrikes = MaxStrikes;
-	<span class="kw">type </span>PeriodSpend = PeriodSpend;
-	<span class="kw">type </span>MembershipChanged = ();
-	<span class="kw">type </span>RotationPeriod = RotationPeriod;
-	<span class="kw">type </span>MaxLockDuration = MaxLockDuration;
+	<span class="kw">type </span>GraceStrikes = ConstU32&lt;<span class="number">10</span>&gt;;
+	<span class="kw">type </span>PeriodSpend = ConstU128&lt;{ <span class="number">500 </span>* QUID }&gt;;
+	<span class="kw">type </span>VotingPeriod = ConstU32&lt;{ <span class="number">5 </span>* DAYS }&gt;;
+	<span class="kw">type </span>ClaimPeriod = ConstU32&lt;{ <span class="number">2 </span>* DAYS }&gt;;
+	<span class="kw">type </span>MaxLockDuration = ConstU32&lt;{ <span class="number">36 </span>* <span class="number">30 </span>* DAYS }&gt;;
 	<span class="kw">type </span>FounderSetOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="kw">type </span>SuspensionJudgementOrigin = pallet_society::EnsureFounder&lt;Runtime&gt;;
-	<span class="kw">type </span>ChallengePeriod = ChallengePeriod;
-	<span class="kw">type </span>MaxCandidateIntake = MaxCandidateIntake;
+	<span class="kw">type </span>ChallengePeriod = ConstU32&lt;{ <span class="number">7 </span>* DAYS }&gt;;
+	<span class="kw">type </span>MaxPayouts = ConstU32&lt;<span class="number">8</span>&gt;;
+	<span class="kw">type </span>MaxBids = ConstU32&lt;<span class="number">512</span>&gt;;
 	<span class="kw">type </span>PalletId = SocietyPalletId;
+	<span class="kw">type </span>WeightInfo = weights::pallet_society::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -4009,6 +4000,7 @@
 		pallet_offences::migration::v1::MigrateToV1&lt;Runtime&gt;,
 		runtime_common::session::migration::ClearOldSessionStorage&lt;Runtime&gt;,
 	);
+
 	<span class="kw">pub type </span>V0943 = (
 		SetStorageVersions,
 		<span class="comment">// Remove UMP dispatch queue &lt;https://github.com/paritytech/polkadot/pull/6271&gt;
@@ -4017,7 +4009,8 @@
 	);
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
-	</span><span class="kw">pub type </span>Unreleased = ();
+	</span><span class="kw">pub type </span>Unreleased =
+		(pallet_society::migrations::MigrateToV2&lt;Runtime, (), past_payouts::PastPayouts&gt;,);
 
 	<span class="doccomment">/// Migrations that set `StorageVersion`s we missed to set.
 	</span><span class="kw">pub struct </span>SetStorageVersions;
@@ -4121,6 +4114,7 @@
 		[pallet_referenda, FellowshipReferenda]
 		[pallet_scheduler, Scheduler]
 		[pallet_session, SessionBench::&lt;Runtime&gt;]
+		[pallet_society, Society]
 		[pallet_staking, Staking]
 		[frame_system, SystemBench::&lt;Runtime&gt;]
 		[pallet_timestamp, Timestamp]

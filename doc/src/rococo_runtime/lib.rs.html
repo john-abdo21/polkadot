@@ -2387,16 +2387,6 @@
 <a href="#2387" id="2387">2387</a>
 <a href="#2388" id="2388">2388</a>
 <a href="#2389" id="2389">2389</a>
-<a href="#2390" id="2390">2390</a>
-<a href="#2391" id="2391">2391</a>
-<a href="#2392" id="2392">2392</a>
-<a href="#2393" id="2393">2393</a>
-<a href="#2394" id="2394">2394</a>
-<a href="#2395" id="2395">2395</a>
-<a href="#2396" id="2396">2396</a>
-<a href="#2397" id="2397">2397</a>
-<a href="#2398" id="2398">2398</a>
-<a href="#2399" id="2399">2399</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3208,14 +3198,6 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>CandidateDeposit: Balance = <span class="number">1000 </span>* CENTS;
-	<span class="kw">pub const </span>WrongSideDeduction: Balance = <span class="number">200 </span>* CENTS;
-	<span class="kw">pub const </span>MaxStrikes: u32 = <span class="number">10</span>;
-	<span class="kw">pub const </span>RotationPeriod: BlockNumber = <span class="number">7 </span>* DAYS;
-	<span class="kw">pub const </span>PeriodSpend: Balance = <span class="number">50000 </span>* CENTS;
-	<span class="kw">pub const </span>MaxLockDuration: BlockNumber = <span class="number">36 </span>* <span class="number">30 </span>* DAYS;
-	<span class="kw">pub const </span>ChallengePeriod: BlockNumber = <span class="number">7 </span>* DAYS;
-	<span class="kw">pub const </span>MaxCandidateIntake: u32 = <span class="number">1</span>;
 	<span class="kw">pub const </span>SocietyPalletId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b&quot;py/socie&quot;</span>);
 }
 
@@ -3223,19 +3205,17 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>Randomness = pallet_babe::RandomnessFromOneEpochAgo&lt;Runtime&gt;;
-	<span class="kw">type </span>CandidateDeposit = CandidateDeposit;
-	<span class="kw">type </span>WrongSideDeduction = WrongSideDeduction;
-	<span class="kw">type </span>MaxStrikes = MaxStrikes;
-	<span class="kw">type </span>PeriodSpend = PeriodSpend;
-	<span class="kw">type </span>MembershipChanged = ();
-	<span class="kw">type </span>RotationPeriod = RotationPeriod;
-	<span class="kw">type </span>MaxLockDuration = MaxLockDuration;
-	<span class="kw">type </span>FounderSetOrigin =
-		pallet_collective::EnsureProportionMoreThan&lt;AccountId, CouncilCollective, <span class="number">1</span>, <span class="number">2</span>&gt;;
-	<span class="kw">type </span>SuspensionJudgementOrigin = pallet_society::EnsureFounder&lt;Runtime&gt;;
-	<span class="kw">type </span>ChallengePeriod = ChallengePeriod;
-	<span class="kw">type </span>MaxCandidateIntake = MaxCandidateIntake;
+	<span class="kw">type </span>GraceStrikes = ConstU32&lt;<span class="number">1</span>&gt;;
+	<span class="kw">type </span>PeriodSpend = ConstU128&lt;{ <span class="number">50_000 </span>* CENTS }&gt;;
+	<span class="kw">type </span>VotingPeriod = ConstU32&lt;{ <span class="number">5 </span>* DAYS }&gt;;
+	<span class="kw">type </span>ClaimPeriod = ConstU32&lt;{ <span class="number">2 </span>* DAYS }&gt;;
+	<span class="kw">type </span>MaxLockDuration = ConstU32&lt;{ <span class="number">36 </span>* <span class="number">30 </span>* DAYS }&gt;;
+	<span class="kw">type </span>FounderSetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>ChallengePeriod = ConstU32&lt;{ <span class="number">7 </span>* DAYS }&gt;;
+	<span class="kw">type </span>MaxPayouts = ConstU32&lt;<span class="number">8</span>&gt;;
+	<span class="kw">type </span>MaxBids = ConstU32&lt;<span class="number">512</span>&gt;;
 	<span class="kw">type </span>PalletId = SocietyPalletId;
+	<span class="kw">type </span>WeightInfo = ();
 }
 
 <span class="macro">parameter_types! </span>{
@@ -4032,7 +4012,7 @@
 	}
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
-	</span><span class="kw">pub type </span>Unreleased = ();
+	</span><span class="kw">pub type </span>Unreleased = (pallet_society::migrations::MigrateToV2&lt;Runtime, (), ()&gt;,);
 }
 
 <span class="doccomment">/// Helpers to configure all migrations.
