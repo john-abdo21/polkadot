@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AssetId","AssetInstance","BodyId","BodyPart","Fungibility","Junction","Junctions","MultiAssetFilter","NetworkId","Outcome","SendError","WildFungibility","WildMultiAsset","XcmError"],"fn":["send_xcm","validate_send"],"mod":["opaque"],"struct":["Ancestor","AncestorThen","MultiAsset","MultiAssets","MultiLocation","Parent","ParentThen","Weight"],"trait":["ExecuteXcm","PreparedMessage","SendXcm","Unwrappable"],"type":["InteriorMultiLocation","SendResult","XcmHash","XcmResult"]};
+window.SIDEBAR_ITEMS = {"mod":["opaque"],"struct":["Weight"]};

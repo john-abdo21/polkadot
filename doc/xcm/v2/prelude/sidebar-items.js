@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AssetId","AssetInstance","Fungibility","Junction","Junctions","MultiAssetFilter","Outcome","SendError","WildFungibility","WildMultiAsset","XcmError"],"mod":["opaque"],"struct":["Ancestor","AncestorThen","MultiAsset","MultiAssets","MultiLocation","Parent","ParentThen"],"trait":["ExecuteXcm","SendXcm"],"type":["InteriorMultiLocation","SendResult","XcmResult"]};
+window.SIDEBAR_ITEMS = {"mod":["opaque"]};
