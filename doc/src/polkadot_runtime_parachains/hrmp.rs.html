@@ -1562,6 +1562,22 @@
 <a href="#1562" id="1562">1562</a>
 <a href="#1563" id="1563">1563</a>
 <a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1623,7 +1639,7 @@
 	<span class="kw">fn </span>force_process_hrmp_close(c: u32) -&gt; Weight;
 	<span class="kw">fn </span>hrmp_cancel_open_request(c: u32) -&gt; Weight;
 	<span class="kw">fn </span>clean_open_channel_requests(c: u32) -&gt; Weight;
-	<span class="kw">fn </span>force_open_hrmp_channel() -&gt; Weight;
+	<span class="kw">fn </span>force_open_hrmp_channel(c: u32) -&gt; Weight;
 }
 
 <span class="doccomment">/// A weight info that is only suitable for testing.
@@ -1654,7 +1670,7 @@
 	<span class="kw">fn </span>clean_open_channel_requests(<span class="kw">_</span>: u32) -&gt; Weight {
 		Weight::MAX
 	}
-	<span class="kw">fn </span>force_open_hrmp_channel() -&gt; Weight {
+	<span class="kw">fn </span>force_open_hrmp_channel(<span class="kw">_</span>: u32) -&gt; Weight {
 		Weight::MAX
 	}
 }
@@ -2155,18 +2171,33 @@
 		/// Chain&#39;s configured limits.
 		///
 		/// Expected use is when one of the `ParaId`s involved in the channel is governed by the
-		/// Relay Chain, e.g. a common good parachain.
+		/// Relay Chain, e.g. a system parachain.
 		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
-		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_open_hrmp_channel())]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_open_hrmp_channel(<span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>force_open_hrmp_channel(
 			origin: OriginFor&lt;T&gt;,
 			sender: ParaId,
 			recipient: ParaId,
 			max_capacity: u32,
 			max_message_size: u32,
-		) -&gt; DispatchResult {
+		) -&gt; DispatchResultWithPostInfo {
 			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::init_open_channel(sender, recipient, max_capacity, max_message_size)<span class="question-mark">?</span>;
+
+			<span class="comment">// Guard against a common footgun where someone makes a channel request to a system
+			// parachain and then makes a proposal to open the channel via governance, which fails
+			// because `init_open_channel` fails if there is an existing request. This check will
+			// clear an existing request such that `init_open_channel` should otherwise succeed.
+			</span><span class="kw">let </span>channel_id = HrmpChannelId { sender, recipient };
+			<span class="kw">let </span>cancel_request: u32 =
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(_open_channel) = HrmpOpenChannelRequests::&lt;T&gt;::get(<span class="kw-2">&amp;</span>channel_id) {
+					<span class="self">Self</span>::cancel_open_request(sender, channel_id)<span class="question-mark">?</span>;
+					<span class="number">1
+				</span>} <span class="kw">else </span>{
+					<span class="number">0
+				</span>};
+
+			<span class="comment">// Now we proceed with normal init/accept.
+			</span><span class="self">Self</span>::init_open_channel(sender, recipient, max_capacity, max_message_size)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::accept_open_channel(recipient, sender)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::deposit_event(Event::HrmpChannelForceOpened(
 				sender,
@@ -2174,7 +2205,8 @@
 				max_capacity,
 				max_message_size,
 			));
-			<span class="prelude-val">Ok</span>(())
+
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_open_hrmp_channel(cancel_request)).into())
 		}
 	}
 }
