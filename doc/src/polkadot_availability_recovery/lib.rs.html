@@ -1189,6 +1189,11 @@
 <a href="#1189" id="1189">1189</a>
 <a href="#1190" id="1190">1190</a>
 <a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1446,6 +1451,7 @@
 						params.validators.len(),
 						<span class="kw-2">&amp;</span>params.erasure_root,
 						<span class="kw-2">&amp;</span>data,
+						<span class="kw-2">&amp;</span>params.metrics,
 					) {
 						<span class="macro">gum::trace!</span>(
 							target: LOG_TARGET,
@@ -1777,6 +1783,7 @@
 							params.validators.len(),
 							<span class="kw-2">&amp;</span>params.erasure_root,
 							<span class="kw-2">&amp;</span>data,
+							<span class="kw-2">&amp;</span>metrics,
 						) {
 							<span class="macro">gum::trace!</span>(
 								target: LOG_TARGET,
@@ -1876,7 +1883,10 @@
 	n_validators: usize,
 	expected_root: <span class="kw-2">&amp;</span>Hash,
 	data: <span class="kw-2">&amp;</span>AvailableData,
+	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; bool {
+	<span class="kw">let </span>_timer = metrics.time_reencode_chunks();
+
 	<span class="kw">let </span>chunks = <span class="kw">match </span>obtain_chunks_v1(n_validators, data) {
 		<span class="prelude-val">Ok</span>(chunks) =&gt; chunks,
 		<span class="prelude-val">Err</span>(e) =&gt; {

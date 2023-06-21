@@ -214,6 +214,22 @@
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -261,6 +277,10 @@
 
 	<span class="doccomment">/// The duration between the pure recovery and verification.
 	</span>time_erasure_recovery: Histogram,
+
+	<span class="doccomment">/// How much time it takes to re-encode the data into erasure chunks in order to verify
+	/// the root hash of the provided Merkle tree. See `reconstructed_data_matches_root`.
+	</span>time_reencode_chunks: Histogram,
 
 	<span class="doccomment">/// Time of a full recovery, including erasure decoding or until we gave
 	/// up.
@@ -334,6 +354,11 @@
 		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| metrics.time_erasure_recovery.start_timer())
 	}
 
+	<span class="doccomment">/// Get a timer to time chunk encoding.
+	</span><span class="kw">pub fn </span>time_reencode_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;metrics::prometheus::prometheus::HistogramTimer&gt; {
+		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| metrics.time_reencode_chunks.start_timer())
+	}
+
 	<span class="doccomment">/// Get a timer to measure the time of the complete recovery process.
 	</span><span class="kw">pub fn </span>time_full_recovery(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;metrics::prometheus::prometheus::HistogramTimer&gt; {
 		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| metrics.time_full_recovery.start_timer())
@@ -399,6 +424,13 @@
 				prometheus::Histogram::with_opts(prometheus::HistogramOpts::new(
 					<span class="string">&quot;polkadot_parachain_availability_recovery_time_erasure_recovery&quot;</span>,
 					<span class="string">&quot;Time spent to recover the erasure code and verify the merkle root by re-encoding as erasure chunks&quot;</span>,
+				))<span class="question-mark">?</span>,
+				registry,
+			)<span class="question-mark">?</span>,
+			time_reencode_chunks: prometheus::register(
+				prometheus::Histogram::with_opts(prometheus::HistogramOpts::new(
+					<span class="string">&quot;polkadot_parachain_availability_reencode_chunks&quot;</span>,
+					<span class="string">&quot;Time spent re-encoding the data as erasure chunks&quot;</span>,
 				))<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
