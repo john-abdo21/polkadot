@@ -438,6 +438,19 @@
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -772,9 +785,14 @@
 	WrongGlobal,
 }
 
-<span class="kw">pub struct </span>BridgeBlobDispatcher&lt;Router, OurPlace&gt;(PhantomData&lt;(Router, OurPlace)&gt;);
-<span class="kw">impl</span>&lt;Router: SendXcm, OurPlace: Get&lt;InteriorMultiLocation&gt;&gt; DispatchBlob
-	<span class="kw">for </span>BridgeBlobDispatcher&lt;Router, OurPlace&gt;
+<span class="kw">pub struct </span>BridgeBlobDispatcher&lt;Router, OurPlace, OurPlaceBridgeInstance&gt;(
+	PhantomData&lt;(Router, OurPlace, OurPlaceBridgeInstance)&gt;,
+);
+<span class="kw">impl</span>&lt;
+		Router: SendXcm,
+		OurPlace: Get&lt;InteriorMultiLocation&gt;,
+		OurPlaceBridgeInstance: Get&lt;<span class="prelude-ty">Option</span>&lt;InteriorMultiLocation&gt;&gt;,
+	&gt; DispatchBlob <span class="kw">for </span>BridgeBlobDispatcher&lt;Router, OurPlace, OurPlaceBridgeInstance&gt;
 {
 	<span class="kw">fn </span>dispatch_blob(blob: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchBlobError&gt; {
 		<span class="kw">let </span>our_universal = OurPlace::get();
@@ -792,8 +810,16 @@
 			.map_err(|()| DispatchBlobError::NonUniversalDestination)<span class="question-mark">?</span>;
 		<span class="macro">ensure!</span>(intended_global == our_global, DispatchBlobError::WrongGlobal);
 		<span class="kw">let </span>dest = universal_dest.relative_to(<span class="kw-2">&amp;</span>our_universal);
-		<span class="kw">let </span>message: Xcm&lt;()&gt; =
+		<span class="kw">let </span><span class="kw-2">mut </span>message: Xcm&lt;()&gt; =
 			message.try_into().map_err(|<span class="kw">_</span>| DispatchBlobError::UnsupportedXcmVersion)<span class="question-mark">?</span>;
+
+		<span class="comment">// Prepend our bridge instance discriminator.
+		// Can be used for fine-grained control of origin on destination in case of multiple bridge instances,
+		// e.g. restrict `type UniversalAliases` and `UniversalOrigin` instruction to trust just particular bridge instance for `NetworkId`.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(bridge_instance) = OurPlaceBridgeInstance::get() {
+			message.<span class="number">0</span>.insert(<span class="number">0</span>, DescendOrigin(bridge_instance));
+		}
+
 		<span class="kw">let _ </span>= send_xcm::&lt;Router&gt;(dest, message).map_err(|<span class="kw">_</span>| DispatchBlobError::RoutingError)<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
 	}
