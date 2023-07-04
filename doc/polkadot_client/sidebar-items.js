@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Client"],"mod":["benchmarking"],"struct":["KusamaExecutorDispatch","PolkadotExecutorDispatch","RococoExecutorDispatch","WestendExecutorDispatch"],"trait":["AbstractClient","ClientHandle","ExecuteWithClient","RuntimeApiCollection"],"type":["FullBackend","FullClient"]};
