@@ -2478,6 +2478,79 @@
 <a href="#2478" id="2478">2478</a>
 <a href="#2479" id="2479">2479</a>
 <a href="#2480" id="2480">2480</a>
+<a href="#2481" id="2481">2481</a>
+<a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
+<a href="#2488" id="2488">2488</a>
+<a href="#2489" id="2489">2489</a>
+<a href="#2490" id="2490">2490</a>
+<a href="#2491" id="2491">2491</a>
+<a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
+<a href="#2514" id="2514">2514</a>
+<a href="#2515" id="2515">2515</a>
+<a href="#2516" id="2516">2516</a>
+<a href="#2517" id="2517">2517</a>
+<a href="#2518" id="2518">2518</a>
+<a href="#2519" id="2519">2519</a>
+<a href="#2520" id="2520">2520</a>
+<a href="#2521" id="2521">2521</a>
+<a href="#2522" id="2522">2522</a>
+<a href="#2523" id="2523">2523</a>
+<a href="#2524" id="2524">2524</a>
+<a href="#2525" id="2525">2525</a>
+<a href="#2526" id="2526">2526</a>
+<a href="#2527" id="2527">2527</a>
+<a href="#2528" id="2528">2528</a>
+<a href="#2529" id="2529">2529</a>
+<a href="#2530" id="2530">2530</a>
+<a href="#2531" id="2531">2531</a>
+<a href="#2532" id="2532">2532</a>
+<a href="#2533" id="2533">2533</a>
+<a href="#2534" id="2534">2534</a>
+<a href="#2535" id="2535">2535</a>
+<a href="#2536" id="2536">2536</a>
+<a href="#2537" id="2537">2537</a>
+<a href="#2538" id="2538">2538</a>
+<a href="#2539" id="2539">2539</a>
+<a href="#2540" id="2540">2540</a>
+<a href="#2541" id="2541">2541</a>
+<a href="#2542" id="2542">2542</a>
+<a href="#2543" id="2543">2543</a>
+<a href="#2544" id="2544">2544</a>
+<a href="#2545" id="2545">2545</a>
+<a href="#2546" id="2546">2546</a>
+<a href="#2547" id="2547">2547</a>
+<a href="#2548" id="2548">2548</a>
+<a href="#2549" id="2549">2549</a>
+<a href="#2550" id="2550">2550</a>
+<a href="#2551" id="2551">2551</a>
+<a href="#2552" id="2552">2552</a>
+<a href="#2553" id="2553">2553</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2620,7 +2693,7 @@
 	<span class="attr">#[cfg(feature = <span class="string">&quot;disable-runtime-api&quot;</span>)]
 	</span>apis: <span class="macro">sp_version::create_apis_vec!</span>[[]],
 	transaction_version: <span class="number">23</span>,
-	state_version: <span class="number">0</span>,
+	state_version: <span class="number">1</span>,
 };
 
 <span class="doccomment">/// The BABE epoch configuration at genesis.
@@ -3820,6 +3893,26 @@
 	<span class="kw">type </span>MaxPointsToBalance = MaxPointsToBalance;
 }
 
+<span class="macro">parameter_types! </span>{
+	<span class="comment">// The deposit configuration for the singed migration. Specially if you want to allow any signed account to do the migration (see `SignedFilter`, these deposits should be high)
+	</span><span class="kw">pub const </span>MigrationSignedDepositPerItem: Balance = <span class="number">1 </span>* CENTS;
+	<span class="kw">pub const </span>MigrationSignedDepositBase: Balance = <span class="number">20 </span>* CENTS * <span class="number">100</span>;
+	<span class="kw">pub const </span>MigrationMaxKeyLen: u32 = <span class="number">512</span>;
+}
+
+<span class="kw">impl </span>pallet_state_trie_migration::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>SignedDepositPerItem = MigrationSignedDepositPerItem;
+	<span class="kw">type </span>SignedDepositBase = MigrationSignedDepositBase;
+	<span class="kw">type </span>ControlOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>SignedFilter = frame_support::traits::NeverEnsureOrigin&lt;AccountId&gt;;
+
+	<span class="comment">// Use same weights as substrate ones.
+	</span><span class="kw">type </span>WeightInfo = pallet_state_trie_migration::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>MaxKeyLen = MigrationMaxKeyLen;
+}
+
 <span class="macro">construct_runtime! </span>{
 	<span class="kw">pub enum </span>Runtime <span class="kw">where
 		</span>Block = Block,
@@ -3936,6 +4029,9 @@
 		Auctions: auctions::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">72</span>,
 		Crowdloan: crowdloan::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">73</span>,
 
+		<span class="comment">// State trie migration pallet, only temporary.
+		</span>StateTrieMigration: pallet_state_trie_migration = <span class="number">98</span>,
+
 		<span class="comment">// Pallet for sending XCM.
 		</span>XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config} = <span class="number">99</span>,
 
@@ -4014,6 +4110,7 @@
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
 	</span><span class="kw">pub type </span>Unreleased = (
+		init_state_migration::InitMigrate,
 		pallet_society::migrations::MigrateToV2&lt;Runtime, (), past_payouts::PastPayouts&gt;,
 		pallet_im_online::migration::v1::Migration&lt;Runtime&gt;,
 	);
@@ -4956,6 +5053,55 @@
 			pallet_fast_unstake::ErasToCheckPerBlock::&lt;Runtime&gt;::put(<span class="number">1</span>);
 			runtime_common::try_runtime::migrate_all_inactive_nominators::&lt;Runtime&gt;()
 		});
+	}
+}
+
+<span class="kw">mod </span>init_state_migration {
+	<span class="kw">use </span><span class="kw">super</span>::Runtime;
+	<span class="kw">use </span>frame_support::traits::OnRuntimeUpgrade;
+	<span class="kw">use </span>pallet_state_trie_migration::{AutoLimits, MigrationLimits, MigrationProcess};
+	<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">use </span>sp_runtime::DispatchError;
+	<span class="attr">#[cfg(not(feature = <span class="string">&quot;std&quot;</span>))]
+	</span><span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+
+	<span class="doccomment">/// Initialize an automatic migration process.
+	</span><span class="kw">pub struct </span>InitMigrate;
+	<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>InitMigrate {
+		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, DispatchError&gt; {
+			<span class="macro">frame_support::ensure!</span>(
+				AutoLimits::&lt;Runtime&gt;::get().is_none(),
+				DispatchError::Other(<span class="string">&quot;Automigration already started.&quot;</span>)
+			);
+			<span class="prelude-val">Ok</span>(Default::default())
+		}
+
+		<span class="kw">fn </span>on_runtime_upgrade() -&gt; frame_support::weights::Weight {
+			<span class="kw">if </span>MigrationProcess::&lt;Runtime&gt;::get() == Default::default() &amp;&amp;
+				AutoLimits::&lt;Runtime&gt;::get().is_none()
+			{
+				<span class="comment">// We use limits to target 600ko proofs per block and
+				// avg 800_000_000_000 of weight per block.
+				// See spreadsheet 4800_400 in
+				// https://raw.githubusercontent.com/cheme/substrate/try-runtime-mig/ksm.ods
+				</span>AutoLimits::&lt;Runtime&gt;::put(<span class="prelude-val">Some</span>(MigrationLimits { item: <span class="number">4_800</span>, size: <span class="number">204800 </span>* <span class="number">2 </span>}));
+				<span class="macro">log::info!</span>(<span class="string">&quot;Automatic trie migration started.&quot;</span>);
+				&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">1</span>)
+			} <span class="kw">else </span>{
+				<span class="macro">log::info!</span>(<span class="string">&quot;Automatic trie migration not started.&quot;</span>);
+				&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">2</span>)
+			}
+		}
+
+		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+		</span><span class="kw">fn </span>post_upgrade(_state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchError&gt; {
+			<span class="macro">frame_support::ensure!</span>(
+				AutoLimits::&lt;Runtime&gt;::get().is_some(),
+				DispatchError::Other(<span class="string">&quot;Automigration started.&quot;</span>)
+			);
+			<span class="prelude-val">Ok</span>(())
+		}
 	}
 }
 </code></pre></div></section></main></body></html>
