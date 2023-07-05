@@ -428,6 +428,19 @@
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -446,10 +459,8 @@
 
 </span><span class="doccomment">//! Code related to benchmarking a [`crate::Client`].
 
-</span><span class="kw">use </span>codec::Encode;
-<span class="kw">use </span>polkadot_primitives::AccountId;
+</span><span class="kw">use </span>polkadot_primitives::AccountId;
 <span class="kw">use </span>sc_client_api::UsageProvider;
-<span class="kw">use </span>sp_core::{Pair, H256};
 <span class="kw">use </span>sp_keyring::Sr25519Keyring;
 <span class="kw">use </span>sp_runtime::OpaqueExtrinsic;
 
@@ -523,6 +534,12 @@
 
 				<span class="attr">#[cfg(not(feature = <span class="string">&quot;westend-native&quot;</span>))]
 				</span>{
+					<span class="kw">let _ </span>= <span class="macro-nonterminal">$nonce</span>;
+					<span class="kw">let _ </span>= <span class="macro-nonterminal">$current_block</span>;
+					<span class="kw">let _ </span>= <span class="macro-nonterminal">$period</span>;
+					<span class="kw">let _ </span>= <span class="macro-nonterminal">$genesis</span>;
+					<span class="kw">let _ </span>= <span class="macro-nonterminal">$signer</span>;
+
 					<span class="prelude-val">Err</span>(<span class="string">&quot;`westend-native` feature not enabled&quot;</span>)
 				}
 			},
@@ -613,6 +630,7 @@
 			.unwrap_or(<span class="number">2</span>) <span class="kw">as </span>u64;
 		<span class="kw">let </span>genesis = <span class="self">self</span>.client.usage_info().chain.best_hash;
 		<span class="kw">let </span>current_block = <span class="number">0</span>;
+		<span class="kw">let </span>_dest = <span class="self">self</span>.dest.clone();
 
 		<span class="macro">identify_chain! </span>{
 			<span class="self">self</span>.chain,
@@ -623,7 +641,7 @@
 			signer,
 			{
 				runtime::RuntimeCall::Balances(runtime::BalancesCall::transfer_keep_alive {
-					dest: <span class="self">self</span>.dest.clone().into(),
+					dest: _dest.into(),
 					value: runtime::ExistentialDeposit::get(),
 				})
 			},
@@ -637,10 +655,12 @@
 	nonce: u32,
 	current_block: u64,
 	period: u64,
-	genesis: H256,
+	genesis: sp_core::H256,
 	acc: sp_core::sr25519::Pair,
 ) -&gt; OpaqueExtrinsic {
+	<span class="kw">use </span>codec::Encode;
 	<span class="kw">use </span>polkadot_runtime <span class="kw">as </span>runtime;
+	<span class="kw">use </span>sp_core::Pair;
 
 	<span class="kw">let </span>extra: runtime::SignedExtra = (
 		frame_system::CheckNonZeroSender::&lt;runtime::Runtime&gt;::new(),
@@ -689,9 +709,11 @@
 	nonce: u32,
 	current_block: u64,
 	period: u64,
-	genesis: H256,
+	genesis: sp_core::H256,
 	acc: sp_core::sr25519::Pair,
 ) -&gt; OpaqueExtrinsic {
+	<span class="kw">use </span>codec::Encode;
+	<span class="kw">use </span>sp_core::Pair;
 	<span class="kw">use </span>westend_runtime <span class="kw">as </span>runtime;
 
 	<span class="kw">let </span>extra: runtime::SignedExtra = (
@@ -739,10 +761,12 @@
 	nonce: u32,
 	current_block: u64,
 	period: u64,
-	genesis: H256,
+	genesis: sp_core::H256,
 	acc: sp_core::sr25519::Pair,
 ) -&gt; OpaqueExtrinsic {
+	<span class="kw">use </span>codec::Encode;
 	<span class="kw">use </span>kusama_runtime <span class="kw">as </span>runtime;
+	<span class="kw">use </span>sp_core::Pair;
 
 	<span class="kw">let </span>extra: runtime::SignedExtra = (
 		frame_system::CheckNonZeroSender::&lt;runtime::Runtime&gt;::new(),
@@ -789,10 +813,12 @@
 	nonce: u32,
 	current_block: u64,
 	period: u64,
-	genesis: H256,
+	genesis: sp_core::H256,
 	acc: sp_core::sr25519::Pair,
 ) -&gt; OpaqueExtrinsic {
+	<span class="kw">use </span>codec::Encode;
 	<span class="kw">use </span>rococo_runtime <span class="kw">as </span>runtime;
+	<span class="kw">use </span>sp_core::Pair;
 
 	<span class="kw">let </span>extra: runtime::SignedExtra = (
 		frame_system::CheckNonZeroSender::&lt;runtime::Runtime&gt;::new(),
