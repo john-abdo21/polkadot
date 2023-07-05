@@ -1683,6 +1683,36 @@
 <a href="#1683" id="1683">1683</a>
 <a href="#1684" id="1684">1684</a>
 <a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1825,6 +1855,7 @@
 }
 
 <span class="doccomment">/// Configuration for the validation host.
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Config {
 	<span class="doccomment">/// The root directory where the prepared artifacts can be stored.
 	</span><span class="kw">pub </span>cache_path: PathBuf,
@@ -1874,6 +1905,11 @@
 /// In that case all pending requests will be canceled, dropping the result senders and new ones
 /// will be rejected.
 </span><span class="kw">pub fn </span>start(config: Config, metrics: Metrics) -&gt; (ValidationHost, <span class="kw">impl </span>Future&lt;Output = ()&gt;) {
+	<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="question-mark">?</span>config, <span class="string">&quot;starting PVF validation host&quot;</span>);
+
+	<span class="comment">// Run checks for supported security features once per host startup.
+	</span>warn_if_no_landlock();
+
 	<span class="kw">let </span>(to_host_tx, to_host_rx) = mpsc::channel(<span class="number">10</span>);
 
 	<span class="kw">let </span>validation_host = ValidationHost { to_host_tx };
@@ -2537,6 +2573,30 @@
 		}
 	})
 	.map(|<span class="kw">_</span>| ())
+}
+
+<span class="doccomment">/// Check if landlock is supported and emit a warning if not.
+</span><span class="kw">fn </span>warn_if_no_landlock() {
+	<span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+	</span>{
+		<span class="kw">use </span>polkadot_node_core_pvf_common::worker::security::landlock;
+		<span class="kw">let </span>status = landlock::get_status();
+		<span class="kw">if </span>!landlock::status_is_fully_enabled(<span class="kw-2">&amp;</span>status) {
+			<span class="kw">let </span>abi = landlock::LANDLOCK_ABI <span class="kw">as </span>u8;
+			<span class="macro">gum::warn!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>status,
+				%abi,
+				<span class="string">&quot;Cannot fully enable landlock, a Linux kernel security feature. Running validation of malicious PVF code has a higher risk of compromising this machine. Consider upgrading the kernel version for maximum security.&quot;
+			</span>);
+		}
+	}
+
+	<span class="attr">#[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
+	</span><span class="macro">gum::warn!</span>(
+		target: LOG_TARGET,
+		<span class="string">&quot;Cannot enable landlock, a Linux kernel security feature. Running validation of malicious PVF code has a higher risk of compromising this machine. Consider running on Linux with landlock support for maximum security.&quot;
+	</span>);
 }
 
 <span class="attr">#[cfg(test)]
