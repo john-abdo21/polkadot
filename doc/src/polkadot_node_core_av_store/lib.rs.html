@@ -1356,6 +1356,36 @@
 <a href="#1356" id="1356">1356</a>
 <a href="#1357" id="1357">1357</a>
 <a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1397,10 +1427,11 @@
 <span class="kw">use </span>sp_consensus::SyncOracle;
 
 <span class="kw">use </span>bitvec::{order::Lsb0 <span class="kw">as </span>BitOrderLsb0, vec::BitVec};
+<span class="kw">use </span>polkadot_node_jaeger <span class="kw">as </span>jaeger;
 <span class="kw">use </span>polkadot_node_primitives::{AvailableData, ErasureChunk};
 <span class="kw">use </span>polkadot_node_subsystem::{
 	errors::{ChainApiError, RuntimeApiError},
-	messages::{AvailabilityStoreMessage, ChainApiMessage},
+	messages::{AvailabilityStoreMessage, ChainApiMessage, StoreAvailableDataError},
 	overseer, ActiveLeavesUpdate, FromOrchestra, OverseerSignal, SpawnedSubsystem, SubsystemError,
 };
 <span class="kw">use </span>polkadot_node_subsystem_util <span class="kw">as </span>util;
@@ -1730,6 +1761,9 @@
 
 	<span class="attr">#[error(<span class="string">&quot;Custom databases are not supported&quot;</span>)]
 	</span>CustomDatabase,
+
+	<span class="attr">#[error(<span class="string">&quot;Erasure root does not match expected one&quot;</span>)]
+	</span>InvalidErasureRoot,
 }
 
 <span class="kw">impl </span>Error {
@@ -2542,22 +2576,35 @@
 			candidate_hash,
 			n_validators,
 			available_data,
+			expected_erasure_root,
 			tx,
 		} =&gt; {
 			subsystem.metrics.on_chunks_received(n_validators <span class="kw">as _</span>);
 
 			<span class="kw">let </span>_timer = subsystem.metrics.time_store_available_data();
 
-			<span class="kw">let </span>res =
-				store_available_data(<span class="kw-2">&amp;</span>subsystem, candidate_hash, n_validators <span class="kw">as _</span>, available_data);
+			<span class="kw">let </span>res = store_available_data(
+				<span class="kw-2">&amp;</span>subsystem,
+				candidate_hash,
+				n_validators <span class="kw">as _</span>,
+				available_data,
+				expected_erasure_root,
+			);
 
 			<span class="kw">match </span>res {
 				<span class="prelude-val">Ok</span>(()) =&gt; {
 					<span class="kw">let _ </span>= tx.send(<span class="prelude-val">Ok</span>(()));
 				},
+				<span class="prelude-val">Err</span>(Error::InvalidErasureRoot) =&gt; {
+					<span class="kw">let _ </span>= tx.send(<span class="prelude-val">Err</span>(StoreAvailableDataError::InvalidErasureRoot));
+					<span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidErasureRoot)
+				},
 				<span class="prelude-val">Err</span>(e) =&gt; {
-					<span class="kw">let _ </span>= tx.send(<span class="prelude-val">Err</span>(()));
-					<span class="kw">return </span><span class="prelude-val">Err</span>(e.into())
+					<span class="comment">// We do not bubble up internal errors to caller subsystems, instead the
+					// tx channel is dropped and that error is caught by the caller subsystem.
+					//
+					// We bubble up the specific error here so `av-store` logs still tell what happend.
+					</span><span class="kw">return </span><span class="prelude-val">Err</span>(e.into())
 				},
 			}
 		},
@@ -2608,6 +2655,7 @@
 	candidate_hash: CandidateHash,
 	n_validators: usize,
 	available_data: AvailableData,
+	expected_erasure_root: Hash,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
 	<span class="kw">let </span><span class="kw-2">mut </span>tx = DBTransaction::new();
 
@@ -2634,8 +2682,20 @@
 		},
 	};
 
-	<span class="kw">let </span>chunks = erasure::obtain_chunks_v1(n_validators, <span class="kw-2">&amp;</span>available_data)<span class="question-mark">?</span>;
+	<span class="kw">let </span>erasure_span = jaeger::Span::new(candidate_hash, <span class="string">&quot;erasure-coding&quot;</span>)
+		.with_candidate(candidate_hash)
+		.with_pov(<span class="kw-2">&amp;</span>available_data.pov);
+
+	<span class="comment">// Important note: This check below is critical for consensus and the `backing` subsystem relies on it to
+	// ensure candidate validity.
+	</span><span class="kw">let </span>chunks = erasure::obtain_chunks_v1(n_validators, <span class="kw-2">&amp;</span>available_data)<span class="question-mark">?</span>;
 	<span class="kw">let </span>branches = erasure::branches(chunks.as_ref());
+
+	<span class="kw">if </span>branches.root() != expected_erasure_root {
+		<span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidErasureRoot)
+	}
+
+	drop(erasure_span);
 
 	<span class="kw">let </span>erasure_chunks = chunks.iter().zip(branches.map(|(proof, <span class="kw">_</span>)| proof)).enumerate().map(
 		|(index, (chunk, proof))| ErasureChunk {

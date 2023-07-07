@@ -1337,10 +1337,6 @@
 <a href="#1337" id="1337">1337</a>
 <a href="#1338" id="1338">1338</a>
 <a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1381,7 +1377,7 @@
 	messages::{
 		AvailabilityDistributionMessage, AvailabilityStoreMessage, CandidateBackingMessage,
 		CandidateValidationMessage, CollatorProtocolMessage, ProvisionableData, ProvisionerMessage,
-		RuntimeApiRequest, StatementDistributionMessage,
+		RuntimeApiRequest, StatementDistributionMessage, StoreAvailableDataError,
 	},
 	overseer, ActiveLeavesUpdate, FromOrchestra, OverseerSignal, PerLeafSpan, SpawnedSubsystem,
 	Stage, SubsystemError,
@@ -1833,8 +1829,6 @@
 	}
 }
 
-<span class="kw">struct </span>InvalidErasureRoot;
-
 <span class="comment">// It looks like it&#39;s not possible to do an `impl From` given the current state of
 // the code. So this does the necessary conversion.
 </span><span class="kw">fn </span>primitive_statement_to_table(s: <span class="kw-2">&amp;</span>SignedFullStatement) -&gt; TableSignedStatement {
@@ -1904,26 +1898,34 @@
 	n_validators: u32,
 	candidate_hash: CandidateHash,
 	available_data: AvailableData,
+	expected_erasure_root: Hash,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
 	<span class="kw">let </span>(tx, rx) = oneshot::channel();
-	sender
+	<span class="comment">// Important: the `av-store` subsystem will check if the erasure root of the `available_data` matches `expected_erasure_root`
+	// which was provided by the collator in the `CandidateReceipt`. This check is consensus critical and the `backing` subsystem
+	// relies on it for ensuring candidate validity.
+	</span>sender
 		.send_message(AvailabilityStoreMessage::StoreAvailableData {
 			candidate_hash,
 			n_validators,
 			available_data,
+			expected_erasure_root,
 			tx,
 		})
 		.<span class="kw">await</span>;
 
-	<span class="kw">let _ </span>= rx.<span class="kw">await</span>.map_err(Error::StoreAvailableData)<span class="question-mark">?</span>;
-
-	<span class="prelude-val">Ok</span>(())
+	rx.<span class="kw">await
+		</span>.map_err(Error::StoreAvailableDataChannel)<span class="question-mark">?
+		</span>.map_err(Error::StoreAvailableData)
 }
 
 <span class="comment">// Make a `PoV` available.
 //
-// This will compute the erasure root internally and compare it to the expected erasure root.
-// This returns `Err()` iff there is an internal error. Otherwise, it returns either `Ok(Ok(()))` or `Ok(Err(_))`.
+// This calls the AV store to write the available data to storage. The AV store also checks the erasure root matches
+// the `expected_erasure_root`.
+// This returns `Err()` on erasure root mismatch or due to any AV store subsystem error.
+//
+// Otherwise, it returns either `Ok(())`
 
 </span><span class="kw">async fn </span>make_pov_available(
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::CandidateBackingSenderTrait,
@@ -1933,30 +1935,18 @@
 	validation_data: polkadot_primitives::PersistedValidationData,
 	expected_erasure_root: Hash,
 	span: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>jaeger::Span&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Result</span>&lt;(), InvalidErasureRoot&gt;, Error&gt; {
-	<span class="kw">let </span>available_data = AvailableData { pov, validation_data };
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+	<span class="kw">let </span>_span = span.as_ref().map(|s| s.child(<span class="string">&quot;store-data&quot;</span>).with_candidate(candidate_hash));
 
-	{
-		<span class="kw">let </span>_span = span.as_ref().map(|s| s.child(<span class="string">&quot;erasure-coding&quot;</span>).with_candidate(candidate_hash));
-
-		<span class="kw">let </span>chunks = erasure_coding::obtain_chunks_v1(n_validators, <span class="kw-2">&amp;</span>available_data)<span class="question-mark">?</span>;
-
-		<span class="kw">let </span>branches = erasure_coding::branches(chunks.as_ref());
-		<span class="kw">let </span>erasure_root = branches.root();
-
-		<span class="kw">if </span>erasure_root != expected_erasure_root {
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(InvalidErasureRoot))
-		}
-	}
-
-	{
-		<span class="kw">let </span>_span = span.as_ref().map(|s| s.child(<span class="string">&quot;store-data&quot;</span>).with_candidate(candidate_hash));
-
-		store_available_data(sender, n_validators <span class="kw">as </span>u32, candidate_hash, available_data).<span class="kw">await</span><span class="question-mark">?</span>;
-	}
-
-	<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(()))
-}
+	store_available_data(
+		sender,
+		n_validators <span class="kw">as </span>u32,
+		candidate_hash,
+		AvailableData { pov, validation_data },
+		expected_erasure_root,
+	)
+	.<span class="kw">await
+</span>}
 
 <span class="kw">async fn </span>request_pov(
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::CandidateBackingSenderTrait,
@@ -2092,11 +2082,11 @@
 				candidate.descriptor.erasure_root,
 				span.as_ref(),
 			)
-			.<span class="kw">await</span><span class="question-mark">?</span>;
+			.<span class="kw">await</span>;
 
 			<span class="kw">match </span>erasure_valid {
 				<span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>((candidate, commitments, pov.clone())),
-				<span class="prelude-val">Err</span>(InvalidErasureRoot) =&gt; {
+				<span class="prelude-val">Err</span>(Error::StoreAvailableData(StoreAvailableDataError::InvalidErasureRoot)) =&gt; {
 					<span class="macro">gum::debug!</span>(
 						target: LOG_TARGET,
 						candidate_hash = <span class="question-mark">?</span>candidate.hash(),
@@ -2105,6 +2095,8 @@
 					);
 					<span class="prelude-val">Err</span>(candidate)
 				},
+				<span class="comment">// Bubble up any other error.
+				</span><span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
 			}
 		},
 		ValidationResult::Invalid(InvalidCandidate::CommitmentsHashMismatch) =&gt; {

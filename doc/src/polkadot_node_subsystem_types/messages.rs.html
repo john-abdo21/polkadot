@@ -870,6 +870,17 @@
 <a href="#870" id="870">870</a>
 <a href="#871" id="871">871</a>
 <a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1334,9 +1345,10 @@
 		</span>tx: oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt;,
 	},
 
-	<span class="doccomment">/// Store a `AvailableData` and all of its chunks in the AV store.
+	<span class="doccomment">/// Computes and checks the erasure root of `AvailableData` before storing all of its chunks in
+	/// the AV store.
 	///
-	/// Return `Ok(())` if the store operation succeeded, `Err(())` if it failed.
+	/// Return `Ok(())` if the store operation succeeded, `Err(StoreAvailableData)` if it failed.
 	</span>StoreAvailableData {
 		<span class="doccomment">/// A hash of the candidate this `available_data` belongs to.
 		</span>candidate_hash: CandidateHash,
@@ -1344,9 +1356,19 @@
 		</span>n_validators: u32,
 		<span class="doccomment">/// The `AvailableData` itself.
 		</span>available_data: AvailableData,
+		<span class="doccomment">/// Erasure root we expect to get after chunking.
+		</span>expected_erasure_root: Hash,
 		<span class="doccomment">/// Sending side of the channel to send result to.
-		</span>tx: oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;(), ()&gt;&gt;,
+		</span>tx: oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;(), StoreAvailableDataError&gt;&gt;,
 	},
+}
+
+<span class="doccomment">/// The error result type of a [`AvailabilityStoreMessage::StoreAvailableData`] request.
+</span><span class="attr">#[derive(Error, Debug, Clone, PartialEq, Eq)]
+#[allow(missing_docs)]
+</span><span class="kw">pub enum </span>StoreAvailableDataError {
+	<span class="attr">#[error(<span class="string">&quot;The computed erasure root did not match expected one&quot;</span>)]
+	</span>InvalidErasureRoot,
 }
 
 <span class="doccomment">/// A response channel for the result of a chain API request.

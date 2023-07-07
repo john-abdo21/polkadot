@@ -96,6 +96,12 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -115,7 +121,10 @@
 </span><span class="kw">use </span>fatality::Nested;
 <span class="kw">use </span>futures::channel::{mpsc, oneshot};
 
-<span class="kw">use </span>polkadot_node_subsystem::{messages::ValidationFailed, SubsystemError};
+<span class="kw">use </span>polkadot_node_subsystem::{
+	messages::{StoreAvailableDataError, ValidationFailed},
+	SubsystemError,
+};
 <span class="kw">use </span>polkadot_node_subsystem_util::Error <span class="kw">as </span>UtilError;
 <span class="kw">use </span>polkadot_primitives::BackedCandidate;
 
@@ -148,7 +157,7 @@
 	</span>ValidateFromChainState(<span class="attr">#[source] </span>oneshot::Canceled),
 
 	<span class="attr">#[error(<span class="string">&quot;StoreAvailableData channel closed before receipt&quot;</span>)]
-	</span>StoreAvailableData(<span class="attr">#[source] </span>oneshot::Canceled),
+	</span>StoreAvailableDataChannel(<span class="attr">#[source] </span>oneshot::Canceled),
 
 	<span class="attr">#[error(<span class="string">&quot;a channel was closed before receipt in try_join!&quot;</span>)]
 	</span>JoinMultiple(<span class="attr">#[source] </span>oneshot::Canceled),
@@ -172,6 +181,9 @@
 	<span class="attr">#[fatal]
 	#[error(transparent)]
 	</span>OverseerExited(SubsystemError),
+
+	<span class="attr">#[error(<span class="string">&quot;Availability store error&quot;</span>)]
+	</span>StoreAvailableData(<span class="attr">#[source] </span>StoreAvailableDataError),
 }
 
 <span class="doccomment">/// Utility for eating top level errors and log them.

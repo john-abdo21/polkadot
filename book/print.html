@@ -5406,6 +5406,9 @@ enum State {
 <p>On <code>StoreAvailableData</code> message:</p>
 <ul>
 <li>
+<p>Compute the erasure root of the available data and compare it with <code>expected_erasure_root</code>. Return <code>StoreAvailableDataError::InvalidErasureRoot</code> on mismatch.</p>
+</li>
+<li>
 <p>If there is no <code>CandidateMeta</code> under the candidate hash, create it with <code>State::Unavailable(now)</code>. Load the <code>CandidateMeta</code> otherwise.</p>
 </li>
 <li>
@@ -5474,7 +5477,7 @@ to be run very often.</li>
 </ul>
 </li>
 </ul>
-<footer id="last-change">Last change: 2021-07-14, commit: <a href="https://github.com/paritytech/polkadot/commit/8a6af4412f">8a6af4412f</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="candidate-validation"><a class="header" href="#candidate-validation">Candidate Validation</a></h1>
+<footer id="last-change">Last change: 2023-07-07, commit: <a href="https://github.com/paritytech/polkadot/commit/dbdedecf09">dbdedecf09</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="candidate-validation"><a class="header" href="#candidate-validation">Candidate Validation</a></h1>
 <p>This subsystem is responsible for handling candidate validation requests. It is a simple request/response server.</p>
 <p>A variety of subsystems want to know if a parachain block candidate is valid. None of them care about the detailed mechanics of how a candidate gets validated, just the results. This subsystem handles those details.</p>
 <h2 id="protocol-14"><a class="header" href="#protocol-14">Protocol</a></h2>
@@ -6502,22 +6505,66 @@ enum AvailabilityRecoveryMessage {
 <p>Messages to and from the availability store.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>enum AvailabilityStoreMessage {
-    /// Query the `AvailableData` of a candidate by hash.
-    QueryAvailableData(CandidateHash, ResponseChannel&lt;Option&lt;AvailableData&gt;&gt;),
-    /// Query whether an `AvailableData` exists within the AV Store.
-    QueryDataAvailability(CandidateHash, ResponseChannel&lt;bool&gt;),
-    /// Query a specific availability chunk of the candidate's erasure-coding by validator index.
-    /// Returns the chunk and its inclusion proof against the candidate's erasure-root.
-    QueryChunk(CandidateHash, ValidatorIndex, ResponseChannel&lt;Option&lt;ErasureChunk&gt;&gt;),
-    /// Query all chunks that we have locally for the given candidate hash.
-    QueryAllChunks(CandidateHash, ResponseChannel&lt;Vec&lt;ErasureChunk&gt;&gt;),
-    /// Store a specific chunk of the candidate's erasure-coding by validator index, with an
-    /// accompanying proof.
-    StoreChunk(CandidateHash, ErasureChunk, ResponseChannel&lt;Result&lt;()&gt;&gt;),
-    /// Store `AvailableData`. If `ValidatorIndex` is provided, also store this validator's
-    /// `ErasureChunk`.
-    StoreAvailableData(CandidateHash, Option&lt;ValidatorIndex&gt;, u32, AvailableData, ResponseChannel&lt;Result&lt;()&gt;&gt;),
+</span>pub enum AvailabilityStoreMessage {
+	/// Query a `AvailableData` from the AV store.
+	QueryAvailableData(CandidateHash, oneshot::Sender&lt;Option&lt;AvailableData&gt;&gt;),
+
+	/// Query whether a `AvailableData` exists within the AV Store.
+	///
+	/// This is useful in cases when existence
+	/// matters, but we don't want to necessarily pass around multiple
+	/// megabytes of data to get a single bit of information.
+	QueryDataAvailability(CandidateHash, oneshot::Sender&lt;bool&gt;),
+
+	/// Query an `ErasureChunk` from the AV store by the candidate hash and validator index.
+	QueryChunk(CandidateHash, ValidatorIndex, oneshot::Sender&lt;Option&lt;ErasureChunk&gt;&gt;),
+
+	/// Get the size of an `ErasureChunk` from the AV store by the candidate hash.
+	QueryChunkSize(CandidateHash, oneshot::Sender&lt;Option&lt;usize&gt;&gt;),
+
+	/// Query all chunks that we have for the given candidate hash.
+	QueryAllChunks(CandidateHash, oneshot::Sender&lt;Vec&lt;ErasureChunk&gt;&gt;),
+
+	/// Query whether an `ErasureChunk` exists within the AV Store.
+	///
+	/// This is useful in cases like bitfield signing, when existence
+	/// matters, but we don't want to necessarily pass around large
+	/// quantities of data to get a single bit of information.
+	QueryChunkAvailability(CandidateHash, ValidatorIndex, oneshot::Sender&lt;bool&gt;),
+
+	/// Store an `ErasureChunk` in the AV store.
+	///
+	/// Return `Ok(())` if the store operation succeeded, `Err(())` if it failed.
+	StoreChunk {
+		/// A hash of the candidate this chunk belongs to.
+		candidate_hash: CandidateHash,
+		/// The chunk itself.
+		chunk: ErasureChunk,
+		/// Sending side of the channel to send result to.
+		tx: oneshot::Sender&lt;Result&lt;(), ()&gt;&gt;,
+	},
+
+	/// Computes and checks the erasure root of `AvailableData` before storing all of its chunks in 
+	/// the AV store.
+	///
+	/// Return `Ok(())` if the store operation succeeded, `Err(StoreAvailableData)` if it failed.
+	StoreAvailableData {
+		/// A hash of the candidate this `available_data` belongs to.
+		candidate_hash: CandidateHash,
+		/// The number of validators in the session.
+		n_validators: u32,
+		/// The `AvailableData` itself.
+		available_data: AvailableData,
+		/// Erasure root we expect to get after chunking.
+		expected_erasure_root: Hash,
+		/// Sending side of the channel to send result to.
+		tx: oneshot::Sender&lt;Result&lt;(), StoreAvailableDataError&gt;&gt;,
+	},
+}
+
+/// The error result type of a [`AvailabilityStoreMessage::StoreAvailableData`] request.
+pub enum StoreAvailableDataError {
+	InvalidErasureRoot,
 }
 <span class="boring">}
 </span></code></pre></pre>
@@ -7089,7 +7136,7 @@ pub enum CandidateValidationMessage {
 pub enum PvfCheckerMessage { }
 <span class="boring">}
 </span></code></pre></pre>
-<footer id="last-change">Last change: 2023-03-03, commit: <a href="https://github.com/paritytech/polkadot/commit/c10b52e8ba">c10b52e8ba</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="runtime"><a class="header" href="#runtime">Runtime</a></h1>
+<footer id="last-change">Last change: 2023-07-07, commit: <a href="https://github.com/paritytech/polkadot/commit/dbdedecf09">dbdedecf09</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="runtime"><a class="header" href="#runtime">Runtime</a></h1>
 <p>Types used within the runtime exclusively and pervasively.</p>
 <h2 id="host-configuration"><a class="header" href="#host-configuration">Host Configuration</a></h2>
 <p>The internal-to-runtime configuration of the parachain host. This is expected to be altered only by governance procedures.</p>
