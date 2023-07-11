@@ -168,6 +168,13 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -259,12 +266,13 @@
 	</span><span class="kw">pub </span>grandpa: GrandpaDeps&lt;B&gt;,
 	<span class="doccomment">/// BEEFY specific dependencies.
 	</span><span class="kw">pub </span>beefy: BeefyDeps,
+	<span class="doccomment">/// Backend used by the node.
+	</span><span class="kw">pub </span>backend: Arc&lt;B&gt;,
 }
 
 <span class="doccomment">/// Instantiate all RPC extensions.
 </span><span class="kw">pub fn </span>create_full&lt;C, P, SC, B&gt;(
-	deps: FullDeps&lt;C, P, SC, B&gt;,
-	backend: Arc&lt;B&gt;,
+	FullDeps { client, pool, select_chain, chain_spec, deny_unsafe, babe, grandpa, beefy, backend } : FullDeps&lt;C, P, SC, B&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;RpcExtension, Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt;
 <span class="kw">where
 	</span>C: ProvideRuntimeApi&lt;Block&gt;
@@ -294,8 +302,6 @@
 	<span class="kw">use </span>substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
 	<span class="kw">let </span><span class="kw-2">mut </span>io = RpcModule::new(());
-	<span class="kw">let </span>FullDeps { client, pool, select_chain, chain_spec, deny_unsafe, babe, grandpa, beefy } =
-		deps;
 	<span class="kw">let </span>BabeDeps { babe_worker_handle, keystore } = babe;
 	<span class="kw">let </span>GrandpaDeps {
 		shared_voter_state,
@@ -305,10 +311,18 @@
 		finality_provider,
 	} = grandpa;
 
-	io.merge(StateMigration::new(client.clone(), backend, deny_unsafe).into_rpc())<span class="question-mark">?</span>;
+	io.merge(StateMigration::new(client.clone(), backend.clone(), deny_unsafe).into_rpc())<span class="question-mark">?</span>;
 	io.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())<span class="question-mark">?</span>;
 	io.merge(TransactionPayment::new(client.clone()).into_rpc())<span class="question-mark">?</span>;
-	io.merge(Mmr::new(client.clone()).into_rpc())<span class="question-mark">?</span>;
+	io.merge(
+		Mmr::new(
+			client.clone(),
+			backend
+				.offchain_storage()
+				.ok_or(<span class="string">&quot;Backend doesn&#39;t provide the required offchain storage&quot;</span>)<span class="question-mark">?</span>,
+		)
+		.into_rpc(),
+	)<span class="question-mark">?</span>;
 	io.merge(
 		Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe)
 			.into_rpc(),

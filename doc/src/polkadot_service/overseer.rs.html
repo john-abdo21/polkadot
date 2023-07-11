@@ -369,6 +369,22 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -386,6 +402,8 @@
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use super</span>::{AuthorityDiscoveryApi, Block, Error, Hash, IsCollator, Registry};
+<span class="kw">use </span>polkadot_node_subsystem_types::DefaultSubsystemClient;
+<span class="kw">use </span>sc_transaction_pool_api::OffchainTransactionPoolFactory;
 <span class="kw">use </span>sp_core::traits::SpawnNamed;
 
 <span class="kw">use </span>lru::LruCache;
@@ -496,6 +514,8 @@
 	</span><span class="kw">pub </span>req_protocol_names: ReqProtocolNames,
 	<span class="doccomment">/// [`PeerSet`] protocol names to protocols mapping.
 	</span><span class="kw">pub </span>peerset_protocol_names: PeerSetProtocolNames,
+	<span class="doccomment">/// The offchain transaction pool factory.
+	</span><span class="kw">pub </span>offchain_transaction_pool_factory: OffchainTransactionPoolFactory&lt;Block&gt;,
 }
 
 <span class="doccomment">/// Obtain a prepared `OverseerBuilder`, that is initialized
@@ -526,11 +546,12 @@
 		overseer_message_channel_capacity_override,
 		req_protocol_names,
 		peerset_protocol_names,
+		offchain_transaction_pool_factory,
 	}: OverseerGenArgs&lt;Spawner, RuntimeClient&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
 	InitializedOverseerBuilder&lt;
 		SpawnGlue&lt;Spawner&gt;,
-		Arc&lt;RuntimeClient&gt;,
+		Arc&lt;DefaultSubsystemClient&lt;RuntimeClient&gt;&gt;,
 		CandidateValidationSubsystem,
 		PvfCheckerSubsystem,
 		CandidateBackingSubsystem,
@@ -540,7 +561,7 @@
 		BitfieldSigningSubsystem,
 		BitfieldDistributionSubsystem,
 		ProvisionerSubsystem,
-		RuntimeApiSubsystem&lt;RuntimeClient&gt;,
+		RuntimeApiSubsystem&lt;DefaultSubsystemClient&lt;RuntimeClient&gt;&gt;,
 		AvailabilityStoreSubsystem,
 		NetworkBridgeRxSubsystem&lt;
 			Arc&lt;sc_network::NetworkService&lt;Block, Hash&gt;&gt;,
@@ -574,6 +595,11 @@
 	<span class="kw">let </span>spawner = SpawnGlue(spawner);
 
 	<span class="kw">let </span>network_bridge_metrics: NetworkBridgeMetrics = Metrics::register(registry)<span class="question-mark">?</span>;
+
+	<span class="kw">let </span>runtime_api_client = Arc::new(DefaultSubsystemClient::new(
+		runtime_client.clone(),
+		offchain_transaction_pool_factory,
+	));
 
 	<span class="kw">let </span>builder = Overseer::builder()
 		.network_bridge_tx(NetworkBridgeTxSubsystem::new(
@@ -644,7 +670,7 @@
 		})
 		.provisioner(ProvisionerSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
 		.runtime_api(RuntimeApiSubsystem::new(
-			runtime_client.clone(),
+			runtime_api_client.clone(),
 			Metrics::register(registry)<span class="question-mark">?</span>,
 			spawner.clone(),
 		))
@@ -683,7 +709,7 @@
 		.activation_external_listeners(Default::default())
 		.span_per_active_leaf(Default::default())
 		.active_leaves(Default::default())
-		.supports_parachains(runtime_client)
+		.supports_parachains(runtime_api_client)
 		.known_leaves(LruCache::new(KNOWN_LEAVES_CACHE_SIZE))
 		.metrics(metrics)
 		.spawner(spawner);
@@ -705,7 +731,10 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		connector: OverseerConnector,
 		args: OverseerGenArgs&lt;Spawner, RuntimeClient&gt;,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;RuntimeClient&gt;&gt;, OverseerHandle), Error&gt;
+	) -&gt; <span class="prelude-ty">Result</span>&lt;
+		(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;DefaultSubsystemClient&lt;RuntimeClient&gt;&gt;&gt;, OverseerHandle),
+		Error,
+	&gt;
 	<span class="kw">where
 		</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
 		RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,
@@ -729,7 +758,10 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		connector: OverseerConnector,
 		args: OverseerGenArgs&lt;Spawner, RuntimeClient&gt;,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;RuntimeClient&gt;&gt;, OverseerHandle), Error&gt;
+	) -&gt; <span class="prelude-ty">Result</span>&lt;
+		(Overseer&lt;SpawnGlue&lt;Spawner&gt;, Arc&lt;DefaultSubsystemClient&lt;RuntimeClient&gt;&gt;&gt;, OverseerHandle),
+		Error,
+	&gt;
 	<span class="kw">where
 		</span>RuntimeClient: <span class="lifetime">&#39;static </span>+ ProvideRuntimeApi&lt;Block&gt; + HeaderBackend&lt;Block&gt; + AuxStore,
 		RuntimeClient::Api: ParachainHost&lt;Block&gt; + BabeApi&lt;Block&gt; + AuthorityDiscoveryApi&lt;Block&gt;,

@@ -1374,6 +1374,16 @@
 <a href="#1374" id="1374">1374</a>
 <a href="#1375" id="1375">1375</a>
 <a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1428,6 +1438,7 @@
 		peer_set::PeerSetProtocolNames, request_response::ReqProtocolNames,
 	},
 	sc_client_api::BlockBackend,
+	sc_transaction_pool_api::OffchainTransactionPoolFactory,
 	sp_core::traits::SpawnNamed,
 	sp_trie::PrefixedMemoryDB,
 };
@@ -1463,7 +1474,7 @@
 <span class="kw">use </span>frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 <span class="kw">use </span>mmr_gadget::MmrGadget;
 <span class="kw">pub use </span>polkadot_primitives::{Block, BlockId, BlockNumber, CollatorPair, Hash, Id <span class="kw">as </span>ParaId};
-<span class="kw">pub use </span>sc_client_api::{Backend, CallExecutor, ExecutionStrategy};
+<span class="kw">pub use </span>sc_client_api::{Backend, CallExecutor};
 <span class="kw">pub use </span>sc_consensus::{BlockImport, LongestChain};
 <span class="kw">pub use </span>sc_executor::NativeExecutionDispatch;
 <span class="kw">use </span>sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
@@ -1889,13 +1900,13 @@
 		babe::block_import(babe_config.clone(), beefy_block_import, client.clone())<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>slot_duration = babe_link.config().slot_duration();
-	<span class="kw">let </span>(import_queue, babe_worker_handle) = babe::import_queue(
-		babe_link.clone(),
-		block_import.clone(),
-		<span class="prelude-val">Some</span>(Box::new(justification_import)),
-		client.clone(),
-		select_chain.clone(),
-		<span class="kw">move </span>|<span class="kw">_</span>, ()| <span class="kw">async move </span>{
+	<span class="kw">let </span>(import_queue, babe_worker_handle) = babe::import_queue(babe::ImportQueueParams {
+		link: babe_link.clone(),
+		block_import: block_import.clone(),
+		justification_import: <span class="prelude-val">Some</span>(Box::new(justification_import)),
+		client: client.clone(),
+		select_chain: select_chain.clone(),
+		create_inherent_data_providers: <span class="kw">move </span>|<span class="kw">_</span>, ()| <span class="kw">async move </span>{
 			<span class="kw">let </span>timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
 			<span class="kw">let </span>slot =
@@ -1906,10 +1917,11 @@
 
 			<span class="prelude-val">Ok</span>((slot, timestamp))
 		},
-		<span class="kw-2">&amp;</span>task_manager.spawn_essential_handle(),
-		config.prometheus_registry(),
-		telemetry.as_ref().map(|x| x.handle()),
-	)<span class="question-mark">?</span>;
+		spawner: <span class="kw-2">&amp;</span>task_manager.spawn_essential_handle(),
+		registry: config.prometheus_registry(),
+		telemetry: telemetry.as_ref().map(|x| x.handle()),
+		offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
+	})<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>justification_stream = grandpa_link.justification_stream();
 	<span class="kw">let </span>shared_authority_set = grandpa_link.shared_authority_set().clone();
@@ -1955,9 +1967,10 @@
 					beefy_best_block_stream: beefy_rpc_links.from_voter_best_beefy_stream.clone(),
 					subscription_executor,
 				},
+				backend: backend.clone(),
 			};
 
-			polkadot_rpc::create_full(deps, backend.clone()).map_err(Into::into)
+			polkadot_rpc::create_full(deps).map_err(Into::into)
 		}
 	};
 
@@ -2200,22 +2213,25 @@
 		})<span class="question-mark">?</span>;
 
 	<span class="kw">if </span>config.offchain_worker.enabled {
-		<span class="kw">let </span>offchain_workers = Arc::new(sc_offchain::OffchainWorkers::new_with_options(
-			client.clone(),
-			sc_offchain::OffchainWorkerOptions { enable_http_requests: <span class="bool-val">false </span>},
-		));
+		<span class="kw">use </span>futures::FutureExt;
 
-		<span class="comment">// Start the offchain workers to have
-		</span>task_manager.spawn_handle().spawn(
-			<span class="string">&quot;offchain-notifications&quot;</span>,
-			<span class="prelude-val">None</span>,
-			sc_offchain::notification_future(
-				config.role.is_authority(),
-				client.clone(),
-				offchain_workers,
-				task_manager.spawn_handle().clone(),
-				network.clone(),
-			),
+		task_manager.spawn_handle().spawn(
+			<span class="string">&quot;offchain-workers-runner&quot;</span>,
+			<span class="string">&quot;offchain-work&quot;</span>,
+			sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
+				runtime_api_provider: client.clone(),
+				keystore: <span class="prelude-val">Some</span>(keystore_container.keystore()),
+				offchain_db: backend.offchain_storage(),
+				transaction_pool: <span class="prelude-val">Some</span>(OffchainTransactionPoolFactory::new(
+					transaction_pool.clone(),
+				)),
+				network_provider: network.clone(),
+				is_validator: role.is_authority(),
+				enable_http_requests: <span class="bool-val">false</span>,
+				custom_extensions: <span class="kw">move </span>|<span class="kw">_</span>| <span class="macro">vec!</span>[],
+			})
+			.run(client.clone(), task_manager.spawn_handle())
+			.boxed(),
 		);
 	}
 
@@ -2357,6 +2373,9 @@
 					overseer_message_channel_capacity_override,
 					req_protocol_names,
 					peerset_protocol_names,
+					offchain_transaction_pool_factory: OffchainTransactionPoolFactory::new(
+						transaction_pool.clone(),
+					),
 				},
 			)
 			.map_err(|e| {
@@ -2402,7 +2421,7 @@
 		<span class="kw">let </span>proposer = sc_basic_authorship::ProposerFactory::new(
 			task_manager.spawn_handle(),
 			client.clone(),
-			transaction_pool,
+			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|x| x.handle()),
 		);
@@ -2562,6 +2581,7 @@
 			prometheus_registry: prometheus_registry.clone(),
 			shared_voter_state,
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
+			offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
 		};
 
 		task_manager.spawn_essential_handle().spawn_blocking(
