@@ -1328,27 +1328,6 @@
 <a href="#1328" id="1328">1328</a>
 <a href="#1329" id="1329">1329</a>
 <a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1569,12 +1548,6 @@
 	</span><span class="kw">pub </span>needed_approvals: u32,
 	<span class="doccomment">/// The number of samples to do of the `RelayVRFModulo` approval assignment criterion.
 	</span><span class="kw">pub </span>relay_vrf_modulo_samples: u32,
-	<span class="doccomment">/// This flag controls whether PVF pre-checking is enabled.
-	///
-	/// If the flag is false, the behavior should be exactly the same as prior. Specifically, the
-	/// upgrade procedure is time-based and parachains that do not look at the go-ahead signal
-	/// should still work.
-	</span><span class="kw">pub </span>pvf_checking_enabled: bool,
 	<span class="doccomment">/// If an active PVF pre-checking vote observes this many number of sessions it gets automatically
 	/// rejected.
 	///
@@ -1642,7 +1615,6 @@
 			hrmp_max_parachain_outbound_channels: Default::default(),
 			hrmp_max_parathread_outbound_channels: Default::default(),
 			hrmp_max_message_num_per_candidate: Default::default(),
-			pvf_checking_enabled: <span class="bool-val">false</span>,
 			pvf_voting_ttl: <span class="number">2u32</span>.into(),
 			minimum_validation_upgrade_delay: <span class="number">2</span>.into(),
 			executor_params: Default::default(),
@@ -2418,20 +2390,6 @@
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
 				config.hrmp_max_message_num_per_candidate = new;
-			})
-		}
-
-		<span class="doccomment">/// Enable or disable PVF pre-checking. Consult the field documentation prior executing.
-		</span><span class="attr">#[pallet::call_index(<span class="number">41</span>)]
-		#[pallet::weight((
-			<span class="comment">// Using u32 here is a little bit of cheating, but that should be fine.
-			</span>T::WeightInfo::set_config_with_u32(),
-			DispatchClass::Operational,
-		))]
-		</span><span class="kw">pub fn </span>set_pvf_checking_enabled(origin: OriginFor&lt;T&gt;, new: bool) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.pvf_checking_enabled = new;
 			})
 		}
 
