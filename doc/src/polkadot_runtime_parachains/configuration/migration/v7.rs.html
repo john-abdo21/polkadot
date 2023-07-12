@@ -292,6 +292,21 @@
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -450,9 +465,8 @@ executor_params                          : pre.executor_params,
 	<span class="kw">let </span>v7 = translate(v6);
 	v7::ActiveConfig::&lt;T&gt;::set(<span class="prelude-val">Some</span>(v7));
 
-	<span class="kw">let </span>pending_v6 = v6::PendingConfigs::&lt;T&gt;::get()
-		.defensive_proof(<span class="string">&quot;Could not decode old pending&quot;</span>)
-		.unwrap_or_default();
+	<span class="comment">// Allowed to be empty.
+	</span><span class="kw">let </span>pending_v6 = v6::PendingConfigs::&lt;T&gt;::get().unwrap_or_default();
 	<span class="kw">let </span><span class="kw-2">mut </span>pending_v7 = Vec::new();
 
 	<span class="kw">for </span>(session, v6) <span class="kw">in </span>pending_v6.into_iter() {
@@ -583,6 +597,22 @@ executor_params                          : pre.executor_params,
 					<span class="macro">assert_eq!</span>(v6.executor_params						   , v7.executor_params);
 				}; <span class="comment">// ; makes this a statement. `rustfmt::skip` cannot be put on an expression.
 			</span>}
+		});
+	}
+
+	<span class="comment">// Test that migration doesn&#39;t panic in case there&#39;re no pending configurations upgrades in pallet&#39;s storage.
+	</span><span class="attr">#[test]
+	</span><span class="kw">fn </span>test_migrate_to_v7_no_pending() {
+		<span class="kw">let </span>v6 = V6HostConfiguration::&lt;primitives::BlockNumber&gt;::default();
+
+		new_test_ext(Default::default()).execute_with(|| {
+			<span class="comment">// Implant the v6 version in the state.
+			</span>v6::ActiveConfig::&lt;Test&gt;::set(<span class="prelude-val">Some</span>(v6));
+			<span class="comment">// Ensure there&#39;re no pending configs.
+			</span>v6::PendingConfigs::&lt;Test&gt;::set(<span class="prelude-val">None</span>);
+
+			<span class="comment">// Shouldn&#39;t fail.
+			</span>migrate_to_v7::&lt;Test&gt;();
 		});
 	}
 }
