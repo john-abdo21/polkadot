@@ -1326,6 +1326,7 @@
 <a href="#1326" id="1326">1326</a>
 <a href="#1327" id="1327">1327</a>
 <a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1885,6 +1886,7 @@
 	<span class="kw">use </span>sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
 		transaction_validity::TransactionPriority,
+		BuildStorage,
 		DispatchError::BadOrigin,
 	};
 
@@ -1897,11 +1899,11 @@
 			NodeBlock = Block,
 			UncheckedExtrinsic = UncheckedExtrinsic,
 		{
-			System: frame_system::{Pallet, Call, Config, Storage, Event&lt;T&gt;},
+			System: frame_system::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
 			Configuration: parachains_configuration::{Pallet, Call, Storage, Config&lt;T&gt;},
 			ParasShared: parachains_shared::{Pallet, Call, Storage},
-			Parachains: parachains_paras::{Pallet, Call, Storage, Config, Event},
+			Parachains: parachains_paras::{Pallet, Call, Storage, Config&lt;T&gt;, Event},
 			Slots: slots::{Pallet, Call, Storage, Event&lt;T&gt;},
 			AssignedSlots: assigned_slots::{Pallet, Call, Storage, Event&lt;T&gt;},
 		}
@@ -2021,7 +2023,7 @@
 	<span class="comment">// This function basically just builds a genesis storage key/value store according to
 	// our desired mock up.
 	</span><span class="kw">pub fn </span>new_test_ext() -&gt; sp_io::TestExternalities {
-		<span class="kw">let </span><span class="kw-2">mut </span>t = frame_system::GenesisConfig::default().build_storage::&lt;Test&gt;().unwrap();
+		<span class="kw">let </span><span class="kw-2">mut </span>t = frame_system::GenesisConfig::&lt;Test&gt;::default().build_storage().unwrap();
 		pallet_balances::GenesisConfig::&lt;Test&gt; {
 			balances: <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="number">10</span>), (<span class="number">2</span>, <span class="number">20</span>), (<span class="number">3</span>, <span class="number">30</span>), (<span class="number">4</span>, <span class="number">40</span>), (<span class="number">5</span>, <span class="number">50</span>), (<span class="number">6</span>, <span class="number">60</span>)],
 		}

@@ -1754,18 +1754,20 @@
 	</span><span class="kw">pub type </span>NextFreeParaId&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, ParaId, ValueQuery&gt;;
 
 	<span class="attr">#[pallet::genesis_config]
-	</span><span class="kw">pub struct </span>GenesisConfig {
+	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
+		<span class="attr">#[serde(skip)]
+		</span><span class="kw">pub </span>_config: sp_std::marker::PhantomData&lt;T&gt;,
 		<span class="kw">pub </span>next_free_para_id: ParaId,
 	}
 
-	<span class="kw">impl </span>Default <span class="kw">for </span>GenesisConfig {
+	<span class="kw">impl</span>&lt;T: Config&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-			GenesisConfig { next_free_para_id: LOWEST_PUBLIC_ID }
+			GenesisConfig { next_free_para_id: LOWEST_PUBLIC_ID, _config: Default::default() }
 		}
 	}
 
 	<span class="attr">#[pallet::genesis_build]
-	</span><span class="kw">impl</span>&lt;T: Config&gt; GenesisBuild&lt;T&gt; <span class="kw">for </span>GenesisConfig {
+	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			NextFreeParaId::&lt;T&gt;::put(<span class="self">self</span>.next_free_para_id);
 		}
@@ -2224,7 +2226,7 @@
 		assert_noop, assert_ok,
 		error::BadOrigin,
 		parameter_types,
-		traits::{ConstU32, GenesisBuild, OnFinalize, OnInitialize},
+		traits::{ConstU32, OnFinalize, OnInitialize},
 	};
 	<span class="kw">use </span>frame_system::limits;
 	<span class="kw">use </span>pallet_balances::Error <span class="kw">as </span>BalancesError;
@@ -2236,7 +2238,7 @@
 	<span class="kw">use </span>sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup},
 		transaction_validity::TransactionPriority,
-		Perbill,
+		BuildStorage, Perbill,
 	};
 	<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
 
@@ -2249,10 +2251,10 @@
 			NodeBlock = Block,
 			UncheckedExtrinsic = UncheckedExtrinsic,
 		{
-			System: frame_system::{Pallet, Call, Config, Storage, Event&lt;T&gt;},
+			System: frame_system::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
 			Configuration: configuration::{Pallet, Call, Storage, Config&lt;T&gt;},
-			Parachains: paras::{Pallet, Call, Storage, Config, Event},
+			Parachains: paras::{Pallet, Call, Storage, Config&lt;T&gt;, Event},
 			ParasShared: shared::{Pallet, Call, Storage},
 			Registrar: paras_registrar::{Pallet, Call, Storage, Event&lt;T&gt;},
 			ParachainsOrigin: origin::{Pallet, Origin},
@@ -2360,18 +2362,16 @@
 	}
 
 	<span class="kw">pub fn </span>new_test_ext() -&gt; TestExternalities {
-		<span class="kw">let </span><span class="kw-2">mut </span>t = frame_system::GenesisConfig::default().build_storage::&lt;Test&gt;().unwrap();
+		<span class="kw">let </span><span class="kw-2">mut </span>t = frame_system::GenesisConfig::&lt;Test&gt;::default().build_storage().unwrap();
 
-		GenesisBuild::&lt;Test&gt;::assimilate_storage(
-			<span class="kw-2">&amp;</span>configuration::GenesisConfig {
-				config: configuration::HostConfiguration {
-					max_code_size: <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024</span>,      <span class="comment">// 2 MB
-					</span>max_head_data_size: <span class="number">1 </span>* <span class="number">1024 </span>* <span class="number">1024</span>, <span class="comment">// 1 MB
-					</span>..Default::default()
-				},
+		configuration::GenesisConfig::&lt;Test&gt; {
+			config: configuration::HostConfiguration {
+				max_code_size: <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024</span>,      <span class="comment">// 2 MB
+				</span>max_head_data_size: <span class="number">1 </span>* <span class="number">1024 </span>* <span class="number">1024</span>, <span class="comment">// 1 MB
+				</span>..Default::default()
 			},
-			<span class="kw-2">&amp;mut </span>t,
-		)
+		}
+		.assimilate_storage(<span class="kw-2">&amp;mut </span>t)
 		.unwrap();
 
 		pallet_balances::GenesisConfig::&lt;Test&gt; {

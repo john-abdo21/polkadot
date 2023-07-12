@@ -1935,7 +1935,7 @@
 	}
 
 	<span class="attr">#[pallet::genesis_build]
-	</span><span class="kw">impl</span>&lt;T: Config&gt; GenesisBuild&lt;T&gt; <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			<span class="comment">// build `Claims`
 			</span><span class="self">self</span>.claims.iter().map(|(a, b, <span class="kw">_</span>, <span class="kw">_</span>)| (<span class="kw-2">*</span>a, <span class="kw-2">*</span>b)).for_each(|(a, b)| {
@@ -2409,14 +2409,14 @@
 		assert_err, assert_noop, assert_ok,
 		dispatch::{DispatchError::BadOrigin, GetDispatchInfo, Pays},
 		ord_parameter_types, parameter_types,
-		traits::{ConstU32, ExistenceRequirement, GenesisBuild, WithdrawReasons},
+		traits::{ConstU32, ExistenceRequirement, WithdrawReasons},
 	};
 	<span class="kw">use </span>pallet_balances;
 	<span class="kw">use </span>sp_runtime::{
 		testing::Header,
 		traits::{BlakeTwo256, Identity, IdentityLookup},
 		transaction_validity::TransactionLongevity,
-		TokenError,
+		BuildStorage, TokenError,
 	};
 
 	<span class="kw">type </span>UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic&lt;Test&gt;;
@@ -2428,7 +2428,7 @@
 			NodeBlock = Block,
 			UncheckedExtrinsic = UncheckedExtrinsic,
 		{
-			System: frame_system::{Pallet, Call, Config, Storage, Event&lt;T&gt;},
+			System: frame_system::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
 			Vesting: pallet_vesting::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
 			Claims: claims::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;, ValidateUnsigned},
@@ -2535,7 +2535,7 @@
 	<span class="comment">// This function basically just builds a genesis storage key/value store according to
 	// our desired mockup.
 	</span><span class="kw">pub fn </span>new_test_ext() -&gt; sp_io::TestExternalities {
-		<span class="kw">let </span><span class="kw-2">mut </span>t = frame_system::GenesisConfig::default().build_storage::&lt;Test&gt;().unwrap();
+		<span class="kw">let </span><span class="kw-2">mut </span>t = frame_system::GenesisConfig::&lt;Test&gt;::default().build_storage().unwrap();
 		<span class="comment">// We use default for brevity, but you can configure as desired if needed.
 		</span>pallet_balances::GenesisConfig::&lt;Test&gt;::default()
 			.assimilate_storage(<span class="kw-2">&amp;mut </span>t)
