@@ -1193,11 +1193,11 @@
 
 	<span class="attr">#[pallet::hooks]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Hooks&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
-		<span class="kw">fn </span>on_initialize(<span class="kw">_</span>: T::BlockNumber) -&gt; Weight {
+		<span class="kw">fn </span>on_initialize(<span class="kw">_</span>: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 			T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>) <span class="comment">// in `on_finalize`.
 		</span>}
 
-		<span class="kw">fn </span>on_finalize(<span class="kw">_</span>: T::BlockNumber) {
+		<span class="kw">fn </span>on_finalize(<span class="kw">_</span>: BlockNumberFor&lt;T&gt;) {
 			<span class="kw">if </span>Included::&lt;T&gt;::take().is_none() {
 				<span class="macro">panic!</span>(<span class="string">&quot;Bitfields and heads must be included every block&quot;</span>);
 			}
@@ -1264,7 +1264,7 @@
 		))]
 		</span><span class="kw">pub fn </span>enter(
 			origin: OriginFor&lt;T&gt;,
-			data: ParachainsInherentData&lt;T::Header&gt;,
+			data: ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;,
 		) -&gt; DispatchResultWithPostInfo {
 			ensure_none(origin)<span class="question-mark">?</span>;
 
@@ -1279,7 +1279,7 @@
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Create the `ParachainsInherentData` that gets passed to [`Self::enter`] in [`Self::create_inherent`].
 	/// This code is pulled out of [`Self::create_inherent`] so it can be unit tested.
-	</span><span class="kw">fn </span>create_inherent_inner(data: <span class="kw-2">&amp;</span>InherentData) -&gt; <span class="prelude-ty">Option</span>&lt;ParachainsInherentData&lt;T::Header&gt;&gt; {
+	</span><span class="kw">fn </span>create_inherent_inner(data: <span class="kw-2">&amp;</span>InherentData) -&gt; <span class="prelude-ty">Option</span>&lt;ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;&gt; {
 		<span class="kw">let </span>parachains_inherent_data = <span class="kw">match </span>data.get_data(<span class="kw-2">&amp;</span><span class="self">Self</span>::INHERENT_IDENTIFIER) {
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d)) =&gt; d,
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
@@ -1309,9 +1309,9 @@
 	/// Returns: Result containing processed inherent data and weight, the processed inherent would
 	/// consume.
 	</span><span class="kw">fn </span>process_inherent_data(
-		data: ParachainsInherentData&lt;T::Header&gt;,
+		data: ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;,
 	) -&gt; sp_std::result::Result&lt;
-		(ParachainsInherentData&lt;T::Header&gt;, PostDispatchInfo),
+		(ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;, PostDispatchInfo),
 		DispatchErrorWithPostInfo,
 	&gt; {
 		<span class="attr">#[cfg(feature = <span class="string">&quot;runtime-metrics&quot;</span>)]
@@ -1532,7 +1532,7 @@
 
 		<span class="comment">// Process backed candidates according to scheduled cores.
 		</span><span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
-		<span class="kw">let </span>inclusion::ProcessedCandidates::&lt;&lt;T::Header <span class="kw">as </span>HeaderT&gt;::Hash&gt; {
+		<span class="kw">let </span>inclusion::ProcessedCandidates::&lt;&lt;HeaderFor&lt;T&gt; <span class="kw">as </span>HeaderT&gt;::Hash&gt; {
 			core_indices: occupied,
 			candidate_receipt_with_backing_validator_indices,
 		} = &lt;inclusion::Pallet&lt;T&gt;&gt;::process_candidates(

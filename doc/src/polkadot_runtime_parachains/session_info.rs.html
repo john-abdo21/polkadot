@@ -226,6 +226,7 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -255,6 +256,7 @@
 	pallet_prelude::<span class="kw-2">*</span>,
 	traits::{OneSessionHandler, ValidatorSet, ValidatorSetWithIdentification},
 };
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">use </span>primitives::{AssignmentId, AuthorityDiscoveryId, ExecutorParams, SessionIndex, SessionInfo};
 <span class="kw">use </span>sp_std::vec::Vec;
 
@@ -353,7 +355,7 @@
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Handle an incoming session change.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		notification: <span class="kw-2">&amp;</span><span class="kw">crate</span>::initializer::SessionChangeNotification&lt;T::BlockNumber&gt;,
+		notification: <span class="kw-2">&amp;</span><span class="kw">crate</span>::initializer::SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) {
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
@@ -423,7 +425,7 @@
 	}
 
 	<span class="doccomment">/// Called by the initializer to initialize the session info pallet.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 

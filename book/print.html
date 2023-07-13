@@ -817,12 +817,12 @@ pub fn configuration() -&gt; HostConfiguration {
 ///
 /// If there is already a pending update for the current session index + 1, then it won't be touched. Otherwise,
 /// that would violate the promise of this function that changes will be applied on the second session change (cur + 2).
-fn schedule_config_update(updater: impl FnOnce(&amp;mut HostConfiguration&lt;T::BlockNumber&gt;)) -&gt; DispatchResult
+fn schedule_config_update(updater: impl FnOnce(&amp;mut HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)) -&gt; DispatchResult
 <span class="boring">}
 </span></code></pre></pre>
 <h2 id="entry-points"><a class="header" href="#entry-points">Entry-points</a></h2>
 <p>The Configuration module exposes an entry point for each configuration member. These entry-points accept calls only from governance origins. These entry-points will use the <code>update_configuration</code> routine to update the specific configuration field.</p>
-<footer id="last-change">Last change: 2022-10-13, commit: <a href="https://github.com/paritytech/polkadot/commit/e307a26c8e">e307a26c8e</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="shared-module"><a class="header" href="#shared-module">Shared Module</a></h1>
+<footer id="last-change">Last change: 2023-07-13, commit: <a href="https://github.com/paritytech/polkadot/commit/0b56bcdb07">0b56bcdb07</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="shared-module"><a class="header" href="#shared-module">Shared Module</a></h1>
 <p>This module is responsible for managing shared storage and configuration for other modules.</p>
 <p>It is important that other pallets are able to use the Shared Module, so it should not have a
 dependency on any other modules in the Parachains Runtime.</p>
@@ -1161,7 +1161,8 @@ happen due to PVF pre-checking voting concluding late.</p>
 <h3 id="storage-layout"><a class="header" href="#storage-layout">Storage Layout</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>/// All currently active PVF pre-checking votes.
+</span>use frame_system::pallet_prelude::BlockNumberFor;
+/// All currently active PVF pre-checking votes.
 ///
 /// Invariant:
 /// - There are no PVF pre-checking votes that exists in list but not in the set and vice versa.
@@ -1218,12 +1219,12 @@ UpgradeRestrictionSignal: map hasher(twox_64_concat) ParaId =&gt; Option&lt;Upgr
 /// The list of parachains that are awaiting for their upgrade restriction to cooldown.
 ///
 /// Ordered ascending by block number.
-UpgradeCooldowns: Vec&lt;(ParaId, T::BlockNumber)&gt;;
+UpgradeCooldowns: Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;;
 /// The list of upcoming code upgrades. Each item is a pair of which para performs a code
 /// upgrade and at which relay-chain block it is expected at.
 ///
 /// Ordered ascending by block number.
-UpcomingUpgrades: Vec&lt;(ParaId, T::BlockNumber)&gt;;
+UpcomingUpgrades: Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;;
 /// The actions to perform during the start of a specific session index.
 ActionsQueue: map SessionIndex =&gt; Vec&lt;ParaId&gt;;
 /// Upcoming paras instantiation arguments.
@@ -1303,7 +1304,7 @@ or live parachain.</li>
 </ul>
 <h2 id="finalization-2"><a class="header" href="#finalization-2">Finalization</a></h2>
 <p>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code> and prune them. For each para pruned remove its <code>UpgradeRestrictionSignal</code>.</p>
-<footer id="last-change">Last change: 2022-10-13, commit: <a href="https://github.com/paritytech/polkadot/commit/e307a26c8e">e307a26c8e</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="scheduler-module"><a class="header" href="#scheduler-module">Scheduler Module</a></h1>
+<footer id="last-change">Last change: 2023-07-13, commit: <a href="https://github.com/paritytech/polkadot/commit/0b56bcdb07">0b56bcdb07</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="scheduler-module"><a class="header" href="#scheduler-module">Scheduler Module</a></h1>
 <blockquote>
 <p>TODO: this section is still heavily under construction. key questions about availability cores and validator assignment are still open and the flow of the the section may be contradictory or inconsistent</p>
 </blockquote>

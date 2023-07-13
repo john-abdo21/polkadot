@@ -2159,6 +2159,8 @@
 <a href="#2159" id="2159">2159</a>
 <a href="#2160" id="2160">2160</a>
 <a href="#2161" id="2161">2161</a>
+<a href="#2162" id="2162">2162</a>
+<a href="#2163" id="2163">2163</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2711,7 +2713,7 @@
 		<span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>UnsignedPriority: Get&lt;TransactionPriority&gt;;
 
-		<span class="kw">type </span>NextSessionRotation: EstimateNextSessionRotation&lt;<span class="self">Self</span>::BlockNumber&gt;;
+		<span class="kw">type </span>NextSessionRotation: EstimateNextSessionRotation&lt;BlockNumberFor&lt;<span class="self">Self</span>&gt;&gt;;
 
 		<span class="doccomment">/// Retrieve how many UMP messages are enqueued for this para-chain.
 		///
@@ -2784,7 +2786,7 @@
 		<span class="kw">_</span>,
 		Twox64Concat,
 		ValidationCodeHash,
-		PvfCheckActiveVoteState&lt;T::BlockNumber&gt;,
+		PvfCheckActiveVoteState&lt;BlockNumberFor&lt;T&gt;&gt;,
 		OptionQuery,
 	&gt;;
 
@@ -2823,7 +2825,7 @@
 	/// Corresponding code can be retrieved with [`CodeByHash`].
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>PastCodeHash&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, (ParaId, T::BlockNumber), ValidationCodeHash&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, (ParaId, BlockNumberFor&lt;T&gt;), ValidationCodeHash&gt;;
 
 	<span class="doccomment">/// Past code of parachains. The parachains themselves may not be registered anymore,
 	/// but we also keep their code on-chain for the same amount of time as outdated code
@@ -2831,7 +2833,7 @@
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>past_code_meta)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>PastCodeMeta&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, ParaPastCodeMeta&lt;T::BlockNumber&gt;, ValueQuery&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, ParaPastCodeMeta&lt;BlockNumberFor&lt;T&gt;&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// Which paras have past code that needs pruning and the relay-chain block at which the code was replaced.
 	/// Note that this is the actual height of the included block, not the expected height at which the
@@ -2841,7 +2843,7 @@
 	/// Multiple entries for a single para are permitted. Ordered ascending by block number.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>PastCodePruning&lt;T: Config&gt; =
-		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(ParaId, T::BlockNumber)&gt;, ValueQuery&gt;;
+		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// The block number at which the planned code change is expected for a para.
 	/// The change will be applied after the first parablock for this ID included which executes
@@ -2849,7 +2851,7 @@
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>future_code_upgrade_at)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>FutureCodeUpgrades&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, T::BlockNumber&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, BlockNumberFor&lt;T&gt;&gt;;
 
 	<span class="doccomment">/// The actual future code hash of a para.
 	///
@@ -2889,7 +2891,7 @@
 	/// Ordered ascending by block number.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>UpgradeCooldowns&lt;T: Config&gt; =
-		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(ParaId, T::BlockNumber)&gt;, ValueQuery&gt;;
+		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// The list of upcoming code upgrades. Each item is a pair of which para performs a code
 	/// upgrade and at which relay-chain block it is expected at.
@@ -2897,7 +2899,7 @@
 	/// Ordered ascending by block number.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>UpcomingUpgrades&lt;T: Config&gt; =
-		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(ParaId, T::BlockNumber)&gt;, ValueQuery&gt;;
+		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// The actions to perform during the start of a specific session index.
 	</span><span class="attr">#[pallet::storage]
@@ -2999,7 +3001,7 @@
 			origin: OriginFor&lt;T&gt;,
 			para: ParaId,
 			new_code: ValidationCode,
-			relay_parent_number: T::BlockNumber,
+			relay_parent_number: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>config = configuration::Pallet::&lt;T&gt;::config();
@@ -3306,13 +3308,13 @@
 	}
 
 	<span class="doccomment">/// Called by the initializer to initialize the paras pallet.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		<span class="kw">let </span>weight = <span class="self">Self</span>::prune_old_code(now);
 		weight + <span class="self">Self</span>::process_scheduled_upgrade_changes(now)
 	}
 
 	<span class="doccomment">/// Called by the initializer to finalize the paras pallet.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_finalize(now: T::BlockNumber) {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_finalize(now: BlockNumberFor&lt;T&gt;) {
 		<span class="self">Self</span>::process_scheduled_upgrade_cooldowns(now);
 	}
 
@@ -3320,7 +3322,7 @@
 	///
 	/// Returns the list of outgoing paras from the actions queue.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;T::BlockNumber&gt;,
+		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) -&gt; Vec&lt;ParaId&gt; {
 		<span class="kw">let </span>outgoing_paras = <span class="self">Self</span>::apply_actions_queue(notification.session_index);
 		<span class="self">Self</span>::groom_ongoing_pvf_votes(<span class="kw-2">&amp;</span>notification.new_config, notification.validators.len());
@@ -3436,8 +3438,8 @@
 	// (i.e. number of `relay_parent` in the receipt)
 	</span><span class="kw">fn </span>note_past_code(
 		id: ParaId,
-		at: T::BlockNumber,
-		now: T::BlockNumber,
+		at: BlockNumberFor&lt;T&gt;,
+		now: BlockNumberFor&lt;T&gt;,
 		old_code_hash: ValidationCodeHash,
 	) -&gt; Weight {
 		PastCodeMeta::&lt;T&gt;::mutate(<span class="kw-2">&amp;</span>id, |past_meta| {
@@ -3459,7 +3461,7 @@
 
 	<span class="comment">// looks at old code metadata, compares them to the current acceptance window, and prunes those
 	// that are too old.
-	</span><span class="kw">fn </span>prune_old_code(now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">fn </span>prune_old_code(now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		<span class="kw">let </span>config = configuration::Pallet::&lt;T&gt;::config();
 		<span class="kw">let </span>code_retention_period = config.code_retention_period;
 		<span class="kw">if </span>now &lt;= code_retention_period {
@@ -3471,7 +3473,7 @@
 		</span><span class="kw">let </span>pruning_height = now - (code_retention_period + One::one());
 
 		<span class="kw">let </span>pruning_tasks_done =
-			PastCodePruning::&lt;T&gt;::mutate(|pruning_tasks: <span class="kw-2">&amp;mut </span>Vec&lt;(<span class="kw">_</span>, T::BlockNumber)&gt;| {
+			PastCodePruning::&lt;T&gt;::mutate(|pruning_tasks: <span class="kw-2">&amp;mut </span>Vec&lt;(<span class="kw">_</span>, BlockNumberFor&lt;T&gt;)&gt;| {
 				<span class="kw">let </span>(pruning_tasks_done, pruning_tasks_to_do) = {
 					<span class="comment">// find all past code that has just exited the pruning window.
 					</span><span class="kw">let </span>up_to_idx =
@@ -3519,11 +3521,11 @@
 	/// the upgrade restriction, that will happen in the `initializer_finalize` function. However,
 	/// this function does count the number of cooldown timers expired so that we can reserve weight
 	/// for the `initializer_finalize` function.
-	</span><span class="kw">fn </span>process_scheduled_upgrade_changes(now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">fn </span>process_scheduled_upgrade_changes(now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		<span class="comment">// account weight for `UpcomingUpgrades::mutate`.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>);
 		<span class="kw">let </span>upgrades_signaled = UpcomingUpgrades::&lt;T&gt;::mutate(
-			|upcoming_upgrades: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, T::BlockNumber)&gt;| {
+			|upcoming_upgrades: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;| {
 				<span class="kw">let </span>num = upcoming_upgrades.iter().take_while(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, at)| at &lt;= <span class="kw-2">&amp;</span>now).count();
 				<span class="kw">for </span>(para, <span class="kw">_</span>) <span class="kw">in </span>upcoming_upgrades.drain(..num) {
 					UpgradeGoAheadSignal::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, UpgradeGoAhead::GoAhead);
@@ -3550,24 +3552,26 @@
 	<span class="doccomment">/// Actually perform unsetting the expired upgrade restrictions.
 	///
 	/// See `process_scheduled_upgrade_changes` for more details.
-	</span><span class="kw">fn </span>process_scheduled_upgrade_cooldowns(now: T::BlockNumber) {
-		UpgradeCooldowns::&lt;T&gt;::mutate(|upgrade_cooldowns: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, T::BlockNumber)&gt;| {
-			<span class="comment">// Remove all expired signals and also prune the cooldowns.
-			</span>upgrade_cooldowns.retain(|(para, at)| {
-				<span class="kw">if </span>at &lt;= <span class="kw-2">&amp;</span>now {
-					UpgradeRestrictionSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
-					<span class="bool-val">false
-				</span>} <span class="kw">else </span>{
-					<span class="bool-val">true
-				</span>}
-			});
-		});
+	</span><span class="kw">fn </span>process_scheduled_upgrade_cooldowns(now: BlockNumberFor&lt;T&gt;) {
+		UpgradeCooldowns::&lt;T&gt;::mutate(
+			|upgrade_cooldowns: <span class="kw-2">&amp;mut </span>Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;| {
+				<span class="comment">// Remove all expired signals and also prune the cooldowns.
+				</span>upgrade_cooldowns.retain(|(para, at)| {
+					<span class="kw">if </span>at &lt;= <span class="kw-2">&amp;</span>now {
+						UpgradeRestrictionSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
+						<span class="bool-val">false
+					</span>} <span class="kw">else </span>{
+						<span class="bool-val">true
+					</span>}
+				});
+			},
+		);
 	}
 
 	<span class="doccomment">/// Goes over all PVF votes in progress, reinitializes ballots, increments ages and prunes the
 	/// active votes that reached their time-to-live.
 	</span><span class="kw">fn </span>groom_ongoing_pvf_votes(
-		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;T::BlockNumber&gt;,
+		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		new_n_validators: usize,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
@@ -3617,11 +3621,11 @@
 	}
 
 	<span class="kw">fn </span>enact_pvf_accepted(
-		now: T::BlockNumber,
+		now: BlockNumberFor&lt;T&gt;,
 		code_hash: <span class="kw-2">&amp;</span>ValidationCodeHash,
-		causes: <span class="kw-2">&amp;</span>[PvfCheckCause&lt;T::BlockNumber&gt;],
+		causes: <span class="kw-2">&amp;</span>[PvfCheckCause&lt;BlockNumberFor&lt;T&gt;&gt;],
 		sessions_observed: SessionIndex,
-		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;T::BlockNumber&gt;,
+		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 		<span class="kw">for </span>cause <span class="kw">in </span>causes {
@@ -3664,9 +3668,9 @@
 	<span class="kw">fn </span>proceed_with_upgrade(
 		id: ParaId,
 		code_hash: <span class="kw-2">&amp;</span>ValidationCodeHash,
-		now: T::BlockNumber,
-		relay_parent_number: T::BlockNumber,
-		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;T::BlockNumber&gt;,
+		now: BlockNumberFor&lt;T&gt;,
+		relay_parent_number: BlockNumberFor&lt;T&gt;,
+		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 
@@ -3706,7 +3710,7 @@
 
 	<span class="kw">fn </span>enact_pvf_rejected(
 		code_hash: <span class="kw-2">&amp;</span>ValidationCodeHash,
-		causes: Vec&lt;PvfCheckCause&lt;T::BlockNumber&gt;&gt;,
+		causes: Vec&lt;PvfCheckCause&lt;BlockNumberFor&lt;T&gt;&gt;&gt;,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 
@@ -3927,8 +3931,8 @@
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule_code_upgrade(
 		id: ParaId,
 		new_code: ValidationCode,
-		relay_parent_number: T::BlockNumber,
-		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;T::BlockNumber&gt;,
+		relay_parent_number: BlockNumberFor&lt;T&gt;,
+		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
@@ -4001,10 +4005,10 @@
 	///
 	/// Unconditionally increases the reference count for the passed `code`.
 	</span><span class="kw">fn </span>kick_off_pvf_check(
-		cause: PvfCheckCause&lt;T::BlockNumber&gt;,
+		cause: PvfCheckCause&lt;BlockNumberFor&lt;T&gt;&gt;,
 		code_hash: ValidationCodeHash,
 		code: ValidationCode,
-		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;T::BlockNumber&gt;,
+		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 
@@ -4073,7 +4077,7 @@
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>note_new_head(
 		id: ParaId,
 		new_head: HeadData,
-		execution_context: T::BlockNumber,
+		execution_context: BlockNumberFor&lt;T&gt;,
 	) -&gt; Weight {
 		Heads::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, new_head);
 

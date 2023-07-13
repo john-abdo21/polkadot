@@ -348,6 +348,9 @@
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -397,6 +400,7 @@
 	initializer, FeeTracker,
 };
 <span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">use </span>primitives::{DownwardMessage, Hash, Id <span class="kw">as </span>ParaId, InboundDownwardMessage};
 <span class="kw">use </span>sp_core::MAX_POSSIBLE_ALLOCATION;
 <span class="kw">use </span>sp_runtime::{
@@ -471,7 +475,7 @@
 		<span class="kw">_</span>,
 		Twox64Concat,
 		ParaId,
-		Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt;,
+		Vec&lt;InboundDownwardMessage&lt;BlockNumberFor&lt;T&gt;&gt;&gt;,
 		ValueQuery,
 	&gt;;
 
@@ -500,7 +504,7 @@
 <span class="doccomment">/// Routines and getters related to downward message passing.
 </span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Block initialization logic, called by initializer.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 
@@ -509,7 +513,7 @@
 
 	<span class="doccomment">/// Called by the initializer to note that a new session has started.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		_notification: <span class="kw-2">&amp;</span>initializer::SessionChangeNotification&lt;T::BlockNumber&gt;,
+		_notification: <span class="kw-2">&amp;</span>initializer::SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 		outgoing_paras: <span class="kw-2">&amp;</span>[ParaId],
 	) {
 		<span class="self">Self</span>::perform_outgoing_para_cleanup(outgoing_paras);
@@ -533,7 +537,7 @@
 	/// in an error. If this returns `Ok(())` the caller can be certain that a call to
 	/// `queue_downward_message` with the same parameters will be successful.
 	</span><span class="kw">pub fn </span>can_queue_downward_message(
-		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		para: <span class="kw-2">&amp;</span>ParaId,
 		msg: <span class="kw-2">&amp;</span>DownwardMessage,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), QueueDownwardMessageError&gt; {
@@ -559,7 +563,7 @@
 	/// to a dangling storage. If the caller cannot statically prove that the recipient exists
 	/// then the caller should perform a runtime check.
 	</span><span class="kw">pub fn </span>queue_downward_message(
-		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		para: ParaId,
 		msg: DownwardMessage,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), QueueDownwardMessageError&gt; {
@@ -666,7 +670,9 @@
 	<span class="doccomment">/// Returns the downward message queue contents for the given para.
 	///
 	/// The most recent messages are the latest in the vector.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(recipient: ParaId) -&gt; Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt; {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dmq_contents(
+		recipient: ParaId,
+	) -&gt; Vec&lt;InboundDownwardMessage&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
 		DownwardMessageQueues::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient)
 	}
 

@@ -279,7 +279,8 @@ happen due to PVF pre-checking voting concluding late.</p>
 <h3 id="storage-layout"><a class="header" href="#storage-layout">Storage Layout</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>/// All currently active PVF pre-checking votes.
+</span>use frame_system::pallet_prelude::BlockNumberFor;
+/// All currently active PVF pre-checking votes.
 ///
 /// Invariant:
 /// - There are no PVF pre-checking votes that exists in list but not in the set and vice versa.
@@ -336,12 +337,12 @@ UpgradeRestrictionSignal: map hasher(twox_64_concat) ParaId =&gt; Option&lt;Upgr
 /// The list of parachains that are awaiting for their upgrade restriction to cooldown.
 ///
 /// Ordered ascending by block number.
-UpgradeCooldowns: Vec&lt;(ParaId, T::BlockNumber)&gt;;
+UpgradeCooldowns: Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;;
 /// The list of upcoming code upgrades. Each item is a pair of which para performs a code
 /// upgrade and at which relay-chain block it is expected at.
 ///
 /// Ordered ascending by block number.
-UpcomingUpgrades: Vec&lt;(ParaId, T::BlockNumber)&gt;;
+UpcomingUpgrades: Vec&lt;(ParaId, BlockNumberFor&lt;T&gt;)&gt;;
 /// The actions to perform during the start of a specific session index.
 ActionsQueue: map SessionIndex =&gt; Vec&lt;ParaId&gt;;
 /// Upcoming paras instantiation arguments.
@@ -421,7 +422,7 @@ or live parachain.</li>
 </ul>
 <h2 id="finalization"><a class="header" href="#finalization">Finalization</a></h2>
 <p>Collect all <code>(para_id, next_possible_upgrade_at)</code> from <code>UpgradeCooldowns</code> where <code>next_possible_upgrade_at &lt;= now</code> and prune them. For each para pruned remove its <code>UpgradeRestrictionSignal</code>.</p>
-<footer id="last-change">Last change: 2022-10-13, commit: <a href="https://github.com/paritytech/polkadot/commit/e307a26c8e">e307a26c8e</a></footer>
+<footer id="last-change">Last change: 2023-07-13, commit: <a href="https://github.com/paritytech/polkadot/commit/0b56bcdb07">0b56bcdb07</a></footer>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

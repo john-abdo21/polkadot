@@ -1304,6 +1304,11 @@
 <a href="#1304" id="1304">1304</a>
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1339,6 +1344,7 @@
 	traits::{Defensive, EnqueueMessage},
 	BoundedSlice,
 };
+<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>pallet_message_queue::OnQueueChanged;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>primitives::{
@@ -1576,7 +1582,7 @@
 		+ configuration::Config
 	{
 		<span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
-		<span class="kw">type </span>DisputesHandler: disputes::DisputesHandler&lt;<span class="self">Self</span>::BlockNumber&gt;;
+		<span class="kw">type </span>DisputesHandler: disputes::DisputesHandler&lt;BlockNumberFor&lt;<span class="self">Self</span>&gt;&gt;;
 		<span class="kw">type </span>RewardValidators: RewardValidators;
 
 		<span class="doccomment">/// The system message queue.
@@ -1671,12 +1677,16 @@
 	<span class="doccomment">/// The latest bitfield for each validator, referred to by their index in the validator set.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>AvailabilityBitfields&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ValidatorIndex, AvailabilityBitfieldRecord&lt;T::BlockNumber&gt;&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ValidatorIndex, AvailabilityBitfieldRecord&lt;BlockNumberFor&lt;T&gt;&gt;&gt;;
 
 	<span class="doccomment">/// Candidates pending availability by `ParaId`.
 	</span><span class="attr">#[pallet::storage]
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PendingAvailability&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, CandidatePendingAvailability&lt;T::Hash, T::BlockNumber&gt;&gt;;
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PendingAvailability&lt;T: Config&gt; = StorageMap&lt;
+		<span class="kw">_</span>,
+		Twox64Concat,
+		ParaId,
+		CandidatePendingAvailability&lt;T::Hash, BlockNumberFor&lt;T&gt;&gt;,
+	&gt;;
 
 	<span class="doccomment">/// The commitments of candidates pending availability, by `ParaId`.
 	</span><span class="attr">#[pallet::storage]
@@ -1756,7 +1766,7 @@
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Block initialization logic, called by initializer.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 
@@ -1765,7 +1775,7 @@
 
 	<span class="doccomment">/// Handle an incoming session change.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		_notification: <span class="kw-2">&amp;</span><span class="kw">crate</span>::initializer::SessionChangeNotification&lt;T::BlockNumber&gt;,
+		_notification: <span class="kw-2">&amp;</span><span class="kw">crate</span>::initializer::SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 		outgoing_paras: <span class="kw-2">&amp;</span>[ParaId],
 	) {
 		<span class="comment">// unlike most drain methods, drained elements are not cleared on `Drop` of the iterator
@@ -2138,7 +2148,7 @@
 				<span class="kw-2">&amp;</span>validation_outputs.new_validation_code,
 				validation_outputs.processed_downward_messages,
 				<span class="kw-2">&amp;</span>validation_outputs.upward_messages,
-				T::BlockNumber::from(validation_outputs.hrmp_watermark),
+				BlockNumberFor::&lt;T&gt;::from(validation_outputs.hrmp_watermark),
 				<span class="kw-2">&amp;</span>validation_outputs.horizontal_messages,
 			)
 			.is_err()
@@ -2155,7 +2165,7 @@
 	}
 
 	<span class="kw">fn </span>enact_candidate(
-		relay_parent_number: T::BlockNumber,
+		relay_parent_number: BlockNumberFor&lt;T&gt;,
 		receipt: CommittedCandidateReceipt&lt;T::Hash&gt;,
 		backers: BitVec&lt;u8, BitOrderLsb0&gt;,
 		availability_votes: BitVec&lt;u8, BitOrderLsb0&gt;,
@@ -2204,7 +2214,7 @@
 		));
 		weight.saturating_accrue(&lt;hrmp::Pallet&lt;T&gt;&gt;::prune_hrmp(
 			receipt.descriptor.para_id,
-			T::BlockNumber::from(commitments.hrmp_watermark),
+			BlockNumberFor::&lt;T&gt;::from(commitments.hrmp_watermark),
 		));
 		weight.saturating_accrue(&lt;hrmp::Pallet&lt;T&gt;&gt;::queue_outbound_hrmp(
 			receipt.descriptor.para_id,
@@ -2227,7 +2237,7 @@
 
 	<span class="doccomment">/// Check that all the upward messages sent by a candidate pass the acceptance criteria.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_upward_messages(
-		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		para: ParaId,
 		upward_messages: <span class="kw-2">&amp;</span>[UpwardMessage],
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), UmpAcceptanceCheckErr&gt; {
@@ -2326,7 +2336,7 @@
 	///
 	/// Returns a vector of cleaned-up core IDs.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>collect_pending(
-		pred: <span class="kw">impl </span>Fn(CoreIndex, T::BlockNumber) -&gt; bool,
+		pred: <span class="kw">impl </span>Fn(CoreIndex, BlockNumberFor&lt;T&gt;) -&gt; bool,
 	) -&gt; Vec&lt;CoreIndex&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>cleaned_up_ids = Vec::new();
 		<span class="kw">let </span><span class="kw-2">mut </span>cleaned_up_cores = Vec::new();
@@ -2421,7 +2431,7 @@
 	/// para provided, if any.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pending_availability(
 		para: ParaId,
-	) -&gt; <span class="prelude-ty">Option</span>&lt;CandidatePendingAvailability&lt;T::Hash, T::BlockNumber&gt;&gt; {
+	) -&gt; <span class="prelude-ty">Option</span>&lt;CandidatePendingAvailability&lt;T::Hash, BlockNumberFor&lt;T&gt;&gt;&gt; {
 		&lt;PendingAvailability&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>para)
 	}
 }
@@ -2468,9 +2478,9 @@
 
 <span class="doccomment">/// A collection of data required for checking a candidate.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CandidateCheckContext&lt;T: Config&gt; {
-	config: configuration::HostConfiguration&lt;T::BlockNumber&gt;,
-	now: T::BlockNumber,
-	relay_parent_number: T::BlockNumber,
+	config: configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
+	now: BlockNumberFor&lt;T&gt;,
+	relay_parent_number: BlockNumberFor&lt;T&gt;,
 }
 
 <span class="doccomment">/// An error indicating that creating Persisted Validation Data failed
@@ -2478,7 +2488,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FailedToCreatePVD;
 
 <span class="kw">impl</span>&lt;T: Config&gt; CandidateCheckContext&lt;T&gt; {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(now: T::BlockNumber, relay_parent_number: T::BlockNumber) -&gt; <span class="self">Self </span>{
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(now: BlockNumberFor&lt;T&gt;, relay_parent_number: BlockNumberFor&lt;T&gt;) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ config: &lt;configuration::Pallet&lt;T&gt;&gt;::config(), now, relay_parent_number }
 	}
 
@@ -2550,7 +2560,7 @@
 			<span class="kw-2">&amp;</span>backed_candidate.candidate.commitments.new_validation_code,
 			backed_candidate.candidate.commitments.processed_downward_messages,
 			<span class="kw-2">&amp;</span>backed_candidate.candidate.commitments.upward_messages,
-			T::BlockNumber::from(backed_candidate.candidate.commitments.hrmp_watermark),
+			BlockNumberFor::&lt;T&gt;::from(backed_candidate.candidate.commitments.hrmp_watermark),
 			<span class="kw-2">&amp;</span>backed_candidate.candidate.commitments.horizontal_messages,
 		) {
 			<span class="macro">log::debug!</span>(
@@ -2573,9 +2583,9 @@
 		new_validation_code: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;primitives::ValidationCode&gt;,
 		processed_downward_messages: u32,
 		upward_messages: <span class="kw-2">&amp;</span>[primitives::UpwardMessage],
-		hrmp_watermark: T::BlockNumber,
+		hrmp_watermark: BlockNumberFor&lt;T&gt;,
 		horizontal_messages: <span class="kw-2">&amp;</span>[primitives::OutboundHrmpMessage&lt;ParaId&gt;],
-	) -&gt; <span class="prelude-ty">Result</span>&lt;(), AcceptanceCheckErr&lt;T::BlockNumber&gt;&gt; {
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), AcceptanceCheckErr&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
 		<span class="macro">ensure!</span>(
 			head_data.<span class="number">0</span>.len() &lt;= <span class="self">self</span>.config.max_head_data_size <span class="kw">as _</span>,
 			AcceptanceCheckErr::HeadDataTooLarge,

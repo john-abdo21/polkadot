@@ -1833,7 +1833,7 @@
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>config)]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ActiveConfig&lt;T: Config&gt; =
-		StorageValue&lt;<span class="kw">_</span>, HostConfiguration&lt;T::BlockNumber&gt;, ValueQuery&gt;;
+		StorageValue&lt;<span class="kw">_</span>, HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// Pending configuration changes.
 	///
@@ -1844,7 +1844,7 @@
 	/// 2 items: for the next session and for the `scheduled_session`.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>PendingConfigs&lt;T: Config&gt; =
-		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(SessionIndex, HostConfiguration&lt;T::BlockNumber&gt;)&gt;, ValueQuery&gt;;
+		StorageValue&lt;<span class="kw">_</span>, Vec&lt;(SessionIndex, HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// If this is set, then the configuration setters will bypass the consistency checks. This
 	/// is meant to be used only as the last resort.
@@ -1854,7 +1854,7 @@
 	<span class="attr">#[pallet::genesis_config]
 	#[derive(DefaultNoBound)]
 	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
-		<span class="kw">pub </span>config: HostConfiguration&lt;T::BlockNumber&gt;,
+		<span class="kw">pub </span>config: HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 	}
 
 	<span class="attr">#[pallet::genesis_build]
@@ -1875,7 +1875,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_validation_upgrade_cooldown(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -1891,7 +1891,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_validation_upgrade_delay(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -1907,7 +1907,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_code_retention_period(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -1988,7 +1988,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_group_rotation_frequency(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -2004,7 +2004,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_chain_availability_period(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -2020,7 +2020,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_thread_availability_period(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -2091,7 +2091,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_dispute_post_conclusion_acceptance_period(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -2417,7 +2417,7 @@
 		))]
 		</span><span class="kw">pub fn </span>set_minimum_validation_upgrade_delay(
 			origin: OriginFor&lt;T&gt;,
-			new: T::BlockNumber,
+			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
@@ -2492,7 +2492,7 @@
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Called by the initializer to initialize the configuration pallet.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 
@@ -2506,7 +2506,7 @@
 	/// be the same.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
 		session_index: <span class="kw-2">&amp;</span>SessionIndex,
-	) -&gt; SessionChangeOutcome&lt;T::BlockNumber&gt; {
+	) -&gt; SessionChangeOutcome&lt;BlockNumberFor&lt;T&gt;&gt; {
 		<span class="kw">let </span>pending_configs = &lt;PendingConfigs&lt;T&gt;&gt;::get();
 		<span class="kw">let </span>prev_config = ActiveConfig::&lt;T&gt;::get();
 
@@ -2547,7 +2547,7 @@
 	<span class="doccomment">/// Forcibly set the active config. This should be used with extreme care, and typically
 	/// only when enabling parachains runtime pallets for the first time on a chain which has
 	/// been running without them.
-	</span><span class="kw">pub fn </span>force_set_active_config(config: HostConfiguration&lt;T::BlockNumber&gt;) {
+	</span><span class="kw">pub fn </span>force_set_active_config(config: HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;) {
 		ActiveConfig::&lt;T&gt;::set(config);
 	}
 
@@ -2567,7 +2567,7 @@
 	// the sake of essentially avoiding an indirect call. Doesn&#39;t worth it.
 	</span><span class="attr">#[inline(never)]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule_config_update(
-		updater: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>HostConfiguration&lt;T::BlockNumber&gt;),
+		updater: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;),
 	) -&gt; DispatchResult {
 		<span class="kw">let </span><span class="kw-2">mut </span>pending_configs = &lt;PendingConfigs&lt;T&gt;&gt;::get();
 

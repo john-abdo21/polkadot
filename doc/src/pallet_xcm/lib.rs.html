@@ -2438,7 +2438,7 @@
 
 		<span class="doccomment">/// A lockable currency.
 		</span><span class="comment">// TODO: We should really use a trait which can handle multiple currencies.
-		</span><span class="kw">type </span>Currency: LockableCurrency&lt;<span class="self">Self</span>::AccountId, Moment = <span class="self">Self</span>::BlockNumber&gt;;
+		</span><span class="kw">type </span>Currency: LockableCurrency&lt;<span class="self">Self</span>::AccountId, Moment = BlockNumberFor&lt;<span class="self">Self</span>&gt;&gt;;
 
 		<span class="doccomment">/// The `MultiAsset` matcher for `Currency`.
 		</span><span class="kw">type </span>CurrencyMatcher: MatchesFungible&lt;BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
@@ -2766,7 +2766,7 @@
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>query)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Queries&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, QueryId, QueryStatus&lt;T::BlockNumber&gt;, OptionQuery&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, QueryId, QueryStatus&lt;BlockNumberFor&lt;T&gt;&gt;, OptionQuery&gt;;
 
 	<span class="doccomment">/// The existing asset traps.
 	///
@@ -3001,7 +3001,7 @@
 
 			<span class="kw">if </span>on_chain_storage_version &lt; <span class="number">1 </span>{
 				<span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
-				Queries::&lt;T&gt;::translate::&lt;QueryStatusV0&lt;T::BlockNumber&gt;, <span class="kw">_</span>&gt;(|_key, value| {
+				Queries::&lt;T&gt;::translate::&lt;QueryStatusV0&lt;BlockNumberFor&lt;T&gt;&gt;, <span class="kw">_</span>&gt;(|_key, value| {
 					count += <span class="number">1</span>;
 					<span class="prelude-val">Some</span>(value.into())
 				});
@@ -3388,14 +3388,14 @@
 
 <span class="kw">impl</span>&lt;T: Config&gt; QueryHandler <span class="kw">for </span>Pallet&lt;T&gt; {
 	<span class="kw">type </span>QueryId = u64;
-	<span class="kw">type </span>BlockNumber = T::BlockNumber;
+	<span class="kw">type </span>BlockNumber = BlockNumberFor&lt;T&gt;;
 	<span class="kw">type </span>Error = XcmError;
 	<span class="kw">type </span>UniversalLocation = T::UniversalLocation;
 
 	<span class="doccomment">/// Attempt to create a new query ID and register it as a query that is yet to respond.
 	</span><span class="kw">fn </span>new_query(
 		responder: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
-		timeout: T::BlockNumber,
+		timeout: BlockNumberFor&lt;T&gt;,
 		match_querier: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 	) -&gt; <span class="self">Self</span>::QueryId {
 		<span class="self">Self</span>::do_new_query(responder, <span class="prelude-val">None</span>, timeout, match_querier).into()
@@ -3798,7 +3798,7 @@
 	</span><span class="kw">fn </span>do_new_query(
 		responder: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 		maybe_notify: <span class="prelude-ty">Option</span>&lt;(u8, u8)&gt;,
-		timeout: T::BlockNumber,
+		timeout: BlockNumberFor&lt;T&gt;,
 		match_querier: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 	) -&gt; u64 {
 		QueryCounter::&lt;T&gt;::mutate(|q| {
@@ -3843,7 +3843,7 @@
 		message: <span class="kw-2">&amp;mut </span>Xcm&lt;()&gt;,
 		responder: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 		notify: <span class="kw">impl </span>Into&lt;&lt;T <span class="kw">as </span>Config&gt;::RuntimeCall&gt;,
-		timeout: T::BlockNumber,
+		timeout: BlockNumberFor&lt;T&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), XcmError&gt; {
 		<span class="kw">let </span>responder = responder.into();
 		<span class="kw">let </span>destination = T::UniversalLocation::get()
@@ -3863,7 +3863,7 @@
 	</span><span class="kw">pub fn </span>new_notify_query(
 		responder: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 		notify: <span class="kw">impl </span>Into&lt;&lt;T <span class="kw">as </span>Config&gt;::RuntimeCall&gt;,
-		timeout: T::BlockNumber,
+		timeout: BlockNumberFor&lt;T&gt;,
 		match_querier: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 	) -&gt; u64 {
 		<span class="kw">let </span>notify = notify.into().using_encoded(|<span class="kw-2">mut </span>bytes| Decode::decode(<span class="kw-2">&amp;mut </span>bytes)).expect(

@@ -444,6 +444,7 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -467,6 +468,7 @@
 	configuration, disputes, dmp, hrmp, inclusion, initializer, paras, paras_inherent, scheduler,
 	session_info, shared,
 };
+<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>primitives::{
 	slashing, AuthorityDiscoveryId, CandidateEvent, CandidateHash, CommittedCandidateReceipt,
 	CoreIndex, CoreOccupied, CoreState, DisputeState, ExecutorParams, GroupIndex,
@@ -485,7 +487,7 @@
 
 <span class="doccomment">/// Implementation for the `validator_groups` function of the runtime API.
 </span><span class="kw">pub fn </span>validator_groups&lt;T: initializer::Config&gt;(
-) -&gt; (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo&lt;T::BlockNumber&gt;) {
+) -&gt; (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo&lt;BlockNumberFor&lt;T&gt;&gt;) {
 	<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number() + One::one();
 
 	<span class="kw">let </span>groups = &lt;scheduler::Pallet&lt;T&gt;&gt;::validator_groups();
@@ -495,7 +497,7 @@
 }
 
 <span class="doccomment">/// Implementation for the `availability_cores` function of the runtime API.
-</span><span class="kw">pub fn </span>availability_cores&lt;T: initializer::Config&gt;() -&gt; Vec&lt;CoreState&lt;T::Hash, T::BlockNumber&gt;&gt; {
+</span><span class="kw">pub fn </span>availability_cores&lt;T: initializer::Config&gt;() -&gt; Vec&lt;CoreState&lt;T::Hash, BlockNumberFor&lt;T&gt;&gt;&gt; {
 	<span class="kw">let </span>cores = &lt;scheduler::Pallet&lt;T&gt;&gt;::availability_cores();
 	<span class="kw">let </span>parachains = &lt;paras::Pallet&lt;T&gt;&gt;::parachains();
 	<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
@@ -622,7 +624,7 @@
 
 <span class="doccomment">/// Returns current block number being processed and the corresponding root hash.
 </span><span class="kw">fn </span>current_relay_parent&lt;T: frame_system::Config&gt;(
-) -&gt; (&lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber, &lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash) {
+) -&gt; (BlockNumberFor&lt;T&gt;, &lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash) {
 	<span class="kw">use </span>parity_scale_codec::Decode <span class="kw">as _</span>;
 	<span class="kw">let </span>state_version = &lt;frame_system::Pallet&lt;T&gt;&gt;::runtime_version().state_version();
 	<span class="kw">let </span>relay_parent_number = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
@@ -660,7 +662,7 @@
 </span><span class="kw">pub fn </span>persisted_validation_data&lt;T: initializer::Config&gt;(
 	para_id: ParaId,
 	assumption: OccupiedCoreAssumption,
-) -&gt; <span class="prelude-ty">Option</span>&lt;PersistedValidationData&lt;T::Hash, T::BlockNumber&gt;&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;PersistedValidationData&lt;T::Hash, BlockNumberFor&lt;T&gt;&gt;&gt; {
 	<span class="kw">let </span>(relay_parent_number, relay_parent_storage_root) = current_relay_parent::&lt;T&gt;();
 	with_assumption::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(para_id, assumption, || {
 		<span class="kw">crate</span>::util::make_persisted_validation_data::&lt;T&gt;(
@@ -675,7 +677,7 @@
 </span><span class="kw">pub fn </span>assumed_validation_data&lt;T: initializer::Config&gt;(
 	para_id: ParaId,
 	expected_persisted_validation_data_hash: Hash,
-) -&gt; <span class="prelude-ty">Option</span>&lt;(PersistedValidationData&lt;T::Hash, T::BlockNumber&gt;, ValidationCodeHash)&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;(PersistedValidationData&lt;T::Hash, BlockNumberFor&lt;T&gt;&gt;, ValidationCodeHash)&gt; {
 	<span class="kw">let </span>(relay_parent_number, relay_parent_storage_root) = current_relay_parent::&lt;T&gt;();
 	<span class="comment">// This closure obtains the `persisted_validation_data` for the given `para_id` and matches
 	// its hash against an expected one.
@@ -801,14 +803,14 @@
 <span class="doccomment">/// Implementation for the `dmq_contents` function of the runtime API.
 </span><span class="kw">pub fn </span>dmq_contents&lt;T: dmp::Config&gt;(
 	recipient: ParaId,
-) -&gt; Vec&lt;InboundDownwardMessage&lt;T::BlockNumber&gt;&gt; {
+) -&gt; Vec&lt;InboundDownwardMessage&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
 	&lt;dmp::Pallet&lt;T&gt;&gt;::dmq_contents(recipient)
 }
 
 <span class="doccomment">/// Implementation for the `inbound_hrmp_channels_contents` function of the runtime API.
 </span><span class="kw">pub fn </span>inbound_hrmp_channels_contents&lt;T: hrmp::Config&gt;(
 	recipient: ParaId,
-) -&gt; BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;T::BlockNumber&gt;&gt;&gt; {
+) -&gt; BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumberFor&lt;T&gt;&gt;&gt;&gt; {
 	&lt;hrmp::Pallet&lt;T&gt;&gt;::inbound_hrmp_channels_contents(recipient)
 }
 
@@ -853,7 +855,7 @@
 
 <span class="doccomment">/// Implementation for `get_session_disputes` function from the runtime API
 </span><span class="kw">pub fn </span>get_session_disputes&lt;T: disputes::Config&gt;(
-) -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;T::BlockNumber&gt;)&gt; {
+) -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumberFor&lt;T&gt;&gt;)&gt; {
 	&lt;disputes::Pallet&lt;T&gt;&gt;::disputes()
 }
 

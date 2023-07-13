@@ -2228,13 +2228,6 @@
 <a href="#2228" id="2228">2228</a>
 <a href="#2229" id="2229">2229</a>
 <a href="#2230" id="2230">2230</a>
-<a href="#2231" id="2231">2231</a>
-<a href="#2232" id="2232">2232</a>
-<a href="#2233" id="2233">2233</a>
-<a href="#2234" id="2234">2234</a>
-<a href="#2235" id="2235">2235</a>
-<a href="#2236" id="2236">2236</a>
-<a href="#2237" id="2237">2237</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2303,6 +2296,7 @@
 	},
 	Identity, PalletId,
 };
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>primitives::Id <span class="kw">as </span>ParaId;
@@ -2315,11 +2309,8 @@
 };
 <span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="kw">type </span>CurrencyOf&lt;T&gt; =
-	&lt;&lt;T <span class="kw">as </span>Config&gt;::Auctioneer <span class="kw">as </span>Auctioneer&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber&gt;&gt;::Currency;
-<span class="kw">type </span>LeasePeriodOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::Auctioneer <span class="kw">as </span>Auctioneer&lt;
-	&lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber,
-&gt;&gt;::LeasePeriod;
+<span class="kw">type </span>CurrencyOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::Auctioneer <span class="kw">as </span>Auctioneer&lt;BlockNumberFor&lt;T&gt;&gt;&gt;::Currency;
+<span class="kw">type </span>LeasePeriodOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::Auctioneer <span class="kw">as </span>Auctioneer&lt;BlockNumberFor&lt;T&gt;&gt;&gt;::LeasePeriod;
 <span class="kw">type </span>BalanceOf&lt;T&gt; = &lt;CurrencyOf&lt;T&gt; <span class="kw">as </span>Currency&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId&gt;&gt;::Balance;
 
 <span class="attr">#[allow(dead_code)]
@@ -2453,9 +2444,9 @@
 
 		<span class="doccomment">/// The type representing the auctioning system.
 		</span><span class="kw">type </span>Auctioneer: Auctioneer&lt;
-			<span class="self">Self</span>::BlockNumber,
+			BlockNumberFor&lt;<span class="self">Self</span>&gt;,
 			AccountId = <span class="self">Self</span>::AccountId,
-			LeasePeriod = <span class="self">Self</span>::BlockNumber,
+			LeasePeriod = BlockNumberFor&lt;<span class="self">Self</span>&gt;,
 		&gt;;
 
 		<span class="doccomment">/// The maximum length for the memo attached to a crowdloan contribution.
@@ -2472,7 +2463,7 @@
 		<span class="kw">_</span>,
 		Twox64Concat,
 		ParaId,
-		FundInfo&lt;T::AccountId, BalanceOf&lt;T&gt;, T::BlockNumber, LeasePeriodOf&lt;T&gt;&gt;,
+		FundInfo&lt;T::AccountId, BalanceOf&lt;T&gt;, BlockNumberFor&lt;T&gt;, LeasePeriodOf&lt;T&gt;&gt;,
 	&gt;;
 
 	<span class="doccomment">/// The funds that have had additional contributions during the last block. This is used
@@ -2569,7 +2560,7 @@
 
 	<span class="attr">#[pallet::hooks]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Hooks&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
-		<span class="kw">fn </span>on_initialize(num: T::BlockNumber) -&gt; frame_support::weights::Weight {
+		<span class="kw">fn </span>on_initialize(num: BlockNumberFor&lt;T&gt;) -&gt; frame_support::weights::Weight {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>((sample, sub_sample)) = T::Auctioneer::auction_status(num).is_ending() {
 				<span class="comment">// This is the very first block in the ending period
 				</span><span class="kw">if </span>sample.is_zero() &amp;&amp; sub_sample.is_zero() {
@@ -2614,7 +2605,7 @@
 			<span class="attr">#[pallet::compact] </span>cap: BalanceOf&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>first_period: LeasePeriodOf&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>last_period: LeasePeriodOf&lt;T&gt;,
-			<span class="attr">#[pallet::compact] </span>end: T::BlockNumber,
+			<span class="attr">#[pallet::compact] </span>end: BlockNumberFor&lt;T&gt;,
 			verifier: <span class="prelude-ty">Option</span>&lt;MultiSigner&gt;,
 		) -&gt; DispatchResult {
 			<span class="kw">let </span>depositor = ensure_signed(origin)<span class="question-mark">?</span>;
@@ -2831,7 +2822,7 @@
 			<span class="attr">#[pallet::compact] </span>cap: BalanceOf&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>first_period: LeasePeriodOf&lt;T&gt;,
 			<span class="attr">#[pallet::compact] </span>last_period: LeasePeriodOf&lt;T&gt;,
-			<span class="attr">#[pallet::compact] </span>end: T::BlockNumber,
+			<span class="attr">#[pallet::compact] </span>end: BlockNumberFor&lt;T&gt;,
 			verifier: <span class="prelude-ty">Option</span>&lt;MultiSigner&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
@@ -2962,9 +2953,9 @@
 	///   trying to bid for has started already.
 	/// * And, if the fund has enough free funds to refund full raised amount.
 	</span><span class="kw">fn </span>ensure_crowdloan_ended(
-		now: T::BlockNumber,
+		now: BlockNumberFor&lt;T&gt;,
 		fund_account: <span class="kw-2">&amp;</span>T::AccountId,
-		fund: <span class="kw-2">&amp;</span>FundInfo&lt;T::AccountId, BalanceOf&lt;T&gt;, T::BlockNumber, LeasePeriodOf&lt;T&gt;&gt;,
+		fund: <span class="kw-2">&amp;</span>FundInfo&lt;T::AccountId, BalanceOf&lt;T&gt;, BlockNumberFor&lt;T&gt;, LeasePeriodOf&lt;T&gt;&gt;,
 	) -&gt; sp_runtime::DispatchResult {
 		<span class="comment">// `fund.end` can represent the end of a failed crowdloan or the beginning of retirement
 		// If the current lease period is past the first period they are trying to bid for, then
@@ -3115,19 +3106,14 @@
 	<span class="kw">use </span>::test_helpers::{dummy_head_data, dummy_validation_code};
 	<span class="kw">use </span>sp_keystore::{testing::MemoryKeystore, KeystoreExt};
 	<span class="kw">use </span>sp_runtime::{
-		testing::Header,
 		traits::{BlakeTwo256, IdentityLookup, TrailingZeroInput},
 		BuildStorage, DispatchResult,
 	};
 
-	<span class="kw">type </span>UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic&lt;Test&gt;;
 	<span class="kw">type </span>Block = frame_system::mocking::MockBlock&lt;Test&gt;;
 
 	<span class="macro">frame_support::construct_runtime!</span>(
-		<span class="kw">pub enum </span>Test <span class="kw">where
-			</span>Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
+		<span class="kw">pub enum </span>Test
 		{
 			System: frame_system::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
@@ -3149,12 +3135,12 @@
 		<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 		<span class="kw">type </span>RuntimeCall = RuntimeCall;
 		<span class="kw">type </span>Index = u64;
-		<span class="kw">type </span>BlockNumber = BlockNumber;
+
 		<span class="kw">type </span>Hash = H256;
 		<span class="kw">type </span>Hashing = BlakeTwo256;
 		<span class="kw">type </span>AccountId = u64;
 		<span class="kw">type </span>Lookup = IdentityLookup&lt;<span class="self">Self</span>::AccountId&gt;;
-		<span class="kw">type </span>Header = Header;
+		<span class="kw">type </span>Block = Block;
 		<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 		<span class="kw">type </span>BlockHashCount = BlockHashCount;
 		<span class="kw">type </span>Version = ();
@@ -4205,7 +4191,7 @@
 		<span class="macro">assert_eq!</span>(event, <span class="kw-2">&amp;</span>system_event);
 	}
 
-	<span class="kw">fn </span>create_fund&lt;T: Config + paras::Config&gt;(id: u32, end: T::BlockNumber) -&gt; ParaId {
+	<span class="kw">fn </span>create_fund&lt;T: Config + paras::Config&gt;(id: u32, end: BlockNumberFor&lt;T&gt;) -&gt; ParaId {
 		<span class="kw">let </span>cap = BalanceOf::&lt;T&gt;::max_value();
 		<span class="kw">let </span>(<span class="kw">_</span>, offset) = T::Auctioneer::lease_period_length();
 		<span class="comment">// Set to the very beginning of lease period index 0.
@@ -4325,7 +4311,7 @@
 			<span class="kw">let </span>caller: T::AccountId = whitelisted_caller();
 			<span class="kw">let </span>contributor = account(<span class="string">&quot;contributor&quot;</span>, <span class="number">0</span>, <span class="number">0</span>);
 			contribute_fund::&lt;T&gt;(<span class="kw-2">&amp;</span>contributor, fund_index);
-			frame_system::Pallet::&lt;T&gt;::set_block_number(T::BlockNumber::max_value());
+			frame_system::Pallet::&lt;T&gt;::set_block_number(BlockNumberFor::&lt;T&gt;::max_value());
 		}: <span class="kw">_</span>(RawOrigin::Signed(caller), contributor.clone(), fund_index)
 		verify {
 			assert_last_event::&lt;T&gt;(Event::&lt;T&gt;::Withdrew { who: contributor, fund_index, amount: T::MinContribution::get() }.into());
@@ -4345,7 +4331,7 @@
 			}
 
 			<span class="kw">let </span>caller: T::AccountId = whitelisted_caller();
-			frame_system::Pallet::&lt;T&gt;::set_block_number(T::BlockNumber::max_value());
+			frame_system::Pallet::&lt;T&gt;::set_block_number(BlockNumberFor::&lt;T&gt;::max_value());
 		}: <span class="kw">_</span>(RawOrigin::Signed(caller), fund_index)
 		verify {
 			assert_last_event::&lt;T&gt;(Event::&lt;T&gt;::AllRefunded { para_id: fund_index }.into());
@@ -4356,7 +4342,7 @@
 			<span class="kw">let </span>end = lpl + offset;
 			<span class="kw">let </span>fund_index = create_fund::&lt;T&gt;(<span class="number">1337</span>, end);
 			<span class="kw">let </span>caller: T::AccountId = whitelisted_caller();
-			frame_system::Pallet::&lt;T&gt;::set_block_number(T::BlockNumber::max_value());
+			frame_system::Pallet::&lt;T&gt;::set_block_number(BlockNumberFor::&lt;T&gt;::max_value());
 		}: <span class="kw">_</span>(RawOrigin::Signed(caller.clone()), fund_index)
 		verify {
 			assert_last_event::&lt;T&gt;(Event::&lt;T&gt;::Dissolved { para_id: fund_index }.into());

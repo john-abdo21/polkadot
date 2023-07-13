@@ -1691,12 +1691,6 @@
 <a href="#1691" id="1691">1691</a>
 <a href="#1692" id="1692">1692</a>
 <a href="#1693" id="1693">1693</a>
-<a href="#1694" id="1694">1694</a>
-<a href="#1695" id="1695">1695</a>
-<a href="#1696" id="1696">1696</a>
-<a href="#1697" id="1697">1697</a>
-<a href="#1698" id="1698">1698</a>
-<a href="#1699" id="1699">1699</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1870,7 +1864,7 @@
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
 		<span class="doccomment">/// The overarching event type.
 		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
-		<span class="kw">type </span>VestingSchedule: VestingSchedule&lt;<span class="self">Self</span>::AccountId, Moment = <span class="self">Self</span>::BlockNumber&gt;;
+		<span class="kw">type </span>VestingSchedule: VestingSchedule&lt;<span class="self">Self</span>::AccountId, Moment = BlockNumberFor&lt;<span class="self">Self</span>&gt;&gt;;
 		<span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>Prefix: Get&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt;;
 		<span class="kw">type </span>MoveClaimOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
@@ -1916,7 +1910,7 @@
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>vesting)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Vesting&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Identity, EthereumAddress, (BalanceOf&lt;T&gt;, BalanceOf&lt;T&gt;, T::BlockNumber)&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Identity, EthereumAddress, (BalanceOf&lt;T&gt;, BalanceOf&lt;T&gt;, BlockNumberFor&lt;T&gt;)&gt;;
 
 	<span class="doccomment">/// The statement kind that must be signed, if any.
 	</span><span class="attr">#[pallet::storage]
@@ -1931,7 +1925,7 @@
 	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
 		<span class="kw">pub </span>claims:
 			Vec&lt;(EthereumAddress, BalanceOf&lt;T&gt;, <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;, <span class="prelude-ty">Option</span>&lt;StatementKind&gt;)&gt;,
-		<span class="kw">pub </span>vesting: Vec&lt;(EthereumAddress, (BalanceOf&lt;T&gt;, BalanceOf&lt;T&gt;, T::BlockNumber))&gt;,
+		<span class="kw">pub </span>vesting: Vec&lt;(EthereumAddress, (BalanceOf&lt;T&gt;, BalanceOf&lt;T&gt;, BlockNumberFor&lt;T&gt;))&gt;,
 	}
 
 	<span class="attr">#[pallet::genesis_build]
@@ -2035,7 +2029,7 @@
 			origin: OriginFor&lt;T&gt;,
 			who: EthereumAddress,
 			value: BalanceOf&lt;T&gt;,
-			vesting_schedule: <span class="prelude-ty">Option</span>&lt;(BalanceOf&lt;T&gt;, BalanceOf&lt;T&gt;, T::BlockNumber)&gt;,
+			vesting_schedule: <span class="prelude-ty">Option</span>&lt;(BalanceOf&lt;T&gt;, BalanceOf&lt;T&gt;, BlockNumberFor&lt;T&gt;)&gt;,
 			statement: <span class="prelude-ty">Option</span>&lt;StatementKind&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
@@ -2413,20 +2407,15 @@
 	};
 	<span class="kw">use </span>pallet_balances;
 	<span class="kw">use </span>sp_runtime::{
-		testing::Header,
 		traits::{BlakeTwo256, Identity, IdentityLookup},
 		transaction_validity::TransactionLongevity,
 		BuildStorage, TokenError,
 	};
 
-	<span class="kw">type </span>UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic&lt;Test&gt;;
 	<span class="kw">type </span>Block = frame_system::mocking::MockBlock&lt;Test&gt;;
 
 	<span class="macro">frame_support::construct_runtime!</span>(
-		<span class="kw">pub enum </span>Test <span class="kw">where
-			</span>Block = Block,
-			NodeBlock = Block,
-			UncheckedExtrinsic = UncheckedExtrinsic,
+		<span class="kw">pub enum </span>Test
 		{
 			System: frame_system::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;},
 			Balances: pallet_balances::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
@@ -2446,12 +2435,11 @@
 		<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 		<span class="kw">type </span>RuntimeCall = RuntimeCall;
 		<span class="kw">type </span>Index = u64;
-		<span class="kw">type </span>BlockNumber = u64;
 		<span class="kw">type </span>Hash = H256;
 		<span class="kw">type </span>Hashing = BlakeTwo256;
 		<span class="kw">type </span>AccountId = u64;
 		<span class="kw">type </span>Lookup = IdentityLookup&lt;u64&gt;;
-		<span class="kw">type </span>Header = Header;
+		<span class="kw">type </span>Block = Block;
 		<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 		<span class="kw">type </span>BlockHashCount = BlockHashCount;
 		<span class="kw">type </span>Version = ();

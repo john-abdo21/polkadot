@@ -760,6 +760,10 @@
 <a href="#760" id="760">760</a>
 <a href="#761" id="761">761</a>
 <a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -798,6 +802,7 @@
 //! over time.
 
 </span><span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">use </span>primitives::{
 	CollatorId, CoreIndex, CoreOccupied, GroupIndex, GroupRotationInfo, Id <span class="kw">as </span>ParaId,
 	ParathreadClaim, ParathreadEntry, ScheduledCore, ValidatorIndex,
@@ -970,7 +975,7 @@
 	/// block following the session change, block number of which we save in this storage value.
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>session_start_block)]
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SessionStartBlock&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, T::BlockNumber, ValueQuery&gt;;
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SessionStartBlock&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, BlockNumberFor&lt;T&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// Currently scheduled cores - free but up to be occupied.
 	///
@@ -986,7 +991,7 @@
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Called by the initializer to initialize the scheduler pallet.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 
@@ -995,7 +1000,7 @@
 
 	<span class="doccomment">/// Called by the initializer to note that a new session has started.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;T::BlockNumber&gt;,
+		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) {
 		<span class="kw">let </span>SessionChangeNotification { validators, new_config, .. } = notification;
 		<span class="kw">let </span>config = new_config;
@@ -1183,7 +1188,7 @@
 	/// ascending order by core index.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule(
 		just_freed_cores: <span class="kw">impl </span>IntoIterator&lt;Item = (CoreIndex, FreedReason)&gt;,
-		now: T::BlockNumber,
+		now: BlockNumberFor&lt;T&gt;,
 	) {
 		<span class="self">Self</span>::free_cores(just_freed_cores);
 
@@ -1352,7 +1357,7 @@
 	/// or the block number is less than the session start index.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_assigned_to_core(
 		core: CoreIndex,
-		at: T::BlockNumber,
+		at: BlockNumberFor&lt;T&gt;,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;GroupIndex&gt; {
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 		<span class="kw">let </span>session_start_block = &lt;SessionStartBlock&lt;T&gt;&gt;::get();
@@ -1367,11 +1372,12 @@
 			<span class="kw">return </span><span class="prelude-val">None
 		</span>}
 
-		<span class="kw">let </span>rotations_since_session_start: T::BlockNumber =
+		<span class="kw">let </span>rotations_since_session_start: BlockNumberFor&lt;T&gt; =
 			(at - session_start_block) / config.group_rotation_frequency.into();
 
 		<span class="kw">let </span>rotations_since_session_start =
-			&lt;T::BlockNumber <span class="kw">as </span>TryInto&lt;u32&gt;&gt;::try_into(rotations_since_session_start).unwrap_or(<span class="number">0</span>);
+			&lt;BlockNumberFor&lt;T&gt; <span class="kw">as </span>TryInto&lt;u32&gt;&gt;::try_into(rotations_since_session_start)
+				.unwrap_or(<span class="number">0</span>);
 		<span class="comment">// Error case can only happen if rotations occur only once every u32::max(),
 		// so functionally no difference in behavior.
 
@@ -1391,7 +1397,7 @@
 	/// https://github.com/rust-lang/rust/issues/73226
 	/// which prevents us from testing the code if using `impl Trait`.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>availability_timeout_predicate(
-	) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(CoreIndex, T::BlockNumber) -&gt; bool&gt;&gt; {
+	) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(CoreIndex, BlockNumberFor&lt;T&gt;) -&gt; bool&gt;&gt; {
 		<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
@@ -1432,7 +1438,9 @@
 	}
 
 	<span class="doccomment">/// Returns a helper for determining group rotation.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_rotation_info(now: T::BlockNumber) -&gt; GroupRotationInfo&lt;T::BlockNumber&gt; {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_rotation_info(
+		now: BlockNumberFor&lt;T&gt;,
+	) -&gt; GroupRotationInfo&lt;BlockNumberFor&lt;T&gt;&gt; {
 		<span class="kw">let </span>session_start_block = <span class="self">Self</span>::session_start_block();
 		<span class="kw">let </span>group_rotation_frequency =
 			&lt;configuration::Pallet&lt;T&gt;&gt;::config().group_rotation_frequency;

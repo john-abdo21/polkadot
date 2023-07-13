@@ -1289,6 +1289,7 @@
 <a href="#1289" id="1289">1289</a>
 <a href="#1290" id="1290">1290</a>
 <a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1589,9 +1590,9 @@
 	<span class="kw">fn </span>initializer_on_new_session(_notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;BlockNumber&gt;) {}
 }
 
-<span class="kw">impl</span>&lt;T: Config&gt; DisputesHandler&lt;T::BlockNumber&gt; <span class="kw">for </span>pallet::Pallet&lt;T&gt;
+<span class="kw">impl</span>&lt;T: Config&gt; DisputesHandler&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>pallet::Pallet&lt;T&gt;
 <span class="kw">where
-	</span>T::BlockNumber: Ord,
+	</span>BlockNumberFor&lt;T&gt;: Ord,
 {
 	<span class="kw">fn </span>is_frozen() -&gt; bool {
 		pallet::Pallet::&lt;T&gt;::is_frozen()
@@ -1599,7 +1600,7 @@
 
 	<span class="kw">fn </span>filter_dispute_data(
 		set: DisputeStatementSet,
-		post_conclusion_acceptance_period: T::BlockNumber,
+		post_conclusion_acceptance_period: BlockNumberFor&lt;T&gt;,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;CheckedDisputeStatementSet&gt; {
 		pallet::Pallet::&lt;T&gt;::filter_dispute_data(<span class="kw-2">&amp;</span>set, post_conclusion_acceptance_period)
 			.filter_statement_set(set)
@@ -1614,7 +1615,7 @@
 	<span class="kw">fn </span>note_included(
 		session: SessionIndex,
 		candidate_hash: CandidateHash,
-		included_in: T::BlockNumber,
+		included_in: BlockNumberFor&lt;T&gt;,
 	) {
 		pallet::Pallet::&lt;T&gt;::note_included(session, candidate_hash, included_in)
 	}
@@ -1622,7 +1623,7 @@
 	<span class="kw">fn </span>included_state(
 		session: SessionIndex,
 		candidate_hash: CandidateHash,
-	) -&gt; <span class="prelude-ty">Option</span>&lt;T::BlockNumber&gt; {
+	) -&gt; <span class="prelude-ty">Option</span>&lt;BlockNumberFor&lt;T&gt;&gt; {
 		pallet::Pallet::&lt;T&gt;::included_state(session, candidate_hash)
 	}
 
@@ -1630,7 +1631,7 @@
 		pallet::Pallet::&lt;T&gt;::concluded_invalid(session, candidate_hash)
 	}
 
-	<span class="kw">fn </span>initializer_initialize(now: T::BlockNumber) -&gt; Weight {
+	<span class="kw">fn </span>initializer_initialize(now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		pallet::Pallet::&lt;T&gt;::initializer_initialize(now)
 	}
 
@@ -1638,7 +1639,7 @@
 		pallet::Pallet::&lt;T&gt;::initializer_finalize()
 	}
 
-	<span class="kw">fn </span>initializer_on_new_session(notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;T::BlockNumber&gt;) {
+	<span class="kw">fn </span>initializer_on_new_session(notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;) {
 		pallet::Pallet::&lt;T&gt;::initializer_on_new_session(notification)
 	}
 }
@@ -1664,7 +1665,7 @@
 	</span><span class="kw">pub trait </span>Config: frame_system::Config + configuration::Config + session_info::Config {
 		<span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="kw">type </span>RewardValidators: RewardValidators;
-		<span class="kw">type </span>SlashingHandler: SlashingHandler&lt;<span class="self">Self</span>::BlockNumber&gt;;
+		<span class="kw">type </span>SlashingHandler: SlashingHandler&lt;BlockNumberFor&lt;<span class="self">Self</span>&gt;&gt;;
 
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.
 		</span><span class="kw">type </span>WeightInfo: WeightInfo;
@@ -1691,7 +1692,7 @@
 		SessionIndex,
 		Blake2_128Concat,
 		CandidateHash,
-		DisputeState&lt;T::BlockNumber&gt;,
+		DisputeState&lt;BlockNumberFor&lt;T&gt;&gt;,
 	&gt;;
 
 	<span class="doccomment">/// Backing votes stored for each dispute.
@@ -1715,7 +1716,7 @@
 		SessionIndex,
 		Blake2_128Concat,
 		CandidateHash,
-		T::BlockNumber,
+		BlockNumberFor&lt;T&gt;,
 	&gt;;
 
 	<span class="doccomment">/// Whether the chain is frozen. Starts as `None`. When this is `Some`,
@@ -1724,7 +1725,7 @@
 	/// It can only be set back to `None` by governance intervention.
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>last_valid_block)]
-	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Frozen&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, <span class="prelude-ty">Option</span>&lt;T::BlockNumber&gt;, ValueQuery&gt;;
+	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Frozen&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, <span class="prelude-ty">Option</span>&lt;BlockNumberFor&lt;T&gt;&gt;, ValueQuery&gt;;
 
 	<span class="attr">#[pallet::event]
 	#[pallet::generate_deposit(<span class="kw">pub fn </span>deposit_event)]
@@ -1738,7 +1739,7 @@
 		/// Block authors should no longer build on top of this head and should
 		/// instead revert the block at the given height. This should be the
 		/// number of the child of the last known valid block in the chain.
-		</span>Revert(T::BlockNumber),
+		</span>Revert(BlockNumberFor&lt;T&gt;),
 	}
 
 	<span class="attr">#[pallet::error]
@@ -2145,7 +2146,7 @@
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Called by the initializer to initialize the disputes module.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 
@@ -2154,7 +2155,7 @@
 
 	<span class="doccomment">/// Called by the initializer to note a new session in the disputes pallet.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;T::BlockNumber&gt;,
+		notification: <span class="kw-2">&amp;</span>SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) {
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
@@ -2228,7 +2229,7 @@
 	// Disputes without enough votes to get confirmed are also filtered out.
 	</span><span class="kw">fn </span>filter_dispute_data(
 		set: <span class="kw-2">&amp;</span>DisputeStatementSet,
-		post_conclusion_acceptance_period: &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber,
+		post_conclusion_acceptance_period: BlockNumberFor&lt;T&gt;,
 	) -&gt; StatementSetFilter {
 		<span class="kw">let </span><span class="kw-2">mut </span>filter = StatementSetFilter::RemoveIndices(Vec::new());
 
@@ -2339,7 +2340,7 @@
 	/// dispute is fresh.
 	</span><span class="kw">fn </span>process_checked_dispute_data(
 		set: <span class="kw-2">&amp;</span>CheckedDisputeStatementSet,
-		dispute_post_conclusion_acceptance_period: T::BlockNumber,
+		dispute_post_conclusion_acceptance_period: BlockNumberFor&lt;T&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, DispatchError&gt; {
 		<span class="comment">// Dispute statement sets on any dispute which concluded
 		// before this point are to be rejected.
@@ -2480,14 +2481,15 @@
 	}
 
 	<span class="attr">#[allow(unused)]
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;T::BlockNumber&gt;)&gt; {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>disputes() -&gt; Vec&lt;(SessionIndex, CandidateHash, DisputeState&lt;BlockNumberFor&lt;T&gt;&gt;)&gt;
+	{
 		&lt;Disputes&lt;T&gt;&gt;::iter().collect()
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>note_included(
 		session: SessionIndex,
 		candidate_hash: CandidateHash,
-		included_in: T::BlockNumber,
+		included_in: BlockNumberFor&lt;T&gt;,
 	) {
 		<span class="kw">if </span>included_in.is_zero() {
 			<span class="kw">return
@@ -2507,7 +2509,7 @@
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>included_state(
 		session: SessionIndex,
 		candidate_hash: CandidateHash,
-	) -&gt; <span class="prelude-ty">Option</span>&lt;T::BlockNumber&gt; {
+	) -&gt; <span class="prelude-ty">Option</span>&lt;BlockNumberFor&lt;T&gt;&gt; {
 		&lt;Included&lt;T&gt;&gt;::get(session, candidate_hash)
 	}
 
@@ -2522,7 +2524,7 @@
 		<span class="self">Self</span>::last_valid_block().is_some()
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revert_and_freeze(revert_to: T::BlockNumber) {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revert_and_freeze(revert_to: BlockNumberFor&lt;T&gt;) {
 		<span class="kw">if </span><span class="self">Self</span>::last_valid_block().map_or(<span class="bool-val">true</span>, |last| last &gt; revert_to) {
 			Frozen::&lt;T&gt;::set(<span class="prelude-val">Some</span>(revert_to));
 

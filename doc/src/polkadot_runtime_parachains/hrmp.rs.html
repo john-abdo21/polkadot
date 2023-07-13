@@ -1951,7 +1951,7 @@
 	/// Invariant:
 	/// - each para `P` used here as a key should satisfy `Paras::is_valid_para(P)` within a session.
 	</span><span class="attr">#[pallet::storage]
-	</span><span class="kw">pub type </span>HrmpWatermarks&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, T::BlockNumber&gt;;
+	</span><span class="kw">pub type </span>HrmpWatermarks&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, BlockNumberFor&lt;T&gt;&gt;;
 
 	<span class="doccomment">/// HRMP channel data associated with each para.
 	/// Invariant:
@@ -1989,7 +1989,7 @@
 		<span class="kw">_</span>,
 		Twox64Concat,
 		HrmpChannelId,
-		Vec&lt;InboundHrmpMessage&lt;T::BlockNumber&gt;&gt;,
+		Vec&lt;InboundHrmpMessage&lt;BlockNumberFor&lt;T&gt;&gt;&gt;,
 		ValueQuery,
 	&gt;;
 
@@ -2001,7 +2001,7 @@
 	///   same block number.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub type </span>HrmpChannelDigests&lt;T: Config&gt; =
-		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, Vec&lt;(T::BlockNumber, Vec&lt;ParaId&gt;)&gt;, ValueQuery&gt;;
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, Vec&lt;(BlockNumberFor&lt;T&gt;, Vec&lt;ParaId&gt;)&gt;, ValueQuery&gt;;
 
 	<span class="doccomment">/// Preopen the given HRMP channels.
 	///
@@ -2241,7 +2241,7 @@
 <span class="doccomment">/// Routines and getters related to HRMP.
 </span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 	<span class="doccomment">/// Block initialization logic, called by initializer.
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: T::BlockNumber) -&gt; Weight {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_initialize(_now: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		Weight::zero()
 	}
 
@@ -2250,7 +2250,7 @@
 
 	<span class="doccomment">/// Called by the initializer to note that a new session has started.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initializer_on_new_session(
-		notification: <span class="kw-2">&amp;</span>initializer::SessionChangeNotification&lt;T::BlockNumber&gt;,
+		notification: <span class="kw-2">&amp;</span>initializer::SessionChangeNotification&lt;BlockNumberFor&lt;T&gt;&gt;,
 		outgoing_paras: <span class="kw-2">&amp;</span>[ParaId],
 	) -&gt; Weight {
 		<span class="kw">let </span>w1 = <span class="self">Self</span>::perform_outgoing_para_cleanup(<span class="kw-2">&amp;</span>notification.prev_config, outgoing_paras);
@@ -2267,7 +2267,7 @@
 	<span class="doccomment">/// Iterate over all paras that were noted for offboarding and remove all the data
 	/// associated with them.
 	</span><span class="kw">fn </span>perform_outgoing_para_cleanup(
-		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		outgoing: <span class="kw-2">&amp;</span>[ParaId],
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>w = <span class="self">Self</span>::clean_open_channel_requests(config, outgoing);
@@ -2292,7 +2292,7 @@
 	//
 	// This will also perform the refunds for the counterparty if it doesn&#39;t offboard.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clean_open_channel_requests(
-		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		outgoing: <span class="kw-2">&amp;</span>[ParaId],
 	) -&gt; Weight {
 		<span class="comment">// First collect all the channel ids of the open requests in which there is at least one
@@ -2368,7 +2368,7 @@
 	///
 	/// - prune the stale requests
 	/// - enact the confirmed requests
-	</span><span class="kw">fn </span>process_hrmp_open_channel_requests(config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;) {
+	</span><span class="kw">fn </span>process_hrmp_open_channel_requests(config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;) {
 		<span class="kw">let </span><span class="kw-2">mut </span>open_req_channels = HrmpOpenChannelRequestsList::&lt;T&gt;::get();
 		<span class="kw">if </span>open_req_channels.is_empty() {
 			<span class="kw">return
@@ -2476,9 +2476,9 @@
 	<span class="doccomment">/// Check that the candidate of the given recipient controls the HRMP watermark properly.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_hrmp_watermark(
 		recipient: ParaId,
-		relay_chain_parent_number: T::BlockNumber,
-		new_hrmp_watermark: T::BlockNumber,
-	) -&gt; <span class="prelude-ty">Result</span>&lt;(), HrmpWatermarkAcceptanceErr&lt;T::BlockNumber&gt;&gt; {
+		relay_chain_parent_number: BlockNumberFor&lt;T&gt;,
+		new_hrmp_watermark: BlockNumberFor&lt;T&gt;,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;(), HrmpWatermarkAcceptanceErr&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
 		<span class="comment">// First, check where the watermark CANNOT legally land.
 		//
 		// (a) For ensuring that messages are eventually processed, we require each parablock&#39;s
@@ -2524,7 +2524,7 @@
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_outbound_hrmp(
-		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;T::BlockNumber&gt;,
+		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		sender: ParaId,
 		out_hrmp_msgs: <span class="kw-2">&amp;</span>[OutboundHrmpMessage&lt;ParaId&gt;],
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), OutboundHrmpAcceptanceErr&gt; {
@@ -2587,7 +2587,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prune_hrmp(recipient: ParaId, new_hrmp_watermark: T::BlockNumber) -&gt; Weight {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prune_hrmp(recipient: ParaId, new_hrmp_watermark: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = Weight::zero();
 
 		<span class="comment">// sift through the incoming messages digest to collect the paras that sent at least one
@@ -2972,7 +2972,7 @@
 	/// messages in them are also included.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inbound_hrmp_channels_contents(
 		recipient: ParaId,
-	) -&gt; BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;T::BlockNumber&gt;&gt;&gt; {
+	) -&gt; BTreeMap&lt;ParaId, Vec&lt;InboundHrmpMessage&lt;BlockNumberFor&lt;T&gt;&gt;&gt;&gt; {
 		<span class="kw">let </span>sender_set = HrmpIngressChannelsIndex::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient);
 
 		<span class="kw">let </span><span class="kw-2">mut </span>inbound_hrmp_channels_contents = BTreeMap::new();

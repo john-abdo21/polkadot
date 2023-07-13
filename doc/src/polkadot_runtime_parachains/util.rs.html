@@ -116,6 +116,7 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -135,7 +136,8 @@
 </span><span class="doccomment">//! Utilities that don&#39;t belong to any particular module but may draw
 //! on all modules.
 
-</span><span class="kw">use </span>primitives::{Id <span class="kw">as </span>ParaId, PersistedValidationData, ValidatorIndex};
+</span><span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
+<span class="kw">use </span>primitives::{Id <span class="kw">as </span>ParaId, PersistedValidationData, ValidatorIndex};
 <span class="kw">use </span>sp_std::{collections::btree_set::BTreeSet, vec::Vec};
 
 <span class="kw">use crate</span>::{configuration, hrmp, paras};
@@ -146,9 +148,9 @@
 /// This ties together the storage of several modules.
 </span><span class="kw">pub fn </span>make_persisted_validation_data&lt;T: paras::Config + hrmp::Config&gt;(
 	para_id: ParaId,
-	relay_parent_number: T::BlockNumber,
+	relay_parent_number: BlockNumberFor&lt;T&gt;,
 	relay_parent_storage_root: T::Hash,
-) -&gt; <span class="prelude-ty">Option</span>&lt;PersistedValidationData&lt;T::Hash, T::BlockNumber&gt;&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;PersistedValidationData&lt;T::Hash, BlockNumberFor&lt;T&gt;&gt;&gt; {
 	<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
 	<span class="prelude-val">Some</span>(PersistedValidationData {
