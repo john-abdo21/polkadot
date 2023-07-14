@@ -100,7 +100,7 @@
 
 </span><span class="doccomment">//! Wrappers around creating a signer account.
 
-</span><span class="kw">use crate</span>::{prelude::<span class="kw-2">*</span>, rpc::SharedRpcClient, AccountId, Error, Index, Pair, LOG_TARGET};
+</span><span class="kw">use crate</span>::{prelude::<span class="kw-2">*</span>, rpc::SharedRpcClient, AccountId, Error, Nonce, Pair, LOG_TARGET};
 <span class="kw">use </span>frame_system::AccountInfo;
 <span class="kw">use </span>sp_core::{crypto::Pair <span class="kw">as _</span>, storage::StorageKey};
 
@@ -123,8 +123,8 @@
 	rpc: <span class="kw-2">&amp;</span>SharedRpcClient,
 	who: <span class="kw-2">&amp;</span>T::AccountId,
 	maybe_at: <span class="prelude-ty">Option</span>&lt;T::Hash&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AccountInfo&lt;Index, T::AccountData&gt;&gt;, Error&lt;T&gt;&gt; {
-	rpc.get_storage_and_decode::&lt;AccountInfo&lt;Index, T::AccountData&gt;&gt;(
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AccountInfo&lt;Nonce, T::AccountData&gt;&gt;, Error&lt;T&gt;&gt; {
+	rpc.get_storage_and_decode::&lt;AccountInfo&lt;Nonce, T::AccountData&gt;&gt;(
 		<span class="kw-2">&amp;</span>StorageKey(&lt;frame_system::Account&lt;T&gt;&gt;::hashed_key_for(<span class="kw-2">&amp;</span>who)),
 		maybe_at,
 	)
@@ -136,7 +136,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>signer_uri_from_string&lt;
 	T: frame_system::Config&lt;
 			AccountId = AccountId,
-			Index = Index,
+			Nonce = Nonce,
 			AccountData = pallet_balances::AccountData&lt;Balance&gt;,
 			Hash = Hash,
 		&gt; + EPM::Config,
