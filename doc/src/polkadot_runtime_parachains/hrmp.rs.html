@@ -1580,6 +1580,15 @@
 <a href="#1580" id="1580">1580</a>
 <a href="#1581" id="1581">1581</a>
 <a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1830,6 +1839,9 @@
 		<span class="kw">type </span>RuntimeOrigin: From&lt;<span class="kw">crate</span>::Origin&gt;
 			+ From&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin&gt;
 			+ Into&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">crate</span>::Origin, &lt;<span class="self">Self </span><span class="kw">as </span>Config&gt;::RuntimeOrigin&gt;&gt;;
+
+		<span class="doccomment">/// The origin that can perform &quot;force&quot; actions on channels.
+		</span><span class="kw">type </span>ChannelManager: EnsureOrigin&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin&gt;;
 
 		<span class="doccomment">/// An interface for reserving deposits for opening channels.
 		///
@@ -2095,13 +2107,13 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// This extrinsic triggers the cleanup of all the HRMP storage items that
-		/// a para may have. Normally this happens once per session, but this allows
-		/// you to trigger the cleanup immediately for a specific parachain.
+		<span class="doccomment">/// This extrinsic triggers the cleanup of all the HRMP storage items that a para may have.
+		/// Normally this happens once per session, but this allows you to trigger the cleanup
+		/// immediately for a specific parachain.
 		///
-		/// Origin must be Root.
+		/// Number of inbound and outbound channels for `para` must be provided as witness data.
 		///
-		/// Number of inbound and outbound channels for `para` must be provided as witness data of weighing.
+		/// Origin must be the `ChannelManager`.
 		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_clean_hrmp(<span class="kw-2">*</span>_inbound, <span class="kw-2">*</span>_outbound))]
 		</span><span class="kw">pub fn </span>force_clean_hrmp(
@@ -2110,21 +2122,23 @@
 			_inbound: u32,
 			_outbound: u32,
 		) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
+			T::ChannelManager::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::clean_hrmp_after_outgoing(<span class="kw-2">&amp;</span>para);
 			<span class="prelude-val">Ok</span>(())
 		}
 
 		<span class="doccomment">/// Force process HRMP open channel requests.
 		///
-		/// If there are pending HRMP open channel requests, you can use this
-		/// function process all of those requests immediately.
+		/// If there are pending HRMP open channel requests, you can use this function to process
+		/// all of those requests immediately.
 		///
-		/// Total number of opening channels must be provided as witness data of weighing.
+		/// Total number of opening channels must be provided as witness data.
+		///
+		/// Origin must be the `ChannelManager`.
 		</span><span class="attr">#[pallet::call_index(<span class="number">4</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_process_hrmp_open(<span class="kw-2">*</span>_channels))]
 		</span><span class="kw">pub fn </span>force_process_hrmp_open(origin: OriginFor&lt;T&gt;, _channels: u32) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
+			T::ChannelManager::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="kw">let </span>host_config = configuration::Pallet::&lt;T&gt;::config();
 			<span class="self">Self</span>::process_hrmp_open_channel_requests(<span class="kw-2">&amp;</span>host_config);
 			<span class="prelude-val">Ok</span>(())
@@ -2132,14 +2146,16 @@
 
 		<span class="doccomment">/// Force process HRMP close channel requests.
 		///
-		/// If there are pending HRMP close channel requests, you can use this
-		/// function process all of those requests immediately.
+		/// If there are pending HRMP close channel requests, you can use this function to process
+		/// all of those requests immediately.
 		///
-		/// Total number of closing channels must be provided as witness data of weighing.
+		/// Total number of closing channels must be provided as witness data.
+		///
+		/// Origin must be the `ChannelManager`.
 		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_process_hrmp_close(<span class="kw-2">*</span>_channels))]
 		</span><span class="kw">pub fn </span>force_process_hrmp_close(origin: OriginFor&lt;T&gt;, _channels: u32) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
+			T::ChannelManager::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::process_hrmp_close_channel_requests();
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -2170,12 +2186,14 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Open a channel from a `sender` to a `recipient` `ParaId` using the Root origin. Although
-		/// opened by Root, the `max_capacity` and `max_message_size` are still subject to the Relay
-		/// Chain&#39;s configured limits.
+		<span class="doccomment">/// Open a channel from a `sender` to a `recipient` `ParaId`. Although opened by governance,
+		/// the `max_capacity` and `max_message_size` are still subject to the Relay Chain&#39;s
+		/// configured limits.
 		///
 		/// Expected use is when one of the `ParaId`s involved in the channel is governed by the
 		/// Relay Chain, e.g. a system parachain.
+		///
+		/// Origin must be the `ChannelManager`.
 		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_open_hrmp_channel(<span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>force_open_hrmp_channel(
@@ -2185,7 +2203,7 @@
 			max_capacity: u32,
 			max_message_size: u32,
 		) -&gt; DispatchResultWithPostInfo {
-			ensure_root(origin)<span class="question-mark">?</span>;
+			T::ChannelManager::ensure_origin(origin)<span class="question-mark">?</span>;
 
 			<span class="comment">// Guard against a common footgun where someone makes a channel request to a system
 			// parachain and then makes a proposal to open the channel via governance, which fails
