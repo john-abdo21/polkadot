@@ -1598,6 +1598,25 @@
 <a href="#1598" id="1598">1598</a>
 <a href="#1599" id="1599">1599</a>
 <a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
+<a href="#1610" id="1610">1610</a>
+<a href="#1611" id="1611">1611</a>
+<a href="#1612" id="1612">1612</a>
+<a href="#1613" id="1613">1613</a>
+<a href="#1614" id="1614">1614</a>
+<a href="#1615" id="1615">1615</a>
+<a href="#1616" id="1616">1616</a>
+<a href="#1617" id="1617">1617</a>
+<a href="#1618" id="1618">1618</a>
+<a href="#1619" id="1619">1619</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2870,6 +2889,9 @@
 	<span class="kw">let </span>check_collations_stream = tick_stream(CHECK_COLLATIONS_POLL);
 	<span class="macro">futures::pin_mut!</span>(check_collations_stream);
 
+	<span class="kw">let </span><span class="kw-2">mut </span>network_error_freq = gum::Freq::new();
+	<span class="kw">let </span><span class="kw-2">mut </span>canceled_freq = gum::Freq::new();
+
 	<span class="kw">loop </span>{
 		<span class="macro">select! </span>{
 			<span class="kw">_ </span>= reputation_delay =&gt; {
@@ -2912,6 +2934,8 @@
 					<span class="kw-2">&amp;mut </span>state.requested_collations,
 					<span class="kw-2">&amp;</span>state.metrics,
 					<span class="kw-2">&amp;</span>state.span_per_relay_parent,
+					<span class="kw-2">&amp;mut </span>network_error_freq,
+					<span class="kw-2">&amp;mut </span>canceled_freq,
 				).<span class="kw">await</span>;
 
 				<span class="kw">for </span>(peer_id, rep) <span class="kw">in </span>reputation_changes {
@@ -2928,14 +2952,22 @@
 	requested_collations: <span class="kw-2">&amp;mut </span>HashMap&lt;PendingCollation, PerRequest&gt;,
 	metrics: <span class="kw-2">&amp;</span>Metrics,
 	span_per_relay_parent: <span class="kw-2">&amp;</span>HashMap&lt;Hash, PerLeafSpan&gt;,
+	network_error_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
+	canceled_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
 ) -&gt; Vec&lt;(PeerId, Rep)&gt; {
 	<span class="kw">let </span><span class="kw-2">mut </span>retained_requested = HashSet::new();
 	<span class="kw">let </span><span class="kw-2">mut </span>reputation_changes = Vec::new();
 	<span class="kw">for </span>(pending_collation, per_req) <span class="kw">in </span>requested_collations.iter_mut() {
 		<span class="comment">// Despite the await, this won&#39;t block on the response itself.
-		</span><span class="kw">let </span>result =
-			poll_collation_response(metrics, span_per_relay_parent, pending_collation, per_req)
-				.<span class="kw">await</span>;
+		</span><span class="kw">let </span>result = poll_collation_response(
+			metrics,
+			span_per_relay_parent,
+			pending_collation,
+			per_req,
+			network_error_freq,
+			canceled_freq,
+		)
+		.<span class="kw">await</span>;
 
 		<span class="kw">if </span>!result.is_ready() {
 			retained_requested.insert(pending_collation.clone());
@@ -3079,6 +3111,8 @@
 	spans: <span class="kw-2">&amp;</span>HashMap&lt;Hash, PerLeafSpan&gt;,
 	pending_collation: <span class="kw-2">&amp;</span>PendingCollation,
 	per_req: <span class="kw-2">&amp;mut </span>PerRequest,
+	network_error_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
+	canceled_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
 ) -&gt; CollationFetchResult {
 	<span class="kw">if </span><span class="macro">never!</span>(per_req.from_collator.is_terminated()) {
 		<span class="macro">gum::error!</span>(
@@ -3122,7 +3156,9 @@
 				</span>CollationFetchResult::Error(<span class="prelude-val">None</span>)
 			},
 			<span class="prelude-val">Err</span>(RequestError::NetworkError(err)) =&gt; {
-				<span class="macro">gum::debug!</span>(
+				<span class="macro">gum::warn_if_frequent!</span>(
+					freq: network_error_freq,
+					max_rate: gum::Times::PerHour(<span class="number">100</span>),
 					target: LOG_TARGET,
 					hash = <span class="question-mark">?</span>pending_collation.relay_parent,
 					para_id = <span class="question-mark">?</span>pending_collation.para_id,
@@ -3137,7 +3173,9 @@
 				</span>CollationFetchResult::Error(<span class="prelude-val">Some</span>(COST_NETWORK_ERROR))
 			},
 			<span class="prelude-val">Err</span>(RequestError::Canceled(err)) =&gt; {
-				<span class="macro">gum::debug!</span>(
+				<span class="macro">gum::warn_if_frequent!</span>(
+					freq: canceled_freq,
+					max_rate: gum::Times::PerHour(<span class="number">100</span>),
 					target: LOG_TARGET,
 					hash = <span class="question-mark">?</span>pending_collation.relay_parent,
 					para_id = <span class="question-mark">?</span>pending_collation.para_id,

@@ -488,6 +488,17 @@
 <a href="#488" id="488">488</a>
 <a href="#489" id="489">489</a>
 <a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -750,6 +761,8 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>succeeded = <span class="bool-val">false</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>count: u32 = <span class="number">0</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>span = <span class="self">self</span>.span.child(<span class="string">&quot;run-fetch-chunk-task&quot;</span>).with_relay_parent(<span class="self">self</span>.relay_parent);
+		<span class="kw">let </span><span class="kw-2">mut </span>network_error_freq = gum::Freq::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>canceled_freq = gum::Freq::new();
 		<span class="comment">// Try validators in reverse order:
 		</span><span class="kw">while let </span><span class="prelude-val">Some</span>(validator) = <span class="self">self</span>.group.pop() {
 			<span class="comment">// Report retries:
@@ -762,7 +775,10 @@
 				.with_chunk_index(<span class="self">self</span>.request.index.<span class="number">0</span>)
 				.with_stage(jaeger::Stage::AvailabilityDistribution);
 			<span class="comment">// Send request:
-			</span><span class="kw">let </span>resp = <span class="kw">match </span><span class="self">self</span>.do_request(<span class="kw-2">&amp;</span>validator).<span class="kw">await </span>{
+			</span><span class="kw">let </span>resp = <span class="kw">match </span><span class="self">self
+				</span>.do_request(<span class="kw-2">&amp;</span>validator, <span class="kw-2">&amp;mut </span>network_error_freq, <span class="kw-2">&amp;mut </span>canceled_freq)
+				.<span class="kw">await
+			</span>{
 				<span class="prelude-val">Ok</span>(resp) =&gt; resp,
 				<span class="prelude-val">Err</span>(TaskError::ShuttingDown) =&gt; {
 					<span class="macro">gum::info!</span>(
@@ -832,6 +848,8 @@
 	</span><span class="kw">async fn </span>do_request(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		validator: <span class="kw-2">&amp;</span>AuthorityDiscoveryId,
+		nerwork_error_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
+		canceled_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
 	) -&gt; std::result::Result&lt;ChunkFetchingResponse, TaskError&gt; {
 		<span class="macro">gum::trace!</span>(
 			target: LOG_TARGET,
@@ -876,7 +894,9 @@
 				<span class="prelude-val">Err</span>(TaskError::PeerError)
 			},
 			<span class="prelude-val">Err</span>(RequestError::NetworkError(err)) =&gt; {
-				<span class="macro">gum::debug!</span>(
+				<span class="macro">gum::warn_if_frequent!</span>(
+					freq: nerwork_error_freq,
+					max_rate: gum::Times::PerHour(<span class="number">100</span>),
 					target: LOG_TARGET,
 					origin = <span class="question-mark">?</span>validator,
 					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,
@@ -890,7 +910,9 @@
 				<span class="prelude-val">Err</span>(TaskError::PeerError)
 			},
 			<span class="prelude-val">Err</span>(RequestError::Canceled(oneshot::Canceled)) =&gt; {
-				<span class="macro">gum::debug!</span>(
+				<span class="macro">gum::warn_if_frequent!</span>(
+					freq: canceled_freq,
+					max_rate: gum::Times::PerHour(<span class="number">100</span>),
 					target: LOG_TARGET,
 					origin = <span class="question-mark">?</span>validator,
 					relay_parent = <span class="question-mark">?</span><span class="self">self</span>.relay_parent,

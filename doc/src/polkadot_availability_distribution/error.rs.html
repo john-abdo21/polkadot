@@ -110,6 +110,11 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -203,7 +208,11 @@
 ///
 /// We basically always want to try and continue on error. This utility function is meant to
 /// consume top-level errors by simply logging them
-</span><span class="kw">pub fn </span>log_error(result: <span class="prelude-ty">Result</span>&lt;()&gt;, ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; std::result::Result&lt;(), FatalError&gt; {
+</span><span class="kw">pub fn </span>log_error(
+	result: <span class="prelude-ty">Result</span>&lt;()&gt;,
+	ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+	warn_freq: <span class="kw-2">&amp;mut </span>gum::Freq,
+) -&gt; std::result::Result&lt;(), FatalError&gt; {
 	<span class="kw">match </span>result.into_nested()<span class="question-mark">? </span>{
 		<span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(()),
 		<span class="prelude-val">Err</span>(jfyi) =&gt; {
@@ -216,7 +225,8 @@
 				JfyiError::FetchPoV(<span class="kw">_</span>) |
 				JfyiError::SendResponse |
 				JfyiError::NoSuchPoV |
-				JfyiError::Runtime(<span class="kw">_</span>) =&gt; <span class="macro">gum::debug!</span>(target: LOG_TARGET, error = <span class="question-mark">?</span>jfyi, ctx),
+				JfyiError::Runtime(<span class="kw">_</span>) =&gt;
+					<span class="macro">gum::warn_if_frequent!</span>(freq: warn_freq, max_rate: gum::Times::PerHour(<span class="number">100</span>), target: LOG_TARGET, error = <span class="question-mark">?</span>jfyi, ctx),
 			}
 			<span class="prelude-val">Ok</span>(())
 		},

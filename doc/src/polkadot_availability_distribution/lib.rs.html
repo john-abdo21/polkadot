@@ -194,6 +194,9 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -293,6 +296,7 @@
 
 		<span class="kw">let </span>IncomingRequestReceivers { pov_req_receiver, chunk_req_receiver } = recvs;
 		<span class="kw">let </span><span class="kw-2">mut </span>requester = Requester::new(metrics.clone()).fuse();
+		<span class="kw">let </span><span class="kw-2">mut </span>warn_freq = gum::Freq::new();
 
 		{
 			<span class="kw">let </span>sender = ctx.sender().clone();
@@ -343,6 +347,7 @@
 							.update_fetching_heads(<span class="kw-2">&amp;mut </span>ctx, <span class="kw-2">&amp;mut </span>runtime, update, <span class="kw-2">&amp;</span>spans)
 							.<span class="kw">await</span>,
 						<span class="string">&quot;Error in Requester::update_fetching_heads&quot;</span>,
+						<span class="kw-2">&amp;mut </span>warn_freq,
 					)<span class="question-mark">?</span>;
 				},
 				FromOrchestra::Signal(OverseerSignal::BlockFinalized(hash, <span class="kw">_</span>)) =&gt; {
@@ -384,6 +389,7 @@
 						)
 						.<span class="kw">await</span>,
 						<span class="string">&quot;pov_requester::fetch_pov&quot;</span>,
+						<span class="kw-2">&amp;mut </span>warn_freq,
 					)<span class="question-mark">?</span>;
 				},
 			}

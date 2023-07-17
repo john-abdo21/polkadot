@@ -2189,6 +2189,8 @@
 <a href="#2189" id="2189">2189</a>
 <a href="#2190" id="2190">2190</a>
 <a href="#2191" id="2191">2191</a>
+<a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -4001,6 +4003,8 @@
 		)
 		.map_err(FatalError::SpawnTask)<span class="question-mark">?</span>;
 
+		<span class="kw">let </span><span class="kw-2">mut </span>warn_freq = gum::Freq::new();
+
 		<span class="kw">loop </span>{
 			<span class="macro">select! </span>{
 				<span class="kw">_ </span>= reputation_delay =&gt; {
@@ -4042,7 +4046,7 @@
 									result.ok_or(FatalError::RequesterReceiverFinished)<span class="question-mark">?</span>,
 								)
 								.<span class="kw">await</span>;
-							log_error(result.map_err(From::from), <span class="string">&quot;handle_requester_message&quot;</span>)<span class="question-mark">?</span>;
+							log_error(result.map_err(From::from), <span class="string">&quot;handle_requester_message&quot;</span>, <span class="kw-2">&amp;mut </span>warn_freq)<span class="question-mark">?</span>;
 						},
 						MuxedMessage::Responder(result) =&gt; {
 							<span class="kw">let </span>result = <span class="self">self
@@ -4052,7 +4056,7 @@
 									result.ok_or(FatalError::ResponderReceiverFinished)<span class="question-mark">?</span>,
 								)
 								.<span class="kw">await</span>;
-							log_error(result.map_err(From::from), <span class="string">&quot;handle_responder_message&quot;</span>)<span class="question-mark">?</span>;
+							log_error(result.map_err(From::from), <span class="string">&quot;handle_responder_message&quot;</span>, <span class="kw-2">&amp;mut </span>warn_freq)<span class="question-mark">?</span>;
 						},
 					};
 				}

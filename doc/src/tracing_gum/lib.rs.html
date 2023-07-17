@@ -116,6 +116,83 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -230,8 +307,85 @@
 <span class="attr">#[doc(hidden)]
 </span><span class="kw">pub use </span>polkadot_primitives::{CandidateHash, Hash};
 
-<span class="kw">pub use </span>gum_proc_macro::{debug, error, info, trace, warn};
+<span class="kw">pub use </span>gum_proc_macro::{debug, error, info, trace, warn, warn_if_frequent};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+
+<span class="kw">const </span>FREQ_SMOOTHING_FACTOR: f32 = <span class="number">0.5</span>;
+
+<span class="doccomment">/// Exponential moving average
+</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">struct </span>EmaBucket {
+	current: f32,
+	count: u32,
+}
+
+<span class="kw">impl </span>EmaBucket {
+	<span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: f32, alpha: f32) {
+		<span class="kw">if </span><span class="self">self</span>.count == <span class="number">0 </span>{
+			<span class="self">self</span>.current = value;
+		} <span class="kw">else </span>{
+			<span class="self">self</span>.current += alpha * (value - <span class="self">self</span>.current);
+		}
+		<span class="self">self</span>.count += <span class="number">1</span>;
+	}
+}
+
+<span class="doccomment">/// Utility struct to compare the rate of its own calls.
+</span><span class="kw">pub struct </span>Freq {
+	ema: EmaBucket,
+	last: u64,
+}
+
+<span class="kw">impl </span>Freq {
+	<span class="doccomment">/// Initiates a new instance
+	</span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ ema: Default::default(), last: Default::default() }
+	}
+
+	<span class="doccomment">/// Compares the rate of its own calls with the passed one.
+	</span><span class="kw">pub fn </span>is_frequent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max_rate: Times) -&gt; bool {
+		<span class="self">self</span>.record();
+
+		<span class="comment">// Two attempts is not enough to call something as frequent.
+		</span><span class="kw">if </span><span class="self">self</span>.ema.count &lt; <span class="number">3 </span>{
+			<span class="kw">return </span><span class="bool-val">false
+		</span>}
+
+		<span class="kw">let </span>rate = <span class="number">1000.0 </span>/ <span class="self">self</span>.ema.current; <span class="comment">// Current EMA represents interval in ms
+		</span>rate &gt; max_rate.into()
+	}
+
+	<span class="kw">fn </span>record(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="kw">let </span>now = coarsetime::Clock::now_since_epoch().as_millis() <span class="kw">as </span>u64;
+		<span class="kw">if </span><span class="self">self</span>.last &gt; <span class="number">0 </span>{
+			<span class="self">self</span>.ema.update((now - <span class="self">self</span>.last) <span class="kw">as </span>f32, FREQ_SMOOTHING_FACTOR);
+		}
+		<span class="self">self</span>.last = now;
+	}
+}
+
+<span class="doccomment">/// Represents frequency per second, minute, hour and day
+</span><span class="kw">pub enum </span>Times {
+	<span class="doccomment">/// Per second
+	</span>PerSecond(u32),
+	<span class="doccomment">/// Per minute
+	</span>PerMinute(u32),
+	<span class="doccomment">/// Per hour
+	</span>PerHour(u32),
+	<span class="doccomment">/// Per day
+	</span>PerDay(u32),
+}
+
+<span class="kw">impl </span>From&lt;Times&gt; <span class="kw">for </span>f32 {
+	<span class="kw">fn </span>from(value: Times) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>value {
+			Times::PerSecond(v) =&gt; v <span class="kw">as </span>f32,
+			Times::PerMinute(v) =&gt; v <span class="kw">as </span>f32 / <span class="number">60.0</span>,
+			Times::PerHour(v) =&gt; v <span class="kw">as </span>f32 / (<span class="number">60.0 </span>* <span class="number">60.0</span>),
+			Times::PerDay(v) =&gt; v <span class="kw">as </span>f32 / (<span class="number">60.0 </span>* <span class="number">60.0 </span>* <span class="number">24.0</span>),
+		}
+	}
+}
 </code></pre></div></section></main></body></html>
