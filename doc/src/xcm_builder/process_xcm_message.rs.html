@@ -206,7 +206,7 @@
 			.map_err(|<span class="kw">_</span>| ProcessMessageError::Unsupported)<span class="question-mark">?</span>;
 		<span class="kw">let </span>pre = XcmExecutor::prepare(message).map_err(|<span class="kw">_</span>| ProcessMessageError::Unsupported)<span class="question-mark">?</span>;
 		<span class="kw">let </span>required = pre.weight_of();
-		<span class="macro">ensure!</span>(meter.can_accrue(required), ProcessMessageError::Overweight(required));
+		<span class="macro">ensure!</span>(meter.can_consume(required), ProcessMessageError::Overweight(required));
 
 		<span class="kw">let </span>(consumed, result) = <span class="kw">match </span>XcmExecutor::execute(origin.into(), pre, id, Weight::zero())
 		{
@@ -215,7 +215,7 @@
 			<span class="comment">// In the error-case we assume the worst case and consume all possible weight.
 			</span>Outcome::Error(<span class="kw">_</span>) =&gt; (required, <span class="prelude-val">Err</span>(ProcessMessageError::Unsupported)),
 		};
-		meter.defensive_saturating_accrue(consumed);
+		meter.consume(consumed);
 		result
 	}
 }
@@ -271,14 +271,14 @@
 					Processor::process_message(msg, ORIGIN, meter, <span class="kw-2">&amp;mut </span>id),
 					Overweight(<span class="number">1000</span>.into())
 				);
-				<span class="macro">assert_eq!</span>(meter.consumed, <span class="number">0</span>.into());
+				<span class="macro">assert_eq!</span>(meter.consumed(), <span class="number">0</span>.into());
 			}
 
 			<span class="comment">// Works with a limit of 1000.
 			</span><span class="kw">let </span>meter = <span class="kw-2">&amp;mut </span>WeightMeter::from_limit(<span class="number">1000</span>.into());
 			<span class="kw">let </span><span class="kw-2">mut </span>id = [<span class="number">0</span>; <span class="number">32</span>];
 			<span class="macro">assert_ok!</span>(Processor::process_message(msg, ORIGIN, meter, <span class="kw-2">&amp;mut </span>id));
-			<span class="macro">assert_eq!</span>(meter.consumed, <span class="number">1000</span>.into());
+			<span class="macro">assert_eq!</span>(meter.consumed(), <span class="number">1000</span>.into());
 		}
 	}
 
