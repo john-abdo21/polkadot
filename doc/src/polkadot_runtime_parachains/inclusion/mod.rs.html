@@ -1309,6 +1309,9 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2195,10 +2198,13 @@
 		<span class="comment">// initial weight is config read.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(new_code) = commitments.new_validation_code {
+			<span class="comment">// Block number of candidate&#39;s inclusion.
+			</span><span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
+
 			weight.saturating_add(&lt;paras::Pallet&lt;T&gt;&gt;::schedule_code_upgrade(
 				receipt.descriptor.para_id,
 				new_code,
-				relay_parent_number,
+				now,
 				<span class="kw-2">&amp;</span>config,
 			));
 		}

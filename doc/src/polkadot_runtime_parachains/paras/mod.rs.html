@@ -2161,6 +2161,23 @@
 <a href="#2161" id="2161">2161</a>
 <a href="#2162" id="2162">2162</a>
 <a href="#2163" id="2163">2163</a>
+<a href="#2164" id="2164">2164</a>
+<a href="#2165" id="2165">2165</a>
+<a href="#2166" id="2166">2166</a>
+<a href="#2167" id="2167">2167</a>
+<a href="#2168" id="2168">2168</a>
+<a href="#2169" id="2169">2169</a>
+<a href="#2170" id="2170">2170</a>
+<a href="#2171" id="2171">2171</a>
+<a href="#2172" id="2172">2172</a>
+<a href="#2173" id="2173">2173</a>
+<a href="#2174" id="2174">2174</a>
+<a href="#2175" id="2175">2175</a>
+<a href="#2176" id="2176">2176</a>
+<a href="#2177" id="2177">2177</a>
+<a href="#2178" id="2178">2178</a>
+<a href="#2179" id="2179">2179</a>
+<a href="#2180" id="2180">2180</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2530,17 +2547,21 @@
 
 <span class="doccomment">/// This enum describes a reason why a particular PVF pre-checking vote was initiated. When the
 /// PVF vote in question is concluded, this enum indicates what changes should be performed.
-</span><span class="attr">#[derive(Encode, Decode, TypeInfo)]
-</span><span class="kw">enum </span>PvfCheckCause&lt;BlockNumber&gt; {
+</span><span class="attr">#[derive(Debug, Encode, Decode, TypeInfo)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>PvfCheckCause&lt;BlockNumber&gt; {
 	<span class="doccomment">/// PVF vote was initiated by the initial onboarding process of the given para.
 	</span>Onboarding(ParaId),
 	<span class="doccomment">/// PVF vote was initiated by signalling of an upgrade by the given para.
 	</span>Upgrade {
 		<span class="doccomment">/// The ID of the parachain that initiated or is waiting for the conclusion of pre-checking.
 		</span>id: ParaId,
-		<span class="doccomment">/// The relay-chain block number that was used as the relay-parent for the parablock that
-		/// initiated the upgrade.
-		</span>relay_parent_number: BlockNumber,
+		<span class="doccomment">/// The relay-chain block number of **inclusion** of candidate that that initiated the upgrade.
+		///
+		/// It&#39;s important to count upgrade enactment delay from the inclusion of this candidate instead
+		/// of its relay parent -- in order to keep PVF available in case of chain reversions.
+		///
+		/// See https://github.com/paritytech/polkadot/issues/4601 for detailed explanation.
+		</span>included_at: BlockNumber,
 	},
 }
 
@@ -2563,7 +2584,7 @@
 
 <span class="doccomment">/// This struct describes the current state of an in-progress PVF pre-checking vote.
 </span><span class="attr">#[derive(Encode, Decode, TypeInfo)]
-</span><span class="kw">struct </span>PvfCheckActiveVoteState&lt;BlockNumber&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PvfCheckActiveVoteState&lt;BlockNumber&gt; {
 	<span class="comment">// The two following vectors have their length equal to the number of validators in the active
 	// set. They start with all zeroes. A 1 is set at an index when the validator at the that index
 	// makes a vote. Once a 1 is set for either of the vectors, that validator cannot vote anymore.
@@ -2628,6 +2649,11 @@
 		} <span class="kw">else </span>{
 			<span class="prelude-val">None
 		</span>}
+	}
+
+	<span class="attr">#[cfg(test)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>causes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[PvfCheckCause&lt;BlockNumber&gt;] {
+		<span class="self">self</span>.causes.as_slice()
 	}
 }
 
@@ -3636,9 +3662,8 @@
 				PvfCheckCause::Onboarding(id) =&gt; {
 					weight += <span class="self">Self</span>::proceed_with_onboarding(<span class="kw-2">*</span>id, sessions_observed);
 				},
-				PvfCheckCause::Upgrade { id, relay_parent_number } =&gt; {
-					weight +=
-						<span class="self">Self</span>::proceed_with_upgrade(<span class="kw-2">*</span>id, code_hash, now, <span class="kw-2">*</span>relay_parent_number, cfg);
+				PvfCheckCause::Upgrade { id, included_at } =&gt; {
+					weight += <span class="self">Self</span>::proceed_with_upgrade(<span class="kw-2">*</span>id, code_hash, now, <span class="kw-2">*</span>included_at, cfg);
 				},
 			}
 		}
@@ -3682,10 +3707,10 @@
 		// against the new validation code.
 		//
 		// Here we are trying to choose the block number that will have `validation_upgrade_delay`
-		// blocks from the relay-parent of the block that schedule code upgrade but no less than
-		// `minimum_validation_upgrade_delay`. We want this delay out of caution so that when
-		// the last vote for pre-checking comes the parachain will have some time until the upgrade
-		// finally takes place.
+		// blocks from the relay-parent of inclusion of the the block that scheduled code upgrade
+		// but no less than `minimum_validation_upgrade_delay`. We want this delay out of caution
+		// so that when the last vote for pre-checking comes the parachain will have some time until
+		// the upgrade finally takes place.
 		</span><span class="kw">let </span>expected_at = cmp::max(
 			relay_parent_number + cfg.validation_upgrade_delay,
 			now + cfg.minimum_validation_upgrade_delay,
@@ -3928,10 +3953,12 @@
 	///
 	/// The new code should not be equal to the current one, otherwise the upgrade will be aborted.
 	/// If there is already a scheduled code upgrade for the para, this is a no-op.
+	///
+	/// Inclusion block number specifies relay parent which enacted candidate initiating the upgrade.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule_code_upgrade(
 		id: ParaId,
 		new_code: ValidationCode,
-		relay_parent_number: BlockNumberFor&lt;T&gt;,
+		inclusion_block_number: BlockNumberFor&lt;T&gt;,
 		cfg: <span class="kw-2">&amp;</span>configuration::HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 	) -&gt; Weight {
 		<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
@@ -3973,7 +4000,7 @@
 		UpgradeRestrictionSignal::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, UpgradeRestriction::Present);
 
 		weight += T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>);
-		<span class="kw">let </span>next_possible_upgrade_at = relay_parent_number + cfg.validation_upgrade_cooldown;
+		<span class="kw">let </span>next_possible_upgrade_at = inclusion_block_number + cfg.validation_upgrade_cooldown;
 		UpgradeCooldowns::&lt;T&gt;::mutate(|upgrade_cooldowns| {
 			<span class="kw">let </span>insert_idx = upgrade_cooldowns
 				.binary_search_by_key(<span class="kw-2">&amp;</span>next_possible_upgrade_at, |<span class="kw-2">&amp;</span>(<span class="kw">_</span>, b)| b)
@@ -3982,7 +4009,7 @@
 		});
 
 		weight += <span class="self">Self</span>::kick_off_pvf_check(
-			PvfCheckCause::Upgrade { id, relay_parent_number },
+			PvfCheckCause::Upgrade { id, included_at: inclusion_block_number },
 			code_hash,
 			new_code,
 			cfg,
@@ -4282,6 +4309,13 @@
 		}
 
 		Heads::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, <span class="kw-2">&amp;</span>genesis_data.genesis_head);
+	}
+
+	<span class="attr">#[cfg(test)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>active_vote_state(
+		code_hash: <span class="kw-2">&amp;</span>ValidationCodeHash,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;PvfCheckActiveVoteState&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
+		PvfActiveVoteMap::&lt;T&gt;::get(code_hash)
 	}
 }
 
