@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["MigrateToV5","V4HostConfiguration","V5HostConfiguration"]};

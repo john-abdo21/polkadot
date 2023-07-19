@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MigrateToV6","V6HostConfiguration"]};
+window.SIDEBAR_ITEMS = {"struct":["V6HostConfiguration"]};

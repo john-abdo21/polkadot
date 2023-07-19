@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["InconsistentError"],"mod":["migration","migration_ump","pallet"],"struct":["HostConfiguration","SessionChangeOutcome","TestWeightInfo"],"trait":["WeightInfo"]};
+window.SIDEBAR_ITEMS = {"enum":["InconsistentError"],"mod":["migration","pallet"],"struct":["HostConfiguration","SessionChangeOutcome","TestWeightInfo"],"trait":["WeightInfo"]};
