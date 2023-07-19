@@ -454,6 +454,10 @@
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -495,8 +499,8 @@
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
 	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, ChildParachainAsNative,
 	ChildParachainConvertsVia, ChildSystemParachainAsSuperuser,
-	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, FixedWeightBounds, IsChildSystemParachain, IsConcrete,
-	MintLocation, OriginToPluralityVoice, SignedAccountId32AsNative, SignedToAccountId32,
+	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, IsChildSystemParachain, IsConcrete, MintLocation,
+	OriginToPluralityVoice, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
 	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
@@ -856,7 +860,11 @@
 	<span class="comment">// Anyone is able to use reserve transfers regardless of who they are and what they want to
 	// transfer.
 	</span><span class="kw">type </span>XcmReserveTransferFilter = Everything;
-	<span class="kw">type </span>Weigher = FixedWeightBounds&lt;BaseXcmWeight, RuntimeCall, MaxInstructions&gt;;
+	<span class="kw">type </span>Weigher = WeightInfoBounds&lt;
+		<span class="kw">crate</span>::weights::xcm::KusamaXcmWeight&lt;RuntimeCall&gt;,
+		RuntimeCall,
+		MaxInstructions,
+	&gt;;
 	<span class="kw">type </span>UniversalLocation = UniversalLocation;
 	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 	<span class="kw">type </span>RuntimeCall = RuntimeCall;
@@ -893,7 +901,7 @@
 
 	<span class="comment">// Test that the weigher gives us a sensible weight but don&#39;t exactly hard-code it, otherwise it
 	// will be out of date after each re-run.
-	</span><span class="macro">assert!</span>(weight.all_lte(Weight::from_parts(<span class="number">30_313_281_000</span>, <span class="number">65536</span>)));
+	</span><span class="macro">assert!</span>(weight.all_lte(Weight::from_parts(<span class="number">30_313_281_000</span>, <span class="number">72_722</span>)));
 
 	<span class="kw">let </span><span class="prelude-val">Some</span>(Transact { require_weight_at_most, call, .. }) =
 		xcm.inner_mut().into_iter().find(|inst| <span class="macro">matches!</span>(inst, Transact { .. })) <span class="kw">else </span>{

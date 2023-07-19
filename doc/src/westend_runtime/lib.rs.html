@@ -2046,24 +2046,6 @@
 <a href="#2046" id="2046">2046</a>
 <a href="#2047" id="2047">2047</a>
 <a href="#2048" id="2048">2048</a>
-<a href="#2049" id="2049">2049</a>
-<a href="#2050" id="2050">2050</a>
-<a href="#2051" id="2051">2051</a>
-<a href="#2052" id="2052">2052</a>
-<a href="#2053" id="2053">2053</a>
-<a href="#2054" id="2054">2054</a>
-<a href="#2055" id="2055">2055</a>
-<a href="#2056" id="2056">2056</a>
-<a href="#2057" id="2057">2057</a>
-<a href="#2058" id="2058">2058</a>
-<a href="#2059" id="2059">2059</a>
-<a href="#2060" id="2060">2060</a>
-<a href="#2061" id="2061">2061</a>
-<a href="#2062" id="2062">2062</a>
-<a href="#2063" id="2063">2063</a>
-<a href="#2064" id="2064">2064</a>
-<a href="#2065" id="2065">2065</a>
-<a href="#2066" id="2066">2066</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3902,6 +3884,7 @@
 			Vec&lt;frame_benchmarking::BenchmarkBatch&gt;,
 			sp_runtime::RuntimeString,
 		&gt; {
+			<span class="kw">use </span>frame_support::traits::WhitelistedStorageKeys;
 			<span class="kw">use </span>frame_benchmarking::{Benchmarking, BenchmarkBatch, TrackedStorageKey, BenchmarkError};
 			<span class="comment">// Trying to add benchmarks directly to some pallets caused cyclic dependency issues.
 			// To get around that, we separated the benchmarks into its own crate.
@@ -3944,6 +3927,7 @@
 					Westmint::get(),
 					MultiAsset { fun: Fungible(<span class="number">1 </span>* UNITS), id: Concrete(TokenLocation::get()) },
 				));
+				<span class="kw">pub const </span>TrustedReserve: <span class="prelude-ty">Option</span>&lt;(MultiLocation, MultiAsset)&gt; = <span class="prelude-val">None</span>;
 			}
 
 			<span class="kw">impl </span>pallet_xcm_benchmarks::fungible::Config <span class="kw">for </span>Runtime {
@@ -3951,6 +3935,7 @@
 
 				<span class="kw">type </span>CheckedAccount = xcm_config::LocalCheckAccount;
 				<span class="kw">type </span>TrustedTeleporter = TrustedTeleporter;
+				<span class="kw">type </span>TrustedReserve = TrustedReserve;
 
 				<span class="kw">fn </span>get_multi_asset() -&gt; MultiAsset {
 					MultiAsset {
@@ -4012,28 +3997,7 @@
 			<span class="kw">type </span>XcmBalances = pallet_xcm_benchmarks::fungible::Pallet::&lt;Runtime&gt;;
 			<span class="kw">type </span>XcmGeneric = pallet_xcm_benchmarks::generic::Pallet::&lt;Runtime&gt;;
 
-			<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
-				<span class="comment">// Block Number
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef702a5c1b19ab7a04f536c519aca4983ac&quot;</span>).to_vec().into(),
-				<span class="comment">// Total Issuance
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;c2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80&quot;</span>).to_vec().into(),
-				<span class="comment">// Execution Phase
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7ff553b5a9862a516939d82b3d3d8661a&quot;</span>).to_vec().into(),
-				<span class="comment">// Event Count
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850&quot;</span>).to_vec().into(),
-				<span class="comment">// System Events
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7&quot;</span>).to_vec().into(),
-				<span class="comment">// Treasury Account
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7b99d880ec681799c0cf30e8886371da95ecffd7b6c0f78751baa9d281e0bfa3a6d6f646c70792f74727372790000000000000000000000000000000000000000&quot;</span>).to_vec().into(),
-				<span class="comment">// Dmp DownwardMessageQueueHeads
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;63f78c98723ddc9073523ef3beefda0c4d7fefc408aac59dbfe80a72ac8e3ce5&quot;</span>).to_vec().into(),
-				<span class="comment">// Dmp DownwardMessageQueues
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;63f78c98723ddc9073523ef3beefda0ca95dac46c07a40d91506e7637ec4ba57&quot;</span>).to_vec().into(),
-				<span class="comment">// Configuration ActiveConfig
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;06de3d8a54d27e44a9d5ce189618f22db4b49d95320d9021994c850f25b8e385&quot;</span>).to_vec().into(),
-				<span class="comment">// The transactional storage limit.
-				</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;3a7472616e73616374696f6e5f6c6576656c3a&quot;</span>).to_vec().into(),
-			];
+			<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = AllPalletsWithSystem::whitelisted_storage_keys();
 
 			<span class="kw">let </span><span class="kw-2">mut </span>batches = Vec::&lt;BenchmarkBatch&gt;::new();
 			<span class="kw">let </span>params = (<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>whitelist);
