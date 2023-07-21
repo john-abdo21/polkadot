@@ -892,6 +892,7 @@
 <a href="#892" id="892">892</a>
 <a href="#893" id="893">893</a>
 <a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1484,6 +1485,7 @@
 	};
 	metrics.observe_code_size(raw_validation_code.len());
 
+	metrics.observe_pov_size(pov.block_data.<span class="number">0</span>.len(), <span class="bool-val">true</span>);
 	<span class="kw">let </span>raw_block_data =
 		<span class="kw">match </span>sp_maybe_compressed_blob::decompress(<span class="kw-2">&amp;</span>pov.block_data.<span class="number">0</span>, POV_BOMB_LIMIT) {
 			<span class="prelude-val">Ok</span>(block_data) =&gt; BlockData(block_data.to_vec()),
@@ -1494,7 +1496,7 @@
 				</span><span class="kw">return </span><span class="prelude-val">Ok</span>(ValidationResult::Invalid(InvalidCandidate::PoVDecompressionFailure))
 			},
 		};
-	metrics.observe_pov_size(raw_block_data.<span class="number">0</span>.len());
+	metrics.observe_pov_size(raw_block_data.<span class="number">0</span>.len(), <span class="bool-val">false</span>);
 
 	<span class="kw">let </span>params = ValidationParams {
 		parent_head: persisted_validation_data.parent_head.clone(),

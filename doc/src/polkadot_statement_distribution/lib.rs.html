@@ -2191,6 +2191,34 @@
 <a href="#2191" id="2191">2191</a>
 <a href="#2192" id="2192">2192</a>
 <a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3947,6 +3975,34 @@
 		NetworkBridgeEvent::OurViewChange(_view) =&gt; {
 			<span class="comment">// handled by `ActiveLeavesUpdate`
 		</span>},
+		NetworkBridgeEvent::UpdatedAuthorityIds(peer, authority_ids) =&gt; {
+			<span class="macro">gum::trace!</span>(
+				target: LOG_TARGET,
+				<span class="question-mark">?</span>peer,
+				<span class="question-mark">?</span>authority_ids,
+				<span class="string">&quot;Updated `AuthorityDiscoveryId`s&quot;
+			</span>);
+
+			<span class="comment">// get the outdated authority_ids stored for the specific peer_id.
+			</span><span class="kw">let </span>old_auth_ids: Vec&lt;AuthorityDiscoveryId&gt; = authorities
+				.into_iter()
+				.filter(|(<span class="kw">_</span>, p)| <span class="kw-2">**</span>p == peer)
+				.map(|(auth, <span class="kw">_</span>)| auth.clone())
+				.collect();
+
+			<span class="comment">// remove all of the outdated authority_ids.
+			</span><span class="kw">for </span>auth <span class="kw">in </span>old_auth_ids {
+				authorities.remove(<span class="kw-2">&amp;</span>auth);
+			}
+
+			<span class="comment">// update `authorities` with the new updated data.
+			</span>authority_ids.clone().into_iter().for_each(|a| {
+				authorities.insert(a, peer);
+			});
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(data) = peers.get_mut(<span class="kw-2">&amp;</span>peer) {
+				data.maybe_authority = <span class="prelude-val">Some</span>(authority_ids);
+			}
+		},
 	}
 }
 

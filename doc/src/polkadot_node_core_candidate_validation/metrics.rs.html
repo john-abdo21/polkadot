@@ -148,6 +148,10 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -173,7 +177,7 @@
 	<span class="kw">pub</span>(<span class="kw">crate</span>) validate_from_chain_state: prometheus::Histogram,
 	<span class="kw">pub</span>(<span class="kw">crate</span>) validate_from_exhaustive: prometheus::Histogram,
 	<span class="kw">pub</span>(<span class="kw">crate</span>) validate_candidate_exhaustive: prometheus::Histogram,
-	<span class="kw">pub</span>(<span class="kw">crate</span>) pov_size: prometheus::Histogram,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) pov_size: prometheus::HistogramVec,
 	<span class="kw">pub</span>(<span class="kw">crate</span>) code_size: prometheus::Histogram,
 }
 
@@ -227,9 +231,12 @@
 		}
 	}
 
-	<span class="kw">pub fn </span>observe_pov_size(<span class="kw-2">&amp;</span><span class="self">self</span>, pov_size: usize) {
+	<span class="kw">pub fn </span>observe_pov_size(<span class="kw-2">&amp;</span><span class="self">self</span>, pov_size: usize, compressed: bool) {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
-			metrics.pov_size.observe(pov_size <span class="kw">as </span>f64);
+			metrics
+				.pov_size
+				.with_label_values(<span class="kw-2">&amp;</span>[<span class="kw">if </span>compressed { <span class="string">&quot;true&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;false&quot; </span>}])
+				.observe(pov_size <span class="kw">as </span>f64);
 		}
 	}
 }
@@ -269,15 +276,16 @@
 				registry,
 			)<span class="question-mark">?</span>,
 			pov_size: prometheus::register(
-				prometheus::Histogram::with_opts(
+				prometheus::HistogramVec::new(
 					prometheus::HistogramOpts::new(
 						<span class="string">&quot;polkadot_parachain_candidate_validation_pov_size&quot;</span>,
-						<span class="string">&quot;The size of the decompressed proof of validity of a candidate&quot;</span>,
+						<span class="string">&quot;The compressed and decompressed size of the proof of validity of a candidate&quot;</span>,
 					)
 					.buckets(
 						prometheus::exponential_buckets(<span class="number">16384.0</span>, <span class="number">2.0</span>, <span class="number">10</span>)
 							.expect(<span class="string">&quot;arguments are always valid; qed&quot;</span>),
 					),
+					<span class="kw-2">&amp;</span>[<span class="string">&quot;compressed&quot;</span>],
 				)<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
