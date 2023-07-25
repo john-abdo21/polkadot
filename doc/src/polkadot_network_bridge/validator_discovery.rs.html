@@ -527,7 +527,7 @@
 <span class="kw">fn </span>extract_peer_ids(multiaddr: <span class="kw">impl </span>Iterator&lt;Item = Multiaddr&gt;) -&gt; HashSet&lt;PeerId&gt; {
 	multiaddr
 		.filter_map(|<span class="kw-2">mut </span>addr| <span class="kw">match </span>addr.pop() {
-			<span class="prelude-val">Some</span>(multiaddr::Protocol::P2p(key)) =&gt; PeerId::from_multihash(key).ok(),
+			<span class="prelude-val">Some</span>(multiaddr::Protocol::P2p(peer_id)) =&gt; <span class="prelude-val">Some</span>(peer_id),
 			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		})
 		.collect()
@@ -578,7 +578,7 @@
 			<span class="kw">let </span>authorities = known_authorities();
 			<span class="kw">let </span>multiaddr = known_multiaddr().into_iter().zip(peer_ids.iter().cloned()).map(
 				|(<span class="kw-2">mut </span>addr, peer_id)| {
-					addr.push(multiaddr::Protocol::P2p(peer_id.into()));
+					addr.push(multiaddr::Protocol::P2p(peer_id));
 					HashSet::from([addr])
 				},
 			);
