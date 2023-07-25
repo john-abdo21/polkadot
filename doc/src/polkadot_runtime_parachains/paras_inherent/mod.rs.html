@@ -1000,6 +1000,47 @@
 <a href="#1000" id="1000">1000</a>
 <a href="#1001" id="1001">1001</a>
 <a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1100,6 +1141,15 @@
 	}
 }
 
+<span class="doccomment">/// The context in which the inherent data is checked or processed.
+</span><span class="attr">#[derive(PartialEq)]
+</span><span class="kw">pub enum </span>ProcessInherentDataContext {
+	<span class="doccomment">/// Enables filtering/limits weight of inherent up to maximum block weight.
+	/// Invariant: InherentWeight &lt;= BlockWeight.
+	</span>ProvideInherent,
+	<span class="doccomment">/// Checks the InherentWeight invariant.
+	</span>Enter,
+}
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
 <span class="attr">#[frame_support::pallet]
@@ -1271,7 +1321,8 @@
 			<span class="macro">ensure!</span>(!Included::&lt;T&gt;::exists(), Error::&lt;T&gt;::TooManyInclusionInherents);
 			Included::&lt;T&gt;::set(<span class="prelude-val">Some</span>(()));
 
-			<span class="self">Self</span>::process_inherent_data(data).map(|(_processed, post_info)| post_info)
+			<span class="self">Self</span>::process_inherent_data(data, ProcessInherentDataContext::Enter)
+				.map(|(_processed, post_info)| post_info)
 		}
 	}
 }
@@ -1288,7 +1339,10 @@
 				<span class="kw">return </span><span class="prelude-val">None
 			</span>},
 		};
-		<span class="kw">match </span><span class="self">Self</span>::process_inherent_data(parachains_inherent_data) {
+		<span class="kw">match </span><span class="self">Self</span>::process_inherent_data(
+			parachains_inherent_data,
+			ProcessInherentDataContext::ProvideInherent,
+		) {
 			<span class="prelude-val">Ok</span>((processed, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(processed),
 			<span class="prelude-val">Err</span>(err) =&gt; {
 				<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;Processing inherent data failed: {:?}&quot;</span>, err);
@@ -1302,14 +1356,17 @@
 	/// The given inherent data is processed and state is altered accordingly. If any data could
 	/// not be applied (inconsitencies, weight limit, ...) it is removed.
 	///
-	/// This function can both be called on block creation in `create_inherent` and on block import
-	/// in `enter`. The mutation of `data` is only useful in the `create_inherent` case as it
-	/// avoids overweight blocks for example.
+	/// When called from `create_inherent` the `context` must be set to `ProcessInherentDataContext::ProvideInherent`
+	/// so it guarantees the invariant that inherent is not overweight.
+	///  
+	/// It is **mandatory** that calls from `enter` set `context` to `ProcessInherentDataContext::Enter` to ensure
+	/// the weight invariant is checked.
 	///
 	/// Returns: Result containing processed inherent data and weight, the processed inherent would
 	/// consume.
 	</span><span class="kw">fn </span>process_inherent_data(
 		data: ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;,
+		context: ProcessInherentDataContext,
 	) -&gt; sp_std::result::Result&lt;
 		(ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;, PostDispatchInfo),
 		DispatchErrorWithPostInfo,
@@ -1344,6 +1401,7 @@
 		<span class="kw">let </span>candidates_weight = backed_candidates_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>backed_candidates);
 		<span class="kw">let </span>bitfields_weight = signed_bitfields_weight::&lt;T&gt;(bitfields.len());
 		<span class="kw">let </span>disputes_weight = multi_dispute_statement_sets_weight::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>disputes);
+		<span class="kw">let </span>max_block_weight = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get().max_block;
 
 		METRICS
 			.on_before_filter((candidates_weight + bitfields_weight + disputes_weight).ref_time());
@@ -1351,7 +1409,6 @@
 		<span class="kw">let </span>current_session = &lt;shared::Pallet&lt;T&gt;&gt;::session_index();
 		<span class="kw">let </span>expected_bits = &lt;scheduler::Pallet&lt;T&gt;&gt;::availability_cores().len();
 		<span class="kw">let </span>validator_public = shared::Pallet::&lt;T&gt;::active_validator_keys();
-		<span class="kw">let </span>max_block_weight = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get().max_block;
 
 		<span class="kw">let </span>entropy = compute_entropy::&lt;T&gt;(parent_hash);
 		<span class="kw">let </span><span class="kw-2">mut </span>rng = rand_chacha::ChaChaRng::from_seed(entropy.into());
@@ -1377,22 +1434,47 @@
 				<span class="kw-2">&amp;mut </span>rng,
 			);
 
-		<span class="comment">// Assure the maximum block weight is adhered, by limiting bitfields and backed
-		// candidates. Dispute statement sets were already limited before.
-		</span><span class="kw">let </span>non_disputes_weight = apply_weight_limit::&lt;T&gt;(
-			<span class="kw-2">&amp;mut </span>backed_candidates,
-			<span class="kw-2">&amp;mut </span>bitfields,
-			max_block_weight.saturating_sub(checked_disputes_sets_consumed_weight),
-			<span class="kw-2">&amp;mut </span>rng,
-		);
+		<span class="kw">let </span>full_weight = <span class="kw">if </span>context == ProcessInherentDataContext::ProvideInherent {
+			<span class="comment">// Assure the maximum block weight is adhered, by limiting bitfields and backed
+			// candidates. Dispute statement sets were already limited before.
+			</span><span class="kw">let </span>non_disputes_weight = apply_weight_limit::&lt;T&gt;(
+				<span class="kw-2">&amp;mut </span>backed_candidates,
+				<span class="kw-2">&amp;mut </span>bitfields,
+				max_block_weight.saturating_sub(checked_disputes_sets_consumed_weight),
+				<span class="kw-2">&amp;mut </span>rng,
+			);
 
-		<span class="kw">let </span>full_weight = non_disputes_weight.saturating_add(checked_disputes_sets_consumed_weight);
+			<span class="kw">let </span>full_weight =
+				non_disputes_weight.saturating_add(checked_disputes_sets_consumed_weight);
 
-		METRICS.on_after_filter(full_weight.ref_time());
+			METRICS.on_after_filter(full_weight.ref_time());
 
-		<span class="kw">if </span>full_weight.any_gt(max_block_weight) {
-			<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;Post weight limiting weight is still too large.&quot;</span>);
-		}
+			<span class="kw">if </span>full_weight.any_gt(max_block_weight) {
+				<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;Post weight limiting weight is still too large.&quot;</span>);
+			}
+
+			full_weight
+		} <span class="kw">else </span>{
+			<span class="comment">// We compute the weight for the unfiltered disputes for a stronger check, since `create_inherent`
+			// should already have filtered them out in block authorship.
+			</span><span class="kw">let </span>full_weight = candidates_weight
+				.saturating_add(bitfields_weight)
+				.saturating_add(disputes_weight);
+
+			<span class="comment">// This check is performed in the context of block execution. Ensures inherent weight invariants guaranteed
+			// by `create_inherent_data` for block authorship.
+			</span><span class="kw">if </span>full_weight.any_gt(max_block_weight) {
+				<span class="macro">log::error!</span>(
+					<span class="string">&quot;Overweight para inherent data reached the runtime {:?}: {} &gt; {}&quot;</span>,
+					parent_hash,
+					full_weight,
+					max_block_weight
+				);
+			}
+
+			<span class="macro">ensure!</span>(full_weight.all_lte(max_block_weight), Error::&lt;T&gt;::InherentOverweight);
+			full_weight
+		};
 
 		<span class="comment">// Note that `process_checked_multi_dispute_data` will iterate and import each
 		// dispute; so the input here must be reasonably bounded,
