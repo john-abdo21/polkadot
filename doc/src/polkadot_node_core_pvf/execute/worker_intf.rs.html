@@ -258,14 +258,14 @@
 	program_path: <span class="kw-2">&amp;</span>Path,
 	executor_params: ExecutorParams,
 	spawn_timeout: Duration,
+	node_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(IdleWorker, WorkerHandle), SpawnErr&gt; {
-	<span class="kw">let </span>(<span class="kw-2">mut </span>idle_worker, worker_handle) = spawn_with_program_path(
-		<span class="string">&quot;execute&quot;</span>,
-		program_path,
-		<span class="kw-2">&amp;</span>[<span class="string">&quot;execute-worker&quot;</span>, <span class="string">&quot;--node-impl-version&quot;</span>, <span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>)],
-		spawn_timeout,
-	)
-	.<span class="kw">await</span><span class="question-mark">?</span>;
+	<span class="kw">let </span><span class="kw-2">mut </span>extra_args = <span class="macro">vec!</span>[<span class="string">&quot;execute-worker&quot;</span>];
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(node_version) = node_version {
+		extra_args.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="string">&quot;--node-impl-version&quot;</span>, node_version]);
+	}
+	<span class="kw">let </span>(<span class="kw-2">mut </span>idle_worker, worker_handle) =
+		spawn_with_program_path(<span class="string">&quot;execute&quot;</span>, program_path, <span class="kw-2">&amp;</span>extra_args, spawn_timeout).<span class="kw">await</span><span class="question-mark">?</span>;
 	send_handshake(<span class="kw-2">&amp;mut </span>idle_worker.stream, Handshake { executor_params })
 		.<span class="kw">await
 		</span>.map_err(|error| {

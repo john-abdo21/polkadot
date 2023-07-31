@@ -329,6 +329,8 @@
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -374,12 +376,14 @@
 </span><span class="kw">pub async fn </span>spawn_with_program_path(
 	debug_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 	program_path: <span class="kw">impl </span>Into&lt;PathBuf&gt;,
-	extra_args: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+	extra_args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str],
 	spawn_timeout: Duration,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(IdleWorker, WorkerHandle), SpawnErr&gt; {
 	<span class="kw">let </span>program_path = program_path.into();
 	with_transient_socket_path(debug_id, |socket_path| {
 		<span class="kw">let </span>socket_path = socket_path.to_owned();
+		<span class="kw">let </span>extra_args: Vec&lt;String&gt; = extra_args.iter().map(|arg| arg.to_string()).collect();
+
 		<span class="kw">async move </span>{
 			<span class="kw">let </span>listener = UnixListener::bind(<span class="kw-2">&amp;</span>socket_path).map_err(|err| {
 				<span class="macro">gum::warn!</span>(
@@ -394,7 +398,7 @@
 			})<span class="question-mark">?</span>;
 
 			<span class="kw">let </span>handle =
-				WorkerHandle::spawn(<span class="kw-2">&amp;</span>program_path, extra_args, socket_path).map_err(|err| {
+				WorkerHandle::spawn(<span class="kw-2">&amp;</span>program_path, <span class="kw-2">&amp;</span>extra_args, socket_path).map_err(|err| {
 					<span class="macro">gum::warn!</span>(
 						target: LOG_TARGET,
 						%debug_id,
@@ -545,7 +549,7 @@
 <span class="kw">impl </span>WorkerHandle {
 	<span class="kw">fn </span>spawn(
 		program: <span class="kw">impl </span>AsRef&lt;Path&gt;,
-		extra_args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str],
+		extra_args: <span class="kw-2">&amp;</span>[String],
 		socket_path: <span class="kw">impl </span>AsRef&lt;Path&gt;,
 	) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>child = process::Command::new(program.as_ref())

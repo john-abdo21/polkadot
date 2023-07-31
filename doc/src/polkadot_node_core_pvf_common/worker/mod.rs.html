@@ -405,6 +405,31 @@
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -440,34 +465,54 @@
 /// spawning the desired worker.
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>decl_worker_main {
-	(<span class="macro-nonterminal">$expected_command</span>:expr, <span class="macro-nonterminal">$entrypoint</span>:expr) =&gt; {
+	(<span class="macro-nonterminal">$expected_command</span>:expr, <span class="macro-nonterminal">$entrypoint</span>:expr, <span class="macro-nonterminal">$worker_version</span>:expr) =&gt; {
+		<span class="kw">fn </span>print_help(expected_command: <span class="kw-2">&amp;</span>str) {
+			<span class="macro">println!</span>(<span class="string">&quot;{} {}&quot;</span>, expected_command, <span class="macro-nonterminal">$worker_version</span>);
+			<span class="macro">println!</span>();
+			<span class="macro">println!</span>(<span class="string">&quot;PVF worker that is called by polkadot.&quot;</span>);
+		}
+
 		<span class="kw">fn </span>main() {
-			::sp_tracing::try_init_simple();
+			<span class="macro-nonterminal">$crate::sp_tracing::try_init_simple</span>();
 
 			<span class="kw">let </span>args = std::env::args().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-			<span class="kw">if </span>args.len() &lt; <span class="number">3 </span>{
-				<span class="macro">panic!</span>(<span class="string">&quot;wrong number of arguments&quot;</span>);
+			<span class="kw">if </span>args.len() == <span class="number">1 </span>{
+				print_help(<span class="macro-nonterminal">$expected_command</span>);
+				<span class="kw">return
+			</span>}
+
+			<span class="kw">match </span>args[<span class="number">1</span>].as_ref() {
+				<span class="string">&quot;--help&quot; </span>| <span class="string">&quot;-h&quot; </span>=&gt; {
+					print_help(<span class="macro-nonterminal">$expected_command</span>);
+					<span class="kw">return
+				</span>},
+				<span class="string">&quot;--version&quot; </span>| <span class="string">&quot;-v&quot; </span>=&gt; {
+					<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="macro-nonterminal">$worker_version</span>);
+					<span class="kw">return
+				</span>},
+				subcommand =&gt; {
+					<span class="comment">// Must be passed for compatibility with the single-binary test workers.
+					</span><span class="kw">if </span>subcommand != <span class="macro-nonterminal">$expected_command </span>{
+						<span class="macro">panic!</span>(
+							<span class="string">&quot;trying to run {} binary with the {} subcommand&quot;</span>,
+							<span class="macro-nonterminal">$expected_command</span>, subcommand
+						)
+					}
+				},
 			}
 
-			<span class="kw">let </span><span class="kw-2">mut </span>version = <span class="prelude-val">None</span>;
+			<span class="kw">let </span><span class="kw-2">mut </span>node_version = <span class="prelude-val">None</span>;
 			<span class="kw">let </span><span class="kw-2">mut </span>socket_path: <span class="kw-2">&amp;</span>str = <span class="string">&quot;&quot;</span>;
 
-			<span class="kw">for </span>i <span class="kw">in </span><span class="number">2</span>..args.len() {
+			<span class="kw">for </span>i <span class="kw">in </span>(<span class="number">2</span>..args.len()).step_by(<span class="number">2</span>) {
 				<span class="kw">match </span>args[i].as_ref() {
 					<span class="string">&quot;--socket-path&quot; </span>=&gt; socket_path = args[i + <span class="number">1</span>].as_str(),
-					<span class="string">&quot;--node-version&quot; </span>=&gt; version = <span class="prelude-val">Some</span>(args[i + <span class="number">1</span>].as_str()),
-					<span class="kw">_ </span>=&gt; (),
+					<span class="string">&quot;--node-impl-version&quot; </span>=&gt; node_version = <span class="prelude-val">Some</span>(args[i + <span class="number">1</span>].as_str()),
+					arg =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected argument found: {}&quot;</span>, arg),
 				}
 			}
 
-			<span class="kw">let </span>subcommand = <span class="kw-2">&amp;</span>args[<span class="number">1</span>];
-			<span class="kw">if </span>subcommand != <span class="macro-nonterminal">$expected_command </span>{
-				<span class="macro">panic!</span>(
-					<span class="string">&quot;trying to run {} binary with the {} subcommand&quot;</span>,
-					<span class="macro-nonterminal">$expected_command</span>, subcommand
-				)
-			}
-			<span class="macro-nonterminal">$entrypoint</span>(<span class="kw-2">&amp;</span>socket_path, version);
+			<span class="macro-nonterminal">$entrypoint</span>(<span class="kw-2">&amp;</span>socket_path, node_version, <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$worker_version</span>));
 		}
 	};
 }
@@ -482,10 +527,13 @@
 	std::str::from_utf8(bytes).ok().map(PathBuf::from)
 }
 
-<span class="kw">pub fn </span>worker_event_loop&lt;F, Fut&gt;(
+<span class="comment">// The worker version must be passed in so that we accurately get the version of the worker, and not
+// the version that this crate was compiled with.
+</span><span class="kw">pub fn </span>worker_event_loop&lt;F, Fut&gt;(
 	debug_id: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 	socket_path: <span class="kw-2">&amp;</span>str,
 	node_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+	worker_version: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 	<span class="kw-2">mut </span>event_loop: F,
 ) <span class="kw">where
 	</span>F: FnMut(UnixStream) -&gt; Fut,
@@ -495,11 +543,13 @@
 	<span class="macro">gum::debug!</span>(target: LOG_TARGET, %worker_pid, <span class="string">&quot;starting pvf worker ({})&quot;</span>, debug_id);
 
 	<span class="comment">// Check for a mismatch between the node and worker versions.
-	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(version) = node_version {
-		<span class="kw">if </span>version != <span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>) {
+	</span><span class="kw">if let </span>(<span class="prelude-val">Some</span>(node_version), <span class="prelude-val">Some</span>(worker_version)) = (node_version, worker_version) {
+		<span class="kw">if </span>node_version != worker_version {
 			<span class="macro">gum::error!</span>(
 				target: LOG_TARGET,
 				%worker_pid,
+				%node_version,
+				%worker_version,
 				<span class="string">&quot;Node and worker version mismatch, node needs restarting, forcing shutdown&quot;</span>,
 			);
 			kill_parent_node_in_emergency();

@@ -162,6 +162,13 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -181,6 +188,10 @@
 </span><span class="doccomment">//! Polkadot CLI library.
 
 </span><span class="kw">use </span>clap::Parser;
+<span class="kw">use </span>std::path::PathBuf;
+
+<span class="doccomment">/// The version of the node. The passed-in version of the workers should match this.
+</span><span class="kw">pub const </span>NODE_VERSION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro">env!</span>(<span class="string">&quot;SUBSTRATE_CLI_IMPL_VERSION&quot;</span>);
 
 <span class="attr">#[allow(missing_docs)]
 #[derive(Debug, Parser)]
@@ -205,14 +216,6 @@
 
 	<span class="doccomment">/// Revert the chain to a previous state.
 	</span>Revert(sc_cli::RevertCmd),
-
-	<span class="attr">#[allow(missing_docs)]
-	#[command(name = <span class="string">&quot;prepare-worker&quot;</span>, hide = <span class="bool-val">true</span>)]
-	</span>PvfPrepareWorker(ValidationWorkerCommand),
-
-	<span class="attr">#[allow(missing_docs)]
-	#[command(name = <span class="string">&quot;execute-worker&quot;</span>, hide = <span class="bool-val">true</span>)]
-	</span>PvfExecuteWorker(ValidationWorkerCommand),
 
 	<span class="doccomment">/// Sub-commands concerned with benchmarking.
 	/// The pallet benchmarking moved to the `pallet` sub-command.
@@ -312,6 +315,17 @@
 	/// **Dangerous!** Do not touch unless explicitly adviced to.
 	</span><span class="attr">#[arg(long)]
 	</span><span class="kw">pub </span>overseer_channel_capacity_override: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+
+	<span class="doccomment">/// Path to the directory where auxiliary worker binaries reside. If not specified, the main
+	/// binary&#39;s directory is searched first, then `/usr/lib/polkadot` is searched. TESTING ONLY: if
+	/// the path points to an executable rather then directory, that executable is used both as
+	/// preparation and execution worker.
+	</span><span class="attr">#[arg(long, value_name = <span class="string">&quot;PATH&quot;</span>)]
+	</span><span class="kw">pub </span>workers_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+
+	<span class="doccomment">/// TESTING ONLY: disable the version check between nodes and workers.
+	</span><span class="attr">#[arg(long, hide = <span class="bool-val">true</span>)]
+	</span><span class="kw">pub </span>disable_worker_version_check: bool,
 }
 
 <span class="attr">#[allow(missing_docs)]

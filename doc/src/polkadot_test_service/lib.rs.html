@@ -397,6 +397,22 @@
 <a href="#397" id="397">397</a>
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -471,22 +487,38 @@
 </span><span class="kw">pub fn </span>new_full(
 	config: Configuration,
 	is_collator: IsCollator,
-	worker_program_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+	workers_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;NewFull, Error&gt; {
+	<span class="kw">let </span>workers_path = <span class="prelude-val">Some</span>(workers_path.unwrap_or_else(get_relative_workers_path_for_test));
+
 	polkadot_service::new_full(
 		config,
-		is_collator,
-		<span class="prelude-val">None</span>,
-		<span class="bool-val">true</span>,
-		<span class="prelude-val">None</span>,
-		<span class="prelude-val">None</span>,
-		worker_program_path,
-		<span class="bool-val">false</span>,
-		polkadot_service::RealOverseerGen,
-		<span class="prelude-val">None</span>,
-		<span class="prelude-val">None</span>,
-		<span class="prelude-val">None</span>,
+		polkadot_service::NewFullParams {
+			is_collator,
+			grandpa_pause: <span class="prelude-val">None</span>,
+			enable_beefy: <span class="bool-val">true</span>,
+			jaeger_agent: <span class="prelude-val">None</span>,
+			telemetry_worker_handle: <span class="prelude-val">None</span>,
+			node_version: <span class="prelude-val">None</span>,
+			workers_path,
+			workers_names: <span class="prelude-val">None</span>,
+			overseer_enable_anyways: <span class="bool-val">false</span>,
+			overseer_gen: polkadot_service::RealOverseerGen,
+			overseer_message_channel_capacity_override: <span class="prelude-val">None</span>,
+			malus_finality_delay: <span class="prelude-val">None</span>,
+			hwbench: <span class="prelude-val">None</span>,
+		},
 	)
+}
+
+<span class="kw">fn </span>get_relative_workers_path_for_test() -&gt; PathBuf {
+	<span class="comment">// If no explicit worker path is passed in, we need to specify it ourselves as test binaries
+	// are in the &quot;deps/&quot; directory, one level below where the worker binaries are generated.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>exe_path = std::env::current_exe()
+		.expect(<span class="string">&quot;for test purposes it&#39;s reasonable to expect that this will not fail&quot;</span>);
+	<span class="kw">let _ </span>= exe_path.pop();
+	<span class="kw">let _ </span>= exe_path.pop();
+	exe_path
 }
 
 <span class="doccomment">/// Returns a prometheus config usable for testing.

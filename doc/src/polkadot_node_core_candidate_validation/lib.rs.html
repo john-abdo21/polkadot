@@ -893,6 +893,11 @@
 <a href="#893" id="893">893</a>
 <a href="#894" id="894">894</a>
 <a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -988,9 +993,12 @@
 </span><span class="kw">pub struct </span>Config {
 	<span class="doccomment">/// The path where candidate validation can store compiled artifacts for PVFs.
 	</span><span class="kw">pub </span>artifacts_cache_path: PathBuf,
-	<span class="doccomment">/// The path to the executable which can be used for spawning PVF compilation &amp; validation
-	/// workers.
-	</span><span class="kw">pub </span>program_path: PathBuf,
+	<span class="doccomment">/// The version of the node. `None` can be passed to skip the version check (only for tests).
+	</span><span class="kw">pub </span>node_version: <span class="prelude-ty">Option</span>&lt;String&gt;,
+	<span class="doccomment">/// Path to the preparation worker binary
+	</span><span class="kw">pub </span>prep_worker_path: PathBuf,
+	<span class="doccomment">/// Path to the execution worker binary
+	</span><span class="kw">pub </span>exec_worker_path: PathBuf,
 }
 
 <span class="doccomment">/// The candidate validation subsystem.
@@ -999,7 +1007,7 @@
 	</span><span class="kw">pub </span>metrics: Metrics,
 	<span class="attr">#[allow(missing_docs)]
 	</span><span class="kw">pub </span>pvf_metrics: polkadot_node_core_pvf::Metrics,
-	config: Config,
+	config: <span class="prelude-ty">Option</span>&lt;Config&gt;,
 }
 
 <span class="kw">impl </span>CandidateValidationSubsystem {
@@ -1008,7 +1016,7 @@
 	///
 	/// Check out [`IsolationStrategy`] to get more details.
 	</span><span class="kw">pub fn </span>with_config(
-		config: Config,
+		config: <span class="prelude-ty">Option</span>&lt;Config&gt;,
 		metrics: Metrics,
 		pvf_metrics: polkadot_node_core_pvf::Metrics,
 	) -&gt; <span class="self">Self </span>{
@@ -1019,16 +1027,14 @@
 <span class="attr">#[overseer::subsystem(CandidateValidation, error=SubsystemError, prefix=<span class="self">self</span>::overseer)]
 </span><span class="kw">impl</span>&lt;Context&gt; CandidateValidationSubsystem {
 	<span class="kw">fn </span>start(<span class="self">self</span>, ctx: Context) -&gt; SpawnedSubsystem {
-		<span class="kw">let </span>future = run(
-			ctx,
-			<span class="self">self</span>.metrics,
-			<span class="self">self</span>.pvf_metrics,
-			<span class="self">self</span>.config.artifacts_cache_path,
-			<span class="self">self</span>.config.program_path,
-		)
-		.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;candidate-validation&quot;</span>, e))
-		.boxed();
-		SpawnedSubsystem { name: <span class="string">&quot;candidate-validation-subsystem&quot;</span>, future }
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(config) = <span class="self">self</span>.config {
+			<span class="kw">let </span>future = run(ctx, <span class="self">self</span>.metrics, <span class="self">self</span>.pvf_metrics, config)
+				.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;candidate-validation&quot;</span>, e))
+				.boxed();
+			SpawnedSubsystem { name: <span class="string">&quot;candidate-validation-subsystem&quot;</span>, future }
+		} <span class="kw">else </span>{
+			polkadot_overseer::DummySubsystem.start(ctx)
+		}
 	}
 }
 
@@ -1037,11 +1043,15 @@
 	<span class="kw-2">mut </span>ctx: Context,
 	metrics: Metrics,
 	pvf_metrics: polkadot_node_core_pvf::Metrics,
-	cache_path: PathBuf,
-	program_path: PathBuf,
+	Config { artifacts_cache_path, node_version, prep_worker_path, exec_worker_path }: Config,
 ) -&gt; SubsystemResult&lt;()&gt; {
 	<span class="kw">let </span>(validation_host, task) = polkadot_node_core_pvf::start(
-		polkadot_node_core_pvf::Config::new(cache_path, program_path),
+		polkadot_node_core_pvf::Config::new(
+			artifacts_cache_path,
+			node_version,
+			prep_worker_path,
+			exec_worker_path,
+		),
 		pvf_metrics,
 	);
 	ctx.spawn_blocking(<span class="string">&quot;pvf-validation-host&quot;</span>, task.boxed())<span class="question-mark">?</span>;

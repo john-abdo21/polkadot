@@ -436,6 +436,20 @@
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -551,10 +565,13 @@
 	program_path: PathBuf,
 	cache_path: PathBuf,
 	spawn_timeout: Duration,
+	node_version: <span class="prelude-ty">Option</span>&lt;String&gt;,
+
 	to_pool: mpsc::Receiver&lt;ToPool&gt;,
 	from_pool: mpsc::UnboundedSender&lt;FromPool&gt;,
 	spawned: HopSlotMap&lt;Worker, WorkerData&gt;,
 	mux: Mux,
+
 	metrics: Metrics,
 }
 
@@ -566,6 +583,7 @@
 		program_path,
 		cache_path,
 		spawn_timeout,
+		node_version,
 		to_pool,
 		<span class="kw-2">mut </span>from_pool,
 		<span class="kw-2">mut </span>spawned,
@@ -593,6 +611,7 @@
 					<span class="kw-2">&amp;</span>program_path,
 					<span class="kw-2">&amp;</span>cache_path,
 					spawn_timeout,
+					node_version.clone(),
 					<span class="kw-2">&amp;mut </span>spawned,
 					<span class="kw-2">&amp;mut </span>mux,
 					to_pool,
@@ -639,6 +658,7 @@
 	program_path: <span class="kw-2">&amp;</span>Path,
 	cache_path: <span class="kw-2">&amp;</span>Path,
 	spawn_timeout: Duration,
+	node_version: <span class="prelude-ty">Option</span>&lt;String&gt;,
 	spawned: <span class="kw-2">&amp;mut </span>HopSlotMap&lt;Worker, WorkerData&gt;,
 	mux: <span class="kw-2">&amp;mut </span>Mux,
 	to_pool: ToPool,
@@ -647,7 +667,9 @@
 		ToPool::Spawn =&gt; {
 			<span class="macro">gum::debug!</span>(target: LOG_TARGET, <span class="string">&quot;spawning a new prepare worker&quot;</span>);
 			metrics.prepare_worker().on_begin_spawn();
-			mux.push(spawn_worker_task(program_path.to_owned(), spawn_timeout).boxed());
+			mux.push(
+				spawn_worker_task(program_path.to_owned(), spawn_timeout, node_version).boxed(),
+			);
 		},
 		ToPool::StartWork { worker, pvf, artifact_path } =&gt; {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(data) = spawned.get_mut(worker) {
@@ -686,11 +708,15 @@
 	}
 }
 
-<span class="kw">async fn </span>spawn_worker_task(program_path: PathBuf, spawn_timeout: Duration) -&gt; PoolEvent {
+<span class="kw">async fn </span>spawn_worker_task(
+	program_path: PathBuf,
+	spawn_timeout: Duration,
+	node_version: <span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; PoolEvent {
 	<span class="kw">use </span>futures_timer::Delay;
 
 	<span class="kw">loop </span>{
-		<span class="kw">match </span>worker_intf::spawn(<span class="kw-2">&amp;</span>program_path, spawn_timeout).<span class="kw">await </span>{
+		<span class="kw">match </span>worker_intf::spawn(<span class="kw-2">&amp;</span>program_path, spawn_timeout, node_version.as_deref()).<span class="kw">await </span>{
 			<span class="prelude-val">Ok</span>((idle, handle)) =&gt; <span class="kw">break </span>PoolEvent::Spawn(idle, handle),
 			<span class="prelude-val">Err</span>(err) =&gt; {
 				<span class="macro">gum::warn!</span>(target: LOG_TARGET, <span class="string">&quot;failed to spawn a prepare worker: {:?}&quot;</span>, err);
@@ -857,6 +883,7 @@
 	program_path: PathBuf,
 	cache_path: PathBuf,
 	spawn_timeout: Duration,
+	node_version: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; (mpsc::Sender&lt;ToPool&gt;, mpsc::UnboundedReceiver&lt;FromPool&gt;, <span class="kw">impl </span>Future&lt;Output = ()&gt;) {
 	<span class="kw">let </span>(to_pool_tx, to_pool_rx) = mpsc::channel(<span class="number">10</span>);
 	<span class="kw">let </span>(from_pool_tx, from_pool_rx) = mpsc::unbounded();
@@ -866,6 +893,7 @@
 		program_path,
 		cache_path,
 		spawn_timeout,
+		node_version,
 		to_pool: to_pool_rx,
 		from_pool: from_pool_tx,
 		spawned: HopSlotMap::with_capacity_and_key(<span class="number">20</span>),

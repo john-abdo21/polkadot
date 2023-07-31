@@ -17,6 +17,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_core_primitives":["",[],["lib.rs"]],\
 "polkadot_dispute_distribution":["",[["receiver",[["batches",[],["batch.rs","mod.rs","waiting_queue.rs"]]],["error.rs","mod.rs","peer_queues.rs"]],["sender",[],["error.rs","mod.rs","send_task.rs"]]],["error.rs","lib.rs","metrics.rs"]],\
 "polkadot_erasure_coding":["",[],["lib.rs"]],\
+"polkadot_execute_worker":["",[],["execute-worker.rs"]],\
 "polkadot_gossip_support":["",[],["lib.rs","metrics.rs"]],\
 "polkadot_network_bridge":["",[["rx",[],["mod.rs"]],["tx",[],["mod.rs"]]],["errors.rs","lib.rs","metrics.rs","network.rs","validator_discovery.rs"]],\
 "polkadot_node_collation_generation":["",[],["error.rs","lib.rs","metrics.rs"]],\
@@ -47,6 +48,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_overseer":["",[],["dummy.rs","lib.rs","memory_stats.rs","metrics.rs"]],\
 "polkadot_parachain":["",[],["lib.rs","primitives.rs"]],\
 "polkadot_performance_test":["",[],["constants.rs","lib.rs"]],\
+"polkadot_prepare_worker":["",[],["prepare-worker.rs"]],\
 "polkadot_primitives":["",[["v5",[],["executor_params.rs","metrics.rs","mod.rs","signed.rs","slashing.rs"]],["vstaging",[],["mod.rs"]]],["lib.rs","runtime_api.rs"]],\
 "polkadot_primitives_test_helpers":["",[],["lib.rs"]],\
 "polkadot_rpc":["",[],["lib.rs"]],\
@@ -55,7 +57,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_runtime_constants":["",[["weights",[],["block_weights.rs","extrinsic_weights.rs","mod.rs","paritydb_weights.rs","rocksdb_weights.rs"]]],["lib.rs"]],\
 "polkadot_runtime_metrics":["",[],["lib.rs","without_runtime_metrics.rs"]],\
 "polkadot_runtime_parachains":["",[["configuration",[["migration",[],["v6.rs","v7.rs"]]],["migration.rs"]],["disputes",[],["migration.rs","slashing.rs"]],["inclusion",[],["mod.rs"]],["paras",[],["mod.rs"]],["paras_inherent",[],["misc.rs","mod.rs","weights.rs"]],["runtime_api_impl",[],["mod.rs","v5.rs","vstaging.rs"]],["session_info",[],["migration.rs"]]],["configuration.rs","disputes.rs","dmp.rs","hrmp.rs","initializer.rs","lib.rs","metrics.rs","origin.rs","reward_points.rs","scheduler.rs","session_info.rs","shared.rs","util.rs"]],\
-"polkadot_service":["",[["parachains_db",[],["mod.rs","upgrade.rs"]]],["benchmarking.rs","chain_spec.rs","fake_runtime_api.rs","grandpa_support.rs","lib.rs","overseer.rs","relay_chain_selection.rs"]],\
+"polkadot_service":["",[["parachains_db",[],["mod.rs","upgrade.rs"]]],["benchmarking.rs","chain_spec.rs","fake_runtime_api.rs","grandpa_support.rs","lib.rs","overseer.rs","relay_chain_selection.rs","workers.rs"]],\
 "polkadot_statement_distribution":["",[],["error.rs","lib.rs","metrics.rs","requester.rs","responder.rs"]],\
 "polkadot_statement_table":["",[],["generic.rs","lib.rs"]],\
 "polkadot_test_client":["",[],["block_builder.rs","lib.rs"]],\
