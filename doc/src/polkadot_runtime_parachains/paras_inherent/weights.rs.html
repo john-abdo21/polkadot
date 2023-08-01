@@ -127,6 +127,52 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -142,9 +188,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
-</span><span class="kw">use super</span>::{
-	BackedCandidate, Config, DisputeStatementSet, UncheckedSignedAvailabilityBitfield, Weight,
+
+</span><span class="doccomment">//! We use benchmarks to get time weights, for proof_size we manually use the size of the input
+//! data, which will be part of the block. This is because we don&#39;t care about the storage proof on
+//! the relay chain, but we do care about the size of the block, by putting the tx in the
+//! proof_size we can use the already existing weight limiting code to limit the used size as well.
+
+</span><span class="kw">use </span>parity_scale_codec::{Encode, WrapperTypeEncode};
+<span class="kw">use </span>primitives::{
+	CheckedMultiDisputeStatementSet, MultiDisputeStatementSet, UncheckedSignedAvailabilityBitfield,
+	UncheckedSignedAvailabilityBitfields,
 };
+
+<span class="kw">use super</span>::{BackedCandidate, Config, DisputeStatementSet, Weight};
 
 <span class="kw">pub trait </span>WeightInfo {
 	<span class="doccomment">/// Variant over `v`, the count of dispute statements in a dispute statement set. This gives the
@@ -201,51 +257,82 @@
 
 <span class="kw">pub fn </span>paras_inherent_total_weight&lt;T: Config&gt;(
 	backed_candidates: <span class="kw-2">&amp;</span>[BackedCandidate&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;],
-	bitfields: <span class="kw-2">&amp;</span>[UncheckedSignedAvailabilityBitfield],
-	disputes: <span class="kw-2">&amp;</span>[DisputeStatementSet],
+	bitfields: <span class="kw-2">&amp;</span>UncheckedSignedAvailabilityBitfields,
+	disputes: <span class="kw-2">&amp;</span>MultiDisputeStatementSet,
 ) -&gt; Weight {
 	backed_candidates_weight::&lt;T&gt;(backed_candidates)
-		.saturating_add(signed_bitfields_weight::&lt;T&gt;(bitfields.len()))
-		.saturating_add(multi_dispute_statement_sets_weight::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(disputes))
+		.saturating_add(signed_bitfields_weight::&lt;T&gt;(bitfields))
+		.saturating_add(multi_dispute_statement_sets_weight::&lt;T&gt;(disputes))
 }
 
-<span class="kw">pub fn </span>dispute_statement_set_weight&lt;T: Config, S: AsRef&lt;DisputeStatementSet&gt;&gt;(
-	statement_set: S,
+<span class="kw">pub fn </span>multi_dispute_statement_sets_weight&lt;T: Config&gt;(
+	disputes: <span class="kw-2">&amp;</span>MultiDisputeStatementSet,
 ) -&gt; Weight {
-	&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_variable_disputes(
-		statement_set.as_ref().statements.len() <span class="kw">as </span>u32,
+	set_proof_size_to_tx_size(
+		disputes
+			.iter()
+			.map(|d| dispute_statement_set_weight::&lt;T, <span class="kw">_</span>&gt;(d))
+			.fold(Weight::zero(), |acc_weight, weight| acc_weight.saturating_add(weight)),
+		disputes,
 	)
 }
 
-<span class="kw">pub fn </span>multi_dispute_statement_sets_weight&lt;
-	T: Config,
-	D: AsRef&lt;[S]&gt;,
-	S: AsRef&lt;DisputeStatementSet&gt;,
-&gt;(
-	disputes: D,
+<span class="kw">pub fn </span>checked_multi_dispute_statement_sets_weight&lt;T: Config&gt;(
+	disputes: <span class="kw-2">&amp;</span>CheckedMultiDisputeStatementSet,
 ) -&gt; Weight {
-	disputes
-		.as_ref()
-		.iter()
-		.map(|d| dispute_statement_set_weight::&lt;T, <span class="kw-2">&amp;</span>S&gt;(d))
-		.fold(Weight::zero(), |acc_weight, weight| acc_weight.saturating_add(weight))
+	set_proof_size_to_tx_size(
+		disputes
+			.iter()
+			.map(|d| dispute_statement_set_weight::&lt;T, <span class="kw">_</span>&gt;(d))
+			.fold(Weight::zero(), |acc_weight, weight| acc_weight.saturating_add(weight)),
+		disputes,
+	)
 }
 
-<span class="kw">pub fn </span>signed_bitfields_weight&lt;T: Config&gt;(bitfields_len: usize) -&gt; Weight {
-	&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_bitfields()
-		.saturating_mul(bitfields_len <span class="kw">as </span>u64)
+<span class="doccomment">/// Get time weights from benchmarks and set proof size to tx size.
+</span><span class="kw">pub fn </span>dispute_statement_set_weight&lt;T, D&gt;(statement_set: D) -&gt; Weight
+<span class="kw">where
+	</span>T: Config,
+	D: AsRef&lt;DisputeStatementSet&gt; + WrapperTypeEncode + Sized + Encode,
+{
+	set_proof_size_to_tx_size(
+		&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_variable_disputes(
+			statement_set.as_ref().statements.len() <span class="kw">as </span>u32,
+		),
+		statement_set,
+	)
+}
+
+<span class="kw">pub fn </span>signed_bitfields_weight&lt;T: Config&gt;(
+	bitfields: <span class="kw-2">&amp;</span>UncheckedSignedAvailabilityBitfields,
+) -&gt; Weight {
+	set_proof_size_to_tx_size(
+		&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_bitfields()
+			.saturating_mul(bitfields.len() <span class="kw">as </span>u64),
+		bitfields,
+	)
+}
+
+<span class="kw">pub fn </span>signed_bitfield_weight&lt;T: Config&gt;(bitfield: <span class="kw-2">&amp;</span>UncheckedSignedAvailabilityBitfield) -&gt; Weight {
+	set_proof_size_to_tx_size(
+		&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_bitfields(),
+		bitfield,
+	)
 }
 
 <span class="kw">pub fn </span>backed_candidate_weight&lt;T: frame_system::Config + Config&gt;(
 	candidate: <span class="kw-2">&amp;</span>BackedCandidate&lt;T::Hash&gt;,
 ) -&gt; Weight {
-	<span class="kw">if </span>candidate.candidate.commitments.new_validation_code.is_some() {
-		&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_backed_candidate_code_upgrade()
-	} <span class="kw">else </span>{
-		&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_backed_candidates_variable(
-			candidate.validity_votes.len() <span class="kw">as </span>u32,
-		)
-	}
+	set_proof_size_to_tx_size(
+		<span class="kw">if </span>candidate.candidate.commitments.new_validation_code.is_some() {
+			&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_backed_candidate_code_upgrade()
+		} <span class="kw">else </span>{
+			&lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_backed_candidates_variable(
+				candidate.validity_votes.len() <span class="kw">as </span>u32,
+			)
+		},
+		candidate,
+	)
 }
 
 <span class="kw">pub fn </span>backed_candidates_weight&lt;T: frame_system::Config + Config&gt;(
@@ -255,5 +342,10 @@
 		.iter()
 		.map(|c| backed_candidate_weight::&lt;T&gt;(c))
 		.fold(Weight::zero(), |acc, x| acc.saturating_add(x))
+}
+
+<span class="doccomment">/// Set proof_size component of `Weight` to tx size.
+</span><span class="kw">fn </span>set_proof_size_to_tx_size&lt;Arg: Encode&gt;(weight: Weight, arg: Arg) -&gt; Weight {
+	weight.set_proof_size(arg.encoded_size() <span class="kw">as </span>u64)
 }
 </code></pre></div></section></main></body></html>

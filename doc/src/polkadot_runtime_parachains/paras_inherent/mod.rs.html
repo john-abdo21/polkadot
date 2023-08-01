@@ -1021,26 +1021,6 @@
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
 <a href="#1023" id="1023">1023</a>
-<a href="#1024" id="1024">1024</a>
-<a href="#1025" id="1025">1025</a>
-<a href="#1026" id="1026">1026</a>
-<a href="#1027" id="1027">1027</a>
-<a href="#1028" id="1028">1028</a>
-<a href="#1029" id="1029">1029</a>
-<a href="#1030" id="1030">1030</a>
-<a href="#1031" id="1031">1031</a>
-<a href="#1032" id="1032">1032</a>
-<a href="#1033" id="1033">1033</a>
-<a href="#1034" id="1034">1034</a>
-<a href="#1035" id="1035">1035</a>
-<a href="#1036" id="1036">1036</a>
-<a href="#1037" id="1037">1037</a>
-<a href="#1038" id="1038">1038</a>
-<a href="#1039" id="1039">1039</a>
-<a href="#1040" id="1040">1040</a>
-<a href="#1041" id="1041">1041</a>
-<a href="#1042" id="1042">1042</a>
-<a href="#1043" id="1043">1043</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1096,7 +1076,6 @@
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_runtime::traits::{Header <span class="kw">as </span>HeaderT, One};
 <span class="kw">use </span>sp_std::{
-	cmp::Ordering,
 	collections::{btree_map::BTreeMap, btree_set::BTreeSet},
 	prelude::<span class="kw-2">*</span>,
 	vec::Vec,
@@ -1105,12 +1084,13 @@
 <span class="kw">mod </span>misc;
 <span class="kw">mod </span>weights;
 
+<span class="kw">use </span><span class="self">self</span>::weights::checked_multi_dispute_statement_sets_weight;
 <span class="kw">pub use </span><span class="self">self</span>::{
 	misc::{IndexedRetain, IsSortedBy},
 	weights::{
 		backed_candidate_weight, backed_candidates_weight, dispute_statement_set_weight,
-		multi_dispute_statement_sets_weight, paras_inherent_total_weight, signed_bitfields_weight,
-		TestWeightInfo, WeightInfo,
+		multi_dispute_statement_sets_weight, paras_inherent_total_weight, signed_bitfield_weight,
+		signed_bitfields_weight, TestWeightInfo, WeightInfo,
 	},
 };
 
@@ -1307,8 +1287,8 @@
 		#[pallet::weight((
 			paras_inherent_total_weight::&lt;T&gt;(
 				data.backed_candidates.as_slice(),
-				data.bitfields.as_slice(),
-				data.disputes.as_slice(),
+				<span class="kw-2">&amp;</span>data.bitfields,
+				<span class="kw-2">&amp;</span>data.disputes,
 			),
 			DispatchClass::Mandatory,
 		))]
@@ -1399,16 +1379,46 @@
 		<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
 
 		<span class="kw">let </span>candidates_weight = backed_candidates_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>backed_candidates);
-		<span class="kw">let </span>bitfields_weight = signed_bitfields_weight::&lt;T&gt;(bitfields.len());
-		<span class="kw">let </span>disputes_weight = multi_dispute_statement_sets_weight::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>disputes);
-		<span class="kw">let </span>max_block_weight = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get().max_block;
+		<span class="kw">let </span>bitfields_weight = signed_bitfields_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>bitfields);
+		<span class="kw">let </span>disputes_weight = multi_dispute_statement_sets_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>disputes);
 
-		METRICS
-			.on_before_filter((candidates_weight + bitfields_weight + disputes_weight).ref_time());
+		<span class="kw">let </span>all_weight_before = candidates_weight + bitfields_weight + disputes_weight;
+
+		METRICS.on_before_filter(all_weight_before.ref_time());
+		<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Size before filter: {}, candidates + bitfields: {}, disputes: {}&quot;</span>, all_weight_before.proof_size(), candidates_weight.proof_size() + bitfields_weight.proof_size(), disputes_weight.proof_size());
+		<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Time weight before filter: {}, candidates + bitfields: {}, disputes: {}&quot;</span>, all_weight_before.ref_time(), candidates_weight.ref_time() + bitfields_weight.ref_time(), disputes_weight.ref_time());
 
 		<span class="kw">let </span>current_session = &lt;shared::Pallet&lt;T&gt;&gt;::session_index();
 		<span class="kw">let </span>expected_bits = &lt;scheduler::Pallet&lt;T&gt;&gt;::availability_cores().len();
 		<span class="kw">let </span>validator_public = shared::Pallet::&lt;T&gt;::active_validator_keys();
+
+		<span class="comment">// We are assuming (incorrectly) to have all the weight (for the mandatory class or even
+		// full block) available to us. This can lead to slightly overweight blocks, which still
+		// works as the dispatch class for `enter` is `Mandatory`. By using the `Mandatory`
+		// dispatch class, the upper layers impose no limit on the weight of this inherent, instead
+		// we limit ourselves and make sure to stay within reasonable bounds. It might make sense
+		// to subtract BlockWeights::base_block to reduce chances of becoming overweight.
+		</span><span class="kw">let </span>max_block_weight = {
+			<span class="kw">let </span>dispatch_class = DispatchClass::Mandatory;
+			<span class="kw">let </span>max_block_weight_full = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get();
+			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Max block weight: {}&quot;</span>, max_block_weight_full.max_block);
+			<span class="comment">// Get max block weight for the mandatory class if defined, otherwise total max weight of
+			// the block.
+			</span><span class="kw">let </span>max_weight = max_block_weight_full
+				.per_class
+				.get(dispatch_class)
+				.max_total
+				.unwrap_or(max_block_weight_full.max_block);
+			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Used max block time weight: {}&quot;</span>, max_weight);
+
+			<span class="kw">let </span>max_block_size_full = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockLength::get();
+			<span class="kw">let </span>max_block_size = max_block_size_full.max.get(dispatch_class);
+			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Used max block size: {}&quot;</span>, max_block_size);
+
+			<span class="comment">// Adjust proof size to max block size as we are tracking tx size.
+			</span>max_weight.set_proof_size(<span class="kw-2">*</span>max_block_size <span class="kw">as </span>u64)
+		};
+		<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Used max block weight: {}&quot;</span>, max_block_weight);
 
 		<span class="kw">let </span>entropy = compute_entropy::&lt;T&gt;(parent_hash);
 		<span class="kw">let </span><span class="kw-2">mut </span>rng = rand_chacha::ChaChaRng::from_seed(entropy.into());
@@ -1431,10 +1441,9 @@
 				disputes,
 				dispute_statement_set_valid,
 				max_block_weight,
-				<span class="kw-2">&amp;mut </span>rng,
 			);
 
-		<span class="kw">let </span>full_weight = <span class="kw">if </span>context == ProcessInherentDataContext::ProvideInherent {
+		<span class="kw">let </span>all_weight_after = <span class="kw">if </span>context == ProcessInherentDataContext::ProvideInherent {
 			<span class="comment">// Assure the maximum block weight is adhered, by limiting bitfields and backed
 			// candidates. Dispute statement sets were already limited before.
 			</span><span class="kw">let </span>non_disputes_weight = apply_weight_limit::&lt;T&gt;(
@@ -1444,36 +1453,38 @@
 				<span class="kw-2">&amp;mut </span>rng,
 			);
 
-			<span class="kw">let </span>full_weight =
+			<span class="kw">let </span>all_weight_after =
 				non_disputes_weight.saturating_add(checked_disputes_sets_consumed_weight);
 
-			METRICS.on_after_filter(full_weight.ref_time());
+			METRICS.on_after_filter(all_weight_after.ref_time());
+			<span class="macro">log::debug!</span>(
+			target: LOG_TARGET,
+			<span class="string">&quot;[process_inherent_data] after filter: bitfields.len(): {}, backed_candidates.len(): {}, checked_disputes_sets.len() {}&quot;</span>,
+			bitfields.len(),
+			backed_candidates.len(),
+			checked_disputes_sets.len()
+			);
+			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Size after filter: {}, candidates + bitfields: {}, disputes: {}&quot;</span>, all_weight_after.proof_size(), non_disputes_weight.proof_size(), checked_disputes_sets_consumed_weight.proof_size());
+			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Time weight after filter: {}, candidates + bitfields: {}, disputes: {}&quot;</span>, all_weight_after.ref_time(), non_disputes_weight.ref_time(), checked_disputes_sets_consumed_weight.ref_time());
 
-			<span class="kw">if </span>full_weight.any_gt(max_block_weight) {
-				<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;Post weight limiting weight is still too large.&quot;</span>);
+			<span class="kw">if </span>all_weight_after.any_gt(max_block_weight) {
+				<span class="macro">log::warn!</span>(target: LOG_TARGET, <span class="string">&quot;Post weight limiting weight is still too large, time: {}, size: {}&quot;</span>, all_weight_after.ref_time(), all_weight_after.proof_size());
 			}
-
-			full_weight
+			all_weight_after
 		} <span class="kw">else </span>{
-			<span class="comment">// We compute the weight for the unfiltered disputes for a stronger check, since `create_inherent`
-			// should already have filtered them out in block authorship.
-			</span><span class="kw">let </span>full_weight = candidates_weight
-				.saturating_add(bitfields_weight)
-				.saturating_add(disputes_weight);
-
 			<span class="comment">// This check is performed in the context of block execution. Ensures inherent weight invariants guaranteed
 			// by `create_inherent_data` for block authorship.
-			</span><span class="kw">if </span>full_weight.any_gt(max_block_weight) {
+			</span><span class="kw">if </span>all_weight_before.any_gt(max_block_weight) {
 				<span class="macro">log::error!</span>(
 					<span class="string">&quot;Overweight para inherent data reached the runtime {:?}: {} &gt; {}&quot;</span>,
 					parent_hash,
-					full_weight,
+					all_weight_before,
 					max_block_weight
 				);
 			}
 
-			<span class="macro">ensure!</span>(full_weight.all_lte(max_block_weight), Error::&lt;T&gt;::InherentOverweight);
-			full_weight
+			<span class="macro">ensure!</span>(all_weight_before.all_lte(max_block_weight), Error::&lt;T&gt;::InherentOverweight);
+			all_weight_before
 		};
 
 		<span class="comment">// Note that `process_checked_multi_dispute_data` will iterate and import each
@@ -1640,7 +1651,7 @@
 
 		<span class="kw">let </span>processed =
 			ParachainsInherentData { bitfields, backed_candidates, disputes, parent_header };
-		<span class="prelude-val">Ok</span>((processed, <span class="prelude-val">Some</span>(full_weight).into()))
+		<span class="prelude-val">Ok</span>((processed, <span class="prelude-val">Some</span>(all_weight_after).into()))
 	}
 }
 
@@ -1745,7 +1756,7 @@
 ) -&gt; Weight {
 	<span class="kw">let </span>total_candidates_weight = backed_candidates_weight::&lt;T&gt;(candidates.as_slice());
 
-	<span class="kw">let </span>total_bitfields_weight = signed_bitfields_weight::&lt;T&gt;(bitfields.len());
+	<span class="kw">let </span>total_bitfields_weight = signed_bitfields_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>bitfields);
 
 	<span class="kw">let </span>total = total_bitfields_weight.saturating_add(total_candidates_weight);
 
@@ -1777,6 +1788,7 @@
 				|c| backed_candidate_weight::&lt;T&gt;(c),
 				max_consumable_by_candidates,
 			);
+		<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Indices Candidates: {:?}, size: {}&quot;</span>, indices, candidates.len());
 		candidates.indexed_retain(|idx, _backed_candidate| indices.binary_search(<span class="kw-2">&amp;</span>idx).is_ok());
 		<span class="comment">// pick all bitfields, and
 		// fill the remaining space with candidates
@@ -1793,9 +1805,10 @@
 		rng,
 		<span class="kw-2">&amp;</span>bitfields,
 		<span class="macro">vec!</span>[],
-		|<span class="kw">_</span>| &lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_bitfields(),
+		|bitfield| signed_bitfield_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>bitfield),
 		max_consumable_weight,
 	);
+	<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Indices Bitfields: {:?}, size: {}&quot;</span>, indices, bitfields.len());
 
 	bitfields.indexed_retain(|idx, _bitfield| indices.binary_search(<span class="kw-2">&amp;</span>idx).is_ok());
 
@@ -1984,95 +1997,42 @@
 /// 2. If exceeded:
 ///   1. Check validity of all dispute statements sequentially
 /// 2. If not exceeded:
-///   1. Sort the disputes based on locality and age, locality first.
-///   1. Split the array
-///   1. Prefer local ones over remote disputes
 ///   1. If weight is exceeded by locals, pick the older ones (lower indices)
 ///      until the weight limit is reached.
-///   1. If weight is exceeded by locals and remotes, pick remotes
-///      randomly and check validity one by one.
 ///
 /// Returns the consumed weight amount, that is guaranteed to be less than the provided `max_consumable_weight`.
 </span><span class="kw">fn </span>limit_and_sanitize_disputes&lt;
 	T: Config,
 	CheckValidityFn: FnMut(DisputeStatementSet) -&gt; <span class="prelude-ty">Option</span>&lt;CheckedDisputeStatementSet&gt;,
 &gt;(
-	<span class="kw-2">mut </span>disputes: MultiDisputeStatementSet,
+	disputes: MultiDisputeStatementSet,
 	<span class="kw-2">mut </span>dispute_statement_set_valid: CheckValidityFn,
 	max_consumable_weight: Weight,
-	rng: <span class="kw-2">&amp;mut </span>rand_chacha::ChaChaRng,
 ) -&gt; (Vec&lt;CheckedDisputeStatementSet&gt;, Weight) {
 	<span class="comment">// The total weight if all disputes would be included
-	</span><span class="kw">let </span>disputes_weight = multi_dispute_statement_sets_weight::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>disputes);
+	</span><span class="kw">let </span>disputes_weight = multi_dispute_statement_sets_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>disputes);
 
 	<span class="kw">if </span>disputes_weight.any_gt(max_consumable_weight) {
+		<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Above max consumable weight: {}/{}&quot;</span>, disputes_weight, max_consumable_weight);
 		<span class="kw">let </span><span class="kw-2">mut </span>checked_acc = Vec::&lt;CheckedDisputeStatementSet&gt;::with_capacity(disputes.len());
-
-		<span class="comment">// Since the disputes array is sorted, we may use binary search to find the beginning of
-		// remote disputes
-		</span><span class="kw">let </span>idx = disputes
-			.binary_search_by(|probe| {
-				<span class="kw">if </span>T::DisputesHandler::included_state(probe.session, probe.candidate_hash).is_some()
-				{
-					Ordering::Less
-				} <span class="kw">else </span>{
-					Ordering::Greater
-				}
-			})
-			<span class="comment">// The above predicate will never find an item and therefore we are guaranteed to obtain
-			// an error, which we can safely unwrap. QED.
-			</span>.unwrap_err();
-
-		<span class="comment">// Due to the binary search predicate above, the index computed will constitute the beginning
-		// of the remote disputes sub-array `[Local, Local, Local, ^Remote, Remote]`.
-		</span><span class="kw">let </span>remote_disputes = disputes.split_off(idx);
 
 		<span class="comment">// Accumualated weight of all disputes picked, that passed the checks.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>weight_acc = Weight::zero();
 
 		<span class="comment">// Select disputes in-order until the remaining weight is attained
-		</span>disputes.iter().for_each(|dss| {
-			<span class="kw">let </span>dispute_weight = &lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_variable_disputes(
-				dss.statements.len() <span class="kw">as </span>u32,
-			);
+		</span>disputes.into_iter().for_each(|dss| {
+			<span class="kw">let </span>dispute_weight = dispute_statement_set_weight::&lt;T, <span class="kw-2">&amp;</span>DisputeStatementSet&gt;(<span class="kw-2">&amp;</span>dss);
 			<span class="kw">let </span>updated = weight_acc.saturating_add(dispute_weight);
 			<span class="kw">if </span>max_consumable_weight.all_gte(updated) {
-				<span class="comment">// only apply the weight if the validity check passes
-				</span><span class="kw">if let </span><span class="prelude-val">Some</span>(checked) = dispute_statement_set_valid(dss.clone()) {
+				<span class="comment">// Always apply the weight. Invalid data cost processing time too:
+				</span>weight_acc = updated;
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(checked) = dispute_statement_set_valid(dss) {
 					checked_acc.push(checked);
-					weight_acc = updated;
 				}
 			}
 		});
 
-		<span class="comment">// Compute the statements length of all remote disputes
-		</span><span class="kw">let </span>d = remote_disputes.iter().map(|d| d.statements.len() <span class="kw">as </span>u32).collect::&lt;Vec&lt;u32&gt;&gt;();
-
-		<span class="comment">// Select remote disputes at random until the block is full
-		</span><span class="kw">let </span>(_acc_remote_disputes_weight, <span class="kw-2">mut </span>indices) = random_sel::&lt;u32, <span class="kw">_</span>&gt;(
-			rng,
-			<span class="kw-2">&amp;</span>d,
-			<span class="macro">vec!</span>[],
-			|v| &lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_variable_disputes(<span class="kw-2">*</span>v),
-			max_consumable_weight.saturating_sub(weight_acc),
-		);
-
-		<span class="comment">// Sort the indices, to retain the same sorting as the input.
-		</span>indices.sort();
-
-		<span class="comment">// Add the remote disputes after checking their validity.
-		</span>checked_acc.extend(indices.into_iter().filter_map(|idx| {
-			dispute_statement_set_valid(remote_disputes[idx].clone()).map(|cdss| {
-				<span class="kw">let </span>weight = &lt;&lt;T <span class="kw">as </span>Config&gt;::WeightInfo <span class="kw">as </span>WeightInfo&gt;::enter_variable_disputes(
-					cdss.as_ref().statements.len() <span class="kw">as </span>u32,
-				);
-				weight_acc = weight_acc.saturating_add(weight);
-				cdss
-			})
-		}));
-
-		<span class="comment">// Update the remaining weight
-		</span>(checked_acc, weight_acc)
+		(checked_acc, weight_acc)
 	} <span class="kw">else </span>{
 		<span class="comment">// Go through all of them, and just apply the filter, they would all fit
 		</span><span class="kw">let </span>checked = disputes
@@ -2080,7 +2040,7 @@
 			.filter_map(|dss| dispute_statement_set_valid(dss))
 			.collect::&lt;Vec&lt;CheckedDisputeStatementSet&gt;&gt;();
 		<span class="comment">// some might have been filtered out, so re-calc the weight
-		</span><span class="kw">let </span>checked_disputes_weight = multi_dispute_statement_sets_weight::&lt;T, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>checked);
+		</span><span class="kw">let </span>checked_disputes_weight = checked_multi_dispute_statement_sets_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>checked);
 		(checked, checked_disputes_weight)
 	}
 }
