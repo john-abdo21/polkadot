@@ -2337,9 +2337,7 @@
 		slot_duration_millis: slot_duration.as_millis() <span class="kw">as </span>u64,
 	};
 
-	<span class="kw">let </span>candidate_validation_config = <span class="kw">if </span>is_collator.is_collator() {
-		<span class="prelude-val">None
-	</span>} <span class="kw">else </span>{
+	<span class="kw">let </span>candidate_validation_config = <span class="kw">if </span>role.is_authority() &amp;&amp; !is_collator.is_collator() {
 		<span class="kw">let </span>(prep_worker_path, exec_worker_path) =
 			workers::determine_workers_paths(workers_path, workers_names, node_version.clone())<span class="question-mark">?</span>;
 		<span class="macro">log::info!</span>(<span class="string">&quot;🚀 Using prepare-worker binary at: {:?}&quot;</span>, prep_worker_path);
@@ -2355,7 +2353,9 @@
 			prep_worker_path,
 			exec_worker_path,
 		})
-	};
+	} <span class="kw">else </span>{
+		<span class="prelude-val">None
+	</span>};
 
 	<span class="kw">let </span>chain_selection_config = ChainSelectionConfig {
 		col_data: parachains_db::REAL_COLUMNS.col_chain_selection_data,
