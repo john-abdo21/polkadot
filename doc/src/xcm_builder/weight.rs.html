@@ -247,6 +247,16 @@
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -389,11 +399,16 @@
 		<span class="self">Self</span>(Weight::zero(), <span class="number">0</span>, PhantomData)
 	}
 
-	<span class="kw">fn </span>buy_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight, payment: Assets) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
+	<span class="kw">fn </span>buy_weight(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		weight: Weight,
+		payment: Assets,
+		context: <span class="kw-2">&amp;</span>XcmContext,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;xcm::weight&quot;</span>,
-			<span class="string">&quot;FixedRateOfFungible::buy_weight weight: {:?}, payment: {:?}&quot;</span>,
-			weight, payment,
+			<span class="string">&quot;FixedRateOfFungible::buy_weight weight: {:?}, payment: {:?}, context: {:?}&quot;</span>,
+			weight, payment, context,
 		);
 		<span class="kw">let </span>(id, units_per_second, units_per_mb) = T::get();
 		<span class="kw">let </span>amount = (units_per_second * (weight.ref_time() <span class="kw">as </span>u128) /
@@ -409,8 +424,8 @@
 		<span class="prelude-val">Ok</span>(unused)
 	}
 
-	<span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;FixedRateOfFungible::refund_weight weight: {:?}&quot;</span>, weight);
+	<span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
+		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;FixedRateOfFungible::refund_weight weight: {:?}, context: {:?}&quot;</span>, weight, context);
 		<span class="kw">let </span>(id, units_per_second, units_per_mb) = T::get();
 		<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
 		<span class="kw">let </span>amount = (units_per_second * (weight.ref_time() <span class="kw">as </span>u128) /
@@ -459,8 +474,13 @@
 		<span class="self">Self</span>(Weight::zero(), Zero::zero(), PhantomData)
 	}
 
-	<span class="kw">fn </span>buy_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight, payment: Assets) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;UsingComponents::buy_weight weight: {:?}, payment: {:?}&quot;</span>, weight, payment);
+	<span class="kw">fn </span>buy_weight(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		weight: Weight,
+		payment: Assets,
+		context: <span class="kw-2">&amp;</span>XcmContext,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, XcmError&gt; {
+		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;UsingComponents::buy_weight weight: {:?}, payment: {:?}, context: {:?}&quot;</span>, weight, payment, context);
 		<span class="kw">let </span>amount = WeightToFee::weight_to_fee(<span class="kw-2">&amp;</span>weight);
 		<span class="kw">let </span>u128_amount: u128 = amount.try_into().map_err(|<span class="kw">_</span>| XcmError::Overflow)<span class="question-mark">?</span>;
 		<span class="kw">let </span>required = (Concrete(AssetId::get()), u128_amount).into();
@@ -470,8 +490,8 @@
 		<span class="prelude-val">Ok</span>(unused)
 	}
 
-	<span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
-		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;UsingComponents::refund_weight weight: {:?}&quot;</span>, weight);
+	<span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: Weight, context: <span class="kw-2">&amp;</span>XcmContext) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
+		<span class="macro">log::trace!</span>(target: <span class="string">&quot;xcm::weight&quot;</span>, <span class="string">&quot;UsingComponents::refund_weight weight: {:?}, context: {:?}&quot;</span>, weight, context);
 		<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
 		<span class="kw">let </span>amount = WeightToFee::weight_to_fee(<span class="kw-2">&amp;</span>weight);
 		<span class="self">self</span>.<span class="number">0 </span>-= weight;

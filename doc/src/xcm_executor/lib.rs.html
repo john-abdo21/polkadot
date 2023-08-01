@@ -1481,7 +1481,7 @@
 		<span class="kw">let </span>current_surplus = <span class="self">self</span>.total_surplus.saturating_sub(<span class="self">self</span>.total_refunded);
 		<span class="kw">if </span>current_surplus.any_gt(Weight::zero()) {
 			<span class="self">self</span>.total_refunded.saturating_accrue(current_surplus);
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <span class="self">self</span>.trader.refund_weight(current_surplus) {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <span class="self">self</span>.trader.refund_weight(current_surplus, <span class="kw-2">&amp;</span><span class="self">self</span>.context) {
 				<span class="self">self</span>.subsume_asset(w)<span class="question-mark">?</span>;
 			}
 		}
@@ -1713,7 +1713,7 @@
 					<span class="comment">// pay for `weight` using up to `fees` of the holding register.
 					</span><span class="kw">let </span>max_fee =
 						<span class="self">self</span>.holding.try_take(fees.into()).map_err(|<span class="kw">_</span>| XcmError::NotHoldingFees)<span class="question-mark">?</span>;
-					<span class="kw">let </span>unspent = <span class="self">self</span>.trader.buy_weight(weight, max_fee)<span class="question-mark">?</span>;
+					<span class="kw">let </span>unspent = <span class="self">self</span>.trader.buy_weight(weight, max_fee, <span class="kw-2">&amp;</span><span class="self">self</span>.context)<span class="question-mark">?</span>;
 					<span class="self">self</span>.subsume_assets(unspent)<span class="question-mark">?</span>;
 				}
 				<span class="prelude-val">Ok</span>(())
