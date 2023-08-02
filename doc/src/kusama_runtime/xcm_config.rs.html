@@ -458,6 +458,9 @@
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -892,8 +895,10 @@
 
 	<span class="comment">// should be [WithdrawAsset, BuyExecution, Transact, RefundSurplus, DepositAsset]
 	</span><span class="kw">let </span>blob = <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;02140004000000000700e40b540213000000000700e40b54020006010700c817a804341801000006010b00c490bf4302140d010003ffffffff000100411f&quot;</span>);
-	<span class="kw">let </span><span class="prelude-val">Ok</span>(VersionedXcm::V2(old_xcm)) =
-		VersionedXcm::&lt;<span class="kw">super</span>::RuntimeCall&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>blob[..]) <span class="kw">else </span>{ <span class="macro">panic!</span>(<span class="string">&quot;can&#39;t decode XCM blob&quot;</span>) };
+	<span class="kw">let </span><span class="prelude-val">Ok</span>(VersionedXcm::V2(old_xcm)) = VersionedXcm::&lt;<span class="kw">super</span>::RuntimeCall&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>blob[..])
+	<span class="kw">else </span>{
+		<span class="macro">panic!</span>(<span class="string">&quot;can&#39;t decode XCM blob&quot;</span>)
+	};
 	<span class="kw">let </span><span class="kw-2">mut </span>xcm: Xcm&lt;<span class="kw">super</span>::RuntimeCall&gt; =
 		old_xcm.try_into().expect(<span class="string">&quot;conversion from v2 to v3 failed&quot;</span>);
 	<span class="kw">let </span>weight = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Weigher::weight(<span class="kw-2">&amp;mut </span>xcm)
@@ -904,9 +909,10 @@
 	</span><span class="macro">assert!</span>(weight.all_lte(Weight::from_parts(<span class="number">30_313_281_000</span>, <span class="number">72_722</span>)));
 
 	<span class="kw">let </span><span class="prelude-val">Some</span>(Transact { require_weight_at_most, call, .. }) =
-		xcm.inner_mut().into_iter().find(|inst| <span class="macro">matches!</span>(inst, Transact { .. })) <span class="kw">else </span>{
-			<span class="macro">panic!</span>(<span class="string">&quot;no Transact instruction found&quot;</span>)
-		};
+		xcm.inner_mut().into_iter().find(|inst| <span class="macro">matches!</span>(inst, Transact { .. }))
+	<span class="kw">else </span>{
+		<span class="macro">panic!</span>(<span class="string">&quot;no Transact instruction found&quot;</span>)
+	};
 	<span class="comment">// should be pallet_utility.as_derivative { index: 0, call: pallet_staking::bond_extra { max_additional: 2490000000000 } }
 	</span><span class="kw">let </span>message_call = call.take_decoded().expect(<span class="string">&quot;can&#39;t decode Transact call&quot;</span>);
 	<span class="kw">let </span>call_weight = message_call.get_dispatch_info().weight;
