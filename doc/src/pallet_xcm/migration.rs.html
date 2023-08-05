@@ -74,9 +74,6 @@
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -104,6 +101,7 @@
 
 <span class="kw">pub mod </span>v1 {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use crate</span>::{CurrentMigration, VersionMigrationStage};
 
 	<span class="doccomment">/// Named with the &#39;VersionUnchecked&#39;-prefix because although this implements some version
 	/// checking, the version checking is not complete as it will begin failing after the upgrade is
@@ -112,34 +110,30 @@
 	/// Use experimental [`VersionCheckedMigrateToV1`] instead.
 	</span><span class="kw">pub struct </span>VersionUncheckedMigrateToV1&lt;T&gt;(sp_std::marker::PhantomData&lt;T&gt;);
 	<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>VersionUncheckedMigrateToV1&lt;T&gt; {
-		<span class="attr">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;sp_std::vec::Vec&lt;u8&gt;, sp_runtime::TryRuntimeError&gt; {
-			<span class="macro">ensure!</span>(StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">0</span>, <span class="string">&quot;must upgrade linearly&quot;</span>);
-
-			<span class="prelude-val">Ok</span>(sp_std::vec::Vec::new())
-		}
-
 		<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-			<span class="kw">if </span>StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() == <span class="number">0 </span>{
-				<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
+			<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
-				<span class="kw">let </span>translate = |pre: (u64, u64, u32)| -&gt; <span class="prelude-ty">Option</span>&lt;(u64, Weight, u32)&gt; {
-					weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>));
-					<span class="kw">let </span>translated = (pre.<span class="number">0</span>, Weight::from_parts(pre.<span class="number">1</span>, DEFAULT_PROOF_SIZE), pre.<span class="number">2</span>);
-					<span class="macro">log::info!</span>(<span class="string">&quot;Migrated VersionNotifyTarget {:?} to {:?}&quot;</span>, pre, translated);
-					<span class="prelude-val">Some</span>(translated)
-				};
-
-				VersionNotifyTargets::&lt;T&gt;::translate_values(translate);
-
-				<span class="macro">log::info!</span>(<span class="string">&quot;v1 applied successfully&quot;</span>);
-				StorageVersion::new(<span class="number">1</span>).put::&lt;Pallet&lt;T&gt;&gt;();
-
-				weight.saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
-			} <span class="kw">else </span>{
+			<span class="kw">if </span>StorageVersion::get::&lt;Pallet&lt;T&gt;&gt;() != <span class="number">0 </span>{
 				<span class="macro">log::warn!</span>(<span class="string">&quot;skipping v1, should be removed&quot;</span>);
-				T::DbWeight::get().reads(<span class="number">1</span>)
+				<span class="kw">return </span>weight
 			}
+
+			weight.saturating_accrue(T::DbWeight::get().writes(<span class="number">1</span>));
+			CurrentMigration::&lt;T&gt;::put(VersionMigrationStage::default());
+
+			<span class="kw">let </span>translate = |pre: (u64, u64, u32)| -&gt; <span class="prelude-ty">Option</span>&lt;(u64, Weight, u32)&gt; {
+				weight.saturating_accrue(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>));
+				<span class="kw">let </span>translated = (pre.<span class="number">0</span>, Weight::from_parts(pre.<span class="number">1</span>, DEFAULT_PROOF_SIZE), pre.<span class="number">2</span>);
+				<span class="macro">log::info!</span>(<span class="string">&quot;Migrated VersionNotifyTarget {:?} to {:?}&quot;</span>, pre, translated);
+				<span class="prelude-val">Some</span>(translated)
+			};
+
+			VersionNotifyTargets::&lt;T&gt;::translate_values(translate);
+
+			<span class="macro">log::info!</span>(<span class="string">&quot;v1 applied successfully&quot;</span>);
+			weight.saturating_accrue(T::DbWeight::get().writes(<span class="number">1</span>));
+			StorageVersion::new(<span class="number">1</span>).put::&lt;Pallet&lt;T&gt;&gt;();
+			weight
 		}
 	}
 
