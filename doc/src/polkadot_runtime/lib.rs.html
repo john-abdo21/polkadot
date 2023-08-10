@@ -2597,29 +2597,6 @@
 <a href="#2597" id="2597">2597</a>
 <a href="#2598" id="2598">2598</a>
 <a href="#2599" id="2599">2599</a>
-<a href="#2600" id="2600">2600</a>
-<a href="#2601" id="2601">2601</a>
-<a href="#2602" id="2602">2602</a>
-<a href="#2603" id="2603">2603</a>
-<a href="#2604" id="2604">2604</a>
-<a href="#2605" id="2605">2605</a>
-<a href="#2606" id="2606">2606</a>
-<a href="#2607" id="2607">2607</a>
-<a href="#2608" id="2608">2608</a>
-<a href="#2609" id="2609">2609</a>
-<a href="#2610" id="2610">2610</a>
-<a href="#2611" id="2611">2611</a>
-<a href="#2612" id="2612">2612</a>
-<a href="#2613" id="2613">2613</a>
-<a href="#2614" id="2614">2614</a>
-<a href="#2615" id="2615">2615</a>
-<a href="#2616" id="2616">2616</a>
-<a href="#2617" id="2617">2617</a>
-<a href="#2618" id="2618">2618</a>
-<a href="#2619" id="2619">2619</a>
-<a href="#2620" id="2620">2620</a>
-<a href="#2621" id="2621">2621</a>
-<a href="#2622" id="2622">2622</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -4110,35 +4087,12 @@
 </span><span class="attr">#[allow(deprecated, missing_docs)]
 </span><span class="kw">pub mod </span>migrations {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span>frame_support::traits::{GetStorageVersion, OnRuntimeUpgrade, StorageVersion};
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
 	</span><span class="kw">pub type </span>Unreleased = (
 		pallet_im_online::migration::v1::Migration&lt;Runtime&gt;,
 		parachains_configuration::migration::v7::MigrateToV7&lt;Runtime&gt;,
 	);
-
-	<span class="doccomment">/// Migrations that set `StorageVersion`s we missed to set.
-	</span><span class="kw">pub struct </span>SetStorageVersions;
-
-	<span class="kw">impl </span>OnRuntimeUpgrade <span class="kw">for </span>SetStorageVersions {
-		<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-			<span class="comment">// `Referenda` pallet was added on chain after the migration to version `1` was added.
-			// Thus, it never required the migration and we just missed to set the correct `StorageVersion`.
-			</span><span class="kw">let </span>storage_version = Referenda::on_chain_storage_version();
-			<span class="kw">if </span>storage_version &lt; <span class="number">1 </span>{
-				StorageVersion::new(<span class="number">1</span>).put::&lt;Referenda&gt;();
-			}
-
-			<span class="comment">// Was missed as part of: `runtime_common::session::migration::ClearOldSessionStorage&lt;Runtime&gt;`.
-			</span><span class="kw">let </span>storage_version = Historical::on_chain_storage_version();
-			<span class="kw">if </span>storage_version &lt; <span class="number">1 </span>{
-				StorageVersion::new(<span class="number">1</span>).put::&lt;Historical&gt;();
-			}
-
-			RocksDbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">2</span>)
-		}
-	}
 }
 
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.

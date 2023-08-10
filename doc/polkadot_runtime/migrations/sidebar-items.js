@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["SetStorageVersions"],"type":["Unreleased"]};
+window.SIDEBAR_ITEMS = {"type":["Unreleased"]};
