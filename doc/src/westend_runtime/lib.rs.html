@@ -2045,7 +2045,6 @@
 <a href="#2045" id="2045">2045</a>
 <a href="#2046" id="2046">2046</a>
 <a href="#2047" id="2047">2047</a>
-<a href="#2048" id="2048">2048</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2070,7 +2069,7 @@
 
 </span><span class="kw">use </span>authority_discovery_primitives::AuthorityId <span class="kw">as </span>AuthorityDiscoveryId;
 <span class="kw">use </span>beefy_primitives::ecdsa_crypto::{AuthorityId <span class="kw">as </span>BeefyId, Signature <span class="kw">as </span>BeefySignature};
-<span class="kw">use </span>frame_election_provider_support::{onchain, SequentialPhragmen};
+<span class="kw">use </span>frame_election_provider_support::{bounds::ElectionBoundsBuilder, onchain, SequentialPhragmen};
 <span class="kw">use </span>frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
@@ -2419,11 +2418,12 @@
 	<span class="comment">// 1 hour session, 15 minutes unsigned phase, 4 offchain executions.
 	</span><span class="kw">pub </span>OffchainRepeat: BlockNumber = UnsignedPhase::get() / <span class="number">4</span>;
 
-	<span class="doccomment">/// We take the top 22500 nominators as electing voters..
-	</span><span class="kw">pub const </span>MaxElectingVoters: u32 = <span class="number">22_500</span>;
-	<span class="doccomment">/// ... and all of the validators as electable targets. Whilst this is the case, we cannot and
-	/// shall not increase the size of the validator intentions.
-	</span><span class="kw">pub const </span>MaxElectableTargets: u16 = u16::MAX;
+	<span class="kw">pub const </span>MaxElectingVoters: u32 = <span class="number">22_500</span>;
+	<span class="doccomment">/// We take the top 22500 nominators as electing voters and all of the validators as electable
+	/// targets. Whilst this is the case, we cannot and shall not increase the size of the
+	/// validator intentions.
+	</span><span class="kw">pub </span>ElectionBounds: frame_election_provider_support::bounds::ElectionBounds =
+		ElectionBoundsBuilder::default().voters_count(MaxElectingVoters::get().into()).build();
 	<span class="comment">// Maximum winners that can be chosen as active validators
 	</span><span class="kw">pub const </span>MaxActiveValidators: u32 = <span class="number">1000</span>;
 
@@ -2446,8 +2446,7 @@
 	<span class="kw">type </span>DataProvider = Staking;
 	<span class="kw">type </span>WeightInfo = weights::frame_election_provider_support::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxWinners = MaxActiveValidators;
-	<span class="kw">type </span>VotersBound = MaxElectingVoters;
-	<span class="kw">type </span>TargetsBound = MaxElectableTargets;
+	<span class="kw">type </span>Bounds = ElectionBounds;
 }
 
 <span class="kw">impl </span>pallet_election_provider_multi_phase::MinerConfig <span class="kw">for </span>Runtime {
@@ -2513,9 +2512,8 @@
 	<span class="kw">type </span>BenchmarkingConfig = runtime_common::elections::BenchmarkConfig;
 	<span class="kw">type </span>ForceOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>WeightInfo = weights::pallet_election_provider_multi_phase::WeightInfo&lt;<span class="self">Self</span>&gt;;
-	<span class="kw">type </span>MaxElectingVoters = MaxElectingVoters;
-	<span class="kw">type </span>MaxElectableTargets = MaxElectableTargets;
 	<span class="kw">type </span>MaxWinners = MaxActiveValidators;
+	<span class="kw">type </span>ElectionBounds = ElectionBounds;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2556,7 +2554,6 @@
 }
 
 <span class="kw">impl </span>pallet_staking::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>MaxNominations = MaxNominations;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>CurrencyBalance = Balance;
 	<span class="kw">type </span>UnixTime = Timestamp;
@@ -2578,6 +2575,7 @@
 	<span class="kw">type </span>GenesisElectionProvider = onchain::OnChainExecution&lt;OnChainSeqPhragmen&gt;;
 	<span class="kw">type </span>VoterList = VoterList;
 	<span class="kw">type </span>TargetList = UseValidatorsMap&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>NominationsQuota = pallet_staking::FixedNominationsQuota&lt;{ MaxNominations::get() }&gt;;
 	<span class="kw">type </span>MaxUnlockingChunks = frame_support::traits::ConstU32&lt;<span class="number">32</span>&gt;;
 	<span class="kw">type </span>HistoryDepth = frame_support::traits::ConstU32&lt;<span class="number">84</span>&gt;;
 	<span class="kw">type </span>BenchmarkingConfig = runtime_common::StakingBenchmarkingConfig;
