@@ -2830,6 +2830,35 @@
 <a href="#2830" id="2830">2830</a>
 <a href="#2831" id="2831">2831</a>
 <a href="#2832" id="2832">2832</a>
+<a href="#2833" id="2833">2833</a>
+<a href="#2834" id="2834">2834</a>
+<a href="#2835" id="2835">2835</a>
+<a href="#2836" id="2836">2836</a>
+<a href="#2837" id="2837">2837</a>
+<a href="#2838" id="2838">2838</a>
+<a href="#2839" id="2839">2839</a>
+<a href="#2840" id="2840">2840</a>
+<a href="#2841" id="2841">2841</a>
+<a href="#2842" id="2842">2842</a>
+<a href="#2843" id="2843">2843</a>
+<a href="#2844" id="2844">2844</a>
+<a href="#2845" id="2845">2845</a>
+<a href="#2846" id="2846">2846</a>
+<a href="#2847" id="2847">2847</a>
+<a href="#2848" id="2848">2848</a>
+<a href="#2849" id="2849">2849</a>
+<a href="#2850" id="2850">2850</a>
+<a href="#2851" id="2851">2851</a>
+<a href="#2852" id="2852">2852</a>
+<a href="#2853" id="2853">2853</a>
+<a href="#2854" id="2854">2854</a>
+<a href="#2855" id="2855">2855</a>
+<a href="#2856" id="2856">2856</a>
+<a href="#2857" id="2857">2857</a>
+<a href="#2858" id="2858">2858</a>
+<a href="#2859" id="2859">2859</a>
+<a href="#2860" id="2860">2860</a>
+<a href="#2861" id="2861">2861</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2992,6 +3021,7 @@
 	time_db_transaction: prometheus::Histogram,
 	time_recover_and_approve: prometheus::Histogram,
 	candidate_signatures_requests_total: prometheus::Counter&lt;prometheus::U64&gt;,
+	unapproved_candidates_in_unfinalized_chain: prometheus::Gauge&lt;prometheus::U64&gt;,
 }
 
 <span class="doccomment">/// Approval Voting metrics.
@@ -3077,6 +3107,12 @@
 
 	<span class="kw">fn </span>time_recover_and_approve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;metrics::prometheus::prometheus::HistogramTimer&gt; {
 		<span class="self">self</span>.<span class="number">0</span>.as_ref().map(|metrics| metrics.time_recover_and_approve.start_timer())
+	}
+
+	<span class="kw">fn </span>on_unapproved_candidates_in_unfinalized_chain(<span class="kw-2">&amp;</span><span class="self">self</span>, count: usize) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(metrics) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+			metrics.unapproved_candidates_in_unfinalized_chain.set(count <span class="kw">as </span>u64);
+		}
 	}
 }
 
@@ -3165,6 +3201,13 @@
 				prometheus::Counter::new(
 					<span class="string">&quot;polkadot_parachain_approval_candidate_signatures_requests_total&quot;</span>,
 					<span class="string">&quot;Number of times signatures got requested by other subsystems&quot;</span>,
+				)<span class="question-mark">?</span>,
+				registry,
+			)<span class="question-mark">?</span>,
+			unapproved_candidates_in_unfinalized_chain: prometheus::register(
+				prometheus::Gauge::new(
+					<span class="string">&quot;polkadot_parachain_approval_unapproved_candidates_in_unfinalized_chain&quot;</span>,
+					<span class="string">&quot;Number of unapproved candidates in unfinalized chain&quot;</span>,
 				)<span class="question-mark">?</span>,
 				registry,
 			)<span class="question-mark">?</span>,
@@ -4130,6 +4173,7 @@
 					lower_bound,
 					wakeups,
 					<span class="kw-2">&amp;mut </span>approved_ancestor_span,
+					<span class="kw-2">&amp;</span>metrics,
 				)
 				.<span class="kw">await
 				</span>{
@@ -4255,9 +4299,11 @@
 	lower_bound: BlockNumber,
 	wakeups: <span class="kw-2">&amp;</span>Wakeups,
 	span: <span class="kw-2">&amp;mut </span>jaeger::Span,
+	metrics: <span class="kw-2">&amp;</span>Metrics,
 ) -&gt; SubsystemResult&lt;<span class="prelude-ty">Option</span>&lt;HighestApprovedAncestorBlock&gt;&gt; {
 	<span class="kw">const </span>MAX_TRACING_WINDOW: usize = <span class="number">200</span>;
 	<span class="kw">const </span>ABNORMAL_DEPTH_THRESHOLD: usize = <span class="number">5</span>;
+	<span class="kw">const </span>LOGGING_DEPTH_THRESHOLD: usize = <span class="number">10</span>;
 	<span class="kw">let </span><span class="kw-2">mut </span>span = span
 		.child(<span class="string">&quot;handle-approved-ancestor&quot;</span>)
 		.with_stage(jaeger::Stage::ApprovalChecking);
@@ -4303,6 +4349,7 @@
 	} <span class="kw">else </span>{
 		Vec::new()
 	};
+	<span class="kw">let </span>ancestry_len = ancestry.len();
 
 	<span class="kw">let </span><span class="kw-2">mut </span>block_descriptions = Vec::new();
 
@@ -4366,6 +4413,17 @@
 				unapproved.len(),
 				entry.candidates().len(),
 			);
+			<span class="kw">if </span>ancestry_len &gt;= LOGGING_DEPTH_THRESHOLD &amp;&amp; i &gt; ancestry_len - LOGGING_DEPTH_THRESHOLD
+			{
+				<span class="macro">gum::trace!</span>(
+					target: LOG_TARGET,
+					<span class="question-mark">?</span>block_hash,
+					<span class="string">&quot;Unapproved candidates at depth {}: {:?}&quot;</span>,
+					bits.len(),
+					unapproved
+				)
+			}
+			metrics.on_unapproved_candidates_in_unfinalized_chain(unapproved.len());
 			entry_span.add_uint_tag(<span class="string">&quot;unapproved-candidates&quot;</span>, unapproved.len() <span class="kw">as </span>u64);
 			<span class="kw">for </span>candidate_hash <span class="kw">in </span>unapproved {
 				<span class="kw">match </span>db.load_candidate_entry(<span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">? </span>{
