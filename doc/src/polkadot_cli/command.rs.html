@@ -606,7 +606,6 @@
 <a href="#606" id="606">606</a>
 <a href="#607" id="607">607</a>
 <a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -844,14 +843,10 @@
 <span class="kw">where
 	</span>F: FnOnce(<span class="kw-2">&amp;mut </span>sc_cli::LoggerBuilder, <span class="kw-2">&amp;</span>sc_service::Configuration),
 {
-	<span class="kw">let </span>runner = cli
+	<span class="kw">let </span><span class="kw-2">mut </span>runner = cli
 		.create_runner_with_logger_hook::&lt;sc_cli::RunCmd, F&gt;(<span class="kw-2">&amp;</span>cli.run.base, logger_hook)
 		.map_err(Error::from)<span class="question-mark">?</span>;
 	<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
-
-	<span class="comment">// By default, enable BEEFY on test networks.
-	</span><span class="kw">let </span>enable_beefy = (chain_spec.is_rococo() || chain_spec.is_wococo() || chain_spec.is_versi()) &amp;&amp;
-		!cli.run.no_beefy;
 
 	set_default_ss58_version(chain_spec);
 
@@ -867,6 +862,10 @@
 		<span class="macro">info!</span>(<span class="string">&quot;      endorsed by the       &quot;</span>);
 		<span class="macro">info!</span>(<span class="string">&quot;     KUSAMA FOUNDATION      &quot;</span>);
 		<span class="macro">info!</span>(<span class="string">&quot;----------------------------&quot;</span>);
+	}
+	<span class="comment">// BEEFY allowed only on test networks.
+	</span><span class="kw">if </span>!(chain_spec.is_rococo() || chain_spec.is_wococo() || chain_spec.is_versi()) {
+		runner.config_mut().disable_beefy = <span class="bool-val">true</span>;
 	}
 
 	<span class="kw">let </span>jaeger_agent = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>jaeger_agent) = cli.run.jaeger_agent {
@@ -898,7 +897,6 @@
 			service::NewFullParams {
 				is_collator: service::IsCollator::No,
 				grandpa_pause,
-				enable_beefy,
 				jaeger_agent,
 				telemetry_worker_handle: <span class="prelude-val">None</span>,
 				node_version,
