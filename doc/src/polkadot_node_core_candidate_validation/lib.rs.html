@@ -898,6 +898,9 @@
 <a href="#898" id="898">898</a>
 <a href="#899" id="899">899</a>
 <a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -967,15 +970,15 @@
 
 <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;parachain::candidate-validation&quot;</span>;
 
-<span class="doccomment">/// The amount of time to wait before retrying after a retry-able backing validation error. We use a lower value for the
-/// backing case, to fit within the lower backing timeout.
+<span class="doccomment">/// The amount of time to wait before retrying after a retry-able backing validation error. We use a
+/// lower value for the backing case, to fit within the lower backing timeout.
 </span><span class="attr">#[cfg(not(test))]
 </span><span class="kw">const </span>PVF_BACKING_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">500</span>);
 <span class="attr">#[cfg(test)]
 </span><span class="kw">const </span>PVF_BACKING_EXECUTION_RETRY_DELAY: Duration = Duration::from_millis(<span class="number">200</span>);
-<span class="doccomment">/// The amount of time to wait before retrying after a retry-able approval validation error. We use a higher value for
-/// the approval case since we have more time, and if we wait longer it is more likely that transient conditions will
-/// resolve.
+<span class="doccomment">/// The amount of time to wait before retrying after a retry-able approval validation error. We use
+/// a higher value for the approval case since we have more time, and if we wait longer it is more
+/// likely that transient conditions will resolve.
 </span><span class="attr">#[cfg(not(test))]
 </span><span class="kw">const </span>PVF_APPROVAL_EXECUTION_RETRY_DELAY: Duration = Duration::from_secs(<span class="number">3</span>);
 <span class="attr">#[cfg(test)]
@@ -1351,9 +1354,9 @@
 	</span><span class="kw">const </span>ASSUMPTIONS: <span class="kw-2">&amp;</span>[OccupiedCoreAssumption] = <span class="kw-2">&amp;</span>[
 		OccupiedCoreAssumption::Included,
 		OccupiedCoreAssumption::TimedOut,
-		<span class="comment">// `TimedOut` and `Free` both don&#39;t perform any speculation and therefore should be the same
-		// for our purposes here. In other words, if `TimedOut` matched then the `Free` must be
-		// matched as well.
+		<span class="comment">// `TimedOut` and `Free` both don&#39;t perform any speculation and therefore should be the
+		// same for our purposes here. In other words, if `TimedOut` matched then the `Free` must
+		// be matched as well.
 	</span>];
 
 	<span class="comment">// Consider running these checks in parallel to reduce validation latency.
@@ -1382,9 +1385,10 @@
 		AssumptionCheckOutcome::Matches(validation_data, validation_code) =&gt;
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((validation_data, validation_code))),
 		AssumptionCheckOutcome::DoesNotMatch =&gt; {
-			<span class="comment">// If neither the assumption of the occupied core having the para included or the assumption
-			// of the occupied core timing out are valid, then the persisted_validation_data_hash in the descriptor
-			// is not based on the relay parent and is thus invalid.
+			<span class="comment">// If neither the assumption of the occupied core having the para included or the
+			// assumption of the occupied core timing out are valid, then the
+			// persisted_validation_data_hash in the descriptor is not based on the relay parent and
+			// is thus invalid.
 			</span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 		},
 		AssumptionCheckOutcome::BadRequest =&gt;
@@ -1604,7 +1608,8 @@
 						<span class="string">&quot;Invalid candidate (commitments hash)&quot;
 					</span>);
 
-					<span class="comment">// If validation produced a new set of commitments, we treat the candidate as invalid.
+					<span class="comment">// If validation produced a new set of commitments, we treat the candidate as
+					// invalid.
 					</span><span class="prelude-val">Ok</span>(ValidationResult::Invalid(InvalidCandidate::CommitmentsHashMismatch))
 				} <span class="kw">else </span>{
 					<span class="prelude-val">Ok</span>(ValidationResult::Valid(outputs, persisted_validation_data))
@@ -1644,7 +1649,8 @@
 			prep_timeout,
 			PrepareJobKind::Compilation,
 		);
-		<span class="comment">// We keep track of the total time that has passed and stop retrying if we are taking too long.
+		<span class="comment">// We keep track of the total time that has passed and stop retrying if we are taking too
+		// long.
 		</span><span class="kw">let </span>total_time_start = Instant::now();
 
 		<span class="kw">let </span><span class="kw-2">mut </span>validation_result =
@@ -1680,8 +1686,8 @@
 				<span class="kw">_ </span>=&gt; <span class="kw">break</span>,
 			}
 
-			<span class="comment">// If we got a possibly transient error, retry once after a brief delay, on the assumption
-			// that the conditions that caused this error may have resolved on their own.
+			<span class="comment">// If we got a possibly transient error, retry once after a brief delay, on the
+			// assumption that the conditions that caused this error may have resolved on their own.
 			</span>{
 				<span class="comment">// Wait a brief delay before retrying.
 				</span>futures_timer::Delay::new(retry_delay).<span class="kw">await</span>;

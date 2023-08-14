@@ -349,7 +349,6 @@
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -466,8 +465,8 @@
 				.with_string_tag(<span class="string">&quot;leaf&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, leaf.hash))
 				.with_stage(jaeger::Stage::AvailabilityDistribution);
 
-			<span class="comment">// Order important! We need to handle activated, prior to deactivated, otherwise we might
-			// cancel still needed jobs.
+			<span class="comment">// Order important! We need to handle activated, prior to deactivated, otherwise we
+			// might cancel still needed jobs.
 			</span><span class="self">self</span>.start_requesting_chunks(ctx, runtime, leaf, <span class="kw-2">&amp;</span>span).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 
@@ -520,8 +519,8 @@
 			// any tasks separately.
 			//
 			// The next time the subsystem receives leaf update, some of spawned task will be bumped
-			// to be live in fresh relay parent, while some might get dropped due to the current leaf
-			// being deactivated.
+			// to be live in fresh relay parent, while some might get dropped due to the current
+			// leaf being deactivated.
 			</span><span class="self">self</span>.add_cores(ctx, runtime, leaf, leaf_session_index, cores, span).<span class="kw">await</span><span class="question-mark">?</span>;
 		}
 
@@ -529,7 +528,6 @@
 	}
 
 	<span class="doccomment">/// Stop requesting chunks for obsolete heads.
-	///
 	</span><span class="kw">fn </span>stop_requesting_chunks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, obsolete_leaves: <span class="kw">impl </span>Iterator&lt;Item = Hash&gt;) {
 		<span class="kw">let </span>obsolete_leaves: HashSet&lt;<span class="kw">_</span>&gt; = obsolete_leaves.collect();
 		<span class="self">self</span>.fetches.retain(|<span class="kw">_</span>, task| {
@@ -578,10 +576,10 @@
 						.with_session_info(
 							context,
 							runtime,
-							<span class="comment">// We use leaf here, the relay_parent must be in the same session as the
-							// leaf. This is guaranteed by runtime which ensures that cores are cleared
-							// at session boundaries. At the same time, only leaves are guaranteed to
-							// be fetchable by the state trie.
+							<span class="comment">// We use leaf here, the relay_parent must be in the same session as
+							// the leaf. This is guaranteed by runtime which ensures that cores are
+							// cleared at session boundaries. At the same time, only leaves are
+							// guaranteed to be fetchable by the state trie.
 							</span>leaf,
 							leaf_session_index,
 							|info| FetchTaskConfig::new(leaf, <span class="kw-2">&amp;</span>core, tx, metrics, info, span),

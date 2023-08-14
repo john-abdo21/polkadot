@@ -570,6 +570,11 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -589,17 +594,20 @@
 </span><span class="doccomment">//! Grid topology support implementation
 //! The basic operation of the 2D grid topology is that:
 //!   * A validator producing a message sends it to its row-neighbors and its column-neighbors
-//!   * A validator receiving a message originating from one of its row-neighbors sends it to its column-neighbors
-//!   * A validator receiving a message originating from one of its column-neighbors sends it to its row-neighbors
+//!   * A validator receiving a message originating from one of its row-neighbors sends it to its
+//!     column-neighbors
+//!   * A validator receiving a message originating from one of its column-neighbors sends it to its
+//!     row-neighbors
 //!
-//! This grid approach defines 2 unique paths for every validator to reach every other validator in at most 2 hops.
+//! This grid approach defines 2 unique paths for every validator to reach every other validator in
+//! at most 2 hops.
 //!
 //! However, we also supplement this with some degree of random propagation:
 //! every validator, upon seeing a message for the first time, propagates it to 8 random peers.
 //! This inserts some redundancy in case the grid topology isn&#39;t working or is being attacked -
 //! an adversary doesn&#39;t know which peers a validator will send to.
-//! This is combined with the property that the adversary doesn&#39;t know which validators will elect to check a block.
-//!
+//! This is combined with the property that the adversary doesn&#39;t know which validators will elect
+//! to check a block.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::PeerId;
 <span class="kw">use </span>polkadot_primitives::{AuthorityDiscoveryId, SessionIndex, ValidatorIndex};
@@ -760,7 +768,8 @@
 			(<span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; RequiredRouting::None,
 			(<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; RequiredRouting::GridY, <span class="comment">// messages from X go to Y
 			</span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; RequiredRouting::GridX, <span class="comment">// messages from Y go to X
-			</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; RequiredRouting::GridXY, <span class="comment">// if the grid works as expected, this shouldn&#39;t happen.
+			</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; RequiredRouting::GridXY, <span class="comment">/* if the grid works as expected, this
+			                                           * shouldn&#39;t happen. */
 		</span>}
 	}
 
@@ -785,7 +794,8 @@
 					<span class="string">&quot;Grid topology is unexpected, play it safe and send to X AND Y&quot;
 				</span>);
 				RequiredRouting::GridXY
-			}, <span class="comment">// if the grid works as expected, this shouldn&#39;t happen.
+			}, <span class="comment">/* if the grid works as expected, this
+			                                           * shouldn&#39;t happen. */
 		</span>}
 	}
 

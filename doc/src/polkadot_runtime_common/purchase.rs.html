@@ -1203,6 +1203,13 @@
 <a href="#1203" id="1203">1203</a>
 <a href="#1204" id="1204">1204</a>
 <a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1287,7 +1294,8 @@
 	</span>locked_balance: Balance,
 	<span class="doccomment">/// Their sr25519/ed25519 signature verifying they have signed our required statement.
 	</span>signature: Vec&lt;u8&gt;,
-	<span class="doccomment">/// The percentage of VAT the purchaser is responsible for. This is already factored into account balance.
+	<span class="doccomment">/// The percentage of VAT the purchaser is responsible for. This is already factored into
+	/// account balance.
 	</span>vat: Permill,
 }
 
@@ -1538,12 +1546,14 @@
 
 					<span class="kw">if </span>!status.locked_balance.is_zero() {
 						<span class="kw">let </span>unlock_block = UnlockBlock::&lt;T&gt;::get();
-						<span class="comment">// We allow some configurable portion of the purchased locked DOTs to be unlocked for basic usage.
+						<span class="comment">// We allow some configurable portion of the purchased locked DOTs to be
+						// unlocked for basic usage.
 						</span><span class="kw">let </span>unlocked = (T::UnlockedProportion::get() * status.locked_balance)
 							.min(T::MaxUnlocked::get());
 						<span class="kw">let </span>locked = status.locked_balance.saturating_sub(unlocked);
-						<span class="comment">// We checked that this account has no existing vesting schedule. So this function should
-						// never fail, however if it does, not much we can do about it at this point.
+						<span class="comment">// We checked that this account has no existing vesting schedule. So this
+						// function should never fail, however if it does, not much we can do about
+						// it at this point.
 						</span><span class="kw">let _ </span>= T::VestingSchedule::add_vesting_schedule(
 							<span class="comment">// Apply vesting schedule to this user
 							</span><span class="kw-2">&amp;</span>who,
@@ -1556,7 +1566,8 @@
 						);
 					}
 
-					<span class="comment">// Setting the user account to `Completed` ends the purchase process for this user.
+					<span class="comment">// Setting the user account to `Completed` ends the purchase process for this
+					// user.
 					</span>status.validity = AccountValidity::Completed;
 					<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::PaymentComplete {
 						who: who.clone(),
@@ -1850,17 +1861,20 @@
 	}
 
 	<span class="kw">fn </span>alice_signature() -&gt; [u8; <span class="number">64</span>] {
-		<span class="comment">// echo -n &quot;Hello, World&quot; | subkey -s sign &quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice&quot;
+		<span class="comment">// echo -n &quot;Hello, World&quot; | subkey -s sign &quot;bottom drive obey lake curtain smoke basket hold
+		// race lonely fit walk//Alice&quot;
 		</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;20e0faffdf4dfe939f2faa560f73b1d01cde8472e2b690b7b40606a374244c3a2e9eb9c8107c10b605138374003af8819bd4387d7c24a66ee9253c2e688ab881&quot;</span>)
 	}
 
 	<span class="kw">fn </span>bob_signature() -&gt; [u8; <span class="number">64</span>] {
-		<span class="comment">// echo -n &quot;Hello, World&quot; | subkey -s sign &quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk//Bob&quot;
+		<span class="comment">// echo -n &quot;Hello, World&quot; | subkey -s sign &quot;bottom drive obey lake curtain smoke basket hold
+		// race lonely fit walk//Bob&quot;
 		</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;d6d460187ecf530f3ec2d6e3ac91b9d083c8fbd8f1112d92a82e4d84df552d18d338e6da8944eba6e84afaacf8a9850f54e7b53a84530d649be2e0119c7ce889&quot;</span>)
 	}
 
 	<span class="kw">fn </span>alice_signature_ed25519() -&gt; [u8; <span class="number">64</span>] {
-		<span class="comment">// echo -n &quot;Hello, World&quot; | subkey -e sign &quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk//Alice&quot;
+		<span class="comment">// echo -n &quot;Hello, World&quot; | subkey -e sign &quot;bottom drive obey lake curtain smoke basket hold
+		// race lonely fit walk//Alice&quot;
 		</span><span class="macro">hex_literal::hex!</span>(<span class="string">&quot;ee3f5a6cbfc12a8f00c18b811dc921b550ddf272354cda4b9a57b1d06213fcd8509f5af18425d39a279d13622f14806c3e978e2163981f2ec1c06e9628460b0e&quot;</span>)
 	}
 

@@ -258,6 +258,9 @@
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -373,11 +376,12 @@
 	///
 	/// `leaser` shall have a total of `amount` balance reserved by the implementer of this trait.
 	///
-	/// Note: The implementer of the trait (the leasing system) is expected to do all reserve/unreserve calls. The
-	/// caller of this trait *SHOULD NOT* pre-reserve the deposit (though should ensure that it is reservable).
+	/// Note: The implementer of the trait (the leasing system) is expected to do all
+	/// reserve/unreserve calls. The caller of this trait *SHOULD NOT* pre-reserve the deposit
+	/// (though should ensure that it is reservable).
 	///
-	/// The lease will last from `period_begin` for `period_count` lease periods. It is undefined if the `para`
-	/// already has a slot leased during those periods.
+	/// The lease will last from `period_begin` for `period_count` lease periods. It is undefined if
+	/// the `para` already has a slot leased during those periods.
 	///
 	/// Returns `Err` in the case of an error, and in which case nothing is changed.
 	</span><span class="kw">fn </span>lease_out(
@@ -388,8 +392,8 @@
 		period_count: <span class="self">Self</span>::LeasePeriod,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), LeaseError&gt;;
 
-	<span class="doccomment">/// Return the amount of balance currently held in reserve on `leaser`&#39;s account for leasing `para`. This won&#39;t
-	/// go down outside a lease period.
+	<span class="doccomment">/// Return the amount of balance currently held in reserve on `leaser`&#39;s account for leasing
+	/// `para`. This won&#39;t go down outside a lease period.
 	</span><span class="kw">fn </span>deposit_held(
 		para: ParaId,
 		leaser: <span class="kw-2">&amp;</span><span class="self">Self</span>::AccountId,
@@ -407,7 +411,8 @@
 	</span><span class="kw">fn </span>lease_period_index(block: BlockNumber) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="self">Self</span>::LeasePeriod, bool)&gt;;
 
 	<span class="doccomment">/// Returns true if the parachain already has a lease in any of lease periods in the inclusive
-	/// range `[first_period, last_period]`, intersected with the unbounded range [`current_lease_period`..] .
+	/// range `[first_period, last_period]`, intersected with the unbounded range
+	/// [`current_lease_period`..] .
 	</span><span class="kw">fn </span>already_leased(
 		para_id: ParaId,
 		first_period: <span class="self">Self</span>::LeasePeriod,
@@ -429,7 +434,8 @@
 	/// will be `EndingPeriod(1, 5)`.
 	</span>EndingPeriod(BlockNumber, BlockNumber),
 	<span class="doccomment">/// We have completed the bidding process and are waiting for the VRF to return some acceptable
-	/// randomness to select the winner. The number represents how many blocks we have been waiting.
+	/// randomness to select the winner. The number represents how many blocks we have been
+	/// waiting.
 	</span>VrfDelay(BlockNumber),
 }
 
@@ -484,9 +490,9 @@
 	/// - `last_slot`: The last lease period index of the range to be bid on (inclusive).
 	/// - `amount`: The total amount to be the bid for deposit over the range.
 	///
-	/// The account `Bidder` must have at least `amount` available as a free balance in `Currency`. The
-	/// implementation *MUST* remove or reserve `amount` funds from `bidder` and those funds should be returned
-	/// or freed once the bid is rejected or lease has ended.
+	/// The account `Bidder` must have at least `amount` available as a free balance in `Currency`.
+	/// The implementation *MUST* remove or reserve `amount` funds from `bidder` and those funds
+	/// should be returned or freed once the bid is rejected or lease has ended.
 	</span><span class="kw">fn </span>place_bid(
 		bidder: <span class="self">Self</span>::AccountId,
 		para: ParaId,

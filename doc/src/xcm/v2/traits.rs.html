@@ -349,6 +349,9 @@
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Cumulus.
 
@@ -432,7 +435,8 @@
 	<span class="doccomment">/// Used by `Transact` when the functor cannot be decoded.
 	</span><span class="attr">#[codec(index = <span class="number">17</span>)]
 	</span>FailedToDecode,
-	<span class="doccomment">/// Used by `Transact` to indicate that the given weight limit could be breached by the functor.
+	<span class="doccomment">/// Used by `Transact` to indicate that the given weight limit could be breached by the
+	/// functor.
 	</span><span class="attr">#[codec(index = <span class="number">18</span>)]
 	</span>MaxWeightInvalid,
 	<span class="doccomment">/// Used by `BuyExecution` when the Holding Register does not contain payable fees.
@@ -445,7 +449,8 @@
 	</span><span class="attr">#[codec(index = <span class="number">21</span>)]
 	</span>Trap(u64),
 
-	<span class="comment">// Errors that happen prior to instructions being executed. These fall outside of the XCM spec.
+	<span class="comment">// Errors that happen prior to instructions being executed. These fall outside of the XCM
+	// spec.
 	</span><span class="doccomment">/// XCM version not able to be handled.
 	</span>UnhandledXcmVersion,
 	<span class="doccomment">/// Execution of the XCM would potentially result in a greater weight used than weight limit.
@@ -512,7 +517,8 @@
 </span><span class="kw">pub enum </span>Outcome {
 	<span class="doccomment">/// Execution completed successfully; given weight was used.
 	</span>Complete(Weight),
-	<span class="doccomment">/// Execution started, but did not complete successfully due to the given error; given weight was used.
+	<span class="doccomment">/// Execution started, but did not complete successfully due to the given error; given weight
+	/// was used.
 	</span>Incomplete(Weight, Error),
 	<span class="doccomment">/// Execution did not start due to the given error.
 	</span>Error(Error),
@@ -545,9 +551,9 @@
 
 <span class="doccomment">/// Type of XCM message executor.
 </span><span class="kw">pub trait </span>ExecuteXcm&lt;RuntimeCall&gt; {
-	<span class="doccomment">/// Execute some XCM `message` from `origin` using no more than `weight_limit` weight. The weight limit is
-	/// a basic hard-limit and the implementation may place further restrictions or requirements on weight and
-	/// other aspects.
+	<span class="doccomment">/// Execute some XCM `message` from `origin` using no more than `weight_limit` weight. The
+	/// weight limit is a basic hard-limit and the implementation may place further restrictions or
+	/// requirements on weight and other aspects.
 	</span><span class="kw">fn </span>execute_xcm(
 		origin: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 		message: Xcm&lt;RuntimeCall&gt;,
@@ -566,8 +572,8 @@
 
 	<span class="doccomment">/// Execute some XCM `message` from `origin` using no more than `weight_limit` weight.
 	///
-	/// Some amount of `weight_credit` may be provided which, depending on the implementation, may allow
-	/// execution without associated payment.
+	/// Some amount of `weight_credit` may be provided which, depending on the implementation, may
+	/// allow execution without associated payment.
 	</span><span class="kw">fn </span>execute_xcm_in_credit(
 		origin: <span class="kw">impl </span>Into&lt;MultiLocation&gt;,
 		message: Xcm&lt;RuntimeCall&gt;,
@@ -614,9 +620,9 @@
 
 <span class="doccomment">/// Utility for sending an XCM message.
 ///
-/// These can be amalgamated in tuples to form sophisticated routing systems. In tuple format, each router might return
-/// `NotApplicable` to pass the execution to the next sender item. Note that each `NotApplicable`
-/// might alter the destination and the XCM message for to the next router.
+/// These can be amalgamated in tuples to form sophisticated routing systems. In tuple format, each
+/// router might return `NotApplicable` to pass the execution to the next sender item. Note that
+/// each `NotApplicable` might alter the destination and the XCM message for to the next router.
 ///
 ///
 /// # Example
@@ -681,9 +687,9 @@
 </span><span class="kw">pub trait </span>SendXcm {
 	<span class="doccomment">/// Send an XCM `message` to a given `destination`.
 	///
-	/// If it is not a destination which can be reached with this type but possibly could by others, then it *MUST*
-	/// return `NotApplicable`. Any other error will cause the tuple implementation to exit early without
-	/// trying other type fields.
+	/// If it is not a destination which can be reached with this type but possibly could by others,
+	/// then it *MUST* return `NotApplicable`. Any other error will cause the tuple implementation
+	/// to exit early without trying other type fields.
 	</span><span class="kw">fn </span>send_xcm(destination: <span class="kw">impl </span>Into&lt;MultiLocation&gt;, message: Xcm&lt;()&gt;) -&gt; SendResult;
 }
 

@@ -845,6 +845,13 @@
 <a href="#845" id="845">845</a>
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -979,15 +986,17 @@
 
 	<span class="doccomment">/// Mutate `self` to contain all given `assets`, saturating if necessary.
 	///
-	/// NOTE: [`Assets`] are always sorted, allowing us to optimize this function from `O(n^2)` to `O(n)`.
+	/// NOTE: [`Assets`] are always sorted, allowing us to optimize this function from `O(n^2)` to
+	/// `O(n)`.
 	</span><span class="kw">pub fn </span>subsume_assets(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>assets: Assets) {
 		<span class="kw">let </span><span class="kw-2">mut </span>f_iter = assets.fungible.iter_mut();
 		<span class="kw">let </span><span class="kw-2">mut </span>g_iter = <span class="self">self</span>.fungible.iter_mut();
 		<span class="kw">if let </span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut </span>f), <span class="prelude-val">Some</span>(<span class="kw-2">mut </span>g)) = (f_iter.next(), g_iter.next()) {
 			<span class="kw">loop </span>{
 				<span class="kw">if </span>f.<span class="number">0 </span>== g.<span class="number">0 </span>{
-					<span class="comment">// keys are equal. in this case, we add `self`&#39;s balance for the asset onto `assets`, balance, knowing
-					// that the `append` operation which follows will clobber `self`&#39;s value and only use `assets`&#39;s.
+					<span class="comment">// keys are equal. in this case, we add `self`&#39;s balance for the asset onto
+					// `assets`, balance, knowing that the `append` operation which follows will
+					// clobber `self`&#39;s value and only use `assets`&#39;s.
 					</span>(<span class="kw-2">*</span>f.<span class="number">1</span>).saturating_accrue(<span class="kw-2">*</span>g.<span class="number">1</span>);
 				}
 				<span class="kw">if </span>f.<span class="number">0 </span>&lt;= g.<span class="number">0 </span>{
@@ -1033,8 +1042,9 @@
 
 	<span class="doccomment">/// Alter any concretely identified assets by prepending the given `MultiLocation`.
 	///
-	/// WARNING: For now we consider this infallible and swallow any errors. It is thus the caller&#39;s responsibility to
-	/// ensure that any internal asset IDs are able to be prepended without overflow.
+	/// WARNING: For now we consider this infallible and swallow any errors. It is thus the caller&#39;s
+	/// responsibility to ensure that any internal asset IDs are able to be prepended without
+	/// overflow.
 	</span><span class="kw">pub fn </span>prepend_location(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prepend: <span class="kw-2">&amp;</span>MultiLocation) {
 		<span class="kw">let </span><span class="kw-2">mut </span>fungible = Default::default();
 		mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.fungible, <span class="kw-2">&amp;mut </span>fungible);
@@ -1116,8 +1126,8 @@
 			<span class="self">self</span>.non_fungible.is_superset(<span class="kw-2">&amp;</span>assets.non_fungible)
 	}
 
-	<span class="doccomment">/// Returns an error unless all `assets` are contained in `self`. In the case of an error, the first asset in
-	/// `assets` which is not wholly in `self` is returned.
+	<span class="doccomment">/// Returns an error unless all `assets` are contained in `self`. In the case of an error, the
+	/// first asset in `assets` which is not wholly in `self` is returned.
 	</span><span class="kw">pub fn </span>ensure_contains(<span class="kw-2">&amp;</span><span class="self">self</span>, assets: <span class="kw-2">&amp;</span>MultiAssets) -&gt; <span class="prelude-ty">Result</span>&lt;(), TakeError&gt; {
 		<span class="kw">for </span>asset <span class="kw">in </span>assets.inner().iter() {
 			<span class="kw">match </span>asset {
@@ -1139,16 +1149,17 @@
 
 	<span class="doccomment">/// Mutates `self` to its original value less `mask` and returns assets that were removed.
 	///
-	/// If `saturate` is `true`, then `self` is considered to be masked by `mask`, thereby avoiding any attempt at
-	/// reducing it by assets it does not contain. In this case, the function is infallible. If `saturate` is `false`
-	/// and `mask` references a definite asset which `self` does not contain then an error is returned.
+	/// If `saturate` is `true`, then `self` is considered to be masked by `mask`, thereby avoiding
+	/// any attempt at reducing it by assets it does not contain. In this case, the function is
+	/// infallible. If `saturate` is `false` and `mask` references a definite asset which `self`
+	/// does not contain then an error is returned.
 	///
 	/// The number of unique assets which are removed will respect the `count` parameter in the
 	/// counted wildcard variants.
 	///
-	/// Returns `Ok` with the definite assets token from `self` and mutates `self` to its value minus
-	/// `mask`. Returns `Err` in the non-saturating case where `self` did not contain (enough of) a definite asset to
-	/// be removed.
+	/// Returns `Ok` with the definite assets token from `self` and mutates `self` to its value
+	/// minus `mask`. Returns `Err` in the non-saturating case where `self` did not contain (enough
+	/// of) a definite asset to be removed.
 	</span><span class="kw">fn </span>general_take(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		mask: MultiAssetFilter,
@@ -1233,24 +1244,27 @@
 		<span class="prelude-val">Ok</span>(taken)
 	}
 
-	<span class="doccomment">/// Mutates `self` to its original value less `mask` and returns `true` iff it contains at least `mask`.
+	<span class="doccomment">/// Mutates `self` to its original value less `mask` and returns `true` iff it contains at least
+	/// `mask`.
 	///
-	/// Returns `Ok` with the non-wildcard equivalence of `mask` taken and mutates `self` to its value minus
-	/// `mask` if `self` contains `asset`, and return `Err` otherwise.
+	/// Returns `Ok` with the non-wildcard equivalence of `mask` taken and mutates `self` to its
+	/// value minus `mask` if `self` contains `asset`, and return `Err` otherwise.
 	</span><span class="kw">pub fn </span>saturating_take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, asset: MultiAssetFilter) -&gt; Assets {
 		<span class="self">self</span>.general_take(asset, <span class="bool-val">true</span>)
 			.expect(<span class="string">&quot;general_take never results in error when saturating&quot;</span>)
 	}
 
-	<span class="doccomment">/// Mutates `self` to its original value less `mask` and returns `true` iff it contains at least `mask`.
+	<span class="doccomment">/// Mutates `self` to its original value less `mask` and returns `true` iff it contains at least
+	/// `mask`.
 	///
-	/// Returns `Ok` with the non-wildcard equivalence of `asset` taken and mutates `self` to its value minus
-	/// `asset` if `self` contains `asset`, and return `Err` otherwise.
+	/// Returns `Ok` with the non-wildcard equivalence of `asset` taken and mutates `self` to its
+	/// value minus `asset` if `self` contains `asset`, and return `Err` otherwise.
 	</span><span class="kw">pub fn </span>try_take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mask: MultiAssetFilter) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, TakeError&gt; {
 		<span class="self">self</span>.general_take(mask, <span class="bool-val">false</span>)
 	}
 
-	<span class="doccomment">/// Consumes `self` and returns its original value excluding `asset` iff it contains at least `asset`.
+	<span class="doccomment">/// Consumes `self` and returns its original value excluding `asset` iff it contains at least
+	/// `asset`.
 	</span><span class="kw">pub fn </span>checked_sub(<span class="kw-2">mut </span><span class="self">self</span>, asset: MultiAsset) -&gt; <span class="prelude-ty">Result</span>&lt;Assets, Assets&gt; {
 		<span class="kw">match </span>asset.fun {
 			Fungible(amount) =&gt; {

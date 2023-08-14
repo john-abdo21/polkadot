@@ -1589,6 +1589,7 @@
 <a href="#1589" id="1589">1589</a>
 <a href="#1590" id="1590">1590</a>
 <a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1708,12 +1709,12 @@
 </span><span class="attr">#[derive(Encode, Decode, TypeInfo)]
 #[cfg_attr(test, derive(Debug))]
 </span><span class="kw">pub struct </span>HrmpChannel {
-	<span class="comment">// NOTE: This structure is used by parachains via merkle proofs. Therefore, this struct requires
-	// special treatment.
+	<span class="comment">// NOTE: This structure is used by parachains via merkle proofs. Therefore, this struct
+	// requires special treatment.
 	//
-	// A parachain requested this struct can only depend on the subset of this struct. Specifically,
-	// only a first few fields can be depended upon (See `AbridgedHrmpChannel`). These fields cannot
-	// be changed without corresponding migration of parachains.
+	// A parachain requested this struct can only depend on the subset of this struct.
+	// Specifically, only a first few fields can be depended upon (See `AbridgedHrmpChannel`).
+	// These fields cannot be changed without corresponding migration of parachains.
 	</span><span class="doccomment">/// The maximum number of messages that can be pending in the channel at once.
 	</span><span class="kw">pub </span>max_capacity: u32,
 	<span class="doccomment">/// The maximum total size of the messages that can be pending in the channel at once.
@@ -1961,7 +1962,8 @@
 
 	<span class="doccomment">/// The HRMP watermark associated with each para.
 	/// Invariant:
-	/// - each para `P` used here as a key should satisfy `Paras::is_valid_para(P)` within a session.
+	/// - each para `P` used here as a key should satisfy `Paras::is_valid_para(P)` within a
+	///   session.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub type </span>HrmpWatermarks&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, BlockNumberFor&lt;T&gt;&gt;;
 
@@ -2559,9 +2561,9 @@
 			</span>out_hrmp_msgs.iter().enumerate().map(|(idx, out_msg)| (idx <span class="kw">as </span>u32, out_msg))
 		{
 			<span class="kw">match </span>last_recipient {
-				<span class="comment">// the messages must be sorted in ascending order and there must be no two messages sent
-				// to the same recipient. Thus we can check that every recipient is strictly greater than
-				// the previous one.
+				<span class="comment">// the messages must be sorted in ascending order and there must be no two messages
+				// sent to the same recipient. Thus we can check that every recipient is strictly
+				// greater than the previous one.
 				</span><span class="prelude-val">Some</span>(last_recipient) <span class="kw">if </span>out_msg.recipient &lt;= last_recipient =&gt;
 					<span class="kw">return </span><span class="prelude-val">Err</span>(OutboundHrmpAcceptanceErr::NotSorted { idx }),
 				<span class="kw">_ </span>=&gt; last_recipient = <span class="prelude-val">Some</span>(out_msg.recipient),

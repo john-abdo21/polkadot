@@ -1424,6 +1424,15 @@
 <a href="#1424" id="1424">1424</a>
 <a href="#1425" id="1425">1425</a>
 <a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1537,7 +1546,8 @@
 </span><span class="kw">pub enum </span>RecoveryStrategy {
 	<span class="doccomment">/// We always try the backing group first, then fallback to validator chunks.
 	</span>BackersFirstAlways,
-	<span class="doccomment">/// We try the backing group first if PoV size is lower than specified, then fallback to validator chunks.
+	<span class="doccomment">/// We try the backing group first if PoV size is lower than specified, then fallback to
+	/// validator chunks.
 	</span>BackersFirstIfSizeLower(usize),
 	<span class="doccomment">/// We always recover using validator chunks.
 	</span>ChunksAlways,
@@ -1558,7 +1568,8 @@
 		}
 	}
 
-	<span class="doccomment">/// Returns the PoV size limit in bytes for `BackersFirstIfSizeLower` strategy, otherwise `None`.
+	<span class="doccomment">/// Returns the PoV size limit in bytes for `BackersFirstIfSizeLower` strategy, otherwise
+	/// `None`.
 	</span><span class="kw">pub fn </span>pov_size_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
 		<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
 			RecoveryStrategy::BackersFirstIfSizeLower(limit) =&gt; <span class="prelude-val">Some</span>(limit),
@@ -1591,8 +1602,8 @@
 	///
 	/// including failed ones.
 	</span>total_received_responses: usize,
-	<span class="doccomment">/// a random shuffling of the validators which indicates the order in which we connect to the validators and
-	/// request the chunk from them.
+	<span class="doccomment">/// a random shuffling of the validators which indicates the order in which we connect to the
+	/// validators and request the chunk from them.
 	</span>shuffling: VecDeque&lt;ValidatorIndex&gt;,
 	<span class="doccomment">/// Chunks received so far.
 	</span>received_chunks: HashMap&lt;ValidatorIndex, ErasureChunk&gt;,
@@ -1641,7 +1652,8 @@
 		HashMap&lt;ValidatorIndex, ErasureChunk&gt;,
 		oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;AvailableData, ErasureEncodingError&gt;&gt;,
 	),
-	<span class="doccomment">/// Re-encode `AvailableData` into erasure chunks in order to verify the provided root hash of the Merkle tree.
+	<span class="doccomment">/// Re-encode `AvailableData` into erasure chunks in order to verify the provided root hash of
+	/// the Merkle tree.
 	</span>Reencode(usize, Hash, AvailableData, oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;AvailableData&gt;&gt;),
 }
 
@@ -2234,8 +2246,8 @@
 		<span class="self">self</span>.params.metrics.on_recovery_started();
 
 		<span class="kw">loop </span>{
-			<span class="comment">// These only fail if we cannot reach the underlying subsystem, which case there is nothing
-			// meaningful we can do.
+			<span class="comment">// These only fail if we cannot reach the underlying subsystem, which case there is
+			// nothing meaningful we can do.
 			</span><span class="kw">match </span><span class="self">self</span>.source {
 				Source::RequestFromBackers(<span class="kw-2">ref mut </span>from_backers) =&gt; {
 					<span class="kw">match </span>from_backers.run(<span class="kw-2">&amp;</span><span class="self">self</span>.params, <span class="kw-2">&amp;mut </span><span class="self">self</span>.sender).<span class="kw">await </span>{
@@ -2434,7 +2446,8 @@
 			);
 
 			backing_group = backing_group.filter(|<span class="kw">_</span>| {
-				<span class="comment">// We keep the backing group only if `1/3` of chunks sum up to less than `small_pov_limit`.
+				<span class="comment">// We keep the backing group only if `1/3` of chunks sum up to less than
+				// `small_pov_limit`.
 				</span>prefer_backing_group
 			});
 		}
@@ -2620,18 +2633,21 @@
 		<span class="kw">let </span>(erasure_task_tx, erasure_task_rx) = futures::channel::mpsc::channel(<span class="number">16</span>);
 		<span class="kw">let </span><span class="kw-2">mut </span>erasure_task_rx = erasure_task_rx.fuse();
 
-		<span class="comment">// `ThreadPoolBuilder` spawns the tasks using `spawn_blocking`. For each worker there will be a `mpsc` channel created.
-		// Each of these workers take the `Receiver` and poll it in an infinite loop.
-		// All of the sender ends of the channel are sent as a vec which we then use to create a `Cycle` iterator.
-		// We use this iterator to assign work in a round-robin fashion to the workers in the pool.
+		<span class="comment">// `ThreadPoolBuilder` spawns the tasks using `spawn_blocking`. For each worker there will
+		// be a `mpsc` channel created. Each of these workers take the `Receiver` and poll it in an
+		// infinite loop. All of the sender ends of the channel are sent as a vec which we then use
+		// to create a `Cycle` iterator. We use this iterator to assign work in a round-robin
+		// fashion to the workers in the pool.
 		//
 		// How work is dispatched to the pool from the recovery tasks:
-		// - Once a recovery task finishes retrieving the availability data, it needs to reconstruct from chunks and/or
+		// - Once a recovery task finishes retrieving the availability data, it needs to reconstruct
+		//   from chunks and/or
 		// re-encode the data which are heavy CPU computations.
-		// To do so it sends an `ErasureTask` to the main loop via the `erasure_task` channel, and waits for the results
-		// over a `oneshot` channel.
+		// To do so it sends an `ErasureTask` to the main loop via the `erasure_task` channel, and
+		// waits for the results over a `oneshot` channel.
 		// - In the subsystem main loop we poll the `erasure_task_rx` receiver.
-		// - We forward the received `ErasureTask` to the `next()` sender yielded by the `Cycle` iterator.
+		// - We forward the received `ErasureTask` to the `next()` sender yielded by the `Cycle`
+		//   iterator.
 		// - Some worker thread handles it and sends the response over the `oneshot` channel.
 
 		// Create a thread pool with 2 workers.
@@ -2774,11 +2790,13 @@
 	<span class="comment">// Creates a pool of `size` workers, where 1 &lt;= `size` &lt;= `MAX_THREADS`.
 	//
 	// Each worker is created by `spawn_blocking` and takes the receiver side of a channel
-	// while all of the senders are returned to the caller. Each worker runs `erasure_task_thread` that
-	// polls the `Receiver` for an `ErasureTask` which is expected to be CPU intensive. The larger
-	// the input (more or larger chunks/availability data), the more CPU cycles will be spent.
+	// while all of the senders are returned to the caller. Each worker runs `erasure_task_thread`
+	// that polls the `Receiver` for an `ErasureTask` which is expected to be CPU intensive. The
+	// larger the input (more or larger chunks/availability data), the more CPU cycles will be
+	// spent.
 	//
-	// For example, for 32KB PoVs, we&#39;d expect re-encode to eat as much as 90ms and 500ms for 2.5MiB.
+	// For example, for 32KB PoVs, we&#39;d expect re-encode to eat as much as 90ms and 500ms for
+	// 2.5MiB.
 	//
 	// After executing such a task, the worker sends the response via a provided `oneshot` sender.
 	//

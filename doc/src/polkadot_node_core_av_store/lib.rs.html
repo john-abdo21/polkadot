@@ -1386,6 +1386,9 @@
 <a href="#1386" id="1386">1386</a>
 <a href="#1387" id="1387">1387</a>
 <a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1455,8 +1458,8 @@
 <span class="kw">const </span>UNFINALIZED_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">11</span>] = <span class="string">b&quot;unfinalized&quot;</span>;
 <span class="kw">const </span>PRUNE_BY_TIME_PREFIX: <span class="kw-2">&amp;</span>[u8; <span class="number">13</span>] = <span class="string">b&quot;prune_by_time&quot;</span>;
 
-<span class="comment">// We have some keys we want to map to empty values because existence of the key is enough. We use this because
-// rocksdb doesn&#39;t support empty values.
+<span class="comment">// We have some keys we want to map to empty values because existence of the key is enough. We use
+// this because rocksdb doesn&#39;t support empty values.
 </span><span class="kw">const </span>TOMBSTONE_VALUE: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot; &quot;</span>;
 
 <span class="doccomment">/// Unavailable blocks are kept for 1 hour.
@@ -1527,10 +1530,11 @@
 	<span class="doccomment">/// Candidate data was first observed at the given time but is not available in any block.
 	</span><span class="attr">#[codec(index = <span class="number">0</span>)]
 	</span>Unavailable(BETimestamp),
-	<span class="doccomment">/// The candidate was first observed at the given time and was included in the given list of unfinalized blocks, which may be
-	/// empty. The timestamp here is not used for pruning. Either one of these blocks will be finalized or the state will regress to
-	/// `State::Unavailable`, in which case the same timestamp will be reused. Blocks are sorted ascending first by block number and
-	/// then hash.
+	<span class="doccomment">/// The candidate was first observed at the given time and was included in the given list of
+	/// unfinalized blocks, which may be empty. The timestamp here is not used for pruning. Either
+	/// one of these blocks will be finalized or the state will regress to `State::Unavailable`, in
+	/// which case the same timestamp will be reused. Blocks are sorted ascending first by block
+	/// number and then hash.
 	</span><span class="attr">#[codec(index = <span class="number">1</span>)]
 	</span>Unfinalized(BETimestamp, Vec&lt;(BEBlockNumber, Hash)&gt;),
 	<span class="doccomment">/// Candidate data has appeared in a finalized block and did so at the given time.
@@ -2208,8 +2212,8 @@
 
 	<span class="kw">match </span>load_meta(db, config, <span class="kw-2">&amp;</span>candidate_hash)<span class="question-mark">? </span>{
 		<span class="prelude-val">None </span>=&gt; {
-			<span class="comment">// This is alarming. We&#39;ve observed a block being included without ever seeing it backed.
-			// Warn and ignore.
+			<span class="comment">// This is alarming. We&#39;ve observed a block being included without ever seeing it
+			// backed. Warn and ignore.
 			</span><span class="macro">gum::warn!</span>(
 				target: LOG_TARGET,
 				<span class="question-mark">?</span>candidate_hash,
@@ -2282,9 +2286,9 @@
 		<span class="kw">let </span><span class="kw-2">mut </span>db_transaction = DBTransaction::new();
 		<span class="kw">let </span>(start_prefix, end_prefix) = finalized_block_range(finalized_number);
 
-		<span class="comment">// We have to do some juggling here of the `iter` to make sure it doesn&#39;t cross the `.await` boundary
-		// as it is not `Send`. That is why we create the iterator once within this loop, drop it,
-		// do an asynchronous request, and then instantiate the exact same iterator again.
+		<span class="comment">// We have to do some juggling here of the `iter` to make sure it doesn&#39;t cross the `.await`
+		// boundary as it is not `Send`. That is why we create the iterator once within this loop,
+		// drop it, do an asynchronous request, and then instantiate the exact same iterator again.
 		</span><span class="kw">let </span>batch_num = {
 			<span class="kw">let </span><span class="kw-2">mut </span>iter = subsystem
 				.db
@@ -2349,8 +2353,9 @@
 
 		update_blocks_at_finalized_height(<span class="kw-2">&amp;</span>subsystem, <span class="kw-2">&amp;mut </span>db_transaction, batch, batch_num, now)<span class="question-mark">?</span>;
 
-		<span class="comment">// We need to write at the end of the loop so the prefix iterator doesn&#39;t pick up the same values again
-		// in the next iteration. Another unfortunate effect of having to re-initialize the iterator.
+		<span class="comment">// We need to write at the end of the loop so the prefix iterator doesn&#39;t pick up the same
+		// values again in the next iteration. Another unfortunate effect of having to re-initialize
+		// the iterator.
 		</span>subsystem.db.write(db_transaction)<span class="question-mark">?</span>;
 	}
 
@@ -2603,7 +2608,8 @@
 					<span class="comment">// We do not bubble up internal errors to caller subsystems, instead the
 					// tx channel is dropped and that error is caught by the caller subsystem.
 					//
-					// We bubble up the specific error here so `av-store` logs still tell what happend.
+					// We bubble up the specific error here so `av-store` logs still tell what
+					// happend.
 					</span><span class="kw">return </span><span class="prelude-val">Err</span>(e.into())
 				},
 			}
@@ -2686,8 +2692,8 @@
 		.with_candidate(candidate_hash)
 		.with_pov(<span class="kw-2">&amp;</span>available_data.pov);
 
-	<span class="comment">// Important note: This check below is critical for consensus and the `backing` subsystem relies on it to
-	// ensure candidate validity.
+	<span class="comment">// Important note: This check below is critical for consensus and the `backing` subsystem relies
+	// on it to ensure candidate validity.
 	</span><span class="kw">let </span>chunks = erasure::obtain_chunks_v1(n_validators, <span class="kw-2">&amp;</span>available_data)<span class="question-mark">?</span>;
 	<span class="kw">let </span>branches = erasure::branches(chunks.as_ref());
 

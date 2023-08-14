@@ -509,6 +509,11 @@
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -559,7 +564,8 @@
 <span class="doccomment">/// Controls how much dispute votes to be fetched from the `dispute-coordinator` per iteration in
 /// `fn vote_selection`. The purpose is to fetch the votes in batches until
 /// `MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME` is reached. If all votes are fetched in single call
-/// we might fetch votes which we never use. This will create unnecessary load on `dispute-coordinator`.
+/// we might fetch votes which we never use. This will create unnecessary load on
+/// `dispute-coordinator`.
 ///
 /// This value should be less than `MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME`. Increase it in case
 /// `provisioner` sends too many `QueryCandidateVotes` messages to `dispite-coordinator`.
@@ -579,22 +585,23 @@
 ///   * Offchain vs Onchain
 ///   * Concluded onchain vs Unconcluded onchain
 ///
-/// Provisioner fetches all disputes from `dispute-coordinator` and separates them in multiple partitions.
-/// Please refer to `struct PartitionedDisputes` for details about the actual partitions.
-/// Each partition has got a priority implicitly assigned to it and the disputes are selected based on this
-/// priority (e.g. disputes in partition 1, then if there is space - disputes from partition 2 and so on).
+/// Provisioner fetches all disputes from `dispute-coordinator` and separates them in multiple
+/// partitions. Please refer to `struct PartitionedDisputes` for details about the actual
+/// partitions. Each partition has got a priority implicitly assigned to it and the disputes are
+/// selected based on this priority (e.g. disputes in partition 1, then if there is space - disputes
+/// from partition 2 and so on).
 ///
 /// # Votes selection
 ///
-/// Besides the prioritization described above the votes in each partition are filtered too. Provisioner
-/// fetches all onchain votes and filters them out from all partitions. As a result the Runtime receives
-/// only fresh votes (votes it didn&#39;t know about).
+/// Besides the prioritization described above the votes in each partition are filtered too.
+/// Provisioner fetches all onchain votes and filters them out from all partitions. As a result the
+/// Runtime receives only fresh votes (votes it didn&#39;t know about).
 ///
 /// # How the onchain votes are fetched
 ///
-/// The logic outlined above relies on `RuntimeApiRequest::Disputes` message from the Runtime. The user
-/// check the Runtime version before calling `select_disputes`. If the function is used with old runtime
-/// an error is logged and the logic will continue with empty onchain votes `HashMap`.
+/// The logic outlined above relies on `RuntimeApiRequest::Disputes` message from the Runtime. The
+/// user check the Runtime version before calling `select_disputes`. If the function is used with
+/// old runtime an error is logged and the logic will continue with empty onchain votes `HashMap`.
 </span><span class="kw">pub async fn </span>select_disputes&lt;Sender&gt;(
 	sender: <span class="kw-2">&amp;mut </span>Sender,
 	metrics: <span class="kw-2">&amp;</span>metrics::Metrics,
@@ -621,7 +628,8 @@
 			r
 		},
 		<span class="prelude-val">Err</span>(GetOnchainDisputesError::NotSupported(runtime_api_err, relay_parent)) =&gt; {
-			<span class="comment">// Runtime version is checked before calling this method, so the error below should never happen!
+			<span class="comment">// Runtime version is checked before calling this method, so the error below should
+			// never happen!
 			</span><span class="macro">gum::error!</span>(
 				target: LOG_TARGET,
 				<span class="question-mark">?</span>runtime_api_err,
@@ -663,7 +671,8 @@
 	<span class="macro">gum::trace!</span>(target: LOG_TARGET, <span class="question-mark">?</span>leaf, <span class="string">&quot;Filtering recent disputes&quot;</span>);
 
 	<span class="comment">// Filter out unconfirmed disputes. However if the dispute is already onchain - don&#39;t skip it.
-	// In this case we&#39;d better push as much fresh votes as possible to bring it to conclusion faster.
+	// In this case we&#39;d better push as much fresh votes as possible to bring it to conclusion
+	// faster.
 	</span><span class="kw">let </span>recent_disputes = recent_disputes
 		.into_iter()
 		.filter(|d| d.<span class="number">2</span>.is_confirmed_concluded() || onchain.contains_key(<span class="kw-2">&amp;</span>(d.<span class="number">0</span>, d.<span class="number">1</span>)))
@@ -689,9 +698,9 @@
 	make_multi_dispute_statement_set(metrics, result)
 }
 
-<span class="doccomment">/// Selects dispute votes from `PartitionedDisputes` which should be sent to the runtime. Votes which
-/// are already onchain are filtered out. Result should be sorted by `(SessionIndex, CandidateHash)`
-/// which is enforced by the `BTreeMap`. This is a requirement from the runtime.
+<span class="doccomment">/// Selects dispute votes from `PartitionedDisputes` which should be sent to the runtime. Votes
+/// which are already onchain are filtered out. Result should be sorted by `(SessionIndex,
+/// CandidateHash)` which is enforced by the `BTreeMap`. This is a requirement from the runtime.
 </span><span class="kw">async fn </span>vote_selection&lt;Sender&gt;(
 	sender: <span class="kw-2">&amp;mut </span>Sender,
 	partitioned: PartitionedDisputes,
@@ -748,9 +757,9 @@
 		</span><span class="kw">for </span>(session_index, candidate_hash, selected_votes) <span class="kw">in </span>votes {
 			<span class="kw">let </span>votes_len = selected_votes.valid.raw().len() + selected_votes.invalid.len();
 			<span class="kw">if </span>votes_len + total_votes_len &gt; MAX_DISPUTE_VOTES_FORWARDED_TO_RUNTIME {
-				<span class="comment">// we are done - no more votes can be added. Importantly, we don&#39;t add any votes for a dispute here
-				// if we can&#39;t fit them all. This gives us an important invariant, that backing votes for
-				// disputes make it into the provisioned vote set.
+				<span class="comment">// we are done - no more votes can be added. Importantly, we don&#39;t add any votes for
+				// a dispute here if we can&#39;t fit them all. This gives us an important invariant,
+				// that backing votes for disputes make it into the provisioned vote set.
 				</span><span class="macro">gum::trace!</span>(
 					target: LOG_TARGET,
 					<span class="question-mark">?</span>request_votes_counter,
@@ -994,7 +1003,8 @@
 		.collect()
 }
 
-<span class="doccomment">/// Gets the on-chain disputes at a given block number and returns them as a `HashMap` so that searching in them is cheap.
+<span class="doccomment">/// Gets the on-chain disputes at a given block number and returns them as a `HashMap` so that
+/// searching in them is cheap.
 </span><span class="kw">pub async fn </span>get_onchain_disputes&lt;Sender&gt;(
 	sender: <span class="kw-2">&amp;mut </span>Sender,
 	relay_parent: Hash,

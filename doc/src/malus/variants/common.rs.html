@@ -436,6 +436,12 @@
 <a href="#436" id="436">436</a>
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -563,8 +569,8 @@
 		<span class="self">Self </span>{ fake_validation, fake_validation_error, distribution, spawner }
 	}
 
-	<span class="doccomment">/// Creates and sends the validation response for a given candidate. Queries the runtime to obtain the validation data for the
-	/// given candidate.
+	<span class="doccomment">/// Creates and sends the validation response for a given candidate. Queries the runtime to
+	/// obtain the validation data for the given candidate.
 	</span><span class="kw">pub fn </span>send_validation_response&lt;Sender&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		candidate_descriptor: CandidateDescriptor,
@@ -641,7 +647,8 @@
 {
 	<span class="kw">type </span>Message = CandidateValidationMessage;
 
-	<span class="comment">// Capture all (approval and backing) candidate validation requests and depending on configuration fail them.
+	<span class="comment">// Capture all (approval and backing) candidate validation requests and depending on
+	// configuration fail them.
 	</span><span class="kw">fn </span>intercept_incoming(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		subsystem_sender: <span class="kw-2">&amp;mut </span>Sender,
@@ -717,7 +724,8 @@
 					},
 					FakeCandidateValidation::ApprovalInvalid |
 					FakeCandidateValidation::BackingAndApprovalInvalid =&gt; {
-						<span class="comment">// Set the validation result to invalid with probability `p` and trigger a dispute
+						<span class="comment">// Set the validation result to invalid with probability `p` and trigger a
+						// dispute
 						</span><span class="kw">let </span>behave_maliciously = <span class="self">self</span>.distribution.sample(<span class="kw-2">&amp;mut </span>rand::thread_rng());
 						<span class="kw">match </span>behave_maliciously {
 							<span class="bool-val">true </span>=&gt; {
@@ -732,7 +740,8 @@
 									<span class="kw-2">&amp;</span>validation_result,
 								);
 
-								<span class="comment">// We&#39;re not even checking the candidate, this makes us appear faster than honest validators.
+								<span class="comment">// We&#39;re not even checking the candidate, this makes us appear
+								// faster than honest validators.
 								</span>sender.send(<span class="prelude-val">Ok</span>(validation_result)).unwrap();
 								<span class="prelude-val">None
 							</span>},
@@ -808,7 +817,8 @@
 								);
 								<span class="prelude-val">None
 							</span>},
-							<span class="comment">// If the `PoV` is malicious, we behave normally with some probability `(1-p)`
+							<span class="comment">// If the `PoV` is malicious, we behave normally with some probability
+							// `(1-p)`
 							</span><span class="bool-val">false </span>=&gt; <span class="prelude-val">Some</span>(FromOrchestra::Communication {
 								msg: CandidateValidationMessage::ValidateFromChainState(
 									candidate_receipt,
@@ -821,7 +831,8 @@
 					},
 					FakeCandidateValidation::BackingInvalid |
 					FakeCandidateValidation::BackingAndApprovalInvalid =&gt; {
-						<span class="comment">// Maliciously set the validation result to invalid for a valid candidate with probability `p`
+						<span class="comment">// Maliciously set the validation result to invalid for a valid candidate
+						// with probability `p`
 						</span><span class="kw">let </span>behave_maliciously = <span class="self">self</span>.distribution.sample(<span class="kw-2">&amp;mut </span>rand::thread_rng());
 						<span class="kw">match </span>behave_maliciously {
 							<span class="bool-val">true </span>=&gt; {
@@ -834,7 +845,8 @@
 									<span class="string">&quot;😈 Maliciously sending invalid validation result: {:?}.&quot;</span>,
 									<span class="kw-2">&amp;</span>validation_result,
 								);
-								<span class="comment">// We&#39;re not even checking the candidate, this makes us appear faster than honest validators.
+								<span class="comment">// We&#39;re not even checking the candidate, this makes us appear
+								// faster than honest validators.
 								</span>response_sender.send(<span class="prelude-val">Ok</span>(validation_result)).unwrap();
 								<span class="prelude-val">None
 							</span>},

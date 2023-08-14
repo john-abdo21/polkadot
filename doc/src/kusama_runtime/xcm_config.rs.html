@@ -461,6 +461,8 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -526,8 +528,8 @@
 	</span><span class="kw">pub </span>LocalCheckAccount: (AccountId, MintLocation) = (CheckAccount::get(), MintLocation::Local);
 }
 
-<span class="doccomment">/// The canonical means of converting a `MultiLocation` into an `AccountId`, used when we want to determine
-/// the sovereign account controlled by a location.
+<span class="doccomment">/// The canonical means of converting a `MultiLocation` into an `AccountId`, used when we want to
+/// determine the sovereign account controlled by a location.
 </span><span class="kw">pub type </span>SovereignAccountOf = (
 	<span class="comment">// We can convert a child parachain using the standard `AccountId` conversion.
 	</span>ChildParachainConvertsVia&lt;ParaId, AccountId&gt;,
@@ -535,8 +537,8 @@
 	</span>AccountId32Aliases&lt;ThisNetwork, AccountId&gt;,
 );
 
-<span class="doccomment">/// Our asset transactor. This is what allows us to interest with the runtime facilities from the point of
-/// view of XCM-only concepts like `MultiLocation` and `MultiAsset`.
+<span class="doccomment">/// Our asset transactor. This is what allows us to interest with the runtime facilities from the
+/// point of view of XCM-only concepts like `MultiLocation` and `MultiAsset`.
 ///
 /// Ours is only aware of the Balances pallet, which is mapped to `TokenLocation`.
 </span><span class="kw">pub type </span>LocalAssetTransactor = XcmCurrencyAdapter&lt;
@@ -823,8 +825,8 @@
 	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(Parachain(<span class="number">1000</span>).into());
 }
 
-<span class="doccomment">/// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior location
-/// of this chain.
+<span class="doccomment">/// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior
+/// location of this chain.
 </span><span class="kw">pub type </span>LocalOriginToLocation = (
 	<span class="comment">// And a usual Signed origin to be used in XCM as a corresponding AccountId32
 	</span>SignedToAccountId32&lt;RuntimeOrigin, AccountId, ThisNetwork&gt;,
@@ -837,8 +839,8 @@
 <span class="doccomment">/// Type to convert the Fellows origin to a Plurality `MultiLocation` value.
 </span><span class="kw">pub type </span>FellowsToPlurality = OriginToPluralityVoice&lt;RuntimeOrigin, Fellows, FellowsBodyId&gt;;
 
-<span class="doccomment">/// Type to convert a pallet `Origin` type value into a `MultiLocation` value which represents an interior location
-/// of this chain for a destination chain.
+<span class="doccomment">/// Type to convert a pallet `Origin` type value into a `MultiLocation` value which represents an
+/// interior location of this chain for a destination chain.
 </span><span class="kw">pub type </span>LocalPalletOriginToLocation = (
 	<span class="comment">// StakingAdmin origin to be used in XCM as a corresponding Plurality `MultiLocation` value.
 	</span>StakingAdminToPlurality,
@@ -849,16 +851,17 @@
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="comment">// We only allow the root, the council, fellows and the staking admin to send messages.
-	// This is basically safe to enable for everyone (safe the possibility of someone spamming the parachain
-	// if they&#39;re willing to pay the KSM to send from the Relay-chain), but it&#39;s useless until we bring in XCM v3
-	// which will make `DescendOrigin` a bit more useful.
+	// This is basically safe to enable for everyone (safe the possibility of someone spamming the
+	// parachain if they&#39;re willing to pay the KSM to send from the Relay-chain), but it&#39;s useless
+	// until we bring in XCM v3 which will make `DescendOrigin` a bit more useful.
 	</span><span class="kw">type </span>SendXcmOrigin = xcm_builder::EnsureXcmOrigin&lt;RuntimeOrigin, LocalPalletOriginToLocation&gt;;
 	<span class="kw">type </span>XcmRouter = XcmRouter;
 	<span class="comment">// Anyone can execute XCM messages locally.
 	</span><span class="kw">type </span>ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
 	<span class="kw">type </span>XcmExecuteFilter = Everything;
 	<span class="kw">type </span>XcmExecutor = xcm_executor::XcmExecutor&lt;XcmConfig&gt;;
-	<span class="comment">// Anyone is able to use teleportation regardless of who they are and what they want to teleport.
+	<span class="comment">// Anyone is able to use teleportation regardless of who they are and what they want to
+	// teleport.
 	</span><span class="kw">type </span>XcmTeleportFilter = Everything;
 	<span class="comment">// Anyone is able to use reserve transfers regardless of who they are and what they want to
 	// transfer.
@@ -913,7 +916,8 @@
 	<span class="kw">else </span>{
 		<span class="macro">panic!</span>(<span class="string">&quot;no Transact instruction found&quot;</span>)
 	};
-	<span class="comment">// should be pallet_utility.as_derivative { index: 0, call: pallet_staking::bond_extra { max_additional: 2490000000000 } }
+	<span class="comment">// should be pallet_utility.as_derivative { index: 0, call: pallet_staking::bond_extra {
+	// max_additional: 2490000000000 } }
 	</span><span class="kw">let </span>message_call = call.take_decoded().expect(<span class="string">&quot;can&#39;t decode Transact call&quot;</span>);
 	<span class="kw">let </span>call_weight = message_call.get_dispatch_info().weight;
 	<span class="comment">// Ensure that the Transact instruction is giving a sensible `require_weight_at_most` value

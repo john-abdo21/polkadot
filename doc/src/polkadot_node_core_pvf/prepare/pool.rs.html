@@ -450,6 +450,8 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -513,9 +515,9 @@
 
 	<span class="doccomment">/// Request the given worker to start working on the given code.
 	///
-	/// Once the job either succeeded or failed, a [`FromPool::Concluded`] message will be sent back.
-	/// It&#39;s also possible that the worker dies before handling the message in which case [`FromPool::Rip`]
-	/// will be sent back.
+	/// Once the job either succeeded or failed, a [`FromPool::Concluded`] message will be sent
+	/// back. It&#39;s also possible that the worker dies before handling the message in which case
+	/// [`FromPool::Rip`] will be sent back.
 	///
 	/// In either case, the worker is considered busy and no further `StartWork` messages should be
 	/// sent until either `Concluded` or `Rip` message is received.
@@ -689,8 +691,8 @@
 					);
 				} <span class="kw">else </span>{
 					<span class="comment">// idle token is present after spawn and after a job is concluded;
-					// the precondition for `StartWork` is it should be sent only if all previous work
-					// items concluded;
+					// the precondition for `StartWork` is it should be sent only if all previous
+					// work items concluded;
 					// thus idle token is Some;
 					// qed.
 					</span><span class="macro">never!</span>(<span class="string">&quot;unexpected absence of the idle token in prepare pool&quot;</span>);
@@ -763,7 +765,8 @@
 			</span><span class="kw">match </span>outcome {
 				Outcome::Concluded { worker: idle, result } =&gt;
 					handle_concluded_no_rip(from_pool, spawned, worker, idle, result),
-				<span class="comment">// Return `Concluded`, but do not kill the worker since the error was on the host side.
+				<span class="comment">// Return `Concluded`, but do not kill the worker since the error was on the host
+				// side.
 				</span>Outcome::CreateTmpFileErr { worker: idle, err } =&gt; handle_concluded_no_rip(
 					from_pool,
 					spawned,
@@ -771,7 +774,8 @@
 					idle,
 					<span class="prelude-val">Err</span>(PrepareError::CreateTmpFileErr(err)),
 				),
-				<span class="comment">// Return `Concluded`, but do not kill the worker since the error was on the host side.
+				<span class="comment">// Return `Concluded`, but do not kill the worker since the error was on the host
+				// side.
 				</span>Outcome::RenameTmpFileErr { worker: idle, result: <span class="kw">_</span>, err } =&gt;
 					handle_concluded_no_rip(
 						from_pool,

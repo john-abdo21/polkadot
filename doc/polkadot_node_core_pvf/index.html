@@ -8,30 +8,30 @@ Validation</a>.</p>
 <p>Then using the handle the client can send three types of requests:</p>
 <p>(a) PVF pre-checking. This takes the <code>Pvf</code> code and tries to prepare it (verify and
 compile) in order to pre-check its validity.</p>
-<p>(b) PVF execution. This accepts the PVF <a href="../polkadot_parachain/primitives/struct.ValidationParams.html" title="struct polkadot_parachain::primitives::ValidationParams"><code>params</code></a>
-and the <code>Pvf</code> code, prepares (verifies and compiles) the code, and then executes PVF
-with the <code>params</code>.</p>
+<p>(b) PVF execution. This accepts the PVF
+<a href="../polkadot_parachain/primitives/struct.ValidationParams.html" title="struct polkadot_parachain::primitives::ValidationParams"><code>params</code></a>     and the <code>Pvf</code> code, prepares
+(verifies and compiles) the code, and then executes PVF     with the <code>params</code>.</p>
 <p>(c) Heads up. This request allows to signal that the given PVF may be needed soon and that it
 should be prepared for execution.</p>
-<p>The preparation results are cached for some time after they either used or was signaled in heads up.
-All requests that depends on preparation of the same PVF are bundled together and will be executed
-as soon as the artifact is prepared.</p>
+<p>The preparation results are cached for some time after they either used or was signaled in heads
+up. All requests that depends on preparation of the same PVF are bundled together and will be
+executed as soon as the artifact is prepared.</p>
 <h2 id="priority"><a href="#priority">Priority</a></h2>
-<p>PVF execution requests can specify the <a href="enum.Priority.html" title="enum polkadot_node_core_pvf::Priority">priority</a> with which the given request should
-be handled. Different priority levels have different effects. This is discussed below.</p>
+<p>PVF execution requests can specify the <a href="enum.Priority.html" title="enum polkadot_node_core_pvf::Priority">priority</a> with which the given request
+should be handled. Different priority levels have different effects. This is discussed below.</p>
 <p>Preparation started by a heads up signal always starts with the background priority. If there
-is already a request for that PVF preparation under way the priority is inherited. If after heads
-up, a new PVF execution request comes in with a higher priority, then the original task’s priority
-will be adjusted to match the new one if it’s larger.</p>
+is already a request for that PVF preparation under way the priority is inherited. If after
+heads up, a new PVF execution request comes in with a higher priority, then the original task’s
+priority will be adjusted to match the new one if it’s larger.</p>
 <p>Priority can never go down, only up.</p>
 <h2 id="under-the-hood"><a href="#under-the-hood">Under the hood</a></h2><h3 id="the-flow"><a href="#the-flow">The flow</a></h3>
 <p>Under the hood, the validation host is built using a bunch of communicating processes, not
 dissimilar to actors. Each of such “processes” is a future task that contains an event loop that
 processes incoming messages, potentially delegating sub-tasks to other “processes”.</p>
-<p>Two of these processes are queues. The first one is for preparation jobs and the second one is for
-execution. Both of the queues are backed by separate pools of workers of different kind.</p>
-<p>Preparation workers handle preparation requests by prevalidating and instrumenting PVF wasm code,
-and then passing it into the compiler, to prepare the artifact.</p>
+<p>Two of these processes are queues. The first one is for preparation jobs and the second one is
+for execution. Both of the queues are backed by separate pools of workers of different kind.</p>
+<p>Preparation workers handle preparation requests by prevalidating and instrumenting PVF wasm
+code, and then passing it into the compiler, to prepare the artifact.</p>
 <h3 id="artifacts"><a href="#artifacts">Artifacts</a></h3>
 <p>An artifact is the final product of preparation. If the preparation succeeded, then the artifact
 will contain the compiled code usable for quick execution by a worker later on. If the

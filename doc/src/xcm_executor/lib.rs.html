@@ -1022,6 +1022,10 @@
 <a href="#1022" id="1022">1022</a>
 <a href="#1023" id="1023">1023</a>
 <a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1380,7 +1384,8 @@
 	}
 
 	<span class="doccomment">/// Execute any final operations after having executed the XCM message.
-	/// This includes refunding surplus weight, trapping extra holding funds, and returning any errors during execution.
+	/// This includes refunding surplus weight, trapping extra holding funds, and returning any
+	/// errors during execution.
 	</span><span class="kw">pub fn </span>post_process(<span class="kw-2">mut </span><span class="self">self</span>, xcm_weight: Weight) -&gt; Outcome {
 		<span class="comment">// We silently drop any error from our attempt to refund the surplus as it&#39;s a charitable
 		// thing so best-effort is all we will do.
@@ -1557,9 +1562,10 @@
 						Config::IsTeleporter::contains(asset, <span class="kw-2">&amp;</span>origin),
 						XcmError::UntrustedTeleportLocation
 					);
-					<span class="comment">// We should check that the asset can actually be teleported in (for this to be in error, there
-					// would need to be an accounting violation by one of the trusted chains, so it&#39;s unlikely, but we
-					// don&#39;t want to punish a possibly innocent chain/user).
+					<span class="comment">// We should check that the asset can actually be teleported in (for this to be
+					// in error, there would need to be an accounting violation by one of the
+					// trusted chains, so it&#39;s unlikely, but we don&#39;t want to punish a possibly
+					// innocent chain/user).
 					</span>Config::AssetTransactor::can_check_in(<span class="kw-2">&amp;</span>origin, asset, <span class="kw-2">&amp;</span><span class="self">self</span>.context)<span class="question-mark">?</span>;
 				}
 				<span class="kw">for </span>asset <span class="kw">in </span>assets.into_inner().into_iter() {
@@ -1627,8 +1633,8 @@
 				<span class="prelude-val">Ok</span>(())
 			},
 			ReportError(response_info) =&gt; {
-				<span class="comment">// Report the given result by sending a QueryResponse XCM to a previously given outcome
-				// destination if one was registered.
+				<span class="comment">// Report the given result by sending a QueryResponse XCM to a previously given
+				// outcome destination if one was registered.
 				</span><span class="self">self</span>.respond(
 					<span class="self">self</span>.cloned_origin(),
 					Response::ExecutionResult(<span class="self">self</span>.error),
@@ -1847,10 +1853,12 @@
 				<span class="prelude-val">Ok</span>(())
 			},
 			ExportMessage { network, destination, xcm } =&gt; {
-				<span class="comment">// The actual message sent to the bridge for forwarding is prepended with `UniversalOrigin`
-				// and `DescendOrigin` in order to ensure that the message is executed with this Origin.
+				<span class="comment">// The actual message sent to the bridge for forwarding is prepended with
+				// `UniversalOrigin` and `DescendOrigin` in order to ensure that the message is
+				// executed with this Origin.
 				//
-				// Prepend the desired message with instructions which effectively rewrite the origin.
+				// Prepend the desired message with instructions which effectively rewrite the
+				// origin.
 				//
 				// This only works because the remote chain empowers the bridge
 				// to speak for the local network.

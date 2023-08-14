@@ -764,6 +764,14 @@
 <a href="#764" id="764">764</a>
 <a href="#765" id="765">765</a>
 <a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -787,19 +795,20 @@
 //!   - Scheduling parachains and parathreads
 //!
 //! It aims to achieve these tasks with these goals in mind:
-//! - It should be possible to know at least a block ahead-of-time, ideally more,
-//!   which validators are going to be assigned to which parachains.
-//! - Parachains that have a candidate pending availability in this fork of the chain
-//!   should not be assigned.
+//! - It should be possible to know at least a block ahead-of-time, ideally more, which validators
+//!   are going to be assigned to which parachains.
+//! - Parachains that have a candidate pending availability in this fork of the chain should not be
+//!   assigned.
 //! - Validator assignments should not be gameable. Malicious cartels should not be able to
 //!   manipulate the scheduler to assign themselves as desired.
-//! - High or close to optimal throughput of parachains and parathreads. Work among validator groups should be balanced.
+//! - High or close to optimal throughput of parachains and parathreads. Work among validator groups
+//!   should be balanced.
 //!
 //! The Scheduler manages resource allocation using the concept of &quot;Availability Cores&quot;.
 //! There will be one availability core for each parachain, and a fixed number of cores
 //! used for multiplexing parathreads. Validators will be partitioned into groups, with the same
-//! number of groups as availability cores. Validator groups will be assigned to different availability cores
-//! over time.
+//! number of groups as availability cores. Validator groups will be assigned to different
+//! availability cores over time.
 
 </span><span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
@@ -935,8 +944,9 @@
 	/// broader set of Polkadot validators, but instead just the subset used for parachains during
 	/// this session.
 	///
-	/// Bound: The number of cores is the sum of the numbers of parachains and parathread multiplexers.
-	/// Reasonably, 100-1000. The dominant factor is the number of validators: safe upper bound at 10k.
+	/// Bound: The number of cores is the sum of the numbers of parachains and parathread
+	/// multiplexers. Reasonably, 100-1000. The dominant factor is the number of validators: safe
+	/// upper bound at 10k.
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>validator_groups)]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ValidatorGroups&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, ValueQuery&gt;;
@@ -948,8 +958,8 @@
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ParathreadQueue&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, ParathreadClaimQueue, ValueQuery&gt;;
 
-	<span class="doccomment">/// One entry for each availability core. Entries are `None` if the core is not currently occupied. Can be
-	/// temporarily `Some` if scheduled but not occupied.
+	<span class="doccomment">/// One entry for each availability core. Entries are `None` if the core is not currently
+	/// occupied. Can be temporarily `Some` if scheduled but not occupied.
 	/// The i&#39;th parachain belongs to the i&#39;th core, with the remaining cores all being
 	/// parathread-multiplexers.
 	///
@@ -963,11 +973,13 @@
 	<span class="doccomment">/// An index used to ensure that only one claim on a parathread exists in the queue or is
 	/// currently being handled by an occupied core.
 	///
-	/// Bounded by the number of parathread cores and scheduling lookahead. Reasonably, 10 * 50 = 500.
+	/// Bounded by the number of parathread cores and scheduling lookahead. Reasonably, 10 * 50 =
+	/// 500.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ParathreadClaimIndex&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;ParaId&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// The block number where the session start occurred. Used to track how many group rotations have occurred.
+	<span class="doccomment">/// The block number where the session start occurred. Used to track how many group rotations
+	/// have occurred.
 	///
 	/// Note that in the context of parachains modules the session change is signaled during
 	/// the block and enacted at the end of the block (at the finalization stage, to be exact).
@@ -981,8 +993,8 @@
 	///
 	/// Bounded by the number of cores: one for each parachain and parathread multiplexer.
 	///
-	/// The value contained here will not be valid after the end of a block. Runtime APIs should be used to determine scheduled cores/
-	/// for the upcoming block.
+	/// The value contained here will not be valid after the end of a block. Runtime APIs should be
+	/// used to determine scheduled cores/ for the upcoming block.
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>scheduled)]
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Scheduled&lt;T&gt; = StorageValue&lt;<span class="kw">_</span>, Vec&lt;CoreAssignment&gt;, ValueQuery&gt;;
@@ -1146,8 +1158,9 @@
 		})
 	}
 
-	<span class="doccomment">/// Free unassigned cores. Provide a list of cores that should be considered newly-freed along with the reason
-	/// for them being freed. The list is assumed to be sorted in ascending order by core index.
+	<span class="doccomment">/// Free unassigned cores. Provide a list of cores that should be considered newly-freed along
+	/// with the reason for them being freed. The list is assumed to be sorted in ascending order by
+	/// core index.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>free_cores(just_freed_cores: <span class="kw">impl </span>IntoIterator&lt;Item = (CoreIndex, FreedReason)&gt;) {
 		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 
@@ -1169,8 +1182,8 @@
 									})
 								},
 								FreedReason::TimedOut =&gt; {
-									<span class="comment">// If a parathread candidate times out, it&#39;s not the collator&#39;s fault,
-									// so we don&#39;t increment retries.
+									<span class="comment">// If a parathread candidate times out, it&#39;s not the collator&#39;s
+									// fault, so we don&#39;t increment retries.
 									</span>ParathreadQueue::&lt;T&gt;::mutate(|queue| {
 										queue.enqueue_entry(entry, config.parathread_cores);
 									})
@@ -1183,9 +1196,9 @@
 		})
 	}
 
-	<span class="doccomment">/// Schedule all unassigned cores, where possible. Provide a list of cores that should be considered
-	/// newly-freed along with the reason for them being freed. The list is assumed to be sorted in
-	/// ascending order by core index.
+	<span class="doccomment">/// Schedule all unassigned cores, where possible. Provide a list of cores that should be
+	/// considered newly-freed along with the reason for them being freed. The list is assumed to be
+	/// sorted in ascending order by core index.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule(
 		just_freed_cores: <span class="kw">impl </span>IntoIterator&lt;Item = (CoreIndex, FreedReason)&gt;,
 		now: BlockNumberFor&lt;T&gt;,
@@ -1221,10 +1234,10 @@
 
 					<span class="comment">// check the first entry already scheduled with core index &gt;= than the one we
 					// are looking at. 3 cases:
-					//  1. No such entry, clearly this core is not scheduled, so we need to schedule and put at the end.
-					//  2. Entry exists and has same index as the core we are inspecting. do not schedule again.
-					//  3. Entry exists and has higher index than the core we are inspecting. schedule and note
-					//     insertion position.
+					//  1. No such entry, clearly this core is not scheduled, so we need to schedule
+					// and put at the end.  2. Entry exists and has same index as the core we are
+					// inspecting. do not schedule again.  3. Entry exists and has higher index than
+					// the core we are inspecting. schedule and note     insertion position.
 					</span>prev_scheduled_in_order.peek().map_or(
 						<span class="prelude-val">Some</span>(scheduled.len()),
 						|(idx_in_scheduled, assign)| {
@@ -1275,8 +1288,9 @@
 				}
 			}
 
-			<span class="comment">// at this point, because `Scheduled` is guaranteed to be sorted and we navigated unassigned
-			// core indices in ascending order, we can enact the updates prepared by the previous actions.
+			<span class="comment">// at this point, because `Scheduled` is guaranteed to be sorted and we navigated
+			// unassigned core indices in ascending order, we can enact the updates prepared by the
+			// previous actions.
 			//
 			// while inserting, we have to account for the amount of insertions already done.
 			//
@@ -1288,20 +1302,20 @@
 				scheduled.insert(insert_at, to_insert);
 			}
 
-			<span class="comment">// scheduled is guaranteed to be sorted after this point because it was sorted before, and we
-			// applied sorted updates at their correct positions, accounting for the offsets of previous
-			// insertions.
+			<span class="comment">// scheduled is guaranteed to be sorted after this point because it was sorted before,
+			// and we applied sorted updates at their correct positions, accounting for the offsets
+			// of previous insertions.
 		</span>}
 
 		Scheduled::&lt;T&gt;::set(scheduled);
 		ParathreadQueue::&lt;T&gt;::set(parathread_queue);
 	}
 
-	<span class="doccomment">/// Note that the given cores have become occupied. Behavior undefined if any of the given cores were not scheduled
-	/// or the slice is not sorted ascending by core index.
+	<span class="doccomment">/// Note that the given cores have become occupied. Behavior undefined if any of the given cores
+	/// were not scheduled or the slice is not sorted ascending by core index.
 	///
-	/// Complexity: O(n) in the number of scheduled cores, which is capped at the number of total cores.
-	/// This is efficient in the case that most scheduled cores are occupied.
+	/// Complexity: O(n) in the number of scheduled cores, which is capped at the number of total
+	/// cores. This is efficient in the case that most scheduled cores are occupied.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>occupied(now_occupied: <span class="kw-2">&amp;</span>[CoreIndex]) {
 		<span class="kw">if </span>now_occupied.is_empty() {
 			<span class="kw">return
@@ -1334,8 +1348,8 @@
 		AvailabilityCores::&lt;T&gt;::set(availability_cores);
 	}
 
-	<span class="doccomment">/// Get the para (chain or thread) ID assigned to a particular core or index, if any. Core indices
-	/// out of bounds will return `None`, as will indices of unassigned cores.
+	<span class="doccomment">/// Get the para (chain or thread) ID assigned to a particular core or index, if any. Core
+	/// indices out of bounds will return `None`, as will indices of unassigned cores.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>core_para(core_index: CoreIndex) -&gt; <span class="prelude-ty">Option</span>&lt;ParaId&gt; {
 		<span class="kw">let </span>cores = AvailabilityCores::&lt;T&gt;::get();
 		<span class="kw">match </span>cores.get(core_index.<span class="number">0 </span><span class="kw">as </span>usize).and_then(|c| c.as_ref()) {
@@ -1353,8 +1367,9 @@
 		ValidatorGroups::&lt;T&gt;::get().get(group_index.<span class="number">0 </span><span class="kw">as </span>usize).map(|g| g.clone())
 	}
 
-	<span class="doccomment">/// Get the group assigned to a specific core by index at the current block number. Result undefined if the core index is unknown
-	/// or the block number is less than the session start index.
+	<span class="doccomment">/// Get the group assigned to a specific core by index at the current block number. Result
+	/// undefined if the core index is unknown or the block number is less than the session start
+	/// index.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_assigned_to_core(
 		core: CoreIndex,
 		at: BlockNumberFor&lt;T&gt;,
@@ -1388,10 +1403,11 @@
 
 	<span class="doccomment">/// Returns an optional predicate that should be used for timing out occupied cores.
 	///
-	/// If `None`, no timing-out should be done. The predicate accepts the index of the core, and the
-	/// block number since which it has been occupied, and the respective parachain and parathread
-	/// timeouts, i.e. only within `max(config.chain_availability_period, config.thread_availability_period)`
-	/// of the last rotation would this return `Some`, unless there are no rotations.
+	/// If `None`, no timing-out should be done. The predicate accepts the index of the core, and
+	/// the block number since which it has been occupied, and the respective parachain and
+	/// parathread timeouts, i.e. only within `max(config.chain_availability_period,
+	/// config.thread_availability_period)` of the last rotation would this return `Some`, unless
+	/// there are no rotations.
 	///
 	/// This really should not be a box, but is working around a compiler limitation filed here:
 	/// https://github.com/rust-lang/rust/issues/73226

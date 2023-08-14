@@ -445,6 +445,15 @@
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
 <a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -467,11 +476,13 @@
 
 <span class="doccomment">/// Facility for asset transacting.
 ///
-/// This should work with as many asset/location combinations as possible. Locations to support may include non-account
-/// locations such as a `MultiLocation::X1(Junction::Parachain)`. Different chains may handle them in different ways.
+/// This should work with as many asset/location combinations as possible. Locations to support may
+/// include non-account locations such as a `MultiLocation::X1(Junction::Parachain)`. Different
+/// chains may handle them in different ways.
 ///
-/// Can be amalgamated as a tuple of items that implement this trait. In such executions, if any of the transactors
-/// returns `Ok(())`, then it will short circuit. Else, execution is passed to the next transactor.
+/// Can be amalgamated as a tuple of items that implement this trait. In such executions, if any of
+/// the transactors returns `Ok(())`, then it will short circuit. Else, execution is passed to the
+/// next transactor.
 </span><span class="kw">pub trait </span>TransactAsset {
 	<span class="doccomment">/// Ensure that `check_in` will do as expected.
 	///
@@ -484,19 +495,23 @@
 		<span class="prelude-val">Err</span>(XcmError::Unimplemented)
 	}
 
-	<span class="doccomment">/// An asset has been teleported in from the given origin. This should do whatever housekeeping is needed.
+	<span class="doccomment">/// An asset has been teleported in from the given origin. This should do whatever housekeeping
+	/// is needed.
 	///
-	/// NOTE: This will make only a best-effort at bookkeeping. The caller should ensure that `can_check_in` has
-	/// returned with `Ok` in order to guarantee that this operation proceeds properly.
+	/// NOTE: This will make only a best-effort at bookkeeping. The caller should ensure that
+	/// `can_check_in` has returned with `Ok` in order to guarantee that this operation proceeds
+	/// properly.
 	///
-	/// Implementation note: In general this will do one of two things: On chains where the asset is native,
-	/// it will reduce the assets from a special &quot;teleported&quot; account so that a) total-issuance is preserved;
-	/// and b) to ensure that no more assets can be teleported in than were teleported out overall (this should
-	/// not be needed if the teleporting chains are to be trusted, but better to be safe than sorry). On chains
-	/// where the asset is not native then it will generally just be a no-op.
+	/// Implementation note: In general this will do one of two things: On chains where the asset is
+	/// native, it will reduce the assets from a special &quot;teleported&quot; account so that a)
+	/// total-issuance is preserved; and b) to ensure that no more assets can be teleported in than
+	/// were teleported out overall (this should not be needed if the teleporting chains are to be
+	/// trusted, but better to be safe than sorry). On chains where the asset is not native then it
+	/// will generally just be a no-op.
 	///
-	/// When composed as a tuple, all type-items are called. It is up to the implementer that there exists no
-	/// value for `_what` which can cause side-effects for more than one of the type-items.
+	/// When composed as a tuple, all type-items are called. It is up to the implementer that there
+	/// exists no value for `_what` which can cause side-effects for more than one of the
+	/// type-items.
 	</span><span class="kw">fn </span>check_in(_origin: <span class="kw-2">&amp;</span>MultiLocation, _what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) {}
 
 	<span class="doccomment">/// Ensure that `check_out` will do as expected.
@@ -510,16 +525,19 @@
 		<span class="prelude-val">Err</span>(XcmError::Unimplemented)
 	}
 
-	<span class="doccomment">/// An asset has been teleported out to the given destination. This should do whatever housekeeping is needed.
+	<span class="doccomment">/// An asset has been teleported out to the given destination. This should do whatever
+	/// housekeeping is needed.
 	///
-	/// Implementation note: In general this will do one of two things: On chains where the asset is native,
-	/// it will increase the assets in a special &quot;teleported&quot; account so that a) total-issuance is preserved; and
-	/// b) to ensure that no more assets can be teleported in than were teleported out overall (this should not
-	/// be needed if the teleporting chains are to be trusted, but better to be safe than sorry). On chains where
-	/// the asset is not native then it will generally just be a no-op.
+	/// Implementation note: In general this will do one of two things: On chains where the asset is
+	/// native, it will increase the assets in a special &quot;teleported&quot; account so that a)
+	/// total-issuance is preserved; and b) to ensure that no more assets can be teleported in than
+	/// were teleported out overall (this should not be needed if the teleporting chains are to be
+	/// trusted, but better to be safe than sorry). On chains where the asset is not native then it
+	/// will generally just be a no-op.
 	///
-	/// When composed as a tuple, all type-items are called. It is up to the implementer that there exists no
-	/// value for `_what` which can cause side-effects for more than one of the type-items.
+	/// When composed as a tuple, all type-items are called. It is up to the implementer that there
+	/// exists no value for `_what` which can cause side-effects for more than one of the
+	/// type-items.
 	</span><span class="kw">fn </span>check_out(_dest: <span class="kw-2">&amp;</span>MultiLocation, _what: <span class="kw-2">&amp;</span>MultiAsset, _context: <span class="kw-2">&amp;</span>XcmContext) {}
 
 	<span class="doccomment">/// Deposit the `what` asset into the account of `who`.

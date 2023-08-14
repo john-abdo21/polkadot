@@ -1725,6 +1725,7 @@
 <a href="#1725" id="1725">1725</a>
 <a href="#1726" id="1726">1726</a>
 <a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2182,8 +2183,8 @@
 			ArtifactState::Preparing { waiting_for_response, num_failures: <span class="kw">_ </span>} =&gt;
 				waiting_for_response.push(result_sender),
 			ArtifactState::FailedToProcess { error, .. } =&gt; {
-				<span class="comment">// Do not retry failed preparation if another pre-check request comes in. We do not retry pre-checking,
-				// anyway.
+				<span class="comment">// Do not retry failed preparation if another pre-check request comes in. We do not
+				// retry pre-checking, anyway.
 				</span><span class="kw">let _ </span>= result_sender.send(PrepareResult::Err(error.clone()));
 			},
 		}
@@ -2197,8 +2198,8 @@
 
 <span class="doccomment">/// Handles PVF execution.
 ///
-/// This will try to prepare the PVF, if a prepared artifact does not already exist. If there is already a
-/// preparation job, we coalesce the two preparation jobs.
+/// This will try to prepare the PVF, if a prepared artifact does not already exist. If there is
+/// already a preparation job, we coalesce the two preparation jobs.
 ///
 /// If the prepare job succeeded previously, we will enqueue an execute job right away.
 ///
@@ -2248,7 +2249,8 @@
 						<span class="string">&quot;handle_execute_pvf: Re-queuing PVF preparation for prepared artifact with missing file.&quot;
 					</span>);
 
-					<span class="comment">// The artifact has been prepared previously but the file is missing, prepare it again.
+					<span class="comment">// The artifact has been prepared previously but the file is missing, prepare it
+					// again.
 					</span><span class="kw-2">*</span>state = ArtifactState::Preparing {
 						waiting_for_response: Vec::new(),
 						num_failures: <span class="number">0</span>,
@@ -2448,8 +2450,8 @@
 		</span>pending_requests
 	{
 		<span class="kw">if </span>result_tx.is_canceled() {
-			<span class="comment">// Preparation could&#39;ve taken quite a bit of time and the requester may be not interested
-			// in execution anymore, in which case we just skip the request.
+			<span class="comment">// Preparation could&#39;ve taken quite a bit of time and the requester may be not
+			// interested in execution anymore, in which case we just skip the request.
 			</span><span class="kw">continue
 		</span>}
 
@@ -2582,8 +2584,8 @@
 		</span><span class="kw">return </span><span class="bool-val">false
 	</span>}
 
-	<span class="comment">// Retry if the retry cooldown has elapsed and if we have already retried less than `NUM_PREPARE_RETRIES` times. IO
-	// errors may resolve themselves.
+	<span class="comment">// Retry if the retry cooldown has elapsed and if we have already retried less than
+	// `NUM_PREPARE_RETRIES` times. IO errors may resolve themselves.
 	</span>SystemTime::now() &gt;= last_time_failed + PREPARE_FAILURE_COOLDOWN &amp;&amp;
 		num_failures &lt;= NUM_PREPARE_RETRIES
 }

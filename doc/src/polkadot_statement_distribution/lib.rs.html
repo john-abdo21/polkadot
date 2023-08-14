@@ -2219,6 +2219,7 @@
 <a href="#2219" id="2219">2219</a>
 <a href="#2220" id="2220">2220</a>
 <a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2406,8 +2407,8 @@
 }
 
 <span class="kw">impl </span>VcPerPeerTracker {
-	<span class="doccomment">/// Note that the remote should now be aware that a validator has seconded a given candidate (by hash)
-	/// based on a message that we have sent it from our local pool.
+	<span class="doccomment">/// Note that the remote should now be aware that a validator has seconded a given candidate (by
+	/// hash) based on a message that we have sent it from our local pool.
 	</span><span class="kw">fn </span>note_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>, h: CandidateHash) {
 		<span class="kw">if </span>!note_hash(<span class="kw-2">&amp;mut </span><span class="self">self</span>.local_observed, h) {
 			<span class="macro">gum::warn!</span>(
@@ -2419,8 +2420,8 @@
 		}
 	}
 
-	<span class="doccomment">/// Note that the remote should now be aware that a validator has seconded a given candidate (by hash)
-	/// based on a message that it has sent us.
+	<span class="doccomment">/// Note that the remote should now be aware that a validator has seconded a given candidate (by
+	/// hash) based on a message that it has sent us.
 	///
 	/// Returns `true` if the peer was allowed to send us such a message, `false` otherwise.
 	</span><span class="kw">fn </span>note_remote(<span class="kw-2">&amp;mut </span><span class="self">self</span>, h: CandidateHash) -&gt; bool {
@@ -2447,8 +2448,8 @@
 <span class="doccomment">/// knowledge that a peer has about goings-on in a relay parent.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">struct </span>PeerRelayParentKnowledge {
-	<span class="doccomment">/// candidates that the peer is aware of because we sent statements to it. This indicates that we can
-	/// send other statements pertaining to that candidate.
+	<span class="doccomment">/// candidates that the peer is aware of because we sent statements to it. This indicates that
+	/// we can send other statements pertaining to that candidate.
 	</span>sent_candidates: HashSet&lt;CandidateHash&gt;,
 	<span class="doccomment">/// candidates that peer is aware of, because we received statements from it.
 	</span>received_candidates: HashSet&lt;CandidateHash&gt;,
@@ -2542,13 +2543,13 @@
 		}
 	}
 
-	<span class="doccomment">/// Attempt to update our view of the peer&#39;s knowledge with this statement&#39;s fingerprint based on
-	/// a message we are receiving from the peer.
+	<span class="doccomment">/// Attempt to update our view of the peer&#39;s knowledge with this statement&#39;s fingerprint based
+	/// on a message we are receiving from the peer.
 	///
 	/// Provide the maximum message count that we can receive per candidate. In practice we should
-	/// not receive more statements for any one candidate than there are members in the group assigned
-	/// to that para, but this maximum needs to be lenient to account for equivocations that may be
-	/// cross-group. As such, a maximum of 2 * `n_validators` is recommended.
+	/// not receive more statements for any one candidate than there are members in the group
+	/// assigned to that para, but this maximum needs to be lenient to account for equivocations
+	/// that may be cross-group. As such, a maximum of 2 * `n_validators` is recommended.
 	///
 	/// This returns an error if the peer should not have sent us this message according to protocol
 	/// rules for flood protection.
@@ -2711,13 +2712,13 @@
 		<span class="self">self</span>.view_knowledge.get(relay_parent).map_or(<span class="bool-val">false</span>, |k| k.can_send(fingerprint))
 	}
 
-	<span class="doccomment">/// Attempt to update our view of the peer&#39;s knowledge with this statement&#39;s fingerprint based on
-	/// a message we are receiving from the peer.
+	<span class="doccomment">/// Attempt to update our view of the peer&#39;s knowledge with this statement&#39;s fingerprint based
+	/// on a message we are receiving from the peer.
 	///
 	/// Provide the maximum message count that we can receive per candidate. In practice we should
-	/// not receive more statements for any one candidate than there are members in the group assigned
-	/// to that para, but this maximum needs to be lenient to account for equivocations that may be
-	/// cross-group. As such, a maximum of 2 * `n_validators` is recommended.
+	/// not receive more statements for any one candidate than there are members in the group
+	/// assigned to that para, but this maximum needs to be lenient to account for equivocations
+	/// that may be cross-group. As such, a maximum of 2 * `n_validators` is recommended.
 	///
 	/// This returns an error if the peer should not have sent us this message according to protocol
 	/// rules for flood protection.
@@ -2821,8 +2822,8 @@
 
 <span class="doccomment">/// Large statement fetching status.
 </span><span class="kw">enum </span>LargeStatementStatus {
-	<span class="doccomment">/// We are currently fetching the statement data from a remote peer. We keep a list of other nodes
-	/// claiming to have that data and will fallback on them.
+	<span class="doccomment">/// We are currently fetching the statement data from a remote peer. We keep a list of other
+	/// nodes claiming to have that data and will fallback on them.
 	</span>Fetching(FetchingInfo),
 	<span class="doccomment">/// Statement data is fetched or we got it locally via `StatementDistributionMessage::Share`.
 	</span>FetchedOrShared(CommittedCandidateReceipt),
@@ -2933,8 +2934,8 @@
 	/// to have been checked, including that the validator index is not out-of-bounds and
 	/// the signature is valid.
 	///
-	/// Any other statements or those that reference a candidate we are not aware of cannot be accepted
-	/// and will return `NotedStatement::NotUseful`.
+	/// Any other statements or those that reference a candidate we are not aware of cannot be
+	/// accepted and will return `NotedStatement::NotUseful`.
 	</span><span class="kw">fn </span>note_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: SignedFullStatement) -&gt; NotedStatement {
 		<span class="kw">let </span>validator_index = statement.validator_index();
 		<span class="kw">let </span>comparator = StoredStatementComparator {
@@ -3493,9 +3494,9 @@
 					}
 				},
 				protocol_v1::StatementDistributionMessage::Statement(<span class="kw">_</span>, s) =&gt; {
-					<span class="comment">// No fetch in progress, safe to return any statement immediately (we don&#39;t bother
-					// about normal network jitter which might cause `Valid` statements to arrive early
-					// for now.).
+					<span class="comment">// No fetch in progress, safe to return any statement immediately (we don&#39;t
+					// bother about normal network jitter which might cause `Valid` statements to
+					// arrive early for now.).
 					</span><span class="kw">return </span><span class="prelude-val">Some</span>(s)
 				},
 			}
@@ -3691,7 +3692,8 @@
 		</span>);
 
 		<span class="kw">match </span>rep {
-			<span class="comment">// This happens when a Valid statement has been received but there is no corresponding Seconded
+			<span class="comment">// This happens when a Valid statement has been received but there is no corresponding
+			// Seconded
 			</span>COST_UNEXPECTED_STATEMENT_UNKNOWN_CANDIDATE =&gt; {
 				metrics.on_unexpected_statement_valid();
 				<span class="comment">// Report peer merely if this is not a duplicate out-of-view statement that

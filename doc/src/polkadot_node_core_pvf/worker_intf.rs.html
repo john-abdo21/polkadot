@@ -331,6 +331,8 @@
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -529,13 +531,15 @@
 	</span>Handshake,
 }
 
-<span class="doccomment">/// This is a representation of a potentially running worker. Drop it and the process will be killed.
+<span class="doccomment">/// This is a representation of a potentially running worker. Drop it and the process will be
+/// killed.
 ///
 /// A worker&#39;s handle is also a future that resolves when it&#39;s detected that the worker&#39;s process
 /// has been terminated. Since the worker is running in another process it is obviously not
 /// necessary to poll this future to make the worker run, it&#39;s only for termination detection.
 ///
-/// This future relies on the fact that a child process&#39;s stdout `fd` is closed upon it&#39;s termination.
+/// This future relies on the fact that a child process&#39;s stdout `fd` is closed upon it&#39;s
+/// termination.
 </span><span class="attr">#[pin_project]
 </span><span class="kw">pub struct </span>WorkerHandle {
 	child: process::Child,
@@ -573,15 +577,15 @@
 			child_id,
 			stdout,
 			program: program.as_ref().to_path_buf(),
-			<span class="comment">// We don&#39;t expect the bytes to be ever read. But in case we do, we should not use a buffer
-			// of a small size, because otherwise if the child process does return any data we will end up
-			// issuing a syscall for each byte. We also prefer not to do allocate that on the stack, since
-			// each poll the buffer will be allocated and initialized (and that&#39;s due `poll_read` takes &amp;mut [u8]
-			// and there are no guarantees that a `poll_read` won&#39;t ever read from there even though that&#39;s
-			// unlikely).
+			<span class="comment">// We don&#39;t expect the bytes to be ever read. But in case we do, we should not use a
+			// buffer of a small size, because otherwise if the child process does return any data
+			// we will end up issuing a syscall for each byte. We also prefer not to do allocate
+			// that on the stack, since each poll the buffer will be allocated and initialized (and
+			// that&#39;s due `poll_read` takes &amp;mut [u8] and there are no guarantees that a `poll_read`
+			// won&#39;t ever read from there even though that&#39;s unlikely).
 			//
-			// OTOH, we also don&#39;t want to be super smart here and we could just afford to allocate a buffer
-			// for that here.
+			// OTOH, we also don&#39;t want to be super smart here and we could just afford to allocate
+			// a buffer for that here.
 			</span>drop_box: <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">8192</span>].into_boxed_slice(),
 		})
 	}
@@ -613,8 +617,8 @@
 				}
 			},
 			<span class="prelude-val">Err</span>(err) =&gt; {
-				<span class="comment">// The implementation is guaranteed to not to return `WouldBlock` and Interrupted. This
-				// leaves us with legit errors which we suppose were due to termination.
+				<span class="comment">// The implementation is guaranteed to not to return `WouldBlock` and Interrupted.
+				// This leaves us with legit errors which we suppose were due to termination.
 
 				// Log the status code.
 				</span><span class="macro">gum::debug!</span>(

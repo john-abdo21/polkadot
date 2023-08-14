@@ -1870,6 +1870,13 @@
 <a href="#1870" id="1870">1870</a>
 <a href="#1871" id="1871">1871</a>
 <a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1975,7 +1982,8 @@
 	</span><span class="kw">fn </span>type_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize;
 }
 
-<span class="doccomment">/// Index of the validator is used as a lightweight replacement of the `ValidatorId` when appropriate.
+<span class="doccomment">/// Index of the validator is used as a lightweight replacement of the `ValidatorId` when
+/// appropriate.
 </span><span class="attr">#[derive(Eq, Ord, PartialEq, PartialOrd, Copy, Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Hash))]
 </span><span class="kw">pub struct </span>ValidatorIndex(<span class="kw">pub </span>u32);
@@ -2461,25 +2469,27 @@
 	}
 }
 
-<span class="doccomment">/// The validation data provides information about how to create the inputs for validation of a candidate.
-/// This information is derived from the chain state and will vary from para to para, although some
-/// fields may be the same for every para.
+<span class="doccomment">/// The validation data provides information about how to create the inputs for validation of a
+/// candidate. This information is derived from the chain state and will vary from para to para,
+/// although some fields may be the same for every para.
 ///
-/// Since this data is used to form inputs to the validation function, it needs to be persisted by the
-/// availability system to avoid dependence on availability of the relay-chain state.
+/// Since this data is used to form inputs to the validation function, it needs to be persisted by
+/// the availability system to avoid dependence on availability of the relay-chain state.
 ///
-/// Furthermore, the validation data acts as a way to authorize the additional data the collator needs
-/// to pass to the validation function. For example, the validation function can check whether the incoming
-/// messages (e.g. downward messages) were actually sent by using the data provided in the validation data
-/// using so called MQC heads.
+/// Furthermore, the validation data acts as a way to authorize the additional data the collator
+/// needs to pass to the validation function. For example, the validation function can check whether
+/// the incoming messages (e.g. downward messages) were actually sent by using the data provided in
+/// the validation data using so called MQC heads.
 ///
-/// Since the commitments of the validation function are checked by the relay-chain, secondary checkers
-/// can rely on the invariant that the relay-chain only includes para-blocks for which these checks have
-/// already been done. As such, there is no need for the validation data used to inform validators and
-/// collators about the checks the relay-chain will perform to be persisted by the availability system.
+/// Since the commitments of the validation function are checked by the relay-chain, secondary
+/// checkers can rely on the invariant that the relay-chain only includes para-blocks for which
+/// these checks have already been done. As such, there is no need for the validation data used to
+/// inform validators and collators about the checks the relay-chain will perform to be persisted by
+/// the availability system.
 ///
-/// The `PersistedValidationData` should be relatively lightweight primarily because it is constructed
-/// during inclusion for each candidate and therefore lies on the critical path of inclusion.
+/// The `PersistedValidationData` should be relatively lightweight primarily because it is
+/// constructed during inclusion for each candidate and therefore lies on the critical path of
+/// inclusion.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, TypeInfo, RuntimeDebug)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Default))]
 </span><span class="kw">pub struct </span>PersistedValidationData&lt;H = Hash, N = BlockNumber&gt; {
@@ -2514,7 +2524,8 @@
 	</span><span class="kw">pub </span>head_data: HeadData,
 	<span class="doccomment">/// The number of messages processed from the DMQ.
 	</span><span class="kw">pub </span>processed_downward_messages: u32,
-	<span class="doccomment">/// The mark which specifies the block number up to which all inbound HRMP messages are processed.
+	<span class="doccomment">/// The mark which specifies the block number up to which all inbound HRMP messages are
+	/// processed.
 	</span><span class="kw">pub </span>hrmp_watermark: N,
 }
 
@@ -2549,7 +2560,8 @@
 
 <span class="doccomment">/// A set of signed availability bitfields. Should be sorted by validator index, ascending.
 </span><span class="kw">pub type </span>SignedAvailabilityBitfields = Vec&lt;SignedAvailabilityBitfield&gt;;
-<span class="doccomment">/// A set of unchecked signed availability bitfields. Should be sorted by validator index, ascending.
+<span class="doccomment">/// A set of unchecked signed availability bitfields. Should be sorted by validator index,
+/// ascending.
 </span><span class="kw">pub type </span>UncheckedSignedAvailabilityBitfields = Vec&lt;UncheckedSignedAvailabilityBitfield&gt;;
 
 <span class="doccomment">/// A backed (or backable, depending on context) candidate.
@@ -2847,8 +2859,9 @@
 	/// variant.
 	</span><span class="attr">#[codec(index = <span class="number">1</span>)]
 	</span>Scheduled(ScheduledCore),
-	<span class="doccomment">/// The core is currently free and there is nothing scheduled. This can be the case for parathread
-	/// cores when there are no parathread blocks queued. Parachain cores will never be left idle.
+	<span class="doccomment">/// The core is currently free and there is nothing scheduled. This can be the case for
+	/// parathread cores when there are no parathread blocks queued. Parachain cores will never be
+	/// left idle.
 	</span><span class="attr">#[codec(index = <span class="number">2</span>)]
 	</span>Free,
 }
@@ -2951,8 +2964,8 @@
 	}
 }
 
-<span class="doccomment">/// Abridged version of `HostConfiguration` (from the `Configuration` parachains host runtime module)
-/// meant to be used by a parachain or PDK such as cumulus.
+<span class="doccomment">/// Abridged version of `HostConfiguration` (from the `Configuration` parachains host runtime
+/// module) meant to be used by a parachain or PDK such as cumulus.
 </span><span class="attr">#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(PartialEq))]
 </span><span class="kw">pub struct </span>AbridgedHostConfiguration {
@@ -3028,17 +3041,18 @@
 </span><span class="attr">#[derive(Copy, Clone, Encode, Decode, PartialEq, RuntimeDebug, TypeInfo)]
 </span><span class="kw">pub enum </span>UpgradeGoAhead {
 	<span class="doccomment">/// Abort the upgrade process. There is something wrong with the validation code previously
-	/// submitted by the parachain. This variant can also be used to prevent upgrades by the governance
-	/// should an emergency emerge.
+	/// submitted by the parachain. This variant can also be used to prevent upgrades by the
+	/// governance should an emergency emerge.
 	///
 	/// The expected reaction on this variant is that the parachain will admit this message and
 	/// remove all the data about the pending upgrade. Depending on the nature of the problem (to
-	/// be examined offchain for now), it can try to send another validation code or just retry later.
+	/// be examined offchain for now), it can try to send another validation code or just retry
+	/// later.
 	</span><span class="attr">#[codec(index = <span class="number">0</span>)]
 	</span>Abort,
-	<span class="doccomment">/// Apply the pending code change. The parablock that is built on a relay-parent that is descendant
-	/// of the relay-parent where the parachain observed this signal must use the upgraded validation
-	/// code.
+	<span class="doccomment">/// Apply the pending code change. The parablock that is built on a relay-parent that is
+	/// descendant of the relay-parent where the parachain observed this signal must use the
+	/// upgraded validation code.
 	</span><span class="attr">#[codec(index = <span class="number">1</span>)]
 	</span>GoAhead,
 }
@@ -3518,7 +3532,7 @@
 </span><span class="attr">#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(PartialEq))]
 </span><span class="kw">pub struct </span>SessionInfo {
-	<span class="comment">/****** New in v2 *******/
+	<span class="comment">/****** New in v2 ****** */
 	</span><span class="doccomment">/// All the validators actively participating in parachain consensus.
 	/// Indices are into the broader validator set.
 	</span><span class="kw">pub </span>active_validator_indices: Vec&lt;ValidatorIndex&gt;,
@@ -3527,11 +3541,11 @@
 	<span class="doccomment">/// The amount of sessions to keep for disputes.
 	</span><span class="kw">pub </span>dispute_period: SessionIndex,
 
-	<span class="comment">/****** Old fields ******/
+	<span class="comment">/****** Old fields ***** */
 	</span><span class="doccomment">/// Validators in canonical ordering.
 	///
-	/// NOTE: There might be more authorities in the current session, than `validators` participating
-	/// in parachain consensus. See
+	/// NOTE: There might be more authorities in the current session, than `validators`
+	/// participating in parachain consensus. See
 	/// [`max_validators`](https://github.com/paritytech/polkadot/blob/a52dca2be7840b23c19c153cf7e110b1e3e475f8/runtime/parachains/src/configuration.rs#L148).
 	///
 	/// `SessionInfo::validators` will be limited to to `max_validators` when set.
@@ -3539,8 +3553,8 @@
 	<span class="doccomment">/// Validators&#39; authority discovery keys for the session in canonical ordering.
 	///
 	/// NOTE: The first `validators.len()` entries will match the corresponding validators in
-	/// `validators`, afterwards any remaining authorities can be found. This is any authorities not
-	/// participating in parachain consensus - see
+	/// `validators`, afterwards any remaining authorities can be found. This is any authorities
+	/// not participating in parachain consensus - see
 	/// [`max_validators`](https://github.com/paritytech/polkadot/blob/a52dca2be7840b23c19c153cf7e110b1e3e475f8/runtime/parachains/src/configuration.rs#L148)
 	</span><span class="kw">pub </span>discovery_keys: Vec&lt;AuthorityDiscoveryId&gt;,
 	<span class="doccomment">/// The assignment keys for validators.
@@ -3551,8 +3565,8 @@
 	///
 	/// Therefore:
 	/// ```ignore
-	///		assignment_keys.len() == validators.len() &amp;&amp; validators.len() &lt;= discovery_keys.len()
-	///	```
+	/// 		assignment_keys.len() == validators.len() &amp;&amp; validators.len() &lt;= discovery_keys.len()
+	/// 	```
 	</span><span class="kw">pub </span>assignment_keys: Vec&lt;AssignmentId&gt;,
 	<span class="doccomment">/// Validators in shuffled ordering - these are the validator groups as produced
 	/// by the `Scheduler` module for the session and are typically referred to by

@@ -431,6 +431,7 @@
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -496,8 +497,8 @@
 	</span><span class="kw">pub </span>LocalCheckAccount: (AccountId, MintLocation) = (CheckAccount::get(), MintLocation::Local);
 }
 
-<span class="doccomment">/// The canonical means of converting a `MultiLocation` into an `AccountId`, used when we want to determine
-/// the sovereign account controlled by a location.
+<span class="doccomment">/// The canonical means of converting a `MultiLocation` into an `AccountId`, used when we want to
+/// determine the sovereign account controlled by a location.
 </span><span class="kw">pub type </span>SovereignAccountOf = (
 	<span class="comment">// We can convert a child parachain using the standard `AccountId` conversion.
 	</span>ChildParachainConvertsVia&lt;ParaId, AccountId&gt;,
@@ -505,8 +506,8 @@
 	</span>AccountId32Aliases&lt;ThisNetwork, AccountId&gt;,
 );
 
-<span class="doccomment">/// Our asset transactor. This is what allows us to interact with the runtime assets from the point of
-/// view of XCM-only concepts like `MultiLocation` and `MultiAsset`.
+<span class="doccomment">/// Our asset transactor. This is what allows us to interact with the runtime assets from the point
+/// of view of XCM-only concepts like `MultiLocation` and `MultiAsset`.
 ///
 /// Ours is only aware of the Balances pallet, which is mapped to `TokenLocation`.
 </span><span class="kw">pub type </span>LocalAssetTransactor = XcmCurrencyAdapter&lt;
@@ -802,8 +803,8 @@
 	CouncilBodyId,
 &gt;;
 
-<span class="doccomment">/// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior location
-/// of this chain.
+<span class="doccomment">/// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior
+/// location of this chain.
 </span><span class="kw">pub type </span>LocalOriginToLocation = (
 	CouncilToPlurality,
 	<span class="comment">// And a usual Signed origin to be used in XCM as a corresponding AccountId32
@@ -818,11 +819,11 @@
 </span><span class="kw">pub type </span>FellowshipAdminToPlurality =
 	OriginToPluralityVoice&lt;RuntimeOrigin, FellowshipAdmin, FellowshipAdminBodyId&gt;;
 
-<span class="doccomment">/// Type to convert a pallet `Origin` type value into a `MultiLocation` value which represents an interior location
-/// of this chain for a destination chain.
+<span class="doccomment">/// Type to convert a pallet `Origin` type value into a `MultiLocation` value which represents an
+/// interior location of this chain for a destination chain.
 </span><span class="kw">pub type </span>LocalPalletOriginToLocation = (
-	<span class="comment">// We allow an origin from the Collective pallet to be used in XCM as a corresponding Plurality of the
-	// `Unit` body.
+	<span class="comment">// We allow an origin from the Collective pallet to be used in XCM as a corresponding Plurality
+	// of the `Unit` body.
 	</span>CouncilToPlurality,
 	<span class="comment">// StakingAdmin origin to be used in XCM as a corresponding Plurality `MultiLocation` value.
 	</span>StakingAdminToPlurality,
@@ -832,7 +833,8 @@
 
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="comment">// We only allow the root, the council, the fellowship admin and the staking admin to send messages.
+	<span class="comment">// We only allow the root, the council, the fellowship admin and the staking admin to send
+	// messages.
 	</span><span class="kw">type </span>SendXcmOrigin = xcm_builder::EnsureXcmOrigin&lt;RuntimeOrigin, LocalPalletOriginToLocation&gt;;
 	<span class="kw">type </span>XcmRouter = XcmRouter;
 	<span class="comment">// Anyone can execute XCM messages locally...

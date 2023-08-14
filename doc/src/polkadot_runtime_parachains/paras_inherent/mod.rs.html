@@ -1021,6 +1021,10 @@
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
 <a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1308,8 +1312,9 @@
 }
 
 <span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-	<span class="doccomment">/// Create the `ParachainsInherentData` that gets passed to [`Self::enter`] in [`Self::create_inherent`].
-	/// This code is pulled out of [`Self::create_inherent`] so it can be unit tested.
+	<span class="doccomment">/// Create the `ParachainsInherentData` that gets passed to [`Self::enter`] in
+	/// [`Self::create_inherent`]. This code is pulled out of [`Self::create_inherent`] so it can be
+	/// unit tested.
 	</span><span class="kw">fn </span>create_inherent_inner(data: <span class="kw-2">&amp;</span>InherentData) -&gt; <span class="prelude-ty">Option</span>&lt;ParachainsInherentData&lt;HeaderFor&lt;T&gt;&gt;&gt; {
 		<span class="kw">let </span>parachains_inherent_data = <span class="kw">match </span>data.get_data(<span class="kw-2">&amp;</span><span class="self">Self</span>::INHERENT_IDENTIFIER) {
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d)) =&gt; d,
@@ -1336,11 +1341,11 @@
 	/// The given inherent data is processed and state is altered accordingly. If any data could
 	/// not be applied (inconsitencies, weight limit, ...) it is removed.
 	///
-	/// When called from `create_inherent` the `context` must be set to `ProcessInherentDataContext::ProvideInherent`
-	/// so it guarantees the invariant that inherent is not overweight.
-	///  
-	/// It is **mandatory** that calls from `enter` set `context` to `ProcessInherentDataContext::Enter` to ensure
-	/// the weight invariant is checked.
+	/// When called from `create_inherent` the `context` must be set to
+	/// `ProcessInherentDataContext::ProvideInherent` so it guarantees the invariant that inherent
+	/// is not overweight.  
+	/// It is **mandatory** that calls from `enter` set `context` to
+	/// `ProcessInherentDataContext::Enter` to ensure the weight invariant is checked.
 	///
 	/// Returns: Result containing processed inherent data and weight, the processed inherent would
 	/// consume.
@@ -1402,8 +1407,8 @@
 			<span class="kw">let </span>dispatch_class = DispatchClass::Mandatory;
 			<span class="kw">let </span>max_block_weight_full = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get();
 			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Max block weight: {}&quot;</span>, max_block_weight_full.max_block);
-			<span class="comment">// Get max block weight for the mandatory class if defined, otherwise total max weight of
-			// the block.
+			<span class="comment">// Get max block weight for the mandatory class if defined, otherwise total max weight
+			// of the block.
 			</span><span class="kw">let </span>max_weight = max_block_weight_full
 				.per_class
 				.get(dispatch_class)
@@ -1435,7 +1440,8 @@
 			T::DisputesHandler::filter_dispute_data(set, post_conclusion_acceptance_period)
 		};
 
-		<span class="comment">// Limit the disputes first, since the following statements depend on the votes include here.
+		<span class="comment">// Limit the disputes first, since the following statements depend on the votes include
+		// here.
 		</span><span class="kw">let </span>(checked_disputes_sets, checked_disputes_sets_consumed_weight) =
 			limit_and_sanitize_disputes::&lt;T, <span class="kw">_</span>&gt;(
 				disputes,
@@ -1472,8 +1478,8 @@
 			}
 			all_weight_after
 		} <span class="kw">else </span>{
-			<span class="comment">// This check is performed in the context of block execution. Ensures inherent weight invariants guaranteed
-			// by `create_inherent_data` for block authorship.
+			<span class="comment">// This check is performed in the context of block execution. Ensures inherent weight
+			// invariants guaranteed by `create_inherent_data` for block authorship.
 			</span><span class="kw">if </span>all_weight_before.any_gt(max_block_weight) {
 				<span class="macro">log::error!</span>(
 					<span class="string">&quot;Overweight para inherent data reached the runtime {:?}: {} &gt; {}&quot;</span>,
@@ -1737,13 +1743,14 @@
 /// If there is sufficient space, all bitfields and all candidates
 /// will be included.
 ///
-/// Otherwise tries to include all disputes, and then tries to fill the remaining space with bitfields and then candidates.
+/// Otherwise tries to include all disputes, and then tries to fill the remaining space with
+/// bitfields and then candidates.
 ///
-/// The selection process is random. For candidates, there is an exception for code upgrades as they are preferred.
-/// And for disputes, local and older disputes are preferred (see `limit_and_sanitize_disputes`).
-/// for backed candidates, since with a increasing number of parachains their chances of
-/// inclusion become slim. All backed candidates  are checked beforehands in `fn create_inherent_inner`
-/// which guarantees sanity.
+/// The selection process is random. For candidates, there is an exception for code upgrades as they
+/// are preferred. And for disputes, local and older disputes are preferred (see
+/// `limit_and_sanitize_disputes`). for backed candidates, since with a increasing number of
+/// parachains their chances of inclusion become slim. All backed candidates  are checked
+/// beforehands in `fn create_inherent_inner` which guarantees sanity.
 ///
 /// Assumes disputes are already filtered by the time this is called.
 ///
@@ -2000,7 +2007,8 @@
 ///   1. If weight is exceeded by locals, pick the older ones (lower indices)
 ///      until the weight limit is reached.
 ///
-/// Returns the consumed weight amount, that is guaranteed to be less than the provided `max_consumable_weight`.
+/// Returns the consumed weight amount, that is guaranteed to be less than the provided
+/// `max_consumable_weight`.
 </span><span class="kw">fn </span>limit_and_sanitize_disputes&lt;
 	T: Config,
 	CheckValidityFn: FnMut(DisputeStatementSet) -&gt; <span class="prelude-ty">Option</span>&lt;CheckedDisputeStatementSet&gt;,

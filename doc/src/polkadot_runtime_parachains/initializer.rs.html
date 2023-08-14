@@ -334,6 +334,8 @@
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -353,7 +355,8 @@
 </span><span class="doccomment">//! This module is responsible for maintaining a consistent initialization order for all other
 //! parachains modules. It&#39;s also responsible for finalization and session change notifications.
 //!
-//! This module can throw fatal errors if session-change notifications are received after initialization.
+//! This module can throw fatal errors if session-change notifications are received after
+//! initialization.
 
 </span><span class="kw">use crate</span>::{
 	configuration::{<span class="self">self</span>, HostConfiguration},
@@ -464,9 +467,9 @@
 	/// Semantically a `bool`, but this guarantees it should never hit the trie,
 	/// as this is cleared in `on_finalize` and Frame optimizes `None` values to be empty values.
 	///
-	/// As a `bool`, `set(false)` and `remove()` both lead to the next `get()` being false, but one of
-	/// them writes to the trie and one does not. This confusion makes `Option&lt;()&gt;` more suitable for
-	/// the semantics of this variable.
+	/// As a `bool`, `set(false)` and `remove()` both lead to the next `get()` being false, but one
+	/// of them writes to the trie and one does not. This confusion makes `Option&lt;()&gt;` more suitable
+	/// for the semantics of this variable.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>HasInitialized&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, ()&gt;;
 
@@ -526,7 +529,8 @@
 			<span class="comment">// Apply buffered session changes as the last thing. This way the runtime APIs and the
 			// next block will observe the next session.
 			//
-			// Note that we only apply the last session as all others lasted less than a block (weirdly).
+			// Note that we only apply the last session as all others lasted less than a block
+			// (weirdly).
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(BufferedSessionChange { session_index, validators, queued }) =
 				BufferedSessionChanges::&lt;T&gt;::take().pop()
 			{

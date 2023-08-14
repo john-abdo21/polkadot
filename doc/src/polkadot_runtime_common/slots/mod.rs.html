@@ -1162,6 +1162,9 @@
 <a href="#1162" id="1162">1162</a>
 <a href="#1163" id="1163">1163</a>
 <a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1178,12 +1181,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! Parathread and parachains leasing system. Allows para IDs to be claimed, the code and data to be initialized and
-//! parachain slots (i.e. continuous scheduling) to be leased. Also allows for parachains and parathreads to be
-//! swapped.
+</span><span class="doccomment">//! Parathread and parachains leasing system. Allows para IDs to be claimed, the code and data to be
+//! initialized and parachain slots (i.e. continuous scheduling) to be leased. Also allows for
+//! parachains and parathreads to be swapped.
 //!
-//! This doesn&#39;t handle the mechanics of determining which para ID actually ends up with a parachain lease. This
-//! must handled by a separately, through the trait interface that this pallet provides or the root dispatchables.
+//! This doesn&#39;t handle the mechanics of determining which para ID actually ends up with a parachain
+//! lease. This must handled by a separately, through the trait interface that this pallet provides
+//! or the root dispatchables.
 
 </span><span class="kw">pub mod </span>migration;
 
@@ -1262,8 +1266,8 @@
 
 	<span class="doccomment">/// Amounts held on deposit for each (possibly future) leased parachain.
 	///
-	/// The actual amount locked on its behalf by any account at any time is the maximum of the second values
-	/// of the items in this list whose first value is the account.
+	/// The actual amount locked on its behalf by any account at any time is the maximum of the
+	/// second values of the items in this list whose first value is the account.
 	///
 	/// The first item in the list is the amount locked for the current Lease Period. Following
 	/// items are for the subsequent lease periods.
@@ -1324,8 +1328,8 @@
 
 	<span class="attr">#[pallet::call]
 	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-		<span class="doccomment">/// Just a connect into the `lease_out` call, in case Root wants to force some lease to happen
-		/// independently of any other on-chain mechanism to use it.
+		<span class="doccomment">/// Just a connect into the `lease_out` call, in case Root wants to force some lease to
+		/// happen independently of any other on-chain mechanism to use it.
 		///
 		/// The dispatch origin for this call must match `T::ForceOrigin`.
 		</span><span class="attr">#[pallet::call_index(<span class="number">0</span>)]
@@ -1432,8 +1436,8 @@
 					// deposit for the parachain.
 					</span><span class="kw">let </span>now_held = <span class="self">Self</span>::deposit_held(para, <span class="kw-2">&amp;</span>ended_lease.<span class="number">0</span>);
 
-					<span class="comment">// If this is less than what we were holding for this leaser&#39;s now-ended lease, then
-					// unreserve it.
+					<span class="comment">// If this is less than what we were holding for this leaser&#39;s now-ended lease,
+					// then unreserve it.
 					</span><span class="kw">if let </span><span class="prelude-val">Some</span>(rebate) = ended_lease.<span class="number">1</span>.checked_sub(<span class="kw-2">&amp;</span>now_held) {
 						T::Currency::unreserve(<span class="kw-2">&amp;</span>ended_lease.<span class="number">0</span>, rebate);
 					}
@@ -1556,8 +1560,8 @@
 				</span>}
 			}
 
-			<span class="comment">// Figure out whether we already have some funds of `leaser` held in reserve for `para_id`.
-			//  If so, then we can deduct those from the amount that we need to reserve.
+			<span class="comment">// Figure out whether we already have some funds of `leaser` held in reserve for
+			// `para_id`.  If so, then we can deduct those from the amount that we need to reserve.
 			</span><span class="kw">let </span>maybe_additional = amount.checked_sub(<span class="kw-2">&amp;</span><span class="self">Self</span>::deposit_held(para, <span class="kw-2">&amp;</span>leaser));
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>additional) = maybe_additional {
 				T::Currency::reserve(<span class="kw-2">&amp;</span>leaser, <span class="kw-2">*</span>additional)
@@ -1567,7 +1571,8 @@
 			<span class="kw">let </span>reserved = maybe_additional.unwrap_or_default();
 
 			<span class="comment">// Check if current lease period is same as period begin, and onboard them directly.
-			// This will allow us to support onboarding new parachains in the middle of a lease period.
+			// This will allow us to support onboarding new parachains in the middle of a lease
+			// period.
 			</span><span class="kw">if </span>current_lease_period == period_begin {
 				<span class="comment">// Best effort. Not much we can do if this fails.
 				</span><span class="kw">let _ </span>= T::Registrar::make_parachain(para);
@@ -1645,7 +1650,8 @@
 			<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">true</span>,
 		};
 
-		<span class="comment">// Get the leases, and check each item in the vec which is part of the range we are checking.
+		<span class="comment">// Get the leases, and check each item in the vec which is part of the range we are
+		// checking.
 		</span><span class="kw">let </span>leases = Leases::&lt;T&gt;::get(para_id);
 		<span class="kw">for </span>slot <span class="kw">in </span>offset..=offset + period_count {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) = leases.get(slot) {

@@ -1337,6 +1337,8 @@
 <a href="#1337" id="1337">1337</a>
 <a href="#1338" id="1338">1338</a>
 <a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1761,7 +1763,8 @@
 	</span>awaiting_validation: HashSet&lt;CandidateHash&gt;,
 	<span class="doccomment">/// Data needed for retrying in case of `ValidatedCandidateCommand::AttestNoPoV`.
 	</span>fallbacks: HashMap&lt;CandidateHash, (AttestingData, <span class="prelude-ty">Option</span>&lt;jaeger::Span&gt;)&gt;,
-	<span class="doccomment">/// `Some(h)` if this job has already issued `Seconded` statement for some candidate with `h` hash.
+	<span class="doccomment">/// `Some(h)` if this job has already issued `Seconded` statement for some candidate with `h`
+	/// hash.
 	</span>seconded: <span class="prelude-ty">Option</span>&lt;CandidateHash&gt;,
 	<span class="doccomment">/// The candidates that are includable, by hash. Each entry here indicates
 	/// that we&#39;ve sent the provisioner the backed candidate.
@@ -1901,9 +1904,10 @@
 	expected_erasure_root: Hash,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
 	<span class="kw">let </span>(tx, rx) = oneshot::channel();
-	<span class="comment">// Important: the `av-store` subsystem will check if the erasure root of the `available_data` matches `expected_erasure_root`
-	// which was provided by the collator in the `CandidateReceipt`. This check is consensus critical and the `backing` subsystem
-	// relies on it for ensuring candidate validity.
+	<span class="comment">// Important: the `av-store` subsystem will check if the erasure root of the `available_data`
+	// matches `expected_erasure_root` which was provided by the collator in the `CandidateReceipt`.
+	// This check is consensus critical and the `backing` subsystem relies on it for ensuring
+	// candidate validity.
 	</span>sender
 		.send_message(AvailabilityStoreMessage::StoreAvailableData {
 			candidate_hash,
@@ -1921,8 +1925,8 @@
 
 <span class="comment">// Make a `PoV` available.
 //
-// This calls the AV store to write the available data to storage. The AV store also checks the erasure root matches
-// the `expected_erasure_root`.
+// This calls the AV store to write the available data to storage. The AV store also checks the
+// erasure root matches the `expected_erasure_root`.
 // This returns `Err()` on erasure root mismatch or due to any AV store subsystem error.
 //
 // Otherwise, it returns either `Ok(())`

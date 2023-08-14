@@ -1947,6 +1947,8 @@
 <a href="#1947" id="1947">1947</a>
 <a href="#1948" id="1948">1948</a>
 <a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2087,8 +2089,8 @@
 		</span>Reserved { bidder: T::AccountId, extra_reserved: BalanceOf&lt;T&gt;, total_amount: BalanceOf&lt;T&gt; },
 		<span class="doccomment">/// Funds were unreserved since bidder is no longer active. `[bidder, amount]`
 		</span>Unreserved { bidder: T::AccountId, amount: BalanceOf&lt;T&gt; },
-		<span class="doccomment">/// Someone attempted to lease the same slot twice for a parachain. The amount is held in reserve
-		/// but no parachain slot has been leased.
+		<span class="doccomment">/// Someone attempted to lease the same slot twice for a parachain. The amount is held in
+		/// reserve but no parachain slot has been leased.
 		</span>ReserveConfiscated { para_id: ParaId, leaser: T::AccountId, amount: BalanceOf&lt;T&gt; },
 		<span class="doccomment">/// A new bid has been accepted as the current winner.
 		</span>BidAccepted {
@@ -2098,7 +2100,8 @@
 			first_slot: LeasePeriodOf&lt;T&gt;,
 			last_slot: LeasePeriodOf&lt;T&gt;,
 		},
-		<span class="doccomment">/// The winning offset was chosen for an auction. This will map into the `Winning` storage map.
+		<span class="doccomment">/// The winning offset was chosen for an auction. This will map into the `Winning` storage
+		/// map.
 		</span>WinningOffset { auction_index: AuctionIndex, block_number: BlockNumberFor&lt;T&gt; },
 	}
 
@@ -2166,9 +2169,9 @@
 		<span class="kw">fn </span>on_initialize(n: BlockNumberFor&lt;T&gt;) -&gt; Weight {
 			<span class="kw">let </span><span class="kw-2">mut </span>weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
-			<span class="comment">// If the current auction was in its ending period last block, then ensure that the (sub-)range
-			// winner information is duplicated from the previous block in case no bids happened in the
-			// last block.
+			<span class="comment">// If the current auction was in its ending period last block, then ensure that the
+			// (sub-)range winner information is duplicated from the previous block in case no bids
+			// happened in the last block.
 			</span><span class="kw">if let </span>AuctionStatus::EndingPeriod(offset, _sub_sample) = <span class="self">Self</span>::auction_status(n) {
 				weight = weight.saturating_add(T::DbWeight::get().reads(<span class="number">1</span>));
 				<span class="kw">if </span>!Winning::&lt;T&gt;::contains_key(<span class="kw-2">&amp;</span>offset) {
@@ -2504,8 +2507,9 @@
 					});
 					<span class="kw">let </span>res = Winning::&lt;T&gt;::get(offset)
 						.unwrap_or([<span class="self">Self</span>::EMPTY; SlotRange::SLOT_RANGE_COUNT]);
-					<span class="comment">// This `remove_all` statement should remove at most `EndingPeriod` / `SampleLength` items,
-					// which should be bounded and sensibly configured in the runtime.
+					<span class="comment">// This `remove_all` statement should remove at most `EndingPeriod` /
+					// `SampleLength` items, which should be bounded and sensibly configured in the
+					// runtime.
 					</span><span class="attr">#[allow(deprecated)]
 					</span>Winning::&lt;T&gt;::remove_all(<span class="prelude-val">None</span>);
 					AuctionInfo::&lt;T&gt;::kill();
@@ -2523,8 +2527,8 @@
 		auction_lease_period_index: LeasePeriodOf&lt;T&gt;,
 		winning_ranges: WinningData&lt;T&gt;,
 	) {
-		<span class="comment">// First, unreserve all amounts that were reserved for the bids. We will later re-reserve the
-		// amounts from the bidders that ended up being assigned the slot so there&#39;s no need to
+		<span class="comment">// First, unreserve all amounts that were reserved for the bids. We will later re-reserve
+		// the amounts from the bidders that ended up being assigned the slot so there&#39;s no need to
 		// special-case them here.
 		</span><span class="kw">for </span>((bidder, <span class="kw">_</span>), amount) <span class="kw">in </span>ReservedAmounts::&lt;T&gt;::drain() {
 			CurrencyOf::&lt;T&gt;::unreserve(<span class="kw-2">&amp;</span>bidder, amount);
@@ -2545,12 +2549,12 @@
 				<span class="prelude-val">Err</span>(LeaseError::ReserveFailed) |
 				<span class="prelude-val">Err</span>(LeaseError::AlreadyEnded) |
 				<span class="prelude-val">Err</span>(LeaseError::NoLeasePeriod) =&gt; {
-					<span class="comment">// Should never happen since we just unreserved this amount (and our offset is from the
-					// present period). But if it does, there&#39;s not much we can do.
+					<span class="comment">// Should never happen since we just unreserved this amount (and our offset is
+					// from the present period). But if it does, there&#39;s not much we can do.
 				</span>},
 				<span class="prelude-val">Err</span>(LeaseError::AlreadyLeased) =&gt; {
-					<span class="comment">// The leaser attempted to get a second lease on the same para ID, possibly griefing us. Let&#39;s
-					// keep the amount reserved and let governance sort it out.
+					<span class="comment">// The leaser attempted to get a second lease on the same para ID, possibly
+					// griefing us. Let&#39;s keep the amount reserved and let governance sort it out.
 					</span><span class="kw">if </span>CurrencyOf::&lt;T&gt;::reserve(<span class="kw-2">&amp;</span>leaser, amount).is_ok() {
 						<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::ReserveConfiscated {
 							para_id: para,
@@ -3072,11 +3076,11 @@
 				Auctions::auction_status(System::block_number()),
 				AuctionStatus::&lt;u32&gt;::EndingPeriod(<span class="number">2</span>, <span class="number">0</span>)
 			);
-			<span class="comment">// This will prevent the auction&#39;s winner from being decided in the next block, since the random
-			// seed was known before the final bids were made.
+			<span class="comment">// This will prevent the auction&#39;s winner from being decided in the next block, since
+			// the random seed was known before the final bids were made.
 			</span>set_last_random(H256::zero(), <span class="number">8</span>);
-			<span class="comment">// Auction definitely ended now, but we don&#39;t know exactly when in the last 3 blocks yet since
-			// no randomness available yet.
+			<span class="comment">// Auction definitely ended now, but we don&#39;t know exactly when in the last 3 blocks yet
+			// since no randomness available yet.
 			</span>run_to_block(<span class="number">9</span>);
 			<span class="comment">// Auction has now ended... But auction winner still not yet decided, so no leases yet.
 			</span><span class="macro">assert_eq!</span>(
@@ -3085,8 +3089,8 @@
 			);
 			<span class="macro">assert_eq!</span>(leases(), <span class="macro">vec!</span>[]);
 
-			<span class="comment">// Random seed now updated to a value known at block 9, when the auction ended. This means
-			// that the winner can now be chosen.
+			<span class="comment">// Random seed now updated to a value known at block 9, when the auction ended. This
+			// means that the winner can now be chosen.
 			</span>set_last_random(H256::zero(), <span class="number">9</span>);
 			run_to_block(<span class="number">10</span>);
 			<span class="comment">// Auction ended and winner selected

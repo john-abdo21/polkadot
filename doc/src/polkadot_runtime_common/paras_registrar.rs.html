@@ -1557,6 +1557,14 @@
 <a href="#1557" id="1557">1557</a>
 <a href="#1558" id="1558">1558</a>
 <a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1666,9 +1674,9 @@
 		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 
 		<span class="doccomment">/// The aggregated origin type must support the `parachains` origin. We require that we can
-		/// infallibly convert between this origin and the system origin, but in reality, they&#39;re the
-		/// same type, we just can&#39;t express that to the Rust type system without writing a `where`
-		/// clause everywhere.
+		/// infallibly convert between this origin and the system origin, but in reality, they&#39;re
+		/// the same type, we just can&#39;t express that to the Rust type system without writing a
+		/// `where` clause everywhere.
 		</span><span class="kw">type </span>RuntimeOrigin: From&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin&gt;
 			+ Into&lt;result::Result&lt;Origin, &lt;<span class="self">Self </span><span class="kw">as </span>Config&gt;::RuntimeOrigin&gt;&gt;;
 
@@ -1722,14 +1730,15 @@
 		</span>CannotDowngrade,
 		<span class="doccomment">/// Cannot schedule upgrade of parathread to parachain
 		</span>CannotUpgrade,
-		<span class="doccomment">/// Para is locked from manipulation by the manager. Must use parachain or relay chain governance.
+		<span class="doccomment">/// Para is locked from manipulation by the manager. Must use parachain or relay chain
+		/// governance.
 		</span>ParaLocked,
 		<span class="doccomment">/// The ID given for registration has not been reserved.
 		</span>NotReserved,
 		<span class="doccomment">/// Registering parachain with empty code is not allowed.
 		</span>EmptyCode,
-		<span class="doccomment">/// Cannot perform a parachain slot / lifecycle swap. Check that the state of both paras are
-		/// correct for the swap to work.
+		<span class="doccomment">/// Cannot perform a parachain slot / lifecycle swap. Check that the state of both paras
+		/// are correct for the swap to work.
 		</span>CannotSwap,
 	}
 
@@ -1739,8 +1748,8 @@
 
 	<span class="doccomment">/// Amount held on deposit for each para and the original depositor.
 	///
-	/// The given account ID is responsible for registering the code and initial head data, but may only do
-	/// so if it isn&#39;t yet registered. (After that, it&#39;s up to governance to do so.)
+	/// The given account ID is responsible for registering the code and initial head data, but may
+	/// only do so if it isn&#39;t yet registered. (After that, it&#39;s up to governance to do so.)
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub type </span>Paras&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, ParaInfo&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt;;
@@ -1783,8 +1792,8 @@
 		/// - `validation_code`: The initial validation code of the parachain/thread.
 		///
 		/// ## Deposits/Fees
-		/// The origin signed account must reserve a corresponding deposit for the registration. Anything already
-		/// reserved previously for this para ID is accounted for.
+		/// The origin signed account must reserve a corresponding deposit for the registration.
+		/// Anything already reserved previously for this para ID is accounted for.
 		///
 		/// ## Events
 		/// The `Registered` event is emitted in case of success.
@@ -1823,7 +1832,8 @@
 
 		<span class="doccomment">/// Deregister a Para Id, freeing all data and returning any deposit.
 		///
-		/// The caller must be Root, the `para` owner, or the `para` itself. The para must be a parathread.
+		/// The caller must be Root, the `para` owner, or the `para` itself. The para must be a
+		/// parathread.
 		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::deregister())]
 		</span><span class="kw">pub fn </span>deregister(origin: OriginFor&lt;T&gt;, id: ParaId) -&gt; DispatchResult {
@@ -1904,17 +1914,20 @@
 		<span class="doccomment">/// Reserve a Para Id on the relay chain.
 		///
 		/// This function will reserve a new Para Id to be owned/managed by the origin account.
-		/// The origin account is able to register head data and validation code using `register` to create
-		/// a parathread. Using the Slots pallet, a parathread can then be upgraded to get a parachain slot.
+		/// The origin account is able to register head data and validation code using `register` to
+		/// create a parathread. Using the Slots pallet, a parathread can then be upgraded to get a
+		/// parachain slot.
 		///
 		/// ## Arguments
-		/// - `origin`: Must be called by a `Signed` origin. Becomes the manager/owner of the new para ID.
+		/// - `origin`: Must be called by a `Signed` origin. Becomes the manager/owner of the new
+		///   para ID.
 		///
 		/// ## Deposits/Fees
 		/// The origin must reserve a deposit of `ParaDeposit` for the registration.
 		///
 		/// ## Events
-		/// The `Reserved` event is emitted in case of success, which provides the ID reserved for use.
+		/// The `Reserved` event is emitted in case of success, which provides the ID reserved for
+		/// use.
 		</span><span class="attr">#[pallet::call_index(<span class="number">5</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::reserve())]
 		</span><span class="kw">pub fn </span>reserve(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
@@ -1928,7 +1941,8 @@
 		<span class="doccomment">/// Add a manager lock from a para. This will prevent the manager of a
 		/// para to deregister or swap a para.
 		///
-		/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.
+		/// Can be called by Root, the parachain, or the parachain manager if the parachain is
+		/// unlocked.
 		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
 		#[pallet::weight(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>))]
 		</span><span class="kw">pub fn </span>add_lock(origin: OriginFor&lt;T&gt;, para: ParaId) -&gt; DispatchResult {
@@ -1939,7 +1953,8 @@
 
 		<span class="doccomment">/// Schedule a parachain upgrade.
 		///
-		/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.
+		/// Can be called by Root, the parachain, or the parachain manager if the parachain is
+		/// unlocked.
 		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_code_upgrade(new_code.<span class="number">0</span>.len() <span class="kw">as </span>u32))]
 		</span><span class="kw">pub fn </span>schedule_code_upgrade(
@@ -1954,7 +1969,8 @@
 
 		<span class="doccomment">/// Set the parachain&#39;s current head.
 		///
-		/// Can be called by Root, the parachain, or the parachain manager if the parachain is unlocked.
+		/// Can be called by Root, the parachain, or the parachain manager if the parachain is
+		/// unlocked.
 		</span><span class="attr">#[pallet::call_index(<span class="number">8</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_current_head(new_head.<span class="number">0</span>.len() <span class="kw">as </span>u32))]
 		</span><span class="kw">pub fn </span>set_current_head(

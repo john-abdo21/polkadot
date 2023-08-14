@@ -440,6 +440,8 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -736,8 +738,8 @@
 		<span class="kw">return </span><span class="self">Self</span>::pop_impl(<span class="kw-2">&amp;mut </span><span class="self">self</span>.priority)
 	}
 
-	<span class="comment">// `pop_best_effort` and `pop_priority` do the same but on different `BTreeMap`s. This function has
-	// the extracted implementation
+	<span class="comment">// `pop_best_effort` and `pop_priority` do the same but on different `BTreeMap`s. This function
+	// has the extracted implementation
 	</span><span class="kw">fn </span>pop_impl(
 		target: <span class="kw-2">&amp;mut </span>BTreeMap&lt;CandidateComparator, ParticipationRequest&gt;,
 	) -&gt; <span class="prelude-ty">Option</span>&lt;(CandidateComparator, ParticipationRequest)&gt; {
@@ -773,9 +775,10 @@
 </span><span class="attr">#[derive(Copy, Clone)]
 #[cfg_attr(test, derive(Debug))]
 </span><span class="kw">struct </span>CandidateComparator {
-	<span class="doccomment">/// Block number of the relay parent. It&#39;s wrapped in an `Option&lt;&gt;` because there are cases when
-	/// it can&#39;t be obtained. For example when the node is lagging behind and new leaves are received
-	/// with a slight delay. Candidates with unknown relay parent are treated with the lowest priority.
+	<span class="doccomment">/// Block number of the relay parent. It&#39;s wrapped in an `Option&lt;&gt;` because there are cases
+	/// when it can&#39;t be obtained. For example when the node is lagging behind and new leaves are
+	/// received with a slight delay. Candidates with unknown relay parent are treated with the
+	/// lowest priority.
 	///
 	/// The order enforced by `CandidateComparator` is important because we want to participate in
 	/// the oldest disputes first.
@@ -788,9 +791,10 @@
 	/// that is not stable. If a new fork appears after the fact, we would start ordering the same
 	/// candidate differently, which would result in the same candidate getting queued twice.
 	</span>relay_parent_block_number: <span class="prelude-ty">Option</span>&lt;BlockNumber&gt;,
-	<span class="doccomment">/// By adding the `CandidateHash`, we can guarantee a unique ordering across candidates with the
-	/// same relay parent block number. Candidates without `relay_parent_block_number` are ordered by
-	/// the `candidate_hash` (and treated with the lowest priority, as already mentioned).
+	<span class="doccomment">/// By adding the `CandidateHash`, we can guarantee a unique ordering across candidates with
+	/// the same relay parent block number. Candidates without `relay_parent_block_number` are
+	/// ordered by the `candidate_hash` (and treated with the lowest priority, as already
+	/// mentioned).
 	</span>candidate_hash: CandidateHash,
 }
 
@@ -806,11 +810,11 @@
 	<span class="doccomment">/// Create a candidate comparator for a given candidate.
 	///
 	/// Returns:
-	///	- `Ok(CandidateComparator{Some(relay_parent_block_number), candidate_hash})` when the
+	/// 	- `Ok(CandidateComparator{Some(relay_parent_block_number), candidate_hash})` when the
 	/// 	relay parent can be obtained. This is the happy case.
 	/// - `Ok(CandidateComparator{None, candidate_hash})` in case the candidate&#39;s relay parent
 	/// 	can&#39;t be obtained.
-	///	- `FatalError` in case the chain API call fails with an unexpected error.
+	/// 	- `FatalError` in case the chain API call fails with an unexpected error.
 	</span><span class="kw">pub async fn </span>new(
 		sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::DisputeCoordinatorSenderTrait,
 		candidate: <span class="kw-2">&amp;</span>CandidateReceipt,

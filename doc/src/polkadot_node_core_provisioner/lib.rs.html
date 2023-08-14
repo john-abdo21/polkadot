@@ -778,6 +778,9 @@
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1246,11 +1249,11 @@
 /// - not more than one per validator
 /// - each 1 bit must correspond to an occupied core
 ///
-/// If we have too many, an arbitrary selection policy is fine. For purposes of maximizing availability,
-/// we pick the one with the greatest number of 1 bits.
+/// If we have too many, an arbitrary selection policy is fine. For purposes of maximizing
+/// availability, we pick the one with the greatest number of 1 bits.
 ///
-/// Note: This does not enforce any sorting precondition on the output; the ordering there will be unrelated
-/// to the sorting of the input.
+/// Note: This does not enforce any sorting precondition on the output; the ordering there will be
+/// unrelated to the sorting of the input.
 </span><span class="kw">fn </span>select_availability_bitfields(
 	cores: <span class="kw-2">&amp;</span>[CoreState],
 	bitfields: <span class="kw-2">&amp;</span>[SignedAvailabilityBitfield],
@@ -1312,7 +1315,8 @@
 	selected.into_values().collect()
 }
 
-<span class="doccomment">/// Determine which cores are free, and then to the degree possible, pick a candidate appropriate to each free core.
+<span class="doccomment">/// Determine which cores are free, and then to the degree possible, pick a candidate appropriate to
+/// each free core.
 </span><span class="kw">async fn </span>select_candidates(
 	availability_cores: <span class="kw-2">&amp;</span>[CoreState],
 	bitfields: <span class="kw-2">&amp;</span>[SignedAvailabilityBitfield],
@@ -1373,7 +1377,8 @@
 
 		<span class="kw">let </span>computed_validation_data_hash = validation_data.hash();
 
-		<span class="comment">// we arbitrarily pick the first of the backed candidates which match the appropriate selection criteria
+		<span class="comment">// we arbitrarily pick the first of the backed candidates which match the appropriate
+		// selection criteria
 		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(candidate) = candidates.iter().find(|backed_candidate| {
 			<span class="kw">let </span>descriptor = <span class="kw-2">&amp;</span>backed_candidate.descriptor;
 			descriptor.para_id == scheduled_core.para_id &amp;&amp;
@@ -1408,12 +1413,12 @@
 	<span class="macro">gum::trace!</span>(target: LOG_TARGET, leaf_hash=<span class="question-mark">?</span>relay_parent,
 				<span class="string">&quot;Got {} backed candidates&quot;</span>, candidates.len());
 
-	<span class="comment">// `selected_candidates` is generated in ascending order by core index, and `GetBackedCandidates`
-	// _should_ preserve that property, but let&#39;s just make sure.
+	<span class="comment">// `selected_candidates` is generated in ascending order by core index, and
+	// `GetBackedCandidates` _should_ preserve that property, but let&#39;s just make sure.
 	//
-	// We can&#39;t easily map from `BackedCandidate` to `core_idx`, but we know that every selected candidate
-	// maps to either 0 or 1 backed candidate, and the hashes correspond. Therefore, by checking them
-	// in order, we can ensure that the backed candidates are also in order.
+	// We can&#39;t easily map from `BackedCandidate` to `core_idx`, but we know that every selected
+	// candidate maps to either 0 or 1 backed candidate, and the hashes correspond. Therefore, by
+	// checking them in order, we can ensure that the backed candidates are also in order.
 	</span><span class="kw">let </span><span class="kw-2">mut </span>backed_idx = <span class="number">0</span>;
 	<span class="kw">for </span>selected <span class="kw">in </span>selected_candidates {
 		<span class="kw">if </span>selected ==
@@ -1485,8 +1490,9 @@
 		<span class="kw">let </span>validator_idx = bitfield.validator_index().<span class="number">0 </span><span class="kw">as </span>usize;
 		<span class="kw">match </span>availability.get_mut(validator_idx) {
 			<span class="prelude-val">None </span>=&gt; {
-				<span class="comment">// in principle, this function might return a `Result&lt;bool, Error&gt;` so that we can more clearly express this error condition
-				// however, in practice, that would just push off an error-handling routine which would look a whole lot like this one.
+				<span class="comment">// in principle, this function might return a `Result&lt;bool, Error&gt;` so that we can
+				// more clearly express this error condition however, in practice, that would just
+				// push off an error-handling routine which would look a whole lot like this one.
 				// simpler to just handle the error internally here.
 				</span><span class="macro">gum::warn!</span>(
 					target: LOG_TARGET,
@@ -1506,8 +1512,8 @@
 	<span class="number">3 </span>* availability.count_ones() &gt;= <span class="number">2 </span>* availability.len()
 }
 
-<span class="comment">// If we have to be absolutely precise here, this method gets the version of the `ParachainHost` api.
-// For brevity we&#39;ll just call it &#39;runtime version&#39;.
+<span class="comment">// If we have to be absolutely precise here, this method gets the version of the `ParachainHost`
+// api. For brevity we&#39;ll just call it &#39;runtime version&#39;.
 </span><span class="kw">async fn </span>has_required_runtime(
 	sender: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>overseer::ProvisionerSenderTrait,
 	relay_parent: Hash,

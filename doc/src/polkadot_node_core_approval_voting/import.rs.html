@@ -1385,6 +1385,8 @@
 <a href="#1385" id="1385">1385</a>
 <a href="#1386" id="1386">1386</a>
 <a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1491,7 +1493,8 @@
 	</span>VrfInfoUnavailable,
 }
 
-<span class="doccomment">/// Computes information about the imported block. Returns an error if the info couldn&#39;t be extracted.
+<span class="doccomment">/// Computes information about the imported block. Returns an error if the info couldn&#39;t be
+/// extracted.
 </span><span class="attr">#[overseer::contextbounds(ApprovalVoting, prefix = <span class="self">self</span>::overseer)]
 </span><span class="kw">async fn </span>imported_block_info&lt;Context&gt;(
 	ctx: <span class="kw-2">&amp;mut </span>Context,
@@ -1568,20 +1571,21 @@
 		<span class="comment">// It&#39;s not obvious whether to use the hash or the parent hash for this, intuitively. We
 		// want to use the block hash itself, and here&#39;s why:
 		//
-		// First off, &#39;epoch&#39; in BABE means &#39;session&#39; in other places. &#39;epoch&#39; is the terminology from
-		// the paper, which we fulfill using &#39;session&#39;s, which are a Substrate consensus concept.
+		// First off, &#39;epoch&#39; in BABE means &#39;session&#39; in other places. &#39;epoch&#39; is the terminology
+		// from the paper, which we fulfill using &#39;session&#39;s, which are a Substrate consensus
+		// concept.
 		//
-		// In BABE, the on-chain and off-chain view of the current epoch can differ at epoch boundaries
-		// because epochs change precisely at a slot. When a block triggers a new epoch, the state of
-		// its parent will still have the old epoch. Conversely, we have the invariant that every
-		// block in BABE has the epoch _it was authored in_ within its post-state. So we use the
-		// block, and not its parent.
+		// In BABE, the on-chain and off-chain view of the current epoch can differ at epoch
+		// boundaries because epochs change precisely at a slot. When a block triggers a new epoch,
+		// the state of its parent will still have the old epoch. Conversely, we have the invariant
+		// that every block in BABE has the epoch _it was authored in_ within its post-state. So we
+		// use the block, and not its parent.
 		//
-		// It&#39;s worth nothing that Polkadot session changes, at least for the purposes of parachains,
-		// would function the same way, except for the fact that they&#39;re always delayed by one block.
-		// This gives us the opposite invariant for sessions - the parent block&#39;s post-state gives
-		// us the canonical information about the session index for any of its children, regardless
-		// of which slot number they might be produced at.
+		// It&#39;s worth nothing that Polkadot session changes, at least for the purposes of
+		// parachains, would function the same way, except for the fact that they&#39;re always delayed
+		// by one block. This gives us the opposite invariant for sessions - the parent block&#39;s
+		// post-state gives us the canonical information about the session index for any of its
+		// children, regardless of which slot number they might be produced at.
 		</span>ctx.send_message(RuntimeApiMessage::Request(
 			block_hash,
 			RuntimeApiRequest::CurrentBabeEpoch(s_tx),
