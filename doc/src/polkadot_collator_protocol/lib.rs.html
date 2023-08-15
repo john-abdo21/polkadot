@@ -196,7 +196,7 @@
 };
 <span class="kw">use </span>polkadot_primitives::CollatorPair;
 
-<span class="kw">use </span>polkadot_node_subsystem::{errors::SubsystemError, overseer, SpawnedSubsystem};
+<span class="kw">use </span>polkadot_node_subsystem::{errors::SubsystemError, overseer, DummySubsystem, SpawnedSubsystem};
 
 <span class="kw">mod </span>error;
 
@@ -241,6 +241,8 @@
 		IncomingRequestReceiver&lt;request_v1::CollationFetchingRequest&gt;,
 		collator_side::Metrics,
 	),
+	<span class="doccomment">/// No protocol side, just disable it.
+	</span><span class="prelude-val">None</span>,
 }
 
 <span class="doccomment">/// The collator protocol subsystem.
@@ -257,24 +259,22 @@
 	</span><span class="kw">pub fn </span>new(protocol_side: ProtocolSide) -&gt; <span class="self">Self </span>{
 		<span class="self">Self </span>{ protocol_side }
 	}
-
-	<span class="kw">async fn </span>run&lt;Context&gt;(<span class="self">self</span>, ctx: Context) -&gt; std::result::Result&lt;(), error::FatalError&gt; {
-		<span class="kw">match </span><span class="self">self</span>.protocol_side {
-			ProtocolSide::Validator { keystore, eviction_policy, metrics } =&gt;
-				validator_side::run(ctx, keystore, eviction_policy, metrics).<span class="kw">await</span>,
-			ProtocolSide::Collator(local_peer_id, collator_pair, req_receiver, metrics) =&gt;
-				collator_side::run(ctx, local_peer_id, collator_pair, req_receiver, metrics).<span class="kw">await</span>,
-		}
-	}
 }
 
 <span class="attr">#[overseer::subsystem(CollatorProtocol, error=SubsystemError, prefix=<span class="self">self</span>::overseer)]
 </span><span class="kw">impl</span>&lt;Context&gt; CollatorProtocolSubsystem {
 	<span class="kw">fn </span>start(<span class="self">self</span>, ctx: Context) -&gt; SpawnedSubsystem {
-		<span class="kw">let </span>future = <span class="self">self
-			</span>.run(ctx)
-			.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;collator-protocol&quot;</span>, e))
-			.boxed();
+		<span class="kw">let </span>future = <span class="kw">match </span><span class="self">self</span>.protocol_side {
+			ProtocolSide::Validator { keystore, eviction_policy, metrics } =&gt;
+				validator_side::run(ctx, keystore, eviction_policy, metrics)
+					.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;collator-protocol&quot;</span>, e))
+					.boxed(),
+			ProtocolSide::Collator(local_peer_id, collator_pair, req_receiver, metrics) =&gt;
+				collator_side::run(ctx, local_peer_id, collator_pair, req_receiver, metrics)
+					.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;collator-protocol&quot;</span>, e))
+					.boxed(),
+			ProtocolSide::None =&gt; <span class="kw">return </span>DummySubsystem.start(ctx),
+		};
 
 		SpawnedSubsystem { name: <span class="string">&quot;collator-protocol-subsystem&quot;</span>, future }
 	}

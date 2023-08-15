@@ -414,7 +414,6 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -445,7 +444,7 @@
 <span class="kw">use </span>polkadot_primitives::{Balance, CollatorPair, HeadData, Id <span class="kw">as </span>ParaId, ValidationCode};
 <span class="kw">use </span>polkadot_runtime_common::BlockHashCount;
 <span class="kw">use </span>polkadot_runtime_parachains::paras::{ParaGenesisArgs, ParaKind};
-<span class="kw">use </span>polkadot_service::{Error, FullClient, IsCollator, NewFull, PrometheusConfig};
+<span class="kw">use </span>polkadot_service::{Error, FullClient, IsParachainNode, NewFull, PrometheusConfig};
 <span class="kw">use </span>polkadot_test_runtime::{
 	ParasCall, ParasSudoWrapperCall, Runtime, SignedExtra, SignedPayload, SudoCall,
 	UncheckedExtrinsic, VERSION,
@@ -488,7 +487,7 @@
 </span><span class="attr">#[sc_tracing::logging::prefix_logs_with(config.network.node_name.as_str())]
 </span><span class="kw">pub fn </span>new_full(
 	config: Configuration,
-	is_collator: IsCollator,
+	is_parachain_node: IsParachainNode,
 	workers_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;NewFull, Error&gt; {
 	<span class="kw">let </span>workers_path = <span class="prelude-val">Some</span>(workers_path.unwrap_or_else(get_relative_workers_path_for_test));
@@ -496,14 +495,13 @@
 	polkadot_service::new_full(
 		config,
 		polkadot_service::NewFullParams {
-			is_collator,
+			is_parachain_node,
 			grandpa_pause: <span class="prelude-val">None</span>,
 			jaeger_agent: <span class="prelude-val">None</span>,
 			telemetry_worker_handle: <span class="prelude-val">None</span>,
 			node_version: <span class="prelude-val">None</span>,
 			workers_path,
 			workers_names: <span class="prelude-val">None</span>,
-			overseer_enable_anyways: <span class="bool-val">false</span>,
 			overseer_gen: polkadot_service::RealOverseerGen,
 			overseer_message_channel_capacity_override: <span class="prelude-val">None</span>,
 			malus_finality_delay: <span class="prelude-val">None</span>,
@@ -624,7 +622,7 @@
 ) -&gt; PolkadotTestNode {
 	<span class="kw">let </span>multiaddr = config.network.listen_addresses[<span class="number">0</span>].clone();
 	<span class="kw">let </span>NewFull { task_manager, client, network, rpc_handlers, overseer_handle, .. } =
-		new_full(config, IsCollator::No, worker_program_path)
+		new_full(config, IsParachainNode::No, worker_program_path)
 			.expect(<span class="string">&quot;could not create Polkadot test service&quot;</span>);
 
 	<span class="kw">let </span>overseer_handle = overseer_handle.expect(<span class="string">&quot;test node must have an overseer handle&quot;</span>);
@@ -656,7 +654,7 @@
 	<span class="kw">let </span>config = node_config(storage_update_func, tokio_handle, key, boot_nodes, <span class="bool-val">false</span>);
 	<span class="kw">let </span>multiaddr = config.network.listen_addresses[<span class="number">0</span>].clone();
 	<span class="kw">let </span>NewFull { task_manager, client, network, rpc_handlers, overseer_handle, .. } =
-		new_full(config, IsCollator::Yes(collator_pair), <span class="prelude-val">None</span>)
+		new_full(config, IsParachainNode::Collator(collator_pair), <span class="prelude-val">None</span>)
 			.expect(<span class="string">&quot;could not create Polkadot test service&quot;</span>);
 
 	<span class="kw">let </span>overseer_handle = overseer_handle.expect(<span class="string">&quot;test node must have an overseer handle&quot;</span>);

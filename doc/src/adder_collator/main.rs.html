@@ -113,6 +113,11 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -136,6 +141,7 @@
 <span class="kw">use </span>polkadot_node_subsystem::messages::{CollationGenerationMessage, CollatorProtocolMessage};
 <span class="kw">use </span>polkadot_primitives::Id <span class="kw">as </span>ParaId;
 <span class="kw">use </span>sc_cli::{Error <span class="kw">as </span>SubstrateCliError, SubstrateCli};
+<span class="kw">use </span>sc_service::Role;
 <span class="kw">use </span>sp_core::hexdisplay::HexDisplay;
 <span class="kw">use </span>test_parachain_adder_collator::Collator;
 
@@ -172,10 +178,15 @@
 				<span class="kw">let </span>collator = Collator::new();
 
 				config.disable_beefy = <span class="bool-val">true</span>;
+				<span class="comment">// Zombienet is spawning all collators currently with the same CLI, this means it
+				// sets `--validator` and this is wrong here.
+				</span>config.role = Role::Full;
 				<span class="kw">let </span>full_node = polkadot_service::build_full(
 					config,
 					polkadot_service::NewFullParams {
-						is_collator: polkadot_service::IsCollator::Yes(collator.collator_key()),
+						is_parachain_node: polkadot_service::IsParachainNode::Collator(
+							collator.collator_key(),
+						),
 						grandpa_pause: <span class="prelude-val">None</span>,
 						jaeger_agent: <span class="prelude-val">None</span>,
 						telemetry_worker_handle: <span class="prelude-val">None</span>,
@@ -185,7 +196,6 @@
 						workers_path: <span class="prelude-val">None</span>,
 						workers_names: <span class="prelude-val">None</span>,
 
-						overseer_enable_anyways: <span class="bool-val">false</span>,
 						overseer_gen: polkadot_service::RealOverseerGen,
 						overseer_message_channel_capacity_override: <span class="prelude-val">None</span>,
 						malus_finality_delay: <span class="prelude-val">None</span>,

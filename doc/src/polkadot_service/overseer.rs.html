@@ -385,6 +385,7 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -401,7 +402,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use super</span>::{AuthorityDiscoveryApi, Block, Error, Hash, IsCollator, Registry};
+</span><span class="kw">use super</span>::{AuthorityDiscoveryApi, Block, Error, Hash, IsParachainNode, Registry};
 <span class="kw">use </span>polkadot_node_subsystem_types::DefaultSubsystemClient;
 <span class="kw">use </span>sc_transaction_pool_api::OffchainTransactionPoolFactory;
 <span class="kw">use </span>sp_core::traits::SpawnNamed;
@@ -495,7 +496,7 @@
 	<span class="doccomment">/// Task spawner to be used throughout the overseer and the APIs it provides.
 	</span><span class="kw">pub </span>spawner: Spawner,
 	<span class="doccomment">/// Determines the behavior of the collator.
-	</span><span class="kw">pub </span>is_collator: IsCollator,
+	</span><span class="kw">pub </span>is_parachain_node: IsParachainNode,
 	<span class="doccomment">/// Configuration for the approval voting subsystem.
 	</span><span class="kw">pub </span>approval_voting_config: ApprovalVotingConfig,
 	<span class="doccomment">/// Configuration for the availability store subsystem.
@@ -536,7 +537,7 @@
 		dispute_req_receiver,
 		registry,
 		spawner,
-		is_collator,
+		is_parachain_node,
 		approval_voting_config,
 		availability_config,
 		candidate_validation_config,
@@ -653,14 +654,15 @@
 		.chain_api(ChainApiSubsystem::new(runtime_client.clone(), Metrics::register(registry)<span class="question-mark">?</span>))
 		.collation_generation(CollationGenerationSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
 		.collator_protocol({
-			<span class="kw">let </span>side = <span class="kw">match </span>is_collator {
-				IsCollator::Yes(collator_pair) =&gt; ProtocolSide::Collator(
+			<span class="kw">let </span>side = <span class="kw">match </span>is_parachain_node {
+				IsParachainNode::Collator(collator_pair) =&gt; ProtocolSide::Collator(
 					network_service.local_peer_id(),
 					collator_pair,
 					collation_req_receiver,
 					Metrics::register(registry)<span class="question-mark">?</span>,
 				),
-				IsCollator::No =&gt; ProtocolSide::Validator {
+				IsParachainNode::FullNode =&gt; ProtocolSide::None,
+				IsParachainNode::No =&gt; ProtocolSide::Validator {
 					keystore: keystore.clone(),
 					eviction_policy: Default::default(),
 					metrics: Metrics::register(registry)<span class="question-mark">?</span>,
