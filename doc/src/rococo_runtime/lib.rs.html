@@ -2291,7 +2291,6 @@
 <a href="#2291" id="2291">2291</a>
 <a href="#2292" id="2292">2292</a>
 <a href="#2293" id="2293">2293</a>
-<a href="#2294" id="2294">2294</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3628,8 +3627,6 @@
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>PermanentSlotLeasePeriodLength: u32 = <span class="number">365</span>;
 	<span class="kw">pub const </span>TemporarySlotLeasePeriodLength: u32 = <span class="number">5</span>;
-	<span class="kw">pub const </span>MaxPermanentSlots: u32 = <span class="number">100</span>;
-	<span class="kw">pub const </span>MaxTemporarySlots: u32 = <span class="number">100</span>;
 	<span class="kw">pub const </span>MaxTemporarySlotPerLeasePeriod: u32 = <span class="number">5</span>;
 }
 
@@ -3639,9 +3636,8 @@
 	<span class="kw">type </span>Leaser = Slots;
 	<span class="kw">type </span>PermanentSlotLeasePeriodLength = PermanentSlotLeasePeriodLength;
 	<span class="kw">type </span>TemporarySlotLeasePeriodLength = TemporarySlotLeasePeriodLength;
-	<span class="kw">type </span>MaxPermanentSlots = MaxPermanentSlots;
-	<span class="kw">type </span>MaxTemporarySlots = MaxTemporarySlots;
 	<span class="kw">type </span>MaxTemporarySlotPerLeasePeriod = MaxTemporarySlotPerLeasePeriod;
+	<span class="kw">type </span>WeightInfo = weights::runtime_common_assigned_slots::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>validator_manager::Config <span class="kw">for </span>Runtime {
@@ -3765,7 +3761,7 @@
 		MmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = <span class="number">242</span>,
 
 		ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = <span class="number">250</span>,
-		AssignedSlots: assigned_slots::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">251</span>,
+		AssignedSlots: assigned_slots::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">251</span>,
 
 		<span class="comment">// Validator Manager pallet.
 		</span>ValidatorManager: validator_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">252</span>,
@@ -3820,6 +3816,7 @@
 		pallet_society::migrations::VersionCheckedMigrateToV2&lt;Runtime, (), ()&gt;,
 		pallet_im_online::migration::v1::Migration&lt;Runtime&gt;,
 		parachains_configuration::migration::v7::MigrateToV7&lt;Runtime&gt;,
+		assigned_slots::migration::v1::VersionCheckedMigrateToV1&lt;Runtime&gt;,
 	);
 }
 
@@ -3866,7 +3863,8 @@
 		<span class="comment">// Polkadot
 		// NOTE: Make sure to prefix these with `runtime_common::` so
 		// the that path resolves correctly in the generated file.
-		</span>[runtime_common::auctions, Auctions]
+		</span>[runtime_common::assigned_slots, AssignedSlots]
+		[runtime_common::auctions, Auctions]
 		[runtime_common::crowdloan, Crowdloan]
 		[runtime_common::claims, Claims]
 		[runtime_common::slots, Slots]

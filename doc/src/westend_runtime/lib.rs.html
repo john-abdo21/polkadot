@@ -2044,7 +2044,6 @@
 <a href="#2044" id="2044">2044</a>
 <a href="#2045" id="2045">2045</a>
 <a href="#2046" id="2046">2046</a>
-<a href="#2047" id="2047">2047</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3054,8 +3053,6 @@
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>PermanentSlotLeasePeriodLength: u32 = <span class="number">26</span>;
 	<span class="kw">pub const </span>TemporarySlotLeasePeriodLength: u32 = <span class="number">1</span>;
-	<span class="kw">pub const </span>MaxPermanentSlots: u32 = <span class="number">5</span>;
-	<span class="kw">pub const </span>MaxTemporarySlots: u32 = <span class="number">20</span>;
 	<span class="kw">pub const </span>MaxTemporarySlotPerLeasePeriod: u32 = <span class="number">5</span>;
 }
 
@@ -3065,9 +3062,8 @@
 	<span class="kw">type </span>Leaser = Slots;
 	<span class="kw">type </span>PermanentSlotLeasePeriodLength = PermanentSlotLeasePeriodLength;
 	<span class="kw">type </span>TemporarySlotLeasePeriodLength = TemporarySlotLeasePeriodLength;
-	<span class="kw">type </span>MaxPermanentSlots = MaxPermanentSlots;
-	<span class="kw">type </span>MaxTemporarySlots = MaxTemporarySlots;
 	<span class="kw">type </span>MaxTemporarySlotPerLeasePeriod = MaxTemporarySlotPerLeasePeriod;
+	<span class="kw">type </span>WeightInfo = weights::runtime_common_assigned_slots::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>parachains_disputes::Config <span class="kw">for </span>Runtime {
@@ -3278,7 +3274,7 @@
 		ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = <span class="number">62</span>,
 		Auctions: auctions::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">63</span>,
 		Crowdloan: crowdloan::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">64</span>,
-		AssignedSlots: assigned_slots::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">65</span>,
+		AssignedSlots: assigned_slots::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">65</span>,
 
 		<span class="comment">// Pallet for sending XCM.
 		</span>XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">99</span>,
@@ -3332,6 +3328,7 @@
 	</span><span class="kw">pub type </span>Unreleased = (
 		pallet_im_online::migration::v1::Migration&lt;Runtime&gt;,
 		parachains_configuration::migration::v7::MigrateToV7&lt;Runtime&gt;,
+		assigned_slots::migration::v1::VersionCheckedMigrateToV1&lt;Runtime&gt;,
 	);
 }
 
@@ -3356,7 +3353,8 @@
 		<span class="comment">// Polkadot
 		// NOTE: Make sure to prefix these with `runtime_common::` so
 		// the that path resolves correctly in the generated file.
-		</span>[runtime_common::auctions, Auctions]
+		</span>[runtime_common::assigned_slots, AssignedSlots]
+		[runtime_common::auctions, Auctions]
 		[runtime_common::crowdloan, Crowdloan]
 		[runtime_common::paras_registrar, Registrar]
 		[runtime_common::slots, Slots]

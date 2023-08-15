@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SlotLeasePeriodStart"],"mod":["pallet"],"struct":["ParachainTemporarySlot"]};
+window.SIDEBAR_ITEMS = {"enum":["SlotLeasePeriodStart"],"mod":["migration","pallet"],"struct":["ParachainTemporarySlot","TestWeightInfo"],"trait":["WeightInfo"]};
