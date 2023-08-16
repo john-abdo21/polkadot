@@ -626,7 +626,7 @@
 			.expect(<span class="string">&quot;could not create Polkadot test service&quot;</span>);
 
 	<span class="kw">let </span>overseer_handle = overseer_handle.expect(<span class="string">&quot;test node must have an overseer handle&quot;</span>);
-	<span class="kw">let </span>peer_id = network.local_peer_id().clone();
+	<span class="kw">let </span>peer_id = network.local_peer_id();
 	<span class="kw">let </span>addr = MultiaddrWithPeerId { multiaddr, peer_id };
 
 	PolkadotTestNode { task_manager, client, overseer_handle, addr, rpc_handlers }
@@ -658,7 +658,7 @@
 			.expect(<span class="string">&quot;could not create Polkadot test service&quot;</span>);
 
 	<span class="kw">let </span>overseer_handle = overseer_handle.expect(<span class="string">&quot;test node must have an overseer handle&quot;</span>);
-	<span class="kw">let </span>peer_id = network.local_peer_id().clone();
+	<span class="kw">let </span>peer_id = network.local_peer_id();
 	<span class="kw">let </span>addr = MultiaddrWithPeerId { multiaddr, peer_id };
 
 	PolkadotTestNode { task_manager, client, overseer_handle, addr, rpc_handlers }
@@ -689,7 +689,7 @@
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), RpcTransactionError&gt; {
 		<span class="kw">let </span>sudo = SudoCall::sudo { call: Box::new(call.into()) };
 
-		<span class="kw">let </span>extrinsic = construct_extrinsic(<span class="kw-2">&amp;*</span><span class="self">self</span>.client, sudo, caller, nonce);
+		<span class="kw">let </span>extrinsic = construct_extrinsic(<span class="kw-2">&amp;</span><span class="self">self</span>.client, sudo, caller, nonce);
 		<span class="self">self</span>.rpc_handlers.send_transaction(extrinsic.into()).<span class="kw">await</span>.map(drop)
 	}
 
@@ -699,7 +699,7 @@
 		function: <span class="kw">impl </span>Into&lt;polkadot_test_runtime::RuntimeCall&gt;,
 		caller: Sr25519Keyring,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;RpcTransactionOutput, RpcTransactionError&gt; {
-		<span class="kw">let </span>extrinsic = construct_extrinsic(<span class="kw-2">&amp;*</span><span class="self">self</span>.client, function, caller, <span class="number">0</span>);
+		<span class="kw">let </span>extrinsic = construct_extrinsic(<span class="kw-2">&amp;</span><span class="self">self</span>.client, function, caller, <span class="number">0</span>);
 
 		<span class="self">self</span>.rpc_handlers.send_transaction(extrinsic.into()).<span class="kw">await
 	</span>}

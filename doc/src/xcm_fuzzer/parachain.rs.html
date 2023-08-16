@@ -596,7 +596,7 @@
 				<span class="prelude-val">Ok</span>(xcm) =&gt; {
 					<span class="kw">let </span>location = MultiLocation::new(<span class="number">1</span>, X1(Parachain(sender.into())));
 					<span class="kw">match </span>T::XcmExecutor::execute_xcm(location, xcm, message_hash, max_weight) {
-						Outcome::Error(e) =&gt; (<span class="prelude-val">Err</span>(e.clone()), Event::Fail(<span class="prelude-val">Some</span>(hash), e)),
+						Outcome::Error(e) =&gt; (<span class="prelude-val">Err</span>(e), Event::Fail(<span class="prelude-val">Some</span>(hash), e)),
 						Outcome::Complete(w) =&gt; (<span class="prelude-val">Ok</span>(w), Event::Success(<span class="prelude-val">Some</span>(hash))),
 						<span class="comment">// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
@@ -620,7 +620,7 @@
 				<span class="kw">let _ </span>= XcmpMessageFormat::decode(<span class="kw-2">&amp;mut </span>data_ref)
 					.expect(<span class="string">&quot;Simulator encodes with versioned xcm format; qed&quot;</span>);
 
-				<span class="kw">let </span><span class="kw-2">mut </span>remaining_fragments = <span class="kw-2">&amp;</span>data_ref[..];
+				<span class="kw">let </span><span class="kw-2">mut </span>remaining_fragments = data_ref;
 				<span class="kw">while </span>!remaining_fragments.is_empty() {
 					<span class="kw">if let </span><span class="prelude-val">Ok</span>(xcm) =
 						VersionedXcm::&lt;T::RuntimeCall&gt;::decode(<span class="kw-2">&amp;mut </span>remaining_fragments)
