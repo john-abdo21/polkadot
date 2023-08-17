@@ -1330,6 +1330,17 @@
 <a href="#1330" id="1330">1330</a>
 <a href="#1331" id="1331">1331</a>
 <a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1357,9 +1368,9 @@
 <span class="kw">use </span>polkadot_parachain::primitives::{MAX_HORIZONTAL_MESSAGE_NUM, MAX_UPWARD_MESSAGE_NUM};
 <span class="kw">use </span>primitives::{
 	vstaging::AsyncBackingParams, Balance, ExecutorParams, SessionIndex, MAX_CODE_SIZE,
-	MAX_HEAD_DATA_SIZE, MAX_POV_SIZE,
+	MAX_HEAD_DATA_SIZE, MAX_POV_SIZE, ON_DEMAND_DEFAULT_QUEUE_MAX_SIZE,
 };
-<span class="kw">use </span>sp_runtime::traits::Zero;
+<span class="kw">use </span>sp_runtime::{traits::Zero, Perbill};
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 
 <span class="attr">#[cfg(test)]
@@ -1374,7 +1385,7 @@
 
 <span class="kw">const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">&quot;runtime::configuration&quot;</span>;
 
-<span class="doccomment">/// All configuration of the runtime with respect to parachains and parathreads.
+<span class="doccomment">/// All configuration of the runtime with respect to paras.
 </span><span class="attr">#[derive(
 	Clone,
 	Encode,
@@ -1445,10 +1456,9 @@
 	/// been completed.
 	///
 	/// Note, there are situations in which `expected_at` in the past. For example, if
-	/// [`chain_availability_period`] or [`thread_availability_period`] is less than the delay set
-	/// by this field or if PVF pre-check took more time than the delay. In such cases, the upgrade
-	/// is further at the earliest possible time determined by
-	/// [`minimum_validation_upgrade_delay`].
+	/// [`paras_availability_period`] is less than the delay set by
+	/// this field or if PVF pre-check took more time than the delay. In such cases, the upgrade is
+	/// further at the earliest possible time determined by [`minimum_validation_upgrade_delay`].
 	///
 	/// The rationale for this delay has to do with relay-chain reversions. In case there is an
 	/// invalid candidate produced with the new version of the code, then the relay-chain can
@@ -1475,8 +1485,6 @@
 	</span><span class="kw">pub </span>max_downward_message_size: u32,
 	<span class="doccomment">/// The maximum number of outbound HRMP channels a parachain is allowed to open.
 	</span><span class="kw">pub </span>hrmp_max_parachain_outbound_channels: u32,
-	<span class="doccomment">/// The maximum number of outbound HRMP channels a parathread is allowed to open.
-	</span><span class="kw">pub </span>hrmp_max_parathread_outbound_channels: u32,
 	<span class="doccomment">/// The deposit that the sender should provide for opening an HRMP channel.
 	</span><span class="kw">pub </span>hrmp_sender_deposit: Balance,
 	<span class="doccomment">/// The deposit that the recipient should provide for accepting opening an HRMP channel.
@@ -1487,8 +1495,6 @@
 	</span><span class="kw">pub </span>hrmp_channel_max_total_size: u32,
 	<span class="doccomment">/// The maximum number of inbound HRMP channels a parachain is allowed to accept.
 	</span><span class="kw">pub </span>hrmp_max_parachain_inbound_channels: u32,
-	<span class="doccomment">/// The maximum number of inbound HRMP channels a parathread is allowed to accept.
-	</span><span class="kw">pub </span>hrmp_max_parathread_inbound_channels: u32,
 	<span class="doccomment">/// The maximum size of a message that could ever be put into an HRMP channel.
 	///
 	/// This parameter affects the upper bound of size of `CandidateCommitments`.
@@ -1503,26 +1509,34 @@
 	/// How long to keep code on-chain, in blocks. This should be sufficiently long that disputes
 	/// have concluded.
 	</span><span class="kw">pub </span>code_retention_period: BlockNumber,
-	<span class="doccomment">/// The amount of execution cores to dedicate to parathread execution.
-	</span><span class="kw">pub </span>parathread_cores: u32,
-	<span class="doccomment">/// The number of retries that a parathread author has to submit their block.
-	</span><span class="kw">pub </span>parathread_retries: u32,
+	<span class="doccomment">/// The amount of execution cores to dedicate to on demand execution.
+	</span><span class="kw">pub </span>on_demand_cores: u32,
+	<span class="doccomment">/// The number of retries that a on demand author has to submit their block.
+	</span><span class="kw">pub </span>on_demand_retries: u32,
+	<span class="doccomment">/// The maximum queue size of the pay as you go module.
+	</span><span class="kw">pub </span>on_demand_queue_max_size: u32,
+	<span class="doccomment">/// The target utilization of the spot price queue in percentages.
+	</span><span class="kw">pub </span>on_demand_target_queue_utilization: Perbill,
+	<span class="doccomment">/// How quickly the fee rises in reaction to increased utilization.
+	/// The lower the number the slower the increase.
+	</span><span class="kw">pub </span>on_demand_fee_variability: Perbill,
+	<span class="doccomment">/// The minimum amount needed to claim a slot in the spot pricing queue.
+	</span><span class="kw">pub </span>on_demand_base_fee: Balance,
+	<span class="doccomment">/// The number of blocks an on demand claim stays in the scheduler&#39;s claimqueue before getting
+	/// cleared. This number should go reasonably higher than the number of blocks in the async
+	/// backing lookahead.
+	</span><span class="kw">pub </span>on_demand_ttl: BlockNumber,
 	<span class="doccomment">/// How often parachain groups should be rotated across parachains.
 	///
 	/// Must be non-zero.
 	</span><span class="kw">pub </span>group_rotation_frequency: BlockNumber,
-	<span class="doccomment">/// The availability period, in blocks, for parachains. This is the amount of blocks
+	<span class="doccomment">/// The availability period, in blocks. This is the amount of blocks
 	/// after inclusion that validators have to make the block available and signal its
 	/// availability to the chain.
 	///
 	/// Must be at least 1.
-	</span><span class="kw">pub </span>chain_availability_period: BlockNumber,
-	<span class="doccomment">/// The availability period, in blocks, for parathreads. Same as the
-	/// `chain_availability_period`, but a differing timeout due to differing requirements.
-	///
-	/// Must be at least 1.
-	</span><span class="kw">pub </span>thread_availability_period: BlockNumber,
-	<span class="doccomment">/// The amount of blocks ahead to schedule parachains and parathreads.
+	</span><span class="kw">pub </span>paras_availability_period: BlockNumber,
+	<span class="doccomment">/// The amount of blocks ahead to schedule paras.
 	</span><span class="kw">pub </span>scheduling_lookahead: u32,
 	<span class="doccomment">/// The maximum number of validators to have per core.
 	///
@@ -1569,8 +1583,7 @@
 	/// To prevent that, we introduce the minimum number of blocks after which the upgrade can be
 	/// scheduled. This number is controlled by this field.
 	///
-	/// This value should be greater than [`chain_availability_period`] and
-	/// [`thread_availability_period`].
+	/// This value should be greater than [`paras_availability_period`].
 	</span><span class="kw">pub </span>minimum_validation_upgrade_delay: BlockNumber,
 }
 
@@ -1582,8 +1595,7 @@
 				allowed_ancestry_len: <span class="number">0</span>,
 			},
 			group_rotation_frequency: <span class="number">1u32</span>.into(),
-			chain_availability_period: <span class="number">1u32</span>.into(),
-			thread_availability_period: <span class="number">1u32</span>.into(),
+			paras_availability_period: <span class="number">1u32</span>.into(),
 			no_show_slots: <span class="number">1u32</span>.into(),
 			validation_upgrade_cooldown: Default::default(),
 			validation_upgrade_delay: <span class="number">2u32</span>.into(),
@@ -1591,9 +1603,9 @@
 			max_code_size: Default::default(),
 			max_pov_size: Default::default(),
 			max_head_data_size: Default::default(),
-			parathread_cores: Default::default(),
-			parathread_retries: Default::default(),
-			scheduling_lookahead: Default::default(),
+			on_demand_cores: Default::default(),
+			on_demand_retries: Default::default(),
+			scheduling_lookahead: <span class="number">1</span>,
 			max_validators_per_core: Default::default(),
 			max_validators: <span class="prelude-val">None</span>,
 			dispute_period: <span class="number">6</span>,
@@ -1612,14 +1624,17 @@
 			hrmp_channel_max_capacity: Default::default(),
 			hrmp_channel_max_total_size: Default::default(),
 			hrmp_max_parachain_inbound_channels: Default::default(),
-			hrmp_max_parathread_inbound_channels: Default::default(),
 			hrmp_channel_max_message_size: Default::default(),
 			hrmp_max_parachain_outbound_channels: Default::default(),
-			hrmp_max_parathread_outbound_channels: Default::default(),
 			hrmp_max_message_num_per_candidate: Default::default(),
 			pvf_voting_ttl: <span class="number">2u32</span>.into(),
 			minimum_validation_upgrade_delay: <span class="number">2</span>.into(),
 			executor_params: Default::default(),
+			on_demand_queue_max_size: ON_DEMAND_DEFAULT_QUEUE_MAX_SIZE,
+			on_demand_base_fee: <span class="number">10_000_000u128</span>,
+			on_demand_fee_variability: Perbill::from_percent(<span class="number">3</span>),
+			on_demand_target_queue_utilization: Perbill::from_percent(<span class="number">25</span>),
+			on_demand_ttl: <span class="number">5u32</span>.into(),
 		}
 	}
 }
@@ -1629,10 +1644,8 @@
 </span><span class="kw">pub enum </span>InconsistentError&lt;BlockNumber&gt; {
 	<span class="doccomment">/// `group_rotation_frequency` is set to zero.
 	</span>ZeroGroupRotationFrequency,
-	<span class="doccomment">/// `chain_availability_period` is set to zero.
-	</span>ZeroChainAvailabilityPeriod,
-	<span class="doccomment">/// `thread_availability_period` is set to zero.
-	</span>ZeroThreadAvailabilityPeriod,
+	<span class="doccomment">/// `paras_availability_period` is set to zero.
+	</span>ZeroParasAvailabilityPeriod,
 	<span class="doccomment">/// `no_show_slots` is set to zero.
 	</span>ZeroNoShowSlots,
 	<span class="doccomment">/// `max_code_size` exceeds the hard limit of `MAX_CODE_SIZE`.
@@ -1641,15 +1654,10 @@
 	</span>MaxHeadDataSizeExceedHardLimit { max_head_data_size: u32 },
 	<span class="doccomment">/// `max_pov_size` exceeds the hard limit of `MAX_POV_SIZE`.
 	</span>MaxPovSizeExceedHardLimit { max_pov_size: u32 },
-	<span class="doccomment">/// `minimum_validation_upgrade_delay` is less than `chain_availability_period`.
+	<span class="doccomment">/// `minimum_validation_upgrade_delay` is less than `paras_availability_period`.
 	</span>MinimumValidationUpgradeDelayLessThanChainAvailabilityPeriod {
 		minimum_validation_upgrade_delay: BlockNumber,
-		chain_availability_period: BlockNumber,
-	},
-	<span class="doccomment">/// `minimum_validation_upgrade_delay` is less than `thread_availability_period`.
-	</span>MinimumValidationUpgradeDelayLessThanThreadAvailabilityPeriod {
-		minimum_validation_upgrade_delay: BlockNumber,
-		thread_availability_period: BlockNumber,
+		paras_availability_period: BlockNumber,
 	},
 	<span class="doccomment">/// `validation_upgrade_delay` is less than or equal 1.
 	</span>ValidationUpgradeDelayIsTooLow { validation_upgrade_delay: BlockNumber },
@@ -1681,12 +1689,8 @@
 			<span class="kw">return </span><span class="prelude-val">Err</span>(ZeroGroupRotationFrequency)
 		}
 
-		<span class="kw">if </span><span class="self">self</span>.chain_availability_period.is_zero() {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(ZeroChainAvailabilityPeriod)
-		}
-
-		<span class="kw">if </span><span class="self">self</span>.thread_availability_period.is_zero() {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(ZeroThreadAvailabilityPeriod)
+		<span class="kw">if </span><span class="self">self</span>.paras_availability_period.is_zero() {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(ZeroParasAvailabilityPeriod)
 		}
 
 		<span class="kw">if </span><span class="self">self</span>.no_show_slots.is_zero() {
@@ -1707,15 +1711,10 @@
 			<span class="kw">return </span><span class="prelude-val">Err</span>(MaxPovSizeExceedHardLimit { max_pov_size: <span class="self">self</span>.max_pov_size })
 		}
 
-		<span class="kw">if </span><span class="self">self</span>.minimum_validation_upgrade_delay &lt;= <span class="self">self</span>.chain_availability_period {
+		<span class="kw">if </span><span class="self">self</span>.minimum_validation_upgrade_delay &lt;= <span class="self">self</span>.paras_availability_period {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(MinimumValidationUpgradeDelayLessThanChainAvailabilityPeriod {
 				minimum_validation_upgrade_delay: <span class="self">self</span>.minimum_validation_upgrade_delay.clone(),
-				chain_availability_period: <span class="self">self</span>.chain_availability_period.clone(),
-			})
-		} <span class="kw">else if </span><span class="self">self</span>.minimum_validation_upgrade_delay &lt;= <span class="self">self</span>.thread_availability_period {
-			<span class="kw">return </span><span class="prelude-val">Err</span>(MinimumValidationUpgradeDelayLessThanThreadAvailabilityPeriod {
-				minimum_validation_upgrade_delay: <span class="self">self</span>.minimum_validation_upgrade_delay.clone(),
-				thread_availability_period: <span class="self">self</span>.thread_availability_period.clone(),
+				paras_availability_period: <span class="self">self</span>.paras_availability_period.clone(),
 			})
 		}
 
@@ -1774,6 +1773,7 @@
 	<span class="kw">fn </span>set_config_with_balance() -&gt; Weight;
 	<span class="kw">fn </span>set_hrmp_open_request_ttl() -&gt; Weight;
 	<span class="kw">fn </span>set_config_with_executor_params() -&gt; Weight;
+	<span class="kw">fn </span>set_config_with_perbill() -&gt; Weight;
 }
 
 <span class="kw">pub struct </span>TestWeightInfo;
@@ -1796,6 +1796,9 @@
 	<span class="kw">fn </span>set_config_with_executor_params() -&gt; Weight {
 		Weight::MAX
 	}
+	<span class="kw">fn </span>set_config_with_perbill() -&gt; Weight {
+		Weight::MAX
+	}
 }
 
 <span class="attr">#[frame_support::pallet]
@@ -1813,7 +1816,8 @@
 	///      + &lt;https://github.com/paritytech/polkadot/pull/6934&gt;
 	/// v5-v6: &lt;https://github.com/paritytech/polkadot/pull/6271&gt; (remove UMP dispatch queue)
 	/// v6-v7: &lt;https://github.com/paritytech/polkadot/pull/7396&gt;
-	</span><span class="kw">const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">7</span>);
+	/// v7-v8: &lt;https://github.com/paritytech/polkadot/pull/6969&gt;
+	</span><span class="kw">const </span>STORAGE_VERSION: StorageVersion = StorageVersion::new(<span class="number">8</span>);
 
 	<span class="attr">#[pallet::pallet]
 	#[pallet::storage_version(STORAGE_VERSION)]
@@ -1958,29 +1962,29 @@
 			})
 		}
 
-		<span class="doccomment">/// Set the number of parathread execution cores.
+		<span class="doccomment">/// Set the number of on demand execution cores.
 		</span><span class="attr">#[pallet::call_index(<span class="number">6</span>)]
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_u32(),
 			DispatchClass::Operational,
 		))]
-		</span><span class="kw">pub fn </span>set_parathread_cores(origin: OriginFor&lt;T&gt;, new: u32) -&gt; DispatchResult {
+		</span><span class="kw">pub fn </span>set_on_demand_cores(origin: OriginFor&lt;T&gt;, new: u32) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.parathread_cores = new;
+				config.on_demand_cores = new;
 			})
 		}
 
-		<span class="doccomment">/// Set the number of retries for a particular parathread.
+		<span class="doccomment">/// Set the number of retries for a particular on demand.
 		</span><span class="attr">#[pallet::call_index(<span class="number">7</span>)]
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_u32(),
 			DispatchClass::Operational,
 		))]
-		</span><span class="kw">pub fn </span>set_parathread_retries(origin: OriginFor&lt;T&gt;, new: u32) -&gt; DispatchResult {
+		</span><span class="kw">pub fn </span>set_on_demand_retries(origin: OriginFor&lt;T&gt;, new: u32) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.parathread_retries = new;
+				config.on_demand_retries = new;
 			})
 		}
 
@@ -2000,35 +2004,19 @@
 			})
 		}
 
-		<span class="doccomment">/// Set the availability period for parachains.
+		<span class="doccomment">/// Set the availability period for paras.
 		</span><span class="attr">#[pallet::call_index(<span class="number">9</span>)]
 		#[pallet::weight((
 			T::WeightInfo::set_config_with_block_number(),
 			DispatchClass::Operational,
 		))]
-		</span><span class="kw">pub fn </span>set_chain_availability_period(
+		</span><span class="kw">pub fn </span>set_paras_availability_period(
 			origin: OriginFor&lt;T&gt;,
 			new: BlockNumberFor&lt;T&gt;,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.chain_availability_period = new;
-			})
-		}
-
-		<span class="doccomment">/// Set the availability period for parathreads.
-		</span><span class="attr">#[pallet::call_index(<span class="number">10</span>)]
-		#[pallet::weight((
-			T::WeightInfo::set_config_with_block_number(),
-			DispatchClass::Operational,
-		))]
-		</span><span class="kw">pub fn </span>set_thread_availability_period(
-			origin: OriginFor&lt;T&gt;,
-			new: BlockNumberFor&lt;T&gt;,
-		) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.thread_availability_period = new;
+				config.paras_availability_period = new;
 			})
 		}
 
@@ -2321,22 +2309,6 @@
 			})
 		}
 
-		<span class="doccomment">/// Sets the maximum number of inbound HRMP channels a parathread is allowed to accept.
-		</span><span class="attr">#[pallet::call_index(<span class="number">35</span>)]
-		#[pallet::weight((
-			T::WeightInfo::set_config_with_u32(),
-			DispatchClass::Operational,
-		))]
-		</span><span class="kw">pub fn </span>set_hrmp_max_parathread_inbound_channels(
-			origin: OriginFor&lt;T&gt;,
-			new: u32,
-		) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.hrmp_max_parathread_inbound_channels = new;
-			})
-		}
-
 		<span class="doccomment">/// Sets the maximum size of a message that could ever be put into an HRMP channel.
 		</span><span class="attr">#[pallet::call_index(<span class="number">36</span>)]
 		#[pallet::weight((
@@ -2363,22 +2335,6 @@
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
 				config.hrmp_max_parachain_outbound_channels = new;
-			})
-		}
-
-		<span class="doccomment">/// Sets the maximum number of outbound HRMP channels a parathread is allowed to open.
-		</span><span class="attr">#[pallet::call_index(<span class="number">38</span>)]
-		#[pallet::weight((
-			T::WeightInfo::set_config_with_u32(),
-			DispatchClass::Operational,
-		))]
-		</span><span class="kw">pub fn </span>set_hrmp_max_parathread_outbound_channels(
-			origin: OriginFor&lt;T&gt;,
-			new: u32,
-		) -&gt; DispatchResult {
-			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="self">Self</span>::schedule_config_update(|config| {
-				config.hrmp_max_parathread_outbound_channels = new;
 			})
 		}
 
@@ -2469,6 +2425,72 @@
 			ensure_root(origin)<span class="question-mark">?</span>;
 			<span class="self">Self</span>::schedule_config_update(|config| {
 				config.executor_params = new;
+			})
+		}
+
+		<span class="doccomment">/// Set the on demand (parathreads) base fee.
+		</span><span class="attr">#[pallet::call_index(<span class="number">47</span>)]
+		#[pallet::weight((
+			T::WeightInfo::set_config_with_balance(),
+			DispatchClass::Operational,
+		))]
+		</span><span class="kw">pub fn </span>set_on_demand_base_fee(origin: OriginFor&lt;T&gt;, new: Balance) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::schedule_config_update(|config| {
+				config.on_demand_base_fee = new;
+			})
+		}
+
+		<span class="doccomment">/// Set the on demand (parathreads) fee variability.
+		</span><span class="attr">#[pallet::call_index(<span class="number">48</span>)]
+		#[pallet::weight((
+			T::WeightInfo::set_config_with_perbill(),
+			DispatchClass::Operational,
+		))]
+		</span><span class="kw">pub fn </span>set_on_demand_fee_variability(origin: OriginFor&lt;T&gt;, new: Perbill) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::schedule_config_update(|config| {
+				config.on_demand_fee_variability = new;
+			})
+		}
+
+		<span class="doccomment">/// Set the on demand (parathreads) queue max size.
+		</span><span class="attr">#[pallet::call_index(<span class="number">49</span>)]
+		#[pallet::weight((
+			T::WeightInfo::set_config_with_option_u32(),
+			DispatchClass::Operational,
+		))]
+		</span><span class="kw">pub fn </span>set_on_demand_queue_max_size(origin: OriginFor&lt;T&gt;, new: u32) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::schedule_config_update(|config| {
+				config.on_demand_queue_max_size = new;
+			})
+		}
+		<span class="doccomment">/// Set the on demand (parathreads) fee variability.
+		</span><span class="attr">#[pallet::call_index(<span class="number">50</span>)]
+		#[pallet::weight((
+			T::WeightInfo::set_config_with_perbill(),
+			DispatchClass::Operational,
+		))]
+		</span><span class="kw">pub fn </span>set_on_demand_target_queue_utilization(
+			origin: OriginFor&lt;T&gt;,
+			new: Perbill,
+		) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::schedule_config_update(|config| {
+				config.on_demand_target_queue_utilization = new;
+			})
+		}
+		<span class="doccomment">/// Set the on demand (parathreads) ttl in the claimqueue.
+		</span><span class="attr">#[pallet::call_index(<span class="number">51</span>)]
+		#[pallet::weight((
+			T::WeightInfo::set_config_with_block_number(),
+			DispatchClass::Operational
+		))]
+		</span><span class="kw">pub fn </span>set_on_demand_ttl(origin: OriginFor&lt;T&gt;, new: BlockNumberFor&lt;T&gt;) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::schedule_config_update(|config| {
+				config.on_demand_ttl = new;
 			})
 		}
 	}

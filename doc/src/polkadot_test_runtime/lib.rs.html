@@ -1131,6 +1131,12 @@
 <a href="#1131" id="1131">1131</a>
 <a href="#1132" id="1132">1132</a>
 <a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
+<a href="#1138" id="1138">1138</a>
+<a href="#1139" id="1139">1139</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1158,6 +1164,7 @@
 <span class="kw">use </span>sp_std::{collections::btree_map::BTreeMap, prelude::<span class="kw-2">*</span>};
 
 <span class="kw">use </span>polkadot_runtime_parachains::{
+	assigner_parachains <span class="kw">as </span>parachains_assigner_parachains,
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
 	disputes::slashing <span class="kw">as </span>parachains_slashing, dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp,
 	inclusion <span class="kw">as </span>parachains_inclusion, initializer <span class="kw">as </span>parachains_initializer,
@@ -1688,7 +1695,11 @@
 	<span class="kw">type </span>WeightInfo = parachains_hrmp::TestWeightInfo;
 }
 
-<span class="kw">impl </span>parachains_scheduler::Config <span class="kw">for </span>Runtime {}
+<span class="kw">impl </span>parachains_assigner_parachains::Config <span class="kw">for </span>Runtime {}
+
+<span class="kw">impl </span>parachains_scheduler::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AssignmentProvider = ParaAssignmentProvider;
+}
 
 <span class="kw">impl </span>paras_sudo_wrapper::Config <span class="kw">for </span>Runtime {}
 
@@ -1830,6 +1841,7 @@
 		Xcm: pallet_xcm::{Pallet, Call, Event&lt;T&gt;, Origin},
 		ParasDisputes: parachains_disputes::{Pallet, Storage, Event&lt;T&gt;},
 		ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned},
+		ParaAssignmentProvider: parachains_assigner_parachains::{Pallet},
 
 		Sudo: pallet_sudo::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;},
 

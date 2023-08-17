@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AssignmentKind","FreedReason"],"mod":["pallet"],"struct":["CoreAssignment","ParathreadClaimQueue","QueuedParathread"]};
+window.SIDEBAR_ITEMS = {"mod":["common","migration","pallet"]};

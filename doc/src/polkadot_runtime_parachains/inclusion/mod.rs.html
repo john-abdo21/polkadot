@@ -1305,14 +1305,6 @@
 <a href="#1305" id="1305">1305</a>
 <a href="#1306" id="1306">1306</a>
 <a href="#1307" id="1307">1307</a>
-<a href="#1308" id="1308">1308</a>
-<a href="#1309" id="1309">1309</a>
-<a href="#1310" id="1310">1310</a>
-<a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
-<a href="#1315" id="1315">1315</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1338,7 +1330,7 @@
 </span><span class="kw">use crate</span>::{
 	configuration::{<span class="self">self</span>, HostConfiguration},
 	disputes, dmp, hrmp, paras,
-	scheduler::CoreAssignment,
+	scheduler::common::CoreAssignment,
 	shared,
 };
 <span class="kw">use </span>bitvec::{order::Lsb0 <span class="kw">as </span>BitOrderLsb0, vec::BitVec};
@@ -1493,7 +1485,7 @@
 </span><span class="attr">#[derive(Encode, Decode, PartialEq, TypeInfo)]
 #[cfg_attr(test, derive(Debug))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ProcessedCandidates&lt;H = Hash&gt; {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) core_indices: Vec&lt;CoreIndex&gt;,
+	<span class="kw">pub</span>(<span class="kw">crate</span>) core_indices: Vec&lt;(CoreIndex, ParaId)&gt;,
 	<span class="kw">pub</span>(<span class="kw">crate</span>) candidate_receipt_with_backing_validator_indices:
 		Vec&lt;(CandidateReceipt&lt;H&gt;, Vec&lt;(ValidatorIndex, ValidityAttestation)&gt;)&gt;,
 }
@@ -1637,8 +1629,6 @@
 		</span>UnscheduledCandidate,
 		<span class="doccomment">/// Candidate scheduled despite pending candidate already existing for the para.
 		</span>CandidateScheduledBeforeParaFree,
-		<span class="doccomment">/// Candidate included with the wrong collator.
-		</span>WrongCollator,
 		<span class="doccomment">/// Scheduled cores out of order.
 		</span>ScheduledOutOfOrder,
 		<span class="doccomment">/// Head data exceeds the configured maximum.
@@ -1914,7 +1904,7 @@
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>process_candidates&lt;GV&gt;(
 		parent_storage_root: T::Hash,
 		candidates: Vec&lt;BackedCandidate&lt;T::Hash&gt;&gt;,
-		scheduled: Vec&lt;CoreAssignment&gt;,
+		scheduled: Vec&lt;CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;&gt;,
 		group_validators: GV,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;ProcessedCandidates&lt;T::Hash&gt;, DispatchError&gt;
 	<span class="kw">where
@@ -1945,15 +1935,16 @@
 			<span class="kw">let </span><span class="kw-2">mut </span>core_indices_and_backers = Vec::with_capacity(candidates.len());
 			<span class="kw">let </span><span class="kw-2">mut </span>last_core = <span class="prelude-val">None</span>;
 
-			<span class="kw">let </span><span class="kw-2">mut </span>check_assignment_in_order = |assignment: <span class="kw-2">&amp;</span>CoreAssignment| -&gt; DispatchResult {
-				<span class="macro">ensure!</span>(
-					last_core.map_or(<span class="bool-val">true</span>, |core| assignment.core &gt; core),
-					Error::&lt;T&gt;::ScheduledOutOfOrder,
-				);
+			<span class="kw">let </span><span class="kw-2">mut </span>check_assignment_in_order =
+				|assignment: <span class="kw-2">&amp;</span>CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;| -&gt; DispatchResult {
+					<span class="macro">ensure!</span>(
+						last_core.map_or(<span class="bool-val">true</span>, |core| assignment.core &gt; core),
+						Error::&lt;T&gt;::ScheduledOutOfOrder,
+					);
 
-				last_core = <span class="prelude-val">Some</span>(assignment.core);
-				<span class="prelude-val">Ok</span>(())
-			};
+					last_core = <span class="prelude-val">Some</span>(assignment.core);
+					<span class="prelude-val">Ok</span>(())
+				};
 
 			<span class="kw">let </span>signing_context =
 				SigningContext { parent_hash, session_index: shared::Pallet::&lt;T&gt;::session_index() };
@@ -1995,17 +1986,10 @@
 				<span class="kw">let </span>para_id = backed_candidate.descriptor().para_id;
 				<span class="kw">let </span><span class="kw-2">mut </span>backers = <span class="macro">bitvec::bitvec!</span>[u8, BitOrderLsb0; <span class="number">0</span>; validators.len()];
 
-				<span class="kw">for </span>(i, assignment) <span class="kw">in </span>scheduled[skip..].iter().enumerate() {
-					check_assignment_in_order(assignment)<span class="question-mark">?</span>;
+				<span class="kw">for </span>(i, core_assignment) <span class="kw">in </span>scheduled[skip..].iter().enumerate() {
+					check_assignment_in_order(core_assignment)<span class="question-mark">?</span>;
 
-					<span class="kw">if </span>para_id == assignment.para_id {
-						<span class="kw">if let </span><span class="prelude-val">Some</span>(required_collator) = assignment.required_collator() {
-							<span class="macro">ensure!</span>(
-								required_collator == <span class="kw-2">&amp;</span>backed_candidate.descriptor().collator,
-								Error::&lt;T&gt;::WrongCollator,
-							);
-						}
-
+					<span class="kw">if </span>para_id == core_assignment.paras_entry.para_id() {
 						<span class="macro">ensure!</span>(
 							&lt;PendingAvailability&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>para_id).is_none() &amp;&amp;
 								&lt;PendingAvailabilityCommitments&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>para_id).is_none(),
@@ -2015,7 +1999,7 @@
 						<span class="comment">// account for already skipped, and then skip this one.
 						</span>skip = i + skip + <span class="number">1</span>;
 
-						<span class="kw">let </span>group_vals = group_validators(assignment.group_idx)
+						<span class="kw">let </span>group_vals = group_validators(core_assignment.group_idx)
 							.ok_or_else(|| Error::&lt;T&gt;::InvalidGroupIndex)<span class="question-mark">?</span>;
 
 						<span class="comment">// check the signatures in the backing and that it is a majority.
@@ -2067,9 +2051,9 @@
 						}
 
 						core_indices_and_backers.push((
-							assignment.core,
+							(core_assignment.core, core_assignment.paras_entry.para_id()),
 							backers,
-							assignment.group_idx,
+							core_assignment.group_idx,
 						));
 						<span class="kw">continue </span><span class="lifetime">&#39;next_backed_candidate
 					</span>}
@@ -2103,7 +2087,7 @@
 			<span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::CandidateBacked(
 				candidate.candidate.to_plain(),
 				candidate.candidate.commitments.head_data.clone(),
-				core,
+				core.<span class="number">0</span>,
 				group,
 			));
 
@@ -2115,7 +2099,7 @@
 			&lt;PendingAvailability&lt;T&gt;&gt;::insert(
 				<span class="kw-2">&amp;</span>para_id,
 				CandidatePendingAvailability {
-					core,
+					core: core.<span class="number">0</span>,
 					hash: candidate_hash,
 					descriptor,
 					availability_votes,

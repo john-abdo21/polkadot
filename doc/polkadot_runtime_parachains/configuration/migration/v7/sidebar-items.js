@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MigrateToV7"]};
+window.SIDEBAR_ITEMS = {"struct":["MigrateToV7","V7HostConfiguration"]};

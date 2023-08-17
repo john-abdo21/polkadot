@@ -2291,6 +2291,36 @@
 <a href="#2291" id="2291">2291</a>
 <a href="#2292" id="2292">2292</a>
 <a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
+<a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
+<a href="#2306" id="2306">2306</a>
+<a href="#2307" id="2307">2307</a>
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2331,6 +2361,8 @@
 <span class="kw">use </span>sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::<span class="kw-2">*</span>};
 
 <span class="kw">use </span>runtime_parachains::{
+	assigner <span class="kw">as </span>parachains_assigner, assigner_on_demand <span class="kw">as </span>parachains_assigner_on_demand,
+	assigner_parachains <span class="kw">as </span>parachains_assigner_parachains,
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
 	disputes::slashing <span class="kw">as </span>parachains_slashing,
 	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
@@ -2370,7 +2402,7 @@
 		Extrinsic <span class="kw">as </span>ExtrinsicT, Keccak256, OpaqueKeys, SaturatedConversion, Verify,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, KeyTypeId, Perbill, Percent, Permill,
+	ApplyExtrinsicResult, FixedU128, KeyTypeId, Perbill, Percent, Permill,
 };
 <span class="kw">use </span>sp_staking::SessionIndex;
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
@@ -3172,6 +3204,7 @@
 	CancelProxy,
 	Auction,
 	Society,
+	OnDemandOrdering,
 }
 <span class="kw">impl </span>Default <span class="kw">for </span>ProxyType {
 	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
@@ -3258,6 +3291,7 @@
 					RuntimeCall::Slots { .. }
 			),
 			ProxyType::Society =&gt; <span class="macro">matches!</span>(c, RuntimeCall::Society(..)),
+			ProxyType::OnDemandOrdering =&gt; <span class="macro">matches!</span>(c, RuntimeCall::OnDemandAssignmentProvider(..)),
 		}
 	}
 	<span class="kw">fn </span>is_superset(<span class="kw-2">&amp;</span><span class="self">self</span>, o: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
@@ -3388,7 +3422,27 @@
 	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_paras_inherent::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>parachains_scheduler::Config <span class="kw">for </span>Runtime {}
+<span class="kw">impl </span>parachains_scheduler::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AssignmentProvider = ParaAssignmentProvider;
+}
+
+<span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>OnDemandTrafficDefaultValue: FixedU128 = FixedU128::from_u32(<span class="number">1</span>);
+}
+
+<span class="kw">impl </span>parachains_assigner_on_demand::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>TrafficDefaultValue = OnDemandTrafficDefaultValue;
+	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_assigner_on_demand::WeightInfo&lt;Runtime&gt;;
+}
+
+<span class="kw">impl </span>parachains_assigner_parachains::Config <span class="kw">for </span>Runtime {}
+
+<span class="kw">impl </span>parachains_assigner::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>OnDemandAssignmentProvider = OnDemandAssignmentProvider;
+	<span class="kw">type </span>ParachainsAssignmentProvider = ParachainsAssignmentProvider;
+}
 
 <span class="kw">impl </span>parachains_initializer::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>Randomness = pallet_babe::RandomnessFromOneEpochAgo&lt;Runtime&gt;;
@@ -3744,6 +3798,9 @@
 		ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
 		ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = <span class="number">63</span>,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">64</span>,
+		ParaAssignmentProvider: parachains_assigner::{Pallet, Storage} = <span class="number">65</span>,
+		OnDemandAssignmentProvider: parachains_assigner_on_demand::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">66</span>,
+		ParachainsAssignmentProvider: parachains_assigner_parachains::{Pallet} = <span class="number">67</span>,
 
 		<span class="comment">// Parachain Onboarding Pallets. Start indices at 70 to leave room.
 		</span>Registrar: paras_registrar::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">70</span>,
@@ -3817,6 +3874,8 @@
 		pallet_im_online::migration::v1::Migration&lt;Runtime&gt;,
 		parachains_configuration::migration::v7::MigrateToV7&lt;Runtime&gt;,
 		assigned_slots::migration::v1::VersionCheckedMigrateToV1&lt;Runtime&gt;,
+		parachains_scheduler::migration::v1::MigrateToV1&lt;Runtime&gt;,
+		parachains_configuration::migration::v8::MigrateToV8&lt;Runtime&gt;,
 	);
 }
 
@@ -3876,6 +3935,7 @@
 		[runtime_parachains::initializer, Initializer]
 		[runtime_parachains::paras_inherent, ParaInherent]
 		[runtime_parachains::paras, Paras]
+		[runtime_parachains::assigner_on_demand, OnDemandAssignmentProvider]
 		<span class="comment">// Substrate
 		</span>[pallet_balances, Balances]
 		[pallet_balances, NisCounterpartBalances]

@@ -1017,14 +1017,6 @@
 <a href="#1017" id="1017">1017</a>
 <a href="#1018" id="1018">1018</a>
 <a href="#1019" id="1019">1019</a>
-<a href="#1020" id="1020">1020</a>
-<a href="#1021" id="1021">1021</a>
-<a href="#1022" id="1022">1022</a>
-<a href="#1023" id="1023">1023</a>
-<a href="#1024" id="1024">1024</a>
-<a href="#1025" id="1025">1025</a>
-<a href="#1026" id="1026">1026</a>
-<a href="#1027" id="1027">1027</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1055,7 +1047,8 @@
 	inclusion::CandidateCheckContext,
 	initializer,
 	metrics::METRICS,
-	scheduler::{<span class="self">self</span>, CoreAssignment, FreedReason},
+	scheduler,
+	scheduler::common::{CoreAssignment, FreedReason},
 	shared, ParaId,
 };
 <span class="kw">use </span>bitvec::prelude::BitVec;
@@ -1545,7 +1538,7 @@
 			.map(|(_session, candidate)| candidate)
 			.collect::&lt;BTreeSet&lt;CandidateHash&gt;&gt;();
 
-		<span class="kw">let </span><span class="kw-2">mut </span>freed_disputed: Vec&lt;<span class="kw">_</span>&gt; =
+		<span class="kw">let </span>freed_disputed: BTreeMap&lt;CoreIndex, FreedReason&gt; =
 			&lt;inclusion::Pallet&lt;T&gt;&gt;::collect_disputed(<span class="kw-2">&amp;</span>current_concluded_invalid_disputes)
 				.into_iter()
 				.map(|core| (core, FreedReason::Concluded))
@@ -1555,16 +1548,10 @@
 		// a core index that was freed due to a dispute.
 		//
 		// I.e. 010100 would indicate, the candidates on Core 1 and 3 would be disputed.
-		</span><span class="kw">let </span>disputed_bitfield = create_disputed_bitfield(
-			expected_bits,
-			freed_disputed.iter().map(|(core_index, <span class="kw">_</span>)| core_index),
-		);
+		</span><span class="kw">let </span>disputed_bitfield = create_disputed_bitfield(expected_bits, freed_disputed.keys());
 
 		<span class="kw">if </span>!freed_disputed.is_empty() {
-			<span class="comment">// unstable sort is fine, because core indices are unique
-			// i.e. the same candidate can&#39;t occupy 2 cores at once.
-			</span>freed_disputed.sort_unstable_by_key(|pair| pair.<span class="number">0</span>); <span class="comment">// sort by core index
-			</span>&lt;scheduler::Pallet&lt;T&gt;&gt;::free_cores(freed_disputed.clone());
+			&lt;scheduler::Pallet&lt;T&gt;&gt;::update_claimqueue(freed_disputed.clone(), now);
 		}
 
 		<span class="kw">let </span>bitfields = sanitize_bitfields::&lt;T&gt;(
@@ -1596,10 +1583,7 @@
 
 		<span class="kw">let </span>freed = collect_all_freed_cores::&lt;T, <span class="kw">_</span>&gt;(freed_concluded.iter().cloned());
 
-		&lt;scheduler::Pallet&lt;T&gt;&gt;::clear();
-		&lt;scheduler::Pallet&lt;T&gt;&gt;::schedule(freed, now);
-
-		<span class="kw">let </span>scheduled = &lt;scheduler::Pallet&lt;T&gt;&gt;::scheduled();
+		<span class="kw">let </span>scheduled = &lt;scheduler::Pallet&lt;T&gt;&gt;::update_claimqueue(freed, now);
 
 		<span class="kw">let </span>relay_parent_number = now - One::one();
 		<span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
@@ -1641,7 +1625,7 @@
 			&lt;scheduler::Pallet&lt;T&gt;&gt;::group_validators,
 		)<span class="question-mark">?</span>;
 		<span class="comment">// Note which of the scheduled cores were actually occupied by a backed candidate.
-		</span>&lt;scheduler::Pallet&lt;T&gt;&gt;::occupied(<span class="kw-2">&amp;</span>occupied);
+		</span>&lt;scheduler::Pallet&lt;T&gt;&gt;::occupied(occupied.into_iter().map(|e| (e.<span class="number">0</span>, e.<span class="number">1</span>)).collect());
 
 		set_scrapable_on_chain_backings::&lt;T&gt;(
 			current_session,
@@ -1935,7 +1919,7 @@
 	relay_parent: T::Hash,
 	<span class="kw-2">mut </span>backed_candidates: Vec&lt;BackedCandidate&lt;T::Hash&gt;&gt;,
 	<span class="kw-2">mut </span>candidate_has_concluded_invalid_dispute_or_is_invalid: F,
-	scheduled: <span class="kw-2">&amp;</span>[CoreAssignment],
+	scheduled: <span class="kw-2">&amp;</span>[CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;],
 ) -&gt; Vec&lt;BackedCandidate&lt;T::Hash&gt;&gt; {
 	<span class="comment">// Remove any candidates that were concluded invalid.
 	// This does not assume sorting.
@@ -1945,7 +1929,7 @@
 
 	<span class="kw">let </span>scheduled_paras_to_core_idx = scheduled
 		.into_iter()
-		.map(|core_assignment| (core_assignment.para_id, core_assignment.core))
+		.map(|core_assignment| (core_assignment.paras_entry.para_id(), core_assignment.core))
 		.collect::&lt;BTreeMap&lt;ParaId, CoreIndex&gt;&gt;();
 
 	<span class="comment">// Assure the backed candidate&#39;s `ParaId`&#39;s core is free.

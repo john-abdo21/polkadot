@@ -1309,36 +1309,6 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
-<a href="#1315" id="1315">1315</a>
-<a href="#1316" id="1316">1316</a>
-<a href="#1317" id="1317">1317</a>
-<a href="#1318" id="1318">1318</a>
-<a href="#1319" id="1319">1319</a>
-<a href="#1320" id="1320">1320</a>
-<a href="#1321" id="1321">1321</a>
-<a href="#1322" id="1322">1322</a>
-<a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1389,7 +1359,7 @@
 	request_validators, Validator,
 };
 <span class="kw">use </span>polkadot_primitives::{
-	BackedCandidate, CandidateCommitments, CandidateHash, CandidateReceipt, CollatorId,
+	BackedCandidate, CandidateCommitments, CandidateHash, CandidateReceipt,
 	CommittedCandidateReceipt, CoreIndex, CoreState, Hash, Id <span class="kw">as </span>ParaId, PvfExecTimeoutKind,
 	SigningContext, ValidatorId, ValidatorIndex, ValidatorSignature, ValidityAttestation,
 };
@@ -1695,7 +1665,7 @@
 			<span class="kw">let </span>group_index = group_rotation_info.group_for_core(core_index, n_cores);
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(g) = validator_groups.get(group_index.<span class="number">0 </span><span class="kw">as </span>usize) {
 				<span class="kw">if </span>validator.as_ref().map_or(<span class="bool-val">false</span>, |v| g.contains(<span class="kw-2">&amp;</span>v.index())) {
-					assignment = <span class="prelude-val">Some</span>((scheduled.para_id, scheduled.collator));
+					assignment = <span class="prelude-val">Some</span>(scheduled.para_id);
 				}
 				groups.insert(scheduled.para_id, g.clone());
 			}
@@ -1704,15 +1674,15 @@
 
 	<span class="kw">let </span>table_context = TableContext { groups, validators, validator };
 
-	<span class="kw">let </span>(assignment, required_collator) = <span class="kw">match </span>assignment {
+	<span class="kw">let </span>assignment = <span class="kw">match </span>assignment {
 		<span class="prelude-val">None </span>=&gt; {
 			assignments_span.add_string_tag(<span class="string">&quot;assigned&quot;</span>, <span class="string">&quot;false&quot;</span>);
-			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-		},
-		<span class="prelude-val">Some</span>((assignment, required_collator)) =&gt; {
+			<span class="prelude-val">None
+		</span>},
+		<span class="prelude-val">Some</span>(assignment) =&gt; {
 			assignments_span.add_string_tag(<span class="string">&quot;assigned&quot;</span>, <span class="string">&quot;true&quot;</span>);
 			assignments_span.add_para_id(assignment);
-			(<span class="prelude-val">Some</span>(assignment), required_collator)
+			<span class="prelude-val">Some</span>(assignment)
 		},
 	};
 
@@ -1722,7 +1692,6 @@
 	<span class="kw">let </span>job = CandidateBackingJob {
 		parent,
 		assignment,
-		required_collator,
 		issued_statements: HashSet::new(),
 		awaiting_validation: HashSet::new(),
 		fallbacks: HashMap::new(),
@@ -1753,8 +1722,6 @@
 	</span>parent: Hash,
 	<span class="doccomment">/// The `ParaId` assigned to this validator
 	</span>assignment: <span class="prelude-ty">Option</span>&lt;ParaId&gt;,
-	<span class="doccomment">/// The collator required to author the candidate, if any.
-	</span>required_collator: <span class="prelude-ty">Option</span>&lt;CollatorId&gt;,
 	<span class="doccomment">/// Spans for all candidates that are not yet backable.
 	</span>unbacked_candidates: HashMap&lt;CandidateHash, jaeger::Span&gt;,
 	<span class="doccomment">/// We issued `Seconded`, `Valid` or `Invalid` statements on about these candidates.
@@ -2254,21 +2221,6 @@
 		candidate: <span class="kw-2">&amp;</span>CandidateReceipt,
 		pov: Arc&lt;PoV&gt;,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-		<span class="comment">// Check that candidate is collated by the right collator.
-		</span><span class="kw">if </span><span class="self">self
-			</span>.required_collator
-			.as_ref()
-			.map_or(<span class="bool-val">false</span>, |c| c != <span class="kw-2">&amp;</span>candidate.descriptor().collator)
-		{
-			<span class="comment">// Break cycle - bounded as there is only one candidate to
-			// second per block.
-			</span>ctx.send_unbounded_message(CollatorProtocolMessage::Invalid(
-				<span class="self">self</span>.parent,
-				candidate.clone(),
-			));
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-		}
-
 		<span class="kw">let </span>candidate_hash = candidate.hash();
 		<span class="kw">let </span><span class="kw-2">mut </span>span = <span class="self">self</span>.get_unbacked_validation_child(
 			root_span,
@@ -2512,24 +2464,12 @@
 			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="kw">let </span>descriptor = attesting.candidate.descriptor().clone();
-
 		<span class="macro">gum::debug!</span>(
 			target: LOG_TARGET,
 			candidate_hash = <span class="question-mark">?</span>candidate_hash,
 			candidate_receipt = <span class="question-mark">?</span>attesting.candidate,
 			<span class="string">&quot;Kicking off validation&quot;</span>,
 		);
-
-		<span class="comment">// Check that candidate is collated by the right collator.
-		</span><span class="kw">if </span><span class="self">self</span>.required_collator.as_ref().map_or(<span class="bool-val">false</span>, |c| c != <span class="kw-2">&amp;</span>descriptor.collator) {
-			<span class="comment">// If not, we&#39;ve got the statement in the table but we will
-			// not issue validation work for it.
-			//
-			// Act as though we&#39;ve issued a statement.
-			</span><span class="self">self</span>.issued_statements.insert(candidate_hash);
-			<span class="kw">return </span><span class="prelude-val">Ok</span>(())
-		}
 
 		<span class="kw">let </span>bg_sender = ctx.sender().clone();
 		<span class="kw">let </span>pov = PoVData::FetchFromValidator {

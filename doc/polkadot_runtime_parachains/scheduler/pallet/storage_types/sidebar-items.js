@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AvailabilityCores","ParathreadClaimIndex","ParathreadQueue","Scheduled","SessionStartBlock","ValidatorGroups"]};
+window.SIDEBAR_ITEMS = {"struct":["AvailabilityCores","ClaimQueue","SessionStartBlock","ValidatorGroups"]};

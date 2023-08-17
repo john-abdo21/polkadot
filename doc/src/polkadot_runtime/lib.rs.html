@@ -2598,6 +2598,14 @@
 <a href="#2598" id="2598">2598</a>
 <a href="#2599" id="2599">2599</a>
 <a href="#2600" id="2600">2600</a>
+<a href="#2601" id="2601">2601</a>
+<a href="#2602" id="2602">2602</a>
+<a href="#2603" id="2603">2603</a>
+<a href="#2604" id="2604">2604</a>
+<a href="#2605" id="2605">2605</a>
+<a href="#2606" id="2606">2606</a>
+<a href="#2607" id="2607">2607</a>
+<a href="#2608" id="2608">2608</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2627,6 +2635,7 @@
 };
 
 <span class="kw">use </span>runtime_parachains::{
+	assigner_parachains <span class="kw">as </span>parachains_assigner_parachains,
 	configuration <span class="kw">as </span>parachains_configuration, disputes <span class="kw">as </span>parachains_disputes,
 	disputes::slashing <span class="kw">as </span>parachains_slashing,
 	dmp <span class="kw">as </span>parachains_dmp, hrmp <span class="kw">as </span>parachains_hrmp, inclusion <span class="kw">as </span>parachains_inclusion,
@@ -3783,7 +3792,11 @@
 	<span class="kw">type </span>WeightInfo = weights::runtime_parachains_paras_inherent::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>parachains_scheduler::Config <span class="kw">for </span>Runtime {}
+<span class="kw">impl </span>parachains_scheduler::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>AssignmentProvider = ParaAssignmentProvider;
+}
+
+<span class="kw">impl </span>parachains_assigner_parachains::Config <span class="kw">for </span>Runtime {}
 
 <span class="kw">impl </span>parachains_initializer::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>Randomness = pallet_babe::RandomnessFromOneEpochAgo&lt;Runtime&gt;;
@@ -4034,6 +4047,7 @@
 		ParaSessionInfo: parachains_session_info::{Pallet, Storage} = <span class="number">61</span>,
 		ParasDisputes: parachains_disputes::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
 		ParasSlashing: parachains_slashing::{Pallet, Call, Storage, ValidateUnsigned} = <span class="number">63</span>,
+		ParaAssignmentProvider: parachains_assigner_parachains::{Pallet} = <span class="number">64</span>,
 
 		<span class="comment">// Parachain Onboarding Pallets. Start indices at 70 to leave room.
 		</span>Registrar: paras_registrar::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">70</span>,
@@ -4094,6 +4108,8 @@
 	</span><span class="kw">pub type </span>Unreleased = (
 		pallet_im_online::migration::v1::Migration&lt;Runtime&gt;,
 		parachains_configuration::migration::v7::MigrateToV7&lt;Runtime&gt;,
+		parachains_scheduler::migration::v1::MigrateToV1&lt;Runtime&gt;,
+		parachains_configuration::migration::v8::MigrateToV8&lt;Runtime&gt;,
 	);
 }
 
