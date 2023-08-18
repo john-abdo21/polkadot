@@ -429,9 +429,6 @@
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -451,8 +448,8 @@
 </span><span class="doccomment">//! XCM configuration for Polkadot.
 
 </span><span class="kw">use super</span>::{
-	parachains_origin, AccountId, AllPalletsWithSystem, Balances, CouncilCollective, Dmp,
-	FellowshipAdmin, ParaId, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, StakingAdmin,
+	parachains_origin, AccountId, AllPalletsWithSystem, Balances, Dmp, FellowshipAdmin,
+	GeneralAdmin, ParaId, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, StakingAdmin,
 	TransactionByteFee, WeightToFee, XcmPallet,
 };
 <span class="kw">use </span>frame_support::{
@@ -474,11 +471,11 @@
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
-	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, BackingToPlurality,
-	ChildParachainAsNative, ChildParachainConvertsVia, CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter,
-	IsConcrete, MintLocation, OriginToPluralityVoice, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
-	UsingComponents, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, ChildParachainAsNative,
+	ChildParachainConvertsVia, CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, IsConcrete, MintLocation,
+	OriginToPluralityVoice, SignedAccountId32AsNative, SignedToAccountId32,
+	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
+	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
 <span class="kw">use </span>xcm_executor::traits::WithOriginFilter;
 
@@ -784,7 +781,8 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>CouncilBodyId: BodyId = BodyId::Executive;
+	<span class="comment">// `GeneralAdmin` pluralistic body.
+	</span><span class="kw">pub const </span>GeneralAdminBodyId: BodyId = BodyId::Administration;
 	<span class="comment">// StakingAdmin pluralistic body.
 	</span><span class="kw">pub const </span>StakingAdminBodyId: BodyId = BodyId::Defense;
 	<span class="comment">// FellowshipAdmin pluralistic body.
@@ -796,17 +794,14 @@
 	<span class="kw">pub </span>ReachableDest: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = <span class="prelude-val">Some</span>(Parachain(<span class="number">1000</span>).into());
 }
 
-<span class="doccomment">/// Type to convert a council origin to a Plurality `MultiLocation` value.
-</span><span class="kw">pub type </span>CouncilToPlurality = BackingToPlurality&lt;
-	RuntimeOrigin,
-	pallet_collective::Origin&lt;Runtime, CouncilCollective&gt;,
-	CouncilBodyId,
-&gt;;
+<span class="doccomment">/// Type to convert the `GeneralAdmin` origin to a Plurality `MultiLocation` value.
+</span><span class="kw">pub type </span>GeneralAdminToPlurality =
+	OriginToPluralityVoice&lt;RuntimeOrigin, GeneralAdmin, GeneralAdminBodyId&gt;;
 
 <span class="doccomment">/// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior
 /// location of this chain.
 </span><span class="kw">pub type </span>LocalOriginToLocation = (
-	CouncilToPlurality,
+	GeneralAdminToPlurality,
 	<span class="comment">// And a usual Signed origin to be used in XCM as a corresponding AccountId32
 	</span>SignedToAccountId32&lt;RuntimeOrigin, AccountId, ThisNetwork&gt;,
 );
@@ -815,16 +810,15 @@
 </span><span class="kw">pub type </span>StakingAdminToPlurality =
 	OriginToPluralityVoice&lt;RuntimeOrigin, StakingAdmin, StakingAdminBodyId&gt;;
 
-<span class="doccomment">/// Type to convert the FellowshipAdmin origin to a Plurality `MultiLocation` value.
+<span class="doccomment">/// Type to convert the `FellowshipAdmin` origin to a Plurality `MultiLocation` value.
 </span><span class="kw">pub type </span>FellowshipAdminToPlurality =
 	OriginToPluralityVoice&lt;RuntimeOrigin, FellowshipAdmin, FellowshipAdminBodyId&gt;;
 
 <span class="doccomment">/// Type to convert a pallet `Origin` type value into a `MultiLocation` value which represents an
 /// interior location of this chain for a destination chain.
 </span><span class="kw">pub type </span>LocalPalletOriginToLocation = (
-	<span class="comment">// We allow an origin from the Collective pallet to be used in XCM as a corresponding Plurality
-	// of the `Unit` body.
-	</span>CouncilToPlurality,
+	<span class="comment">// GeneralAdmin origin to be used in XCM as a corresponding Plurality `MultiLocation` value.
+	</span>GeneralAdminToPlurality,
 	<span class="comment">// StakingAdmin origin to be used in XCM as a corresponding Plurality `MultiLocation` value.
 	</span>StakingAdminToPlurality,
 	<span class="comment">// FellowshipAdmin origin to be used in XCM as a corresponding Plurality `MultiLocation` value.
@@ -833,7 +827,7 @@
 
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="comment">// We only allow the root, the council, the fellowship admin and the staking admin to send
+	<span class="comment">// We only allow the root, the general admin, the fellowship admin and the staking admin to send
 	// messages.
 	</span><span class="kw">type </span>SendXcmOrigin = xcm_builder::EnsureXcmOrigin&lt;RuntimeOrigin, LocalPalletOriginToLocation&gt;;
 	<span class="kw">type </span>XcmRouter = XcmRouter;
