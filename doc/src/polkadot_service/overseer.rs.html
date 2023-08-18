@@ -386,6 +386,26 @@
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -416,7 +436,9 @@
 <span class="kw">use </span>polkadot_node_core_dispute_coordinator::Config <span class="kw">as </span>DisputeCoordinatorConfig;
 <span class="kw">use </span>polkadot_node_network_protocol::{
 	peer_set::PeerSetProtocolNames,
-	request_response::{v1 <span class="kw">as </span>request_v1, IncomingRequestReceiver, ReqProtocolNames},
+	request_response::{
+		v1 <span class="kw">as </span>request_v1, vstaging <span class="kw">as </span>request_vstaging, IncomingRequestReceiver, ReqProtocolNames,
+	},
 };
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;malus&quot;</span>, test))]
 </span><span class="kw">pub use </span>polkadot_overseer::{
@@ -458,6 +480,7 @@
 <span class="kw">pub use </span>polkadot_node_core_chain_api::ChainApiSubsystem;
 <span class="kw">pub use </span>polkadot_node_core_chain_selection::ChainSelectionSubsystem;
 <span class="kw">pub use </span>polkadot_node_core_dispute_coordinator::DisputeCoordinatorSubsystem;
+<span class="kw">pub use </span>polkadot_node_core_prospective_parachains::ProspectiveParachainsSubsystem;
 <span class="kw">pub use </span>polkadot_node_core_provisioner::ProvisionerSubsystem;
 <span class="kw">pub use </span>polkadot_node_core_pvf_checker::PvfCheckerSubsystem;
 <span class="kw">pub use </span>polkadot_node_core_runtime_api::RuntimeApiSubsystem;
@@ -483,14 +506,25 @@
 	</span><span class="kw">pub </span>sync_service: Arc&lt;sc_network_sync::SyncingService&lt;Block&gt;&gt;,
 	<span class="doccomment">/// Underlying authority discovery service.
 	</span><span class="kw">pub </span>authority_discovery_service: AuthorityDiscoveryService,
-	<span class="doccomment">/// POV request receiver
+	<span class="doccomment">/// POV request receiver.
 	</span><span class="kw">pub </span>pov_req_receiver: IncomingRequestReceiver&lt;request_v1::PoVFetchingRequest&gt;,
-	<span class="kw">pub </span>chunk_req_receiver: IncomingRequestReceiver&lt;request_v1::ChunkFetchingRequest&gt;,
-	<span class="kw">pub </span>collation_req_receiver: IncomingRequestReceiver&lt;request_v1::CollationFetchingRequest&gt;,
-	<span class="kw">pub </span>available_data_req_receiver:
+	<span class="doccomment">/// Erasure chunks request receiver.
+	</span><span class="kw">pub </span>chunk_req_receiver: IncomingRequestReceiver&lt;request_v1::ChunkFetchingRequest&gt;,
+	<span class="doccomment">/// Collations request receiver for network protocol v1.
+	</span><span class="kw">pub </span>collation_req_v1_receiver: IncomingRequestReceiver&lt;request_v1::CollationFetchingRequest&gt;,
+	<span class="doccomment">/// Collations request receiver for network protocol vstaging.
+	</span><span class="kw">pub </span>collation_req_vstaging_receiver:
+		IncomingRequestReceiver&lt;request_vstaging::CollationFetchingRequest&gt;,
+	<span class="doccomment">/// Receiver for available data requests.
+	</span><span class="kw">pub </span>available_data_req_receiver:
 		IncomingRequestReceiver&lt;request_v1::AvailableDataFetchingRequest&gt;,
-	<span class="kw">pub </span>statement_req_receiver: IncomingRequestReceiver&lt;request_v1::StatementFetchingRequest&gt;,
-	<span class="kw">pub </span>dispute_req_receiver: IncomingRequestReceiver&lt;request_v1::DisputeRequest&gt;,
+	<span class="doccomment">/// Receiver for incoming large statement requests.
+	</span><span class="kw">pub </span>statement_req_receiver: IncomingRequestReceiver&lt;request_v1::StatementFetchingRequest&gt;,
+	<span class="doccomment">/// Receiver for incoming candidate requests.
+	</span><span class="kw">pub </span>candidate_req_vstaging_receiver:
+		IncomingRequestReceiver&lt;request_vstaging::AttestedCandidateRequest&gt;,
+	<span class="doccomment">/// Receiver for incoming disputes.
+	</span><span class="kw">pub </span>dispute_req_receiver: IncomingRequestReceiver&lt;request_v1::DisputeRequest&gt;,
 	<span class="doccomment">/// Prometheus registry, commonly used for production systems, less so for test.
 	</span><span class="kw">pub </span>registry: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Registry&gt;,
 	<span class="doccomment">/// Task spawner to be used throughout the overseer and the APIs it provides.
@@ -531,9 +565,11 @@
 		authority_discovery_service,
 		pov_req_receiver,
 		chunk_req_receiver,
-		collation_req_receiver,
+		collation_req_v1_receiver,
+		collation_req_vstaging_receiver,
 		available_data_req_receiver,
 		statement_req_receiver,
+		candidate_req_vstaging_receiver,
 		dispute_req_receiver,
 		registry,
 		spawner,
@@ -581,6 +617,7 @@
 		DisputeCoordinatorSubsystem,
 		DisputeDistributionSubsystem&lt;AuthorityDiscoveryService&gt;,
 		ChainSelectionSubsystem,
+		ProspectiveParachainsSubsystem,
 	&gt;,
 	Error,
 &gt;
@@ -655,12 +692,13 @@
 		.collation_generation(CollationGenerationSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
 		.collator_protocol({
 			<span class="kw">let </span>side = <span class="kw">match </span>is_parachain_node {
-				IsParachainNode::Collator(collator_pair) =&gt; ProtocolSide::Collator(
-					network_service.local_peer_id(),
+				IsParachainNode::Collator(collator_pair) =&gt; ProtocolSide::Collator {
+					peer_id: network_service.local_peer_id(),
 					collator_pair,
-					collation_req_receiver,
-					Metrics::register(registry)<span class="question-mark">?</span>,
-				),
+					request_receiver_v1: collation_req_v1_receiver,
+					request_receiver_vstaging: collation_req_vstaging_receiver,
+					metrics: Metrics::register(registry)<span class="question-mark">?</span>,
+				},
 				IsParachainNode::FullNode =&gt; ProtocolSide::None,
 				IsParachainNode::No =&gt; ProtocolSide::Validator {
 					keystore: keystore.clone(),
@@ -679,6 +717,7 @@
 		.statement_distribution(StatementDistributionSubsystem::new(
 			keystore.clone(),
 			statement_req_receiver,
+			candidate_req_vstaging_receiver,
 			Metrics::register(registry)<span class="question-mark">?</span>,
 			rand::rngs::StdRng::from_entropy(),
 		))
@@ -708,6 +747,7 @@
 			Metrics::register(registry)<span class="question-mark">?</span>,
 		))
 		.chain_selection(ChainSelectionSubsystem::new(chain_selection_config, parachains_db))
+		.prospective_parachains(ProspectiveParachainsSubsystem::new(Metrics::register(registry)<span class="question-mark">?</span>))
 		.activation_external_listeners(Default::default())
 		.span_per_active_leaf(Default::default())
 		.active_leaves(Default::default())

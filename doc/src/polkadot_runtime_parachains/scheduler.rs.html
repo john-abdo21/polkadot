@@ -670,12 +670,6 @@
 <a href="#670" id="670">670</a>
 <a href="#671" id="671">671</a>
 <a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1265,7 +1259,7 @@
 			<span class="macro">debug_assert!</span>(timedout_paras.is_empty());
 			<span class="macro">debug_assert!</span>(concluded_paras.is_empty());
 
-			<span class="self">Self</span>::scheduled_claimqueue(now)
+			<span class="self">Self</span>::scheduled_claimqueue()
 		}
 	}
 
@@ -1312,9 +1306,7 @@
 
 	<span class="comment">// TODO: Temporary to imitate the old schedule() call. Will be adjusted when we make the
 	// scheduler AB ready
-	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>scheduled_claimqueue(
-		now: BlockNumberFor&lt;T&gt;,
-	) -&gt; Vec&lt;CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>scheduled_claimqueue() -&gt; Vec&lt;CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
 		<span class="kw">let </span>claimqueue = ClaimQueue::&lt;T&gt;::get();
 
 		claimqueue
@@ -1323,18 +1315,9 @@
 				v.front()
 					.cloned()
 					.flatten()
-					.and_then(|pe| <span class="self">Self</span>::paras_entry_to_core_assignment(now, core_idx, pe))
+					.map(|pe| CoreAssignment { core: core_idx, paras_entry: pe })
 			})
 			.collect()
-	}
-
-	<span class="kw">fn </span>paras_entry_to_core_assignment(
-		now: BlockNumberFor&lt;T&gt;,
-		core_idx: CoreIndex,
-		pe: ParasEntry&lt;BlockNumberFor&lt;T&gt;&gt;,
-	) -&gt; <span class="prelude-ty">Option</span>&lt;CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;&gt; {
-		<span class="kw">let </span>group_idx = <span class="self">Self</span>::group_assigned_to_core(core_idx, now)<span class="question-mark">?</span>;
-		<span class="prelude-val">Some</span>(CoreAssignment { core: core_idx, group_idx, paras_entry: pe })
 	}
 
 	<span class="attr">#[cfg(any(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>, test))]
@@ -1353,5 +1336,10 @@
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>claimqueue_is_empty() -&gt; bool {
 		<span class="self">Self</span>::claimqueue_len() == <span class="number">0
 	</span>}
+
+	<span class="attr">#[cfg(test)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_validator_groups(validator_groups: Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;) {
+		ValidatorGroups::&lt;T&gt;::set(validator_groups);
+	}
 }
 </code></pre></div></section></main></body></html>

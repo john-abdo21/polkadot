@@ -261,6 +261,8 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -294,15 +296,16 @@
 	<span class="doccomment">/// Report the manager (permissioned owner) of a parachain, if there is one.
 	</span><span class="kw">fn </span>manager_of(id: ParaId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::AccountId&gt;;
 
-	<span class="doccomment">/// All parachains. Ordered ascending by `ParaId`. Parathreads are not included.
+	<span class="doccomment">/// All lease holding parachains. Ordered ascending by `ParaId`. On-demand
+	/// parachains are not included.
 	</span><span class="kw">fn </span>parachains() -&gt; Vec&lt;ParaId&gt;;
 
-	<span class="doccomment">/// Return if a `ParaId` is a Parachain.
+	<span class="doccomment">/// Return if a `ParaId` is a lease holding Parachain.
 	</span><span class="kw">fn </span>is_parachain(id: ParaId) -&gt; bool {
 		<span class="self">Self</span>::parachains().binary_search(<span class="kw-2">&amp;</span>id).is_ok()
 	}
 
-	<span class="doccomment">/// Return if a `ParaId` is a Parathread.
+	<span class="doccomment">/// Return if a `ParaId` is a Parathread (on-demand parachain).
 	</span><span class="kw">fn </span>is_parathread(id: ParaId) -&gt; bool;
 
 	<span class="doccomment">/// Return if a `ParaId` is registered in the system.
@@ -333,7 +336,7 @@
 	<span class="doccomment">/// Elevate a para to parachain status.
 	</span><span class="kw">fn </span>make_parachain(id: ParaId) -&gt; DispatchResult;
 
-	<span class="doccomment">/// Lower a para back to normal from parachain status.
+	<span class="doccomment">/// Downgrade lease holding parachain into parathread (on-demand parachain)
 	</span><span class="kw">fn </span>make_parathread(id: ParaId) -&gt; DispatchResult;
 
 	<span class="attr">#[cfg(any(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>, test))]
@@ -343,7 +346,8 @@
 	</span><span class="kw">fn </span>worst_validation_code() -&gt; ValidationCode;
 
 	<span class="doccomment">/// Execute any pending state transitions for paras.
-	/// For example onboarding to parathread, or parathread to parachain.
+	/// For example onboarding to on-demand parachain, or upgrading on-demand to
+	/// lease holding parachain.
 	</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>, test))]
 	</span><span class="kw">fn </span>execute_pending_transitions();
 }
@@ -516,7 +520,7 @@
 	</span><span class="kw">fn </span>has_won_an_auction(para: ParaId, bidder: <span class="kw-2">&amp;</span><span class="self">Self</span>::AccountId) -&gt; bool;
 }
 
-<span class="doccomment">/// Runtime hook for when we swap a parachain and parathread.
+<span class="doccomment">/// Runtime hook for when we swap a lease holding parachain and an on-demand parachain.
 </span><span class="attr">#[impl_trait_for_tuples::impl_for_tuples(<span class="number">30</span>)]
 </span><span class="kw">pub trait </span>OnSwap {
 	<span class="doccomment">/// Updates any needed state/references to enact a logical swap of two parachains. Identity,

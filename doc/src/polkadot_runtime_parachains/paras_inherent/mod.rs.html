@@ -1017,6 +1017,24 @@
 <a href="#1017" id="1017">1017</a>
 <a href="#1018" id="1018">1018</a>
 <a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1047,8 +1065,11 @@
 	inclusion::CandidateCheckContext,
 	initializer,
 	metrics::METRICS,
-	scheduler,
-	scheduler::common::{CoreAssignment, FreedReason},
+	paras,
+	scheduler::{
+		<span class="self">self</span>,
+		common::{CoreAssignment, FreedReason},
+	},
 	shared, ParaId,
 };
 <span class="kw">use </span>bitvec::prelude::BitVec;
@@ -1375,6 +1396,23 @@
 		);
 
 		<span class="kw">let </span>now = &lt;frame_system::Pallet&lt;T&gt;&gt;::block_number();
+		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
+
+		<span class="comment">// Before anything else, update the allowed relay-parents.
+		</span>{
+			<span class="kw">let </span>parent_number = now - One::one();
+			<span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
+
+			shared::AllowedRelayParents::&lt;T&gt;::mutate(|tracker| {
+				tracker.update(
+					parent_hash,
+					parent_storage_root,
+					parent_number,
+					config.async_backing_params.allowed_ancestry_len,
+				);
+			});
+		}
+		<span class="kw">let </span>allowed_relay_parents = &lt;shared::Pallet&lt;T&gt;&gt;::allowed_relay_parents();
 
 		<span class="kw">let </span>candidates_weight = backed_candidates_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>backed_candidates);
 		<span class="kw">let </span>bitfields_weight = signed_bitfields_weight::&lt;T&gt;(<span class="kw-2">&amp;</span>bitfields);
@@ -1426,7 +1464,6 @@
 			<span class="macro">log::debug!</span>(target: LOG_TARGET, <span class="string">&quot;Found duplicate statement sets, retaining the first&quot;</span>);
 		}
 
-		<span class="kw">let </span>config = &lt;configuration::Pallet&lt;T&gt;&gt;::config();
 		<span class="kw">let </span>post_conclusion_acceptance_period = config.dispute_post_conclusion_acceptance_period;
 
 		<span class="kw">let </span>dispute_statement_set_valid = <span class="kw">move </span>|set: DisputeStatementSet| {
@@ -1585,28 +1622,28 @@
 
 		<span class="kw">let </span>scheduled = &lt;scheduler::Pallet&lt;T&gt;&gt;::update_claimqueue(freed, now);
 
-		<span class="kw">let </span>relay_parent_number = now - One::one();
-		<span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
-
-		<span class="kw">let </span>check_ctx = CandidateCheckContext::&lt;T&gt;::new(now, relay_parent_number);
-
 		METRICS.on_candidates_processed_total(backed_candidates.len() <span class="kw">as </span>u64);
 
 		<span class="kw">let </span>backed_candidates = sanitize_backed_candidates::&lt;T, <span class="kw">_</span>&gt;(
-			parent_hash,
 			backed_candidates,
-			<span class="kw">move </span>|candidate_idx: usize,
-			      backed_candidate: <span class="kw-2">&amp;</span>BackedCandidate&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;|
-			      -&gt; bool {
+			|candidate_idx: usize,
+			 backed_candidate: <span class="kw-2">&amp;</span>BackedCandidate&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;|
+			 -&gt; bool {
+				<span class="kw">let </span>para_id = backed_candidate.descriptor().para_id;
+				<span class="kw">let </span>prev_context = &lt;paras::Pallet&lt;T&gt;&gt;::para_most_recent_context(para_id);
+				<span class="kw">let </span>check_ctx = CandidateCheckContext::&lt;T&gt;::new(prev_context);
+
 				<span class="comment">// never include a concluded-invalid candidate
 				</span>current_concluded_invalid_disputes.contains(<span class="kw-2">&amp;</span>backed_candidate.hash()) ||
 					<span class="comment">// Instead of checking the candidates with code upgrades twice
 					// move the checking up here and skip it in the training wheels fallback.
 					// That way we avoid possible duplicate checks while assuring all
 					// backed candidates fine to pass on.
+					//
+					// NOTE: this is the only place where we check the relay-parent.
 					</span>check_ctx
-					.verify_backed_candidate(parent_hash, parent_storage_root, candidate_idx, backed_candidate)
-					.is_err()
+						.verify_backed_candidate(<span class="kw-2">&amp;</span>allowed_relay_parents, candidate_idx, backed_candidate)
+						.is_err()
 			},
 			<span class="kw-2">&amp;</span>scheduled[..],
 		);
@@ -1614,12 +1651,11 @@
 		METRICS.on_candidates_sanitized(backed_candidates.len() <span class="kw">as </span>u64);
 
 		<span class="comment">// Process backed candidates according to scheduled cores.
-		</span><span class="kw">let </span>parent_storage_root = <span class="kw-2">*</span>parent_header.state_root();
-		<span class="kw">let </span>inclusion::ProcessedCandidates::&lt;&lt;HeaderFor&lt;T&gt; <span class="kw">as </span>HeaderT&gt;::Hash&gt; {
+		</span><span class="kw">let </span>inclusion::ProcessedCandidates::&lt;&lt;HeaderFor&lt;T&gt; <span class="kw">as </span>HeaderT&gt;::Hash&gt; {
 			core_indices: occupied,
 			candidate_receipt_with_backing_validator_indices,
 		} = &lt;inclusion::Pallet&lt;T&gt;&gt;::process_candidates(
-			parent_storage_root,
+			<span class="kw-2">&amp;</span>allowed_relay_parents,
 			backed_candidates.clone(),
 			scheduled,
 			&lt;scheduler::Pallet&lt;T&gt;&gt;::group_validators,
@@ -1916,7 +1952,6 @@
 	T: <span class="kw">crate</span>::inclusion::Config,
 	F: FnMut(usize, <span class="kw-2">&amp;</span>BackedCandidate&lt;T::Hash&gt;) -&gt; bool,
 &gt;(
-	relay_parent: T::Hash,
 	<span class="kw-2">mut </span>backed_candidates: Vec&lt;BackedCandidate&lt;T::Hash&gt;&gt;,
 	<span class="kw-2">mut </span>candidate_has_concluded_invalid_dispute_or_is_invalid: F,
 	scheduled: <span class="kw-2">&amp;</span>[CoreAssignment&lt;BlockNumberFor&lt;T&gt;&gt;],
@@ -1934,12 +1969,13 @@
 
 	<span class="comment">// Assure the backed candidate&#39;s `ParaId`&#39;s core is free.
 	// This holds under the assumption that `Scheduler::schedule` is called _before_.
-	// Also checks the candidate references the correct relay parent.
+	// We don&#39;t check the relay-parent because this is done in the closure when
+	// constructing the inherent and during actual processing otherwise.
 
 	</span>backed_candidates.retain(|backed_candidate| {
 		<span class="kw">let </span>desc = backed_candidate.descriptor();
-		desc.relay_parent == relay_parent &amp;&amp;
-			scheduled_paras_to_core_idx.get(<span class="kw-2">&amp;</span>desc.para_id).is_some()
+
+		scheduled_paras_to_core_idx.get(<span class="kw-2">&amp;</span>desc.para_id).is_some()
 	});
 
 	<span class="comment">// Sort the `Vec` last, once there is a guarantee that these

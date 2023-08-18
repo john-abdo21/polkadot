@@ -1565,6 +1565,12 @@
 <a href="#1565" id="1565">1565</a>
 <a href="#1566" id="1566">1566</a>
 <a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1581,7 +1587,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! Pallet to handle parathread/parachain registration and related fund management.
+</span><span class="doccomment">//! Pallet to handle parachain registration and related fund management.
 //! In essence this is a simple wrapper around `paras`.
 
 </span><span class="kw">use </span>frame_support::{
@@ -1680,13 +1686,13 @@
 		</span><span class="kw">type </span>RuntimeOrigin: From&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeOrigin&gt;
 			+ Into&lt;result::Result&lt;Origin, &lt;<span class="self">Self </span><span class="kw">as </span>Config&gt;::RuntimeOrigin&gt;&gt;;
 
-		<span class="doccomment">/// The system&#39;s currency for parathread payment.
+		<span class="doccomment">/// The system&#39;s currency for on-demand parachain payment.
 		</span><span class="kw">type </span>Currency: ReservableCurrency&lt;<span class="self">Self</span>::AccountId&gt;;
 
-		<span class="doccomment">/// Runtime hook for when a parachain and parathread swap.
+		<span class="doccomment">/// Runtime hook for when a lease holding parachain and on-demand parachain swap.
 		</span><span class="kw">type </span>OnSwap: <span class="kw">crate</span>::traits::OnSwap;
 
-		<span class="doccomment">/// The deposit to be paid to run a parathread.
+		<span class="doccomment">/// The deposit to be paid to run a on-demand parachain.
 		/// This should include the cost for storing the genesis head and validation code.
 		</span><span class="attr">#[pallet::constant]
 		</span><span class="kw">type </span>ParaDeposit: Get&lt;BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
@@ -1722,13 +1728,13 @@
 		</span>HeadDataTooLarge,
 		<span class="doccomment">/// Para is not a Parachain.
 		</span>NotParachain,
-		<span class="doccomment">/// Para is not a Parathread.
+		<span class="doccomment">/// Para is not a Parathread (on-demand parachain).
 		</span>NotParathread,
 		<span class="doccomment">/// Cannot deregister para
 		</span>CannotDeregister,
-		<span class="doccomment">/// Cannot schedule downgrade of parachain to parathread
+		<span class="doccomment">/// Cannot schedule downgrade of lease holding parachain to on-demand parachain
 		</span>CannotDowngrade,
-		<span class="doccomment">/// Cannot schedule upgrade of parathread to parachain
+		<span class="doccomment">/// Cannot schedule upgrade of on-demand parachain to lease holding parachain
 		</span>CannotUpgrade,
 		<span class="doccomment">/// Para is locked from manipulation by the manager. Must use parachain or relay chain
 		/// governance.
@@ -1832,8 +1838,8 @@
 
 		<span class="doccomment">/// Deregister a Para Id, freeing all data and returning any deposit.
 		///
-		/// The caller must be Root, the `para` owner, or the `para` itself. The para must be a
-		/// parathread.
+		/// The caller must be Root, the `para` owner, or the `para` itself. The para must be an
+		/// on-demand parachain.
 		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::deregister())]
 		</span><span class="kw">pub fn </span>deregister(origin: OriginFor&lt;T&gt;, id: ParaId) -&gt; DispatchResult {
@@ -1841,7 +1847,8 @@
 			<span class="self">Self</span>::do_deregister(id)
 		}
 
-		<span class="doccomment">/// Swap a parachain with another parachain or parathread.
+		<span class="doccomment">/// Swap a lease holding parachain with another parachain, either on-demand or lease
+		/// holding.
 		///
 		/// The origin must be Root, the `para` owner, or the `para` itself.
 		///
@@ -1850,8 +1857,8 @@
 		///
 		/// The `ParaId`s remain mapped to the same head data and code so external code can rely on
 		/// `ParaId` to be a long-term identifier of a notional &quot;parachain&quot;. However, their
-		/// scheduling info (i.e. whether they&#39;re a parathread or parachain), auction information
-		/// and the auction deposit are switched.
+		/// scheduling info (i.e. whether they&#39;re an on-demand parachain or lease holding
+		/// parachain), auction information and the auction deposit are switched.
 		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
 		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::swap())]
 		</span><span class="kw">pub fn </span>swap(origin: OriginFor&lt;T&gt;, id: ParaId, other: ParaId) -&gt; DispatchResult {
@@ -1871,7 +1878,8 @@
 			<span class="kw">if </span>PendingSwap::&lt;T&gt;::get(other) == <span class="prelude-val">Some</span>(id) {
 				<span class="kw">let </span>other_lifecycle =
 					paras::Pallet::&lt;T&gt;::lifecycle(other).ok_or(Error::&lt;T&gt;::NotRegistered)<span class="question-mark">?</span>;
-				<span class="comment">// identify which is a parachain and which is a parathread
+				<span class="comment">// identify which is a lease holding parachain and which is a parathread (on-demand
+				// parachain)
 				</span><span class="kw">if </span>id_lifecycle == ParaLifecycle::Parachain &amp;&amp;
 					other_lifecycle == ParaLifecycle::Parathread
 				{
@@ -1915,8 +1923,8 @@
 		///
 		/// This function will reserve a new Para Id to be owned/managed by the origin account.
 		/// The origin account is able to register head data and validation code using `register` to
-		/// create a parathread. Using the Slots pallet, a parathread can then be upgraded to get a
-		/// parachain slot.
+		/// create an on-demand parachain. Using the Slots pallet, an on-demand parachain can then
+		/// be upgraded to a lease holding parachain.
 		///
 		/// ## Arguments
 		/// - `origin`: Must be called by a `Signed` origin. Becomes the manager/owner of the new
@@ -1993,17 +2001,18 @@
 		<span class="prelude-val">Some</span>(Paras::&lt;T&gt;::get(id)<span class="question-mark">?</span>.manager)
 	}
 
-	<span class="comment">// All parachains. Ordered ascending by ParaId. Parathreads are not included.
+	<span class="comment">// All lease holding parachains. Ordered ascending by ParaId. On-demand parachains are not
+	// included.
 	</span><span class="kw">fn </span>parachains() -&gt; Vec&lt;ParaId&gt; {
 		paras::Pallet::&lt;T&gt;::parachains()
 	}
 
-	<span class="comment">// Return if a para is a parathread
+	<span class="comment">// Return if a para is a parathread (on-demand parachain)
 	</span><span class="kw">fn </span>is_parathread(id: ParaId) -&gt; bool {
 		paras::Pallet::&lt;T&gt;::is_parathread(id)
 	}
 
-	<span class="comment">// Return if a para is a parachain
+	<span class="comment">// Return if a para is a lease holding parachain
 	</span><span class="kw">fn </span>is_parachain(id: ParaId) -&gt; bool {
 		paras::Pallet::&lt;T&gt;::is_parachain(id)
 	}
@@ -2036,9 +2045,9 @@
 		<span class="self">Self</span>::do_deregister(id)
 	}
 
-	<span class="comment">// Upgrade a registered parathread into a parachain.
+	<span class="comment">// Upgrade a registered on-demand parachain into a lease holding parachain.
 	</span><span class="kw">fn </span>make_parachain(id: ParaId) -&gt; DispatchResult {
-		<span class="comment">// Para backend should think this is a parathread...
+		<span class="comment">// Para backend should think this is an on-demand parachain...
 		</span><span class="macro">ensure!</span>(
 			paras::Pallet::&lt;T&gt;::lifecycle(id) == <span class="prelude-val">Some</span>(ParaLifecycle::Parathread),
 			Error::&lt;T&gt;::NotParathread
@@ -2051,7 +2060,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="comment">// Downgrade a registered para into a parathread.
+	<span class="comment">// Downgrade a registered para into a parathread (on-demand parachain).
 	</span><span class="kw">fn </span>make_parathread(id: ParaId) -&gt; DispatchResult {
 		<span class="comment">// Para backend should think this is a parachain...
 		</span><span class="macro">ensure!</span>(
@@ -2178,7 +2187,7 @@
 	<span class="doccomment">/// Deregister a Para Id, freeing all data returning any deposit.
 	</span><span class="kw">fn </span>do_deregister(id: ParaId) -&gt; DispatchResult {
 		<span class="kw">match </span>paras::Pallet::&lt;T&gt;::lifecycle(id) {
-			<span class="comment">// Para must be a parathread, or not exist at all.
+			<span class="comment">// Para must be a parathread (on-demand parachain), or not exist at all.
 			</span><span class="prelude-val">Some</span>(ParaLifecycle::Parathread) | <span class="prelude-val">None </span>=&gt; {},
 			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::&lt;T&gt;::NotParathread.into()),
 		}
@@ -2218,7 +2227,8 @@
 		<span class="prelude-val">Ok</span>((ParaGenesisArgs { genesis_head, validation_code, para_kind }, deposit))
 	}
 
-	<span class="doccomment">/// Swap a parachain and parathread, which involves scheduling an appropriate lifecycle update.
+	<span class="doccomment">/// Swap a lease holding parachain and parathread (on-demand parachain), which involves
+	/// scheduling an appropriate lifecycle update.
 	</span><span class="kw">fn </span>do_thread_and_chain_swap(to_downgrade: ParaId, to_upgrade: ParaId) {
 		<span class="kw">let </span>res1 = runtime_parachains::schedule_parachain_downgrade::&lt;T&gt;(to_downgrade);
 		<span class="macro">debug_assert!</span>(res1.is_ok());
@@ -2498,16 +2508,16 @@
 			conclude_pvf_checking::&lt;Test&gt;(<span class="kw-2">&amp;</span>validation_code, VALIDATORS, START_SESSION_INDEX);
 
 			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
-			<span class="comment">// It is now a parathread.
+			<span class="comment">// It is now a parathread (on-demand parachain).
 			</span><span class="macro">assert!</span>(Parachains::is_parathread(para_id));
 			<span class="macro">assert!</span>(!Parachains::is_parachain(para_id));
-			<span class="comment">// Some other external process will elevate parathread to parachain
+			<span class="comment">// Some other external process will elevate on-demand to lease holding parachain
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parachain(para_id));
 			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
-			<span class="comment">// It is now a parachain.
+			<span class="comment">// It is now a lease holding parachain.
 			</span><span class="macro">assert!</span>(!Parachains::is_parathread(para_id));
 			<span class="macro">assert!</span>(Parachains::is_parachain(para_id));
-			<span class="comment">// Turn it back into a parathread
+			<span class="comment">// Turn it back into a parathread (on-demand parachain)
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parathread(para_id));
 			run_to_session(START_SESSION_INDEX + <span class="number">6</span>);
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_id));
@@ -2895,7 +2905,7 @@
 
 			run_to_session(START_SESSION_INDEX + <span class="number">2</span>);
 
-			<span class="comment">// They are now a parathread.
+			<span class="comment">// They are now parathreads (on-demand parachains).
 			</span><span class="macro">assert!</span>(Parachains::is_parathread(para_1));
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_2));
 
@@ -2906,7 +2916,8 @@
 				Error::&lt;Test&gt;::CannotSwap
 			);
 
-			<span class="comment">// Some other external process will elevate one parathread to parachain
+			<span class="comment">// Some other external process will elevate one on-demand
+			// parachain to a lease holding parachain
 			</span><span class="macro">assert_ok!</span>(Registrar::make_parachain(para_1));
 
 			<span class="comment">// Cannot swap
@@ -2927,7 +2938,7 @@
 
 			run_to_session(START_SESSION_INDEX + <span class="number">4</span>);
 
-			<span class="comment">// It is now a parachain.
+			<span class="comment">// It is now a lease holding parachain.
 			</span><span class="macro">assert!</span>(Parachains::is_parachain(para_1));
 			<span class="macro">assert!</span>(Parachains::is_parathread(para_2));
 
@@ -3088,7 +3099,8 @@
 		}
 
 		swap {
-			<span class="kw">let </span>parathread = register_para::&lt;T&gt;(LOWEST_PUBLIC_ID.into());
+			<span class="comment">// On demand parachain
+			</span><span class="kw">let </span>parathread = register_para::&lt;T&gt;(LOWEST_PUBLIC_ID.into());
 			<span class="kw">let </span>parachain = register_para::&lt;T&gt;((LOWEST_PUBLIC_ID + <span class="number">1</span>).into());
 
 			<span class="kw">let </span>parachain_origin = para_origin(parachain.into());

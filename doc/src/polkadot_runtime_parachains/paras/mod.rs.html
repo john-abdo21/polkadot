@@ -2187,6 +2187,36 @@
 <a href="#2187" id="2187">2187</a>
 <a href="#2188" id="2188">2188</a>
 <a href="#2189" id="2189">2189</a>
+<a href="#2190" id="2190">2190</a>
+<a href="#2191" id="2191">2191</a>
+<a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a>
+<a href="#2210" id="2210">2210</a>
+<a href="#2211" id="2211">2211</a>
+<a href="#2212" id="2212">2212</a>
+<a href="#2213" id="2213">2213</a>
+<a href="#2214" id="2214">2214</a>
+<a href="#2215" id="2215">2215</a>
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2207,15 +2237,15 @@
 //!
 //! # Tracking State of Paras
 //!
-//! The most important responsibility of this module is to track which parachains and parathreads
+//! The most important responsibility of this module is to track which parachains
 //! are active and what their current state is. The current state of a para consists of the current
 //! head data and the current validation code (AKA Parachain Validation Function (PVF)).
 //!
 //! A para is not considered live until it is registered and activated in this pallet.
 //!
-//! The set of parachains and parathreads cannot change except at session boundaries. This is
-//! primarily to ensure that the number and meaning of bits required for the availability bitfields
-//! does not change except at session boundaries.
+//! The set of parachains cannot change except at session boundaries. This is primarily to ensure
+//! that the number and meaning of bits required for the availability bitfields does not change
+//! except at session boundaries.
 //!
 //! # Validation Code Upgrades
 //!
@@ -2250,7 +2280,8 @@
 //!
 //! # Para Lifecycle Management
 //!
-//! A para can be in one of the two stable states: it is either a parachain or a parathread.
+//! A para can be in one of the two stable states: it is either a lease holding parachain or an
+//! on-demand parachain.
 //!
 //! However, in order to get into one of those two states, it must first be onboarded. Onboarding
 //! can be only enacted at session boundaries. Onboarding must take at least one full session.
@@ -2368,17 +2399,17 @@
 /// state will be used to determine the state transition to apply to the para.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 </span><span class="kw">pub enum </span>ParaLifecycle {
-	<span class="doccomment">/// Para is new and is onboarding as a Parathread or Parachain.
+	<span class="doccomment">/// Para is new and is onboarding as an on-demand or lease holding Parachain.
 	</span>Onboarding,
-	<span class="doccomment">/// Para is a Parathread.
+	<span class="doccomment">/// Para is a Parathread (on-demand parachain).
 	</span>Parathread,
-	<span class="doccomment">/// Para is a Parachain.
+	<span class="doccomment">/// Para is a lease holding Parachain.
 	</span>Parachain,
-	<span class="doccomment">/// Para is a Parathread which is upgrading to a Parachain.
+	<span class="doccomment">/// Para is a Parathread (on-demand parachain) which is upgrading to a lease holding Parachain.
 	</span>UpgradingParathread,
-	<span class="doccomment">/// Para is a Parachain which is downgrading to a Parathread.
+	<span class="doccomment">/// Para is a lease holding Parachain which is downgrading to an on-demand parachain.
 	</span>DowngradingParachain,
-	<span class="doccomment">/// Parathread is queued to be offboarded.
+	<span class="doccomment">/// Parathread (on-demand parachain) is queued to be offboarded.
 	</span>OffboardingParathread,
 	<span class="doccomment">/// Parachain is queued to be offboarded.
 	</span>OffboardingParachain,
@@ -2386,14 +2417,14 @@
 
 <span class="kw">impl </span>ParaLifecycle {
 	<span class="doccomment">/// Returns true if parachain is currently onboarding. To learn if the
-	/// parachain is onboarding as a parachain or parathread, look at the
+	/// parachain is onboarding as a lease holding or on-demand parachain, look at the
 	/// `UpcomingGenesis` storage item.
 	</span><span class="kw">pub fn </span>is_onboarding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 		<span class="macro">matches!</span>(<span class="self">self</span>, ParaLifecycle::Onboarding)
 	}
 
 	<span class="doccomment">/// Returns true if para is in a stable state, i.e. it is currently
-	/// a parachain or parathread, and not in any transition state.
+	/// a lease holding or on-demand parachain, and not in any transition state.
 	</span><span class="kw">pub fn </span>is_stable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 		<span class="macro">matches!</span>(<span class="self">self</span>, ParaLifecycle::Parathread | ParaLifecycle::Parachain)
 	}
@@ -2410,7 +2441,7 @@
 		)
 	}
 
-	<span class="doccomment">/// Returns true if para is currently treated as a parathread.
+	<span class="doccomment">/// Returns true if para is currently treated as a parathread (on-demand parachain).
 	/// This also includes transitioning states, so you may want to combine
 	/// this check with `is_stable` if you specifically want `Paralifecycle::Parathread`.
 	</span><span class="kw">pub fn </span>is_parathread(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -2483,12 +2514,12 @@
 	</span><span class="kw">pub </span>genesis_head: HeadData,
 	<span class="doccomment">/// The initial validation code to use.
 	</span><span class="kw">pub </span>validation_code: ValidationCode,
-	<span class="doccomment">/// Parachain or Parathread.
+	<span class="doccomment">/// Lease holding or on-demand parachain.
 	</span><span class="attr">#[serde(rename = <span class="string">&quot;parachain&quot;</span>)]
 	</span><span class="kw">pub </span>para_kind: ParaKind,
 }
 
-<span class="doccomment">/// Distinguishes between Parachain and Parathread
+<span class="doccomment">/// Distinguishes between lease holding Parachain and Parathread (on-demand parachain)
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, RuntimeDebug)]
 </span><span class="kw">pub enum </span>ParaKind {
 	Parathread,
@@ -2672,6 +2703,7 @@
 <span class="kw">pub trait </span>WeightInfo {
 	<span class="kw">fn </span>force_set_current_code(c: u32) -&gt; Weight;
 	<span class="kw">fn </span>force_set_current_head(s: u32) -&gt; Weight;
+	<span class="kw">fn </span>force_set_most_recent_context() -&gt; Weight;
 	<span class="kw">fn </span>force_schedule_code_upgrade(c: u32) -&gt; Weight;
 	<span class="kw">fn </span>force_note_new_head(s: u32) -&gt; Weight;
 	<span class="kw">fn </span>force_queue_action() -&gt; Weight;
@@ -2691,6 +2723,9 @@
 		Weight::MAX
 	}
 	<span class="kw">fn </span>force_set_current_head(_s: u32) -&gt; Weight {
+		Weight::MAX
+	}
+	<span class="kw">fn </span>force_set_most_recent_context() -&gt; Weight {
 		Weight::MAX
 	}
 	<span class="kw">fn </span>force_schedule_code_upgrade(_c: u32) -&gt; Weight {
@@ -2795,9 +2830,9 @@
 		</span>CannotOnboard,
 		<span class="doccomment">/// Para cannot be offboarded at this time.
 		</span>CannotOffboard,
-		<span class="doccomment">/// Para cannot be upgraded to a parachain.
+		<span class="doccomment">/// Para cannot be upgraded to a lease holding parachain.
 		</span>CannotUpgrade,
-		<span class="doccomment">/// Para cannot be downgraded to a parathread.
+		<span class="doccomment">/// Para cannot be downgraded to an on-demand parachain.
 		</span>CannotDowngrade,
 		<span class="doccomment">/// The statement for PVF pre-checking is stale.
 		</span>PvfCheckStatementStale,
@@ -2833,7 +2868,8 @@
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>PvfActiveVoteList&lt;T: Config&gt; =
 		StorageValue&lt;<span class="kw">_</span>, Vec&lt;ValidationCodeHash&gt;, ValueQuery&gt;;
 
-	<span class="doccomment">/// All parachains. Ordered ascending by `ParaId`. Parathreads are not included.
+	<span class="doccomment">/// All lease holding parachains. Ordered ascending by `ParaId`. On demand parachains are not
+	/// included.
 	///
 	/// Consider using the [`ParachainsCache`] type of modifying.
 	</span><span class="attr">#[pallet::storage]
@@ -2848,6 +2884,12 @@
 	</span><span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>para_head)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>Heads&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, HeadData&gt;;
+
+	<span class="doccomment">/// The context (relay-chain block number) of the most recent parachain head.
+	</span><span class="attr">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>para_most_recent_context)]
+	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>MostRecentContext&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, BlockNumberFor&lt;T&gt;&gt;;
 
 	<span class="doccomment">/// The validation code hash of every live para.
 	///
@@ -2895,6 +2937,7 @@
 	///
 	/// Corresponding code can be retrieved with [`CodeByHash`].
 	</span><span class="attr">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>future_code_hash)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>FutureCodeHash&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, ValidationCodeHash&gt;;
 
@@ -2922,6 +2965,7 @@
 	/// NOTE that this field is used by parachains via merkle storage proofs, therefore changing
 	/// the format will require migration of parachains.
 	</span><span class="attr">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>upgrade_restriction_signal)]
 	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>UpgradeRestrictionSignal&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, ParaId, UpgradeRestriction&gt;;
 
@@ -3248,6 +3292,19 @@
 				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::include_pvf_check_statement()).into())
 			}
 		}
+
+		<span class="doccomment">/// Set the storage for the current parachain head data immediately.
+		</span><span class="attr">#[pallet::call_index(<span class="number">8</span>)]
+		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::force_set_most_recent_context())]
+		</span><span class="kw">pub fn </span>force_set_most_recent_context(
+			origin: OriginFor&lt;T&gt;,
+			para: ParaId,
+			context: BlockNumberFor&lt;T&gt;,
+		) -&gt; DispatchResult {
+			ensure_root(origin)<span class="question-mark">?</span>;
+			MostRecentContext::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, context);
+			<span class="prelude-val">Ok</span>(())
+		}
 	}
 
 	<span class="attr">#[pallet::validate_unsigned]
@@ -3389,7 +3446,7 @@
 	// The actions to take are based on the lifecycle of of the paras.
 	//
 	// The final state of any para after the actions queue should be as a
-	// parachain, parathread, or not registered. (stable states)
+	// lease holding parachain, on-demand parachain, or not registered. (stable states)
 	//
 	// Returns the list of outgoing paras from the actions queue.
 	</span><span class="kw">fn </span>apply_actions_queue(session: SessionIndex) -&gt; Vec&lt;ParaId&gt; {
@@ -3408,22 +3465,23 @@
 						<span class="self">Self</span>::initialize_para_now(<span class="kw-2">&amp;mut </span>parachains, para, <span class="kw-2">&amp;</span>genesis_data);
 					}
 				},
-				<span class="comment">// Upgrade a parathread to a parachain
+				<span class="comment">// Upgrade an on-demand parachain to a lease holding parachain
 				</span><span class="prelude-val">Some</span>(ParaLifecycle::UpgradingParathread) =&gt; {
 					parachains.add(para);
 					ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, ParaLifecycle::Parachain);
 				},
-				<span class="comment">// Downgrade a parachain to a parathread
+				<span class="comment">// Downgrade a lease holding parachain to an on-demand parachain
 				</span><span class="prelude-val">Some</span>(ParaLifecycle::DowngradingParachain) =&gt; {
 					parachains.remove(para);
 					ParaLifecycles::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>para, ParaLifecycle::Parathread);
 				},
-				<span class="comment">// Offboard a parathread or parachain from the system
+				<span class="comment">// Offboard a lease holding or on-demand parachain from the system
 				</span><span class="prelude-val">Some</span>(ParaLifecycle::OffboardingParachain) |
 				<span class="prelude-val">Some</span>(ParaLifecycle::OffboardingParathread) =&gt; {
 					parachains.remove(para);
 
 					Heads::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
+					MostRecentContext::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
 					FutureCodeUpgrades::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
 					UpgradeGoAheadSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
 					UpgradeRestrictionSignal::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>para);
@@ -3865,8 +3923,7 @@
 	///
 	/// Will return error if either is true:
 	///
-	/// - para is not a stable parachain or parathread (i.e. [`ParaLifecycle::is_stable`] is
-	///   `false`)
+	/// - para is not a stable parachain (i.e. [`ParaLifecycle::is_stable`] is `false`)
 	/// - para has a pending upgrade.
 	/// - para has unprocessed messages in its UMP queue.
 	///
@@ -3917,7 +3974,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Schedule a parathread to be upgraded to a parachain.
+	<span class="doccomment">/// Schedule a parathread (on-demand parachain) to be upgraded to a lease holding parachain.
 	///
 	/// Will return error if `ParaLifecycle` is not `Parathread`.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule_parathread_upgrade(id: ParaId) -&gt; DispatchResult {
@@ -3936,7 +3993,7 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Schedule a parachain to be downgraded to a parathread.
+	<span class="doccomment">/// Schedule a lease holding parachain to be downgraded to an on-demand parachain.
 	///
 	/// Noop if `ParaLifecycle` is not `Parachain`.
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>schedule_parachain_downgrade(id: ParaId) -&gt; DispatchResult {
@@ -4125,6 +4182,7 @@
 		execution_context: BlockNumberFor&lt;T&gt;,
 	) -&gt; Weight {
 		Heads::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, new_head);
+		MostRecentContext::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, execution_context);
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(expected_at) = FutureCodeUpgrades::&lt;T&gt;::get(<span class="kw-2">&amp;</span>id) {
 			<span class="kw">if </span>expected_at &lt;= execution_context {
@@ -4217,9 +4275,10 @@
 		ParaLifecycles::&lt;T&gt;::get(<span class="kw-2">&amp;</span>id).map_or(<span class="bool-val">false</span>, |state| state.is_offboarding())
 	}
 
-	<span class="doccomment">/// Whether a para ID corresponds to any live parachain.
+	<span class="doccomment">/// Whether a para ID corresponds to any live lease holding parachain.
 	///
-	/// Includes parachains which will downgrade to a parathread in the future.
+	/// Includes lease holding parachains which will downgrade to a on-demand parachains in the
+	/// future.
 	</span><span class="kw">pub fn </span>is_parachain(id: ParaId) -&gt; bool {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = ParaLifecycles::&lt;T&gt;::get(<span class="kw-2">&amp;</span>id) {
 			state.is_parachain()
@@ -4228,9 +4287,9 @@
 		</span>}
 	}
 
-	<span class="doccomment">/// Whether a para ID corresponds to any live parathread.
+	<span class="doccomment">/// Whether a para ID corresponds to any live parathread (on-demand parachain).
 	///
-	/// Includes parathreads which will upgrade to parachains in the future.
+	/// Includes on-demand parachains which will upgrade to lease holding parachains in the future.
 	</span><span class="kw">pub fn </span>is_parathread(id: ParaId) -&gt; bool {
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = ParaLifecycles::&lt;T&gt;::get(<span class="kw-2">&amp;</span>id) {
 			state.is_parathread()
@@ -4327,6 +4386,7 @@
 		}
 
 		Heads::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, <span class="kw-2">&amp;</span>genesis_data.genesis_head);
+		MostRecentContext::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>id, BlockNumberFor::&lt;T&gt;::from(<span class="number">0u32</span>));
 	}
 
 	<span class="attr">#[cfg(test)]

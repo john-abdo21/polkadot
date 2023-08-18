@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ActiveValidatorIndices","ActiveValidatorKeys","CurrentSessionIndex"]};
+window.SIDEBAR_ITEMS = {"struct":["ActiveValidatorIndices","ActiveValidatorKeys","AllowedRelayParents","CurrentSessionIndex"]};

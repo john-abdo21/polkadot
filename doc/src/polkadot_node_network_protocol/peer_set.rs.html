@@ -538,6 +538,53 @@
 <a href="#538" id="538">538</a>
 <a href="#539" id="539">539</a>
 <a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -658,9 +705,16 @@
 	/// Networking layer relies on `get_main_version()` being the version
 	/// of the main protocol name reported by [`PeerSetProtocolNames::get_main_name()`].
 	</span><span class="kw">pub fn </span>get_main_version(<span class="self">self</span>) -&gt; ProtocolVersion {
-		<span class="kw">match </span><span class="self">self </span>{
+		<span class="attr">#[cfg(not(feature = <span class="string">&quot;network-protocol-staging&quot;</span>))]
+		</span><span class="kw">match </span><span class="self">self </span>{
 			PeerSet::Validation =&gt; ValidationVersion::V1.into(),
 			PeerSet::Collation =&gt; CollationVersion::V1.into(),
+		}
+
+		<span class="attr">#[cfg(feature = <span class="string">&quot;network-protocol-staging&quot;</span>)]
+		</span><span class="kw">match </span><span class="self">self </span>{
+			PeerSet::Validation =&gt; ValidationVersion::VStaging.into(),
+			PeerSet::Collation =&gt; CollationVersion::VStaging.into(),
 		}
 	}
 
@@ -685,12 +739,16 @@
 			PeerSet::Validation =&gt;
 				<span class="kw">if </span>version == ValidationVersion::V1.into() {
 					<span class="prelude-val">Some</span>(<span class="string">&quot;validation/1&quot;</span>)
+				} <span class="kw">else if </span>version == ValidationVersion::VStaging.into() {
+					<span class="prelude-val">Some</span>(<span class="string">&quot;validation/2&quot;</span>)
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
 				</span>},
 			PeerSet::Collation =&gt;
 				<span class="kw">if </span>version == CollationVersion::V1.into() {
 					<span class="prelude-val">Some</span>(<span class="string">&quot;collation/1&quot;</span>)
+				} <span class="kw">else if </span>version == CollationVersion::VStaging.into() {
+					<span class="prelude-val">Some</span>(<span class="string">&quot;collation/2&quot;</span>)
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
 				</span>},
@@ -752,6 +810,8 @@
 </span><span class="kw">pub enum </span>ValidationVersion {
 	<span class="doccomment">/// The first version.
 	</span>V1 = <span class="number">1</span>,
+	<span class="doccomment">/// The staging version.
+	</span>VStaging = <span class="number">2</span>,
 }
 
 <span class="doccomment">/// Supported collation protocol versions. Only versions defined here must be used in the codebase.
@@ -759,6 +819,40 @@
 </span><span class="kw">pub enum </span>CollationVersion {
 	<span class="doccomment">/// The first version.
 	</span>V1 = <span class="number">1</span>,
+	<span class="doccomment">/// The staging version.
+	</span>VStaging = <span class="number">2</span>,
+}
+
+<span class="doccomment">/// Marker indicating the version is unknown.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>UnknownVersion;
+
+<span class="kw">impl </span>TryFrom&lt;ProtocolVersion&gt; <span class="kw">for </span>ValidationVersion {
+	<span class="kw">type </span>Error = UnknownVersion;
+
+	<span class="kw">fn </span>try_from(p: ProtocolVersion) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, UnknownVersion&gt; {
+		<span class="kw">for </span>v <span class="kw">in </span><span class="self">Self</span>::iter() {
+			<span class="kw">if </span>v <span class="kw">as </span>u32 == p.<span class="number">0 </span>{
+				<span class="kw">return </span><span class="prelude-val">Ok</span>(v)
+			}
+		}
+
+		<span class="prelude-val">Err</span>(UnknownVersion)
+	}
+}
+
+<span class="kw">impl </span>TryFrom&lt;ProtocolVersion&gt; <span class="kw">for </span>CollationVersion {
+	<span class="kw">type </span>Error = UnknownVersion;
+
+	<span class="kw">fn </span>try_from(p: ProtocolVersion) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, UnknownVersion&gt; {
+		<span class="kw">for </span>v <span class="kw">in </span><span class="self">Self</span>::iter() {
+			<span class="kw">if </span>v <span class="kw">as </span>u32 == p.<span class="number">0 </span>{
+				<span class="kw">return </span><span class="prelude-val">Ok</span>(v)
+			}
+		}
+
+		<span class="prelude-val">Err</span>(UnknownVersion)
+	}
 }
 
 <span class="kw">impl </span>From&lt;ValidationVersion&gt; <span class="kw">for </span>ProtocolVersion {

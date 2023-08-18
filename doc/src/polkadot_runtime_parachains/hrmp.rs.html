@@ -1582,6 +1582,35 @@
 <a href="#1582" id="1582">1582</a>
 <a href="#1583" id="1583">1583</a>
 <a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
+<a href="#1610" id="1610">1610</a>
+<a href="#1611" id="1611">1611</a>
+<a href="#1612" id="1612">1612</a>
+<a href="#1613" id="1613">1613</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1918,7 +1947,7 @@
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, HrmpChannelId, HrmpOpenChannelRequest&gt;;
 
 	<span class="comment">// NOTE: could become bounded, but we don&#39;t have a global maximum for this.
-	// `HRMP_MAX_INBOUND_CHANNELS_BOUND` are per parachain/parathread, while this storage tracks the
+	// `HRMP_MAX_INBOUND_CHANNELS_BOUND` are per parachain, while this storage tracks the
 	// global state.
 	</span><span class="attr">#[pallet::storage]
 	</span><span class="kw">pub type </span>HrmpOpenChannelRequestsList&lt;T: Config&gt; =
@@ -2535,6 +2564,14 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
+	<span class="doccomment">/// Returns HRMP watermarks of previously sent messages to a given para.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>valid_watermarks(recipient: ParaId) -&gt; Vec&lt;BlockNumberFor&lt;T&gt;&gt; {
+		HrmpChannelDigests::&lt;T&gt;::get(<span class="kw-2">&amp;</span>recipient)
+			.into_iter()
+			.map(|(block_no, <span class="kw">_</span>)| block_no)
+			.collect()
+	}
+
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_outbound_hrmp(
 		config: <span class="kw-2">&amp;</span>HostConfiguration&lt;BlockNumberFor&lt;T&gt;&gt;,
 		sender: ParaId,
@@ -2597,6 +2634,27 @@
 		}
 
 		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="doccomment">/// Returns remaining outbound channels capacity in messages and in bytes per recipient para.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>outbound_remaining_capacity(sender: ParaId) -&gt; Vec&lt;(ParaId, (u32, u32))&gt; {
+		<span class="kw">let </span>recipients = HrmpEgressChannelsIndex::&lt;T&gt;::get(<span class="kw-2">&amp;</span>sender);
+		<span class="kw">let </span><span class="kw-2">mut </span>remaining = Vec::with_capacity(recipients.len());
+
+		<span class="kw">for </span>recipient <span class="kw">in </span>recipients {
+			<span class="kw">let </span><span class="prelude-val">Some</span>(channel) = HrmpChannels::&lt;T&gt;::get(<span class="kw-2">&amp;</span>HrmpChannelId { sender, recipient }) <span class="kw">else </span>{
+				<span class="kw">continue
+			</span>};
+			remaining.push((
+				recipient,
+				(
+					channel.max_capacity - channel.msg_count,
+					channel.max_total_size - channel.total_size,
+				),
+			));
+		}
+
+		remaining
 	}
 
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prune_hrmp(recipient: ParaId, new_hrmp_watermark: BlockNumberFor&lt;T&gt;) -&gt; Weight {
@@ -2697,12 +2755,12 @@
 			HrmpChannels::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>channel_id, channel);
 			HrmpChannelContents::&lt;T&gt;::append(<span class="kw-2">&amp;</span>channel_id, inbound);
 
-			<span class="comment">// The digests are sorted in ascending by block number order. Assuming absence of
-			// contextual execution, there are only two possible scenarios here:
+			<span class="comment">// The digests are sorted in ascending by block number order. There are only two
+			// possible scenarios here (&quot;the current&quot; is the block of candidate&#39;s inclusion):
 			//
 			// (a) It&#39;s the first time anybody sends a message to this recipient within this block.
 			//     In this case, the digest vector would be empty or the block number of the latest
-			//     entry  is smaller than the current.
+			//     entry is smaller than the current.
 			//
 			// (b) Somebody has already sent a message within the current block. That means that
 			//     the block number of the latest entry is equal to the current.

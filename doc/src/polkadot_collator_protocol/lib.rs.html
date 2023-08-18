@@ -157,6 +157,25 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -191,7 +210,7 @@
 <span class="kw">use </span>sp_keystore::KeystorePtr;
 
 <span class="kw">use </span>polkadot_node_network_protocol::{
-	request_response::{v1 <span class="kw">as </span>request_v1, IncomingRequestReceiver},
+	request_response::{v1 <span class="kw">as </span>request_v1, vstaging <span class="kw">as </span>protocol_vstaging, IncomingRequestReceiver},
 	PeerId, UnifiedReputationChange <span class="kw">as </span>Rep,
 };
 <span class="kw">use </span>polkadot_primitives::CollatorPair;
@@ -235,12 +254,19 @@
 		</span>metrics: validator_side::Metrics,
 	},
 	<span class="doccomment">/// Collators operate on a parachain.
-	</span>Collator(
-		PeerId,
-		CollatorPair,
-		IncomingRequestReceiver&lt;request_v1::CollationFetchingRequest&gt;,
-		collator_side::Metrics,
-	),
+	</span>Collator {
+		<span class="doccomment">/// Local peer id.
+		</span>peer_id: PeerId,
+		<span class="doccomment">/// Parachain collator pair.
+		</span>collator_pair: CollatorPair,
+		<span class="doccomment">/// Receiver for v1 collation fetching requests.
+		</span>request_receiver_v1: IncomingRequestReceiver&lt;request_v1::CollationFetchingRequest&gt;,
+		<span class="doccomment">/// Receiver for vstaging collation fetching requests.
+		</span>request_receiver_vstaging:
+			IncomingRequestReceiver&lt;protocol_vstaging::CollationFetchingRequest&gt;,
+		<span class="doccomment">/// Metrics.
+		</span>metrics: collator_side::Metrics,
+	},
 	<span class="doccomment">/// No protocol side, just disable it.
 	</span><span class="prelude-val">None</span>,
 }
@@ -269,10 +295,22 @@
 				validator_side::run(ctx, keystore, eviction_policy, metrics)
 					.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;collator-protocol&quot;</span>, e))
 					.boxed(),
-			ProtocolSide::Collator(local_peer_id, collator_pair, req_receiver, metrics) =&gt;
-				collator_side::run(ctx, local_peer_id, collator_pair, req_receiver, metrics)
-					.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;collator-protocol&quot;</span>, e))
-					.boxed(),
+			ProtocolSide::Collator {
+				peer_id,
+				collator_pair,
+				request_receiver_v1,
+				request_receiver_vstaging,
+				metrics,
+			} =&gt; collator_side::run(
+				ctx,
+				peer_id,
+				collator_pair,
+				request_receiver_v1,
+				request_receiver_vstaging,
+				metrics,
+			)
+			.map_err(|e| SubsystemError::with_origin(<span class="string">&quot;collator-protocol&quot;</span>, e))
+			.boxed(),
 			ProtocolSide::None =&gt; <span class="kw">return </span>DummySubsystem.start(ctx),
 		};
 

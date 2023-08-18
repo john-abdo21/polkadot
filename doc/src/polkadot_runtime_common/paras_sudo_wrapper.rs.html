@@ -215,22 +215,22 @@
 
 	<span class="attr">#[pallet::error]
 	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
-		<span class="doccomment">/// The specified parachain or parathread is not registered.
+		<span class="doccomment">/// The specified parachain is not registered.
 		</span>ParaDoesntExist,
-		<span class="doccomment">/// The specified parachain or parathread is already registered.
+		<span class="doccomment">/// The specified parachain is already registered.
 		</span>ParaAlreadyExists,
 		<span class="doccomment">/// A DMP message couldn&#39;t be sent because it exceeds the maximum size allowed for a
 		/// downward message.
 		</span>ExceedsMaxMessageSize,
 		<span class="doccomment">/// Could not schedule para cleanup.
 		</span>CouldntCleanup,
-		<span class="doccomment">/// Not a parathread.
+		<span class="doccomment">/// Not a parathread (on-demand parachain).
 		</span>NotParathread,
-		<span class="doccomment">/// Not a parachain.
+		<span class="doccomment">/// Not a lease holding parachain.
 		</span>NotParachain,
-		<span class="doccomment">/// Cannot upgrade parathread.
+		<span class="doccomment">/// Cannot upgrade on-demand parachain to lease holding parachain.
 		</span>CannotUpgrade,
-		<span class="doccomment">/// Cannot downgrade parachain.
+		<span class="doccomment">/// Cannot downgrade lease holding parachain to on-demand.
 		</span>CannotDowngrade,
 	}
 
@@ -263,7 +263,7 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Upgrade a parathread to a parachain
+		<span class="doccomment">/// Upgrade a parathread (on-demand parachain) to a lease holding parachain
 		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
 		#[pallet::weight((<span class="number">1_000</span>, DispatchClass::Operational))]
 		</span><span class="kw">pub fn </span>sudo_schedule_parathread_upgrade(
@@ -271,7 +271,7 @@
 			id: ParaId,
 		) -&gt; DispatchResult {
 			ensure_root(origin)<span class="question-mark">?</span>;
-			<span class="comment">// Para backend should think this is a parathread...
+			<span class="comment">// Para backend should think this is a parathread (on-demand parachain)...
 			</span><span class="macro">ensure!</span>(
 				paras::Pallet::&lt;T&gt;::lifecycle(id) == <span class="prelude-val">Some</span>(ParaLifecycle::Parathread),
 				Error::&lt;T&gt;::NotParathread,
@@ -281,7 +281,7 @@
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Downgrade a parachain to a parathread
+		<span class="doccomment">/// Downgrade a lease holding parachain to an on-demand parachain
 		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
 		#[pallet::weight((<span class="number">1_000</span>, DispatchClass::Operational))]
 		</span><span class="kw">pub fn </span>sudo_schedule_parachain_downgrade(

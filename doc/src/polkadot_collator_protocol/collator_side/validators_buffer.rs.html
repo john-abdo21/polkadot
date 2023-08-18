@@ -315,6 +315,38 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -348,13 +380,19 @@
 
 </span><span class="kw">use </span>std::{
 	collections::{HashMap, VecDeque},
+	future::Future,
 	num::NonZeroUsize,
 	ops::Range,
+	pin::Pin,
+	task::{Context, Poll},
+	time::Duration,
 };
 
 <span class="kw">use </span>bitvec::{bitvec, vec::BitVec};
+<span class="kw">use </span>futures::FutureExt;
 
-<span class="kw">use </span>polkadot_primitives::{AuthorityDiscoveryId, GroupIndex, Hash, SessionIndex};
+<span class="kw">use </span>polkadot_node_network_protocol::PeerId;
+<span class="kw">use </span>polkadot_primitives::{AuthorityDiscoveryId, CandidateHash, GroupIndex, SessionIndex};
 
 <span class="doccomment">/// The ring buffer stores at most this many unique validator groups.
 ///
@@ -383,9 +421,9 @@
 	</span>group_infos: VecDeque&lt;ValidatorsGroupInfo&gt;,
 	<span class="doccomment">/// Continuous buffer of validators discovery keys.
 	</span>validators: VecDeque&lt;AuthorityDiscoveryId&gt;,
-	<span class="doccomment">/// Mapping from relay-parent to bit-vectors with bits for all `validators`.
+	<span class="doccomment">/// Mapping from candidate hashes to bit-vectors with bits for all `validators`.
 	/// Invariants kept: All bit-vectors are guaranteed to have the same size.
-	</span>should_be_connected: HashMap&lt;Hash, BitVec&gt;,
+	</span>should_be_connected: HashMap&lt;CandidateHash, BitVec&gt;,
 	<span class="doccomment">/// Buffer capacity, limits the number of **groups** tracked.
 	</span>cap: NonZeroUsize,
 }
@@ -424,7 +462,7 @@
 	/// of the buffer.
 	</span><span class="kw">pub fn </span>note_collation_advertised(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		relay_parent: Hash,
+		candidate_hash: CandidateHash,
 		session_index: SessionIndex,
 		group_index: GroupIndex,
 		validators: <span class="kw-2">&amp;</span>[AuthorityDiscoveryId],
@@ -438,19 +476,19 @@
 		}) {
 			<span class="prelude-val">Some</span>((idx, group)) =&gt; {
 				<span class="kw">let </span>group_start_idx = <span class="self">self</span>.group_lengths_iter().take(idx).sum();
-				<span class="self">self</span>.set_bits(relay_parent, group_start_idx..(group_start_idx + group.len));
+				<span class="self">self</span>.set_bits(candidate_hash, group_start_idx..(group_start_idx + group.len));
 			},
-			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.push(relay_parent, session_index, group_index, validators),
+			<span class="prelude-val">None </span>=&gt; <span class="self">self</span>.push(candidate_hash, session_index, group_index, validators),
 		}
 	}
 
 	<span class="doccomment">/// Note that a validator is no longer interested in a given relay parent.
 	</span><span class="kw">pub fn </span>reset_validator_interest(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		relay_parent: Hash,
+		candidate_hash: CandidateHash,
 		authority_id: <span class="kw-2">&amp;</span>AuthorityDiscoveryId,
 	) {
-		<span class="kw">let </span>bits = <span class="kw">match </span><span class="self">self</span>.should_be_connected.get_mut(<span class="kw-2">&amp;</span>relay_parent) {
+		<span class="kw">let </span>bits = <span class="kw">match </span><span class="self">self</span>.should_be_connected.get_mut(<span class="kw-2">&amp;</span>candidate_hash) {
 			<span class="prelude-val">Some</span>(bits) =&gt; bits,
 			<span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
 		};
@@ -462,17 +500,12 @@
 		}
 	}
 
-	<span class="doccomment">/// Remove relay parent from the buffer.
+	<span class="doccomment">/// Remove advertised candidate from the buffer.
 	///
 	/// The buffer will no longer track which validators are interested in a corresponding
 	/// advertisement.
-	</span><span class="kw">pub fn </span>remove_relay_parent(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: <span class="kw-2">&amp;</span>Hash) {
-		<span class="self">self</span>.should_be_connected.remove(relay_parent);
-	}
-
-	<span class="doccomment">/// Removes all advertisements from the buffer.
-	</span><span class="kw">pub fn </span>clear_advertisements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-		<span class="self">self</span>.should_be_connected.clear();
+	</span><span class="kw">pub fn </span>remove_candidate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, candidate_hash: <span class="kw-2">&amp;</span>CandidateHash) {
+		<span class="self">self</span>.should_be_connected.remove(candidate_hash);
 	}
 
 	<span class="doccomment">/// Pushes a new group to the buffer along with advertisement, setting all validators
@@ -481,7 +514,7 @@
 	/// If the buffer is full, drops group from the tail.
 	</span><span class="kw">fn </span>push(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
-		relay_parent: Hash,
+		candidate_hash: CandidateHash,
 		session_index: SessionIndex,
 		group_index: GroupIndex,
 		validators: <span class="kw-2">&amp;</span>[AuthorityDiscoveryId],
@@ -510,17 +543,17 @@
 		<span class="self">self</span>.should_be_connected
 			.values_mut()
 			.for_each(|bits| bits.resize(new_len, <span class="bool-val">false</span>));
-		<span class="self">self</span>.set_bits(relay_parent, group_start_idx..(group_start_idx + validators.len()));
+		<span class="self">self</span>.set_bits(candidate_hash, group_start_idx..(group_start_idx + validators.len()));
 	}
 
 	<span class="doccomment">/// Sets advertisement bits to 1 in a given range (usually corresponding to some group).
 	/// If the relay parent is unknown, inserts 0-initialized bitvec first.
 	///
 	/// The range must be ensured to be within bounds.
-	</span><span class="kw">fn </span>set_bits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, relay_parent: Hash, range: Range&lt;usize&gt;) {
+	</span><span class="kw">fn </span>set_bits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, candidate_hash: CandidateHash, range: Range&lt;usize&gt;) {
 		<span class="kw">let </span>bits = <span class="self">self
 			</span>.should_be_connected
-			.entry(relay_parent)
+			.entry(candidate_hash)
 			.or_insert_with(|| <span class="macro">bitvec!</span>[<span class="number">0</span>; <span class="self">self</span>.validators.len()]);
 
 		bits[range].fill(<span class="bool-val">true</span>);
@@ -534,9 +567,40 @@
 	}
 }
 
+<span class="doccomment">/// A timeout for resetting validators&#39; interests in collations.
+</span><span class="kw">pub const </span>RESET_INTEREST_TIMEOUT: Duration = Duration::from_secs(<span class="number">6</span>);
+
+<span class="doccomment">/// A future that returns a candidate hash along with validator discovery
+/// keys once a timeout hit.
+///
+/// If a validator doesn&#39;t manage to fetch a collation within this timeout
+/// we should reset its interest in this advertisement in a buffer. For example,
+/// when the PoV was already requested from another peer.
+</span><span class="kw">pub struct </span>ResetInterestTimeout {
+	fut: futures_timer::Delay,
+	candidate_hash: CandidateHash,
+	peer_id: PeerId,
+}
+
+<span class="kw">impl </span>ResetInterestTimeout {
+	<span class="doccomment">/// Returns new `ResetInterestTimeout` that resolves after given timeout.
+	</span><span class="kw">pub fn </span>new(candidate_hash: CandidateHash, peer_id: PeerId, delay: Duration) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ fut: futures_timer::Delay::new(delay), candidate_hash, peer_id }
+	}
+}
+
+<span class="kw">impl </span>Future <span class="kw">for </span>ResetInterestTimeout {
+	<span class="kw">type </span>Output = (CandidateHash, PeerId);
+
+	<span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+		<span class="self">self</span>.fut.poll_unpin(cx).map(|<span class="kw">_</span>| (<span class="self">self</span>.candidate_hash, <span class="self">self</span>.peer_id))
+	}
+}
+
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>polkadot_primitives::Hash;
 	<span class="kw">use </span>sp_keyring::Sr25519Keyring;
 
 	<span class="attr">#[test]
@@ -544,8 +608,8 @@
 		<span class="kw">let </span>cap = NonZeroUsize::new(<span class="number">1</span>).unwrap();
 		<span class="kw">let </span><span class="kw-2">mut </span>buf = ValidatorGroupsBuffer::with_capacity(cap);
 
-		<span class="kw">let </span>hash_a = Hash::repeat_byte(<span class="number">0x1</span>);
-		<span class="kw">let </span>hash_b = Hash::repeat_byte(<span class="number">0x2</span>);
+		<span class="kw">let </span>hash_a = CandidateHash(Hash::repeat_byte(<span class="number">0x1</span>));
+		<span class="kw">let </span>hash_b = CandidateHash(Hash::repeat_byte(<span class="number">0x2</span>));
 
 		<span class="kw">let </span>validators: Vec&lt;<span class="kw">_</span>&gt; = [
 			Sr25519Keyring::Alice,
@@ -580,7 +644,7 @@
 		<span class="kw">let </span>cap = NonZeroUsize::new(<span class="number">3</span>).unwrap();
 		<span class="kw">let </span><span class="kw-2">mut </span>buf = ValidatorGroupsBuffer::with_capacity(cap);
 
-		<span class="kw">let </span>hashes: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..<span class="number">5</span>).map(Hash::repeat_byte).collect();
+		<span class="kw">let </span>hashes: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..<span class="number">5</span>).map(|i| CandidateHash(Hash::repeat_byte(i))).collect();
 
 		<span class="kw">let </span>validators: Vec&lt;<span class="kw">_</span>&gt; = [
 			Sr25519Keyring::Alice,

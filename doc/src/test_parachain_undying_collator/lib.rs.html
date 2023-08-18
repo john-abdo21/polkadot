@@ -420,6 +420,13 @@
 <a href="#420" id="420">420</a>
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -455,7 +462,9 @@
 	},
 	time::Duration,
 };
-<span class="kw">use </span>test_parachain_undying::{execute, hash_state, BlockData, GraveyardState, HeadData};
+<span class="kw">use </span>test_parachain_undying::{
+	execute, hash_state, BlockData, GraveyardState, HeadData, StateMismatch,
+};
 
 <span class="doccomment">/// Default PoV size which also drives state size.
 </span><span class="kw">const </span>DEFAULT_POV_SIZE: usize = <span class="number">1000</span>;
@@ -467,7 +476,7 @@
 	number: u64,
 	graveyard_size: usize,
 	pvf_complexity: u32,
-) -&gt; (HeadData, GraveyardState) {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(HeadData, GraveyardState), StateMismatch&gt; {
 	<span class="kw">let </span>index = <span class="number">0u64</span>;
 	<span class="kw">let </span><span class="kw-2">mut </span>graveyard = <span class="macro">vec!</span>[<span class="number">0u8</span>; graveyard_size * graveyard_size];
 	<span class="kw">let </span>zombies = <span class="number">0</span>;
@@ -484,13 +493,12 @@
 
 	<span class="kw">while </span>head.number &lt; number {
 		<span class="kw">let </span>block = BlockData { state, tombstones: <span class="number">1_000</span>, iterations: pvf_complexity };
-		<span class="kw">let </span>(new_head, new_state) =
-			execute(head.hash(), head.clone(), block).expect(<span class="string">&quot;Produces valid block&quot;</span>);
+		<span class="kw">let </span>(new_head, new_state) = execute(head.hash(), head.clone(), block)<span class="question-mark">?</span>;
 		head = new_head;
 		state = new_state;
 	}
 
-	(head, state)
+	<span class="prelude-val">Ok</span>((head, state))
 }
 
 <span class="doccomment">/// The state of the undying parachain.
@@ -544,39 +552,35 @@
 	<span class="doccomment">/// Advance the state and produce a new block based on the given `parent_head`.
 	///
 	/// Returns the new [`BlockData`] and the new [`HeadData`].
-	</span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parent_head: HeadData) -&gt; (BlockData, HeadData) {
+	</span><span class="kw">fn </span>advance(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parent_head: HeadData) -&gt; <span class="prelude-ty">Result</span>&lt;(BlockData, HeadData), StateMismatch&gt; {
 		<span class="self">self</span>.best_block = parent_head.number;
 
-		<span class="kw">let </span>state = <span class="kw">if let </span><span class="prelude-val">Some</span>(head_data) = <span class="self">self</span>.number_to_head.get(<span class="kw-2">&amp;</span><span class="self">self</span>.best_block) {
-			<span class="self">self</span>.head_to_state.get(head_data).cloned().unwrap_or_else(|| {
-				calculate_head_and_state_for_number(
-					parent_head.number,
-					<span class="self">self</span>.graveyard_size,
-					<span class="self">self</span>.pvf_complexity,
-				)
-				.<span class="number">1
-			</span>})
+		<span class="kw">let </span>state = <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self
+			</span>.number_to_head
+			.get(<span class="kw-2">&amp;</span><span class="self">self</span>.best_block)
+			.and_then(|head_data| <span class="self">self</span>.head_to_state.get(head_data).cloned())
+		{
+			state
 		} <span class="kw">else </span>{
 			<span class="kw">let </span>(<span class="kw">_</span>, state) = calculate_head_and_state_for_number(
 				parent_head.number,
 				<span class="self">self</span>.graveyard_size,
 				<span class="self">self</span>.pvf_complexity,
-			);
+			)<span class="question-mark">?</span>;
 			state
 		};
 
 		<span class="comment">// Start with prev state and transaction to execute (place 1000 tombstones).
 		</span><span class="kw">let </span>block = BlockData { state, tombstones: <span class="number">1000</span>, iterations: <span class="self">self</span>.pvf_complexity };
 
-		<span class="kw">let </span>(new_head, new_state) =
-			execute(parent_head.hash(), parent_head, block.clone()).expect(<span class="string">&quot;Produces valid block&quot;</span>);
+		<span class="kw">let </span>(new_head, new_state) = execute(parent_head.hash(), parent_head, block.clone())<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>new_head_arc = Arc::new(new_head.clone());
 
 		<span class="self">self</span>.head_to_state.insert(new_head_arc.clone(), new_state);
 		<span class="self">self</span>.number_to_head.insert(new_head.number, new_head_arc);
 
-		(block, new_head)
+		<span class="prelude-val">Ok</span>((block, new_head))
 	}
 }
 
@@ -655,10 +659,21 @@
 		<span class="kw">let </span>seconded_collations = <span class="self">self</span>.seconded_collations.clone();
 
 		Box::new(<span class="kw">move </span>|relay_parent, validation_data| {
-			<span class="kw">let </span>parent = HeadData::decode(<span class="kw-2">&amp;mut &amp;</span>validation_data.parent_head.<span class="number">0</span>[..])
-				.expect(<span class="string">&quot;Decodes parent head&quot;</span>);
+			<span class="kw">let </span>parent = <span class="kw">match </span>HeadData::decode(<span class="kw-2">&amp;mut &amp;</span>validation_data.parent_head.<span class="number">0</span>[..]) {
+				<span class="prelude-val">Err</span>(err) =&gt; {
+					<span class="macro">log::error!</span>(<span class="string">&quot;Requested to build on top of malformed head-data: {:?}&quot;</span>, err);
+					<span class="kw">return </span>futures::future::ready(<span class="prelude-val">None</span>).boxed()
+				},
+				<span class="prelude-val">Ok</span>(p) =&gt; p,
+			};
 
-			<span class="kw">let </span>(block_data, head_data) = state.lock().unwrap().advance(parent);
+			<span class="kw">let </span>(block_data, head_data) = <span class="kw">match </span>state.lock().unwrap().advance(parent.clone()) {
+				<span class="prelude-val">Err</span>(err) =&gt; {
+					<span class="macro">log::error!</span>(<span class="string">&quot;Unable to build on top of {:?}: {:?}&quot;</span>, parent, err);
+					<span class="kw">return </span>futures::future::ready(<span class="prelude-val">None</span>).boxed()
+				},
+				<span class="prelude-val">Ok</span>(x) =&gt; x,
+			};
 
 			<span class="macro">log::info!</span>(
 				<span class="string">&quot;created a new collation on relay-parent({}): {:?}&quot;</span>,
@@ -702,7 +717,6 @@
 								<span class="string">&quot;Seconded statement should match our collation: {:?}&quot;</span>,
 								res.statement.payload()
 							);
-							std::process::exit(-<span class="number">1</span>);
 						}
 
 						seconded_collations.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
@@ -816,10 +830,10 @@
 		<span class="kw">let </span>collator = Collator::new(<span class="number">1_000</span>, <span class="number">1</span>);
 		<span class="kw">let </span>graveyard_size = collator.state.lock().unwrap().graveyard_size;
 
-		<span class="kw">let </span><span class="kw-2">mut </span>head = calculate_head_and_state_for_number(<span class="number">10</span>, graveyard_size, <span class="number">1</span>).<span class="number">0</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>head = calculate_head_and_state_for_number(<span class="number">10</span>, graveyard_size, <span class="number">1</span>).unwrap().<span class="number">0</span>;
 
 		<span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..<span class="number">10 </span>{
-			head = collator.state.lock().unwrap().advance(head).<span class="number">1</span>;
+			head = collator.state.lock().unwrap().advance(head).unwrap().<span class="number">1</span>;
 			<span class="macro">assert_eq!</span>(<span class="number">10 </span>+ i, head.number);
 		}
 
@@ -836,7 +850,7 @@
 			.clone();
 
 		<span class="kw">for _ in </span><span class="number">1</span>..<span class="number">20 </span>{
-			second_head = collator.state.lock().unwrap().advance(second_head.clone()).<span class="number">1</span>;
+			second_head = collator.state.lock().unwrap().advance(second_head.clone()).unwrap().<span class="number">1</span>;
 		}
 
 		<span class="macro">assert_eq!</span>(second_head, head);

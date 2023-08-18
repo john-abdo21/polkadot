@@ -61,6 +61,76 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -80,10 +150,12 @@
 
 </span><span class="doccomment">//! Error handling related code and Error/Result definitions.
 
-</span><span class="kw">use </span>polkadot_node_network_protocol::request_response::incoming;
+</span><span class="kw">use </span>futures::channel::oneshot;
+
+<span class="kw">use </span>polkadot_node_network_protocol::request_response::incoming;
 <span class="kw">use </span>polkadot_node_primitives::UncheckedSignedFullStatement;
-<span class="kw">use </span>polkadot_node_subsystem::errors::SubsystemError;
-<span class="kw">use </span>polkadot_node_subsystem_util::runtime;
+<span class="kw">use </span>polkadot_node_subsystem::{errors::SubsystemError, RuntimeApiError};
+<span class="kw">use </span>polkadot_node_subsystem_util::{backing_implicit_view, runtime};
 
 <span class="kw">use </span><span class="kw">crate</span>::LOG_TARGET;
 
@@ -107,8 +179,76 @@
 	#[error(<span class="string">&quot;Error while accessing runtime information&quot;</span>)]
 	</span>Runtime(<span class="attr">#[from] </span>runtime::Error),
 
+	<span class="attr">#[error(<span class="string">&quot;Error while accessing Runtime API&quot;</span>)]
+	</span>RuntimeApi(<span class="attr">#[from] </span>RuntimeApiError),
+
+	<span class="attr">#[error(transparent)]
+	</span>ImplicitViewFetchError(backing_implicit_view::FetchError),
+
+	<span class="attr">#[error(<span class="string">&quot;Response receiver for active validators request cancelled&quot;</span>)]
+	</span>CancelledActiveValidators(oneshot::Canceled),
+
+	<span class="attr">#[error(<span class="string">&quot;Response receiver for validator groups request cancelled&quot;</span>)]
+	</span>CancelledValidatorGroups(oneshot::Canceled),
+
+	<span class="attr">#[error(<span class="string">&quot;Response receiver for availability cores request cancelled&quot;</span>)]
+	</span>CancelledAvailabilityCores(oneshot::Canceled),
+
 	<span class="attr">#[error(<span class="string">&quot;CollationSeconded contained statement with invalid signature&quot;</span>)]
 	</span>InvalidStatementSignature(UncheckedSignedFullStatement),
+}
+
+<span class="doccomment">/// An error happened on the validator side of the protocol when attempting
+/// to start seconding a candidate.
+</span><span class="attr">#[derive(Debug, thiserror::Error)]
+</span><span class="kw">pub enum </span>SecondingError {
+	<span class="attr">#[error(<span class="string">&quot;Error while accessing Runtime API&quot;</span>)]
+	</span>RuntimeApi(<span class="attr">#[from] </span>RuntimeApiError),
+
+	<span class="attr">#[error(<span class="string">&quot;Response receiver for persisted validation data request cancelled&quot;</span>)]
+	</span>CancelledRuntimePersistedValidationData(oneshot::Canceled),
+
+	<span class="attr">#[error(<span class="string">&quot;Response receiver for prospective validation data request cancelled&quot;</span>)]
+	</span>CancelledProspectiveValidationData(oneshot::Canceled),
+
+	<span class="attr">#[error(<span class="string">&quot;Persisted validation data is not available&quot;</span>)]
+	</span>PersistedValidationDataNotFound,
+
+	<span class="attr">#[error(<span class="string">&quot;Persisted validation data hash doesn&#39;t match one in the candidate receipt.&quot;</span>)]
+	</span>PersistedValidationDataMismatch,
+
+	<span class="attr">#[error(<span class="string">&quot;Candidate hash doesn&#39;t match the advertisement&quot;</span>)]
+	</span>CandidateHashMismatch,
+
+	<span class="attr">#[error(<span class="string">&quot;Received duplicate collation from the peer&quot;</span>)]
+	</span>Duplicate,
+}
+
+<span class="kw">impl </span>SecondingError {
+	<span class="doccomment">/// Returns true if an error indicates that a peer is malicious.
+	</span><span class="kw">pub fn </span>is_malicious(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="kw">use </span>SecondingError::<span class="kw-2">*</span>;
+		<span class="macro">matches!</span>(<span class="self">self</span>, PersistedValidationDataMismatch | CandidateHashMismatch | Duplicate)
+	}
+}
+
+<span class="doccomment">/// A validator failed to request a collation due to an error.
+</span><span class="attr">#[derive(Debug, thiserror::Error)]
+</span><span class="kw">pub enum </span>FetchError {
+	<span class="attr">#[error(<span class="string">&quot;Collation was not previously advertised&quot;</span>)]
+	</span>NotAdvertised,
+
+	<span class="attr">#[error(<span class="string">&quot;Peer is unknown&quot;</span>)]
+	</span>UnknownPeer,
+
+	<span class="attr">#[error(<span class="string">&quot;Collation was already requested&quot;</span>)]
+	</span>AlreadyRequested,
+
+	<span class="attr">#[error(<span class="string">&quot;Relay parent went out of view&quot;</span>)]
+	</span>RelayParentOutOfView,
+
+	<span class="attr">#[error(<span class="string">&quot;Peer&#39;s protocol doesn&#39;t match the advertisement&quot;</span>)]
+	</span>ProtocolMismatch,
 }
 
 <span class="doccomment">/// Utility for eating top level errors and log them.

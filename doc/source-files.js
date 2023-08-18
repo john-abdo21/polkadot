@@ -12,7 +12,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_availability_distribution":["",[["pov_requester",[],["mod.rs"]],["requester",[["fetch_task",[],["mod.rs"]]],["mod.rs","session_cache.rs"]]],["error.rs","lib.rs","metrics.rs","responder.rs"]],\
 "polkadot_availability_recovery":["",[],["error.rs","futures_undead.rs","lib.rs","metrics.rs"]],\
 "polkadot_cli":["",[],["cli.rs","command.rs","error.rs","lib.rs"]],\
-"polkadot_collator_protocol":["",[["collator_side",[],["metrics.rs","mod.rs","validators_buffer.rs"]],["validator_side",[],["mod.rs"]]],["error.rs","lib.rs"]],\
+"polkadot_collator_protocol":["",[["collator_side",[],["collation.rs","metrics.rs","mod.rs","validators_buffer.rs"]],["validator_side",[],["collation.rs","metrics.rs","mod.rs"]]],["error.rs","lib.rs"]],\
 "polkadot_core_primitives":["",[],["lib.rs"]],\
 "polkadot_dispute_distribution":["",[["receiver",[["batches",[],["batch.rs","mod.rs","waiting_queue.rs"]]],["error.rs","mod.rs","peer_queues.rs"]],["sender",[],["error.rs","mod.rs","send_task.rs"]]],["error.rs","lib.rs","metrics.rs"]],\
 "polkadot_erasure_coding":["",[],["lib.rs"]],\
@@ -29,6 +29,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_node_core_chain_selection":["",[["db_backend",[],["mod.rs","v1.rs"]]],["backend.rs","lib.rs","tree.rs"]],\
 "polkadot_node_core_dispute_coordinator":["",[["db",[],["mod.rs","v1.rs"]],["participation",[["queues",[],["mod.rs"]]],["mod.rs"]],["scraping",[],["candidates.rs","mod.rs"]]],["backend.rs","error.rs","import.rs","initialized.rs","lib.rs","metrics.rs","spam_slots.rs","status.rs"]],\
 "polkadot_node_core_parachains_inherent":["",[],["lib.rs"]],\
+"polkadot_node_core_prospective_parachains":["",[],["error.rs","fragment_tree.rs","lib.rs","metrics.rs"]],\
 "polkadot_node_core_provisioner":["",[["disputes",[["prioritized_selection",[],["mod.rs"]]],["mod.rs"]]],["error.rs","lib.rs","metrics.rs"]],\
 "polkadot_node_core_pvf":["",[["execute",[],["mod.rs","queue.rs","worker_intf.rs"]],["prepare",[],["mod.rs","pool.rs","queue.rs","worker_intf.rs"]]],["artifacts.rs","error.rs","host.rs","lib.rs","metrics.rs","priority.rs","worker_intf.rs"]],\
 "polkadot_node_core_pvf_checker":["",[],["interest_view.rs","lib.rs","metrics.rs","runtime_api.rs"]],\
@@ -38,12 +39,12 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_node_core_runtime_api":["",[],["cache.rs","lib.rs","metrics.rs"]],\
 "polkadot_node_jaeger":["",[],["config.rs","errors.rs","lib.rs","spans.rs"]],\
 "polkadot_node_metrics":["",[],["lib.rs","metronome.rs"]],\
-"polkadot_node_network_protocol":["",[["request_response",[["incoming",[],["error.rs","mod.rs"]]],["mod.rs","outgoing.rs","v1.rs"]]],["authority_discovery.rs","grid_topology.rs","lib.rs","peer_set.rs","reputation.rs"]],\
+"polkadot_node_network_protocol":["",[["request_response",[["incoming",[],["error.rs","mod.rs"]]],["mod.rs","outgoing.rs","v1.rs","vstaging.rs"]]],["authority_discovery.rs","grid_topology.rs","lib.rs","peer_set.rs","reputation.rs"]],\
 "polkadot_node_primitives":["",[["disputes",[],["message.rs","mod.rs","status.rs"]]],["approval.rs","lib.rs"]],\
 "polkadot_node_subsystem":["",[],["lib.rs"]],\
 "polkadot_node_subsystem_test_helpers":["",[],["lib.rs","mock.rs"]],\
 "polkadot_node_subsystem_types":["",[["messages",[],["network_bridge_event.rs"]]],["errors.rs","lib.rs","messages.rs","runtime_client.rs"]],\
-"polkadot_node_subsystem_util":["",[["runtime",[],["error.rs","mod.rs"]]],["database.rs","determine_new_blocks.rs","lib.rs","nesting_sender.rs","reputation.rs"]],\
+"polkadot_node_subsystem_util":["",[["inclusion_emulator",[],["mod.rs","staging.rs"]],["runtime",[],["error.rs","mod.rs"]]],["backing_implicit_view.rs","database.rs","determine_new_blocks.rs","lib.rs","nesting_sender.rs","reputation.rs"]],\
 "polkadot_overseer":["",[],["dummy.rs","lib.rs","memory_stats.rs","metrics.rs"]],\
 "polkadot_parachain":["",[],["lib.rs","primitives.rs"]],\
 "polkadot_performance_test":["",[],["constants.rs","lib.rs"]],\
@@ -57,7 +58,7 @@ var sourcesIndex = JSON.parse('{\
 "polkadot_runtime_metrics":["",[],["lib.rs","without_runtime_metrics.rs"]],\
 "polkadot_runtime_parachains":["",[["assigner_on_demand",[],["mod.rs"]],["configuration",[["migration",[],["v6.rs","v7.rs","v8.rs"]]],["migration.rs"]],["disputes",[],["migration.rs","slashing.rs"]],["inclusion",[],["mod.rs"]],["paras",[],["mod.rs"]],["paras_inherent",[],["misc.rs","mod.rs","weights.rs"]],["runtime_api_impl",[],["mod.rs","v5.rs","vstaging.rs"]],["scheduler",[],["common.rs","migration.rs"]],["session_info",[],["migration.rs"]]],["assigner.rs","assigner_parachains.rs","configuration.rs","disputes.rs","dmp.rs","hrmp.rs","initializer.rs","lib.rs","metrics.rs","origin.rs","reward_points.rs","scheduler.rs","session_info.rs","shared.rs","util.rs"]],\
 "polkadot_service":["",[["parachains_db",[],["mod.rs","upgrade.rs"]]],["benchmarking.rs","chain_spec.rs","fake_runtime_api.rs","grandpa_support.rs","lib.rs","overseer.rs","relay_chain_selection.rs","workers.rs"]],\
-"polkadot_statement_distribution":["",[],["error.rs","lib.rs","metrics.rs","requester.rs","responder.rs"]],\
+"polkadot_statement_distribution":["",[["legacy_v1",[],["mod.rs","requester.rs","responder.rs"]],["vstaging",[],["candidates.rs","cluster.rs","grid.rs","groups.rs","mod.rs","requests.rs","statement_store.rs"]]],["error.rs","lib.rs","metrics.rs"]],\
 "polkadot_statement_table":["",[],["generic.rs","lib.rs"]],\
 "polkadot_test_client":["",[],["block_builder.rs","lib.rs"]],\
 "polkadot_test_runtime":["",[],["lib.rs","xcm_config.rs"]],\

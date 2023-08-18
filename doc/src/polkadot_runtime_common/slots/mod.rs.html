@@ -1165,6 +1165,7 @@
 <a href="#1165" id="1165">1165</a>
 <a href="#1166" id="1166">1166</a>
 <a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1412,7 +1413,7 @@
 			</span><span class="kw">if </span>lease_periods.len() == <span class="number">1 </span>{
 				<span class="comment">// Just one entry, which corresponds to the now-ended lease period.
 				//
-				// `para` is now just a parathread.
+				// `para` is now just an on-demand parachain.
 				//
 				// Unreserve whatever is left.
 				</span><span class="kw">if let </span><span class="prelude-val">Some</span>((who, value)) = <span class="kw-2">&amp;</span>lease_periods[<span class="number">0</span>] {
@@ -2112,7 +2113,7 @@
 				Error::&lt;Test&gt;::ParaNotOnboarding
 			);
 
-			<span class="comment">// Trying Para 2 again should fail cause they are not currently a parathread
+			<span class="comment">// Trying Para 2 again should fail cause they are not currently an on-demand parachain
 			</span><span class="macro">assert!</span>(Slots::trigger_onboard(RuntimeOrigin::signed(<span class="number">1</span>), <span class="number">2</span>.into()).is_err());
 
 			<span class="macro">assert_eq!</span>(TestRegistrar::&lt;Test&gt;::operations(), <span class="macro">vec!</span>[(<span class="number">2</span>.into(), <span class="number">1</span>, <span class="bool-val">true</span>),]);
@@ -2171,7 +2172,8 @@
 		<span class="macro">assert_eq!</span>(event, <span class="kw-2">&amp;</span>system_event);
 	}
 
-	<span class="kw">fn </span>register_a_parathread&lt;T: Config + paras::Config&gt;(i: u32) -&gt; (ParaId, T::AccountId) {
+	<span class="comment">// Registers a parathread (on-demand parachain)
+	</span><span class="kw">fn </span>register_a_parathread&lt;T: Config + paras::Config&gt;(i: u32) -&gt; (ParaId, T::AccountId) {
 		<span class="kw">let </span>para = ParaId::from(i);
 		<span class="kw">let </span>leaser: T::AccountId = account(<span class="string">&quot;leaser&quot;</span>, i, <span class="number">0</span>);
 		T::Currency::make_free_balance_be(<span class="kw-2">&amp;</span>leaser, BalanceOf::&lt;T&gt;::max_value());
@@ -2219,7 +2221,7 @@
 			}.into());
 		}
 
-		<span class="comment">// Worst case scenario, T parathreads onboard, and C parachains offboard.
+		<span class="comment">// Worst case scenario, T on-demand parachains onboard, and C lease holding parachains offboard.
 		</span>manage_lease_period_start {
 			<span class="comment">// Assume reasonable maximum of 100 paras at any time
 			</span><span class="kw">let </span>c <span class="kw">in </span><span class="number">0 </span>.. <span class="number">100</span>;
@@ -2231,14 +2233,14 @@
 			<span class="comment">// If there is an offset, we need to be on that block to be able to do lease things.
 			</span>frame_system::Pallet::&lt;T&gt;::set_block_number(T::LeaseOffset::get() + One::one());
 
-			<span class="comment">// Make T parathreads
+			<span class="comment">// Make T parathreads (on-demand parachains)
 			</span><span class="kw">let </span>paras_info = (<span class="number">0</span>..t).map(|i| {
 				register_a_parathread::&lt;T&gt;(i)
 			}).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
 			T::Registrar::execute_pending_transitions();
 
-			<span class="comment">// T parathread are upgrading to parachains
+			<span class="comment">// T on-demand parachains are upgrading to lease holding parachains
 			</span><span class="kw">for </span>(para, leaser) <span class="kw">in </span>paras_info {
 				<span class="kw">let </span>amount = T::Currency::minimum_balance();
 				<span class="kw">let </span>origin = T::ForceOrigin::try_successful_origin()
@@ -2248,7 +2250,7 @@
 
 			T::Registrar::execute_pending_transitions();
 
-			<span class="comment">// C parachains are downgrading to parathreads
+			<span class="comment">// C lease holding parachains are downgrading to on-demand parachains
 			</span><span class="kw">for </span>i <span class="kw">in </span><span class="number">200 </span>.. <span class="number">200 </span>+ c {
 				<span class="kw">let </span>(para, leaser) = register_a_parathread::&lt;T&gt;(i);
 				T::Registrar::make_parachain(para)<span class="question-mark">?</span>;

@@ -933,6 +933,20 @@
 <a href="#933" id="933">933</a>
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1016,7 +1030,8 @@
 	CandidateBackingMessage, CandidateValidationMessage, ChainApiMessage, ChainSelectionMessage,
 	CollationGenerationMessage, CollatorProtocolMessage, DisputeCoordinatorMessage,
 	DisputeDistributionMessage, GossipSupportMessage, NetworkBridgeRxMessage,
-	NetworkBridgeTxMessage, ProvisionerMessage, RuntimeApiMessage, StatementDistributionMessage,
+	NetworkBridgeTxMessage, ProspectiveParachainsMessage, ProvisionerMessage, RuntimeApiMessage,
+	StatementDistributionMessage,
 };
 
 <span class="kw">pub use </span>polkadot_node_subsystem_types::{
@@ -1401,11 +1416,13 @@
 	<span class="attr">#[subsystem(CandidateBackingMessage, sends: [
 		CandidateValidationMessage,
 		CollatorProtocolMessage,
+		ChainApiMessage,
 		AvailabilityDistributionMessage,
 		AvailabilityStoreMessage,
 		StatementDistributionMessage,
 		ProvisionerMessage,
 		RuntimeApiMessage,
+		ProspectiveParachainsMessage,
 	]</span>)]
 	candidate_backing: CandidateBacking,
 
@@ -1413,6 +1430,8 @@
 		NetworkBridgeTxMessage,
 		CandidateBackingMessage,
 		RuntimeApiMessage,
+		ProspectiveParachainsMessage,
+		ChainApiMessage,
 	]</span>)]
 	statement_distribution: StatementDistribution,
 
@@ -1451,6 +1470,7 @@
 		CandidateBackingMessage,
 		ChainApiMessage,
 		DisputeCoordinatorMessage,
+		ProspectiveParachainsMessage,
 	]</span>)]
 	provisioner: Provisioner,
 
@@ -1490,6 +1510,8 @@
 		NetworkBridgeTxMessage,
 		RuntimeApiMessage,
 		CandidateBackingMessage,
+		ChainApiMessage,
+		ProspectiveParachainsMessage,
 	]</span>)]
 	collator_protocol: CollatorProtocol,
 
@@ -1539,6 +1561,12 @@
 
 	<span class="attr">#[subsystem(blocking, ChainSelectionMessage, sends: [ChainApiMessage]</span>)]
 	chain_selection: ChainSelection,
+
+	<span class="attr">#[subsystem(ProspectiveParachainsMessage, sends: [
+		RuntimeApiMessage,
+		ChainApiMessage,
+	]</span>)]
+	prospective_parachains: ProspectiveParachains,
 
 	<span class="doccomment">/// External listeners waiting for a hash to be in the active-leave set.
 	</span><span class="kw">pub </span>activation_external_listeners: HashMap&lt;Hash, Vec&lt;oneshot::Sender&lt;SubsystemResult&lt;()&gt;&gt;&gt;&gt;,

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BitfieldDistribution"]};
+window.SIDEBAR_ITEMS = {"struct":["BitfieldDistribution","PeerData"]};

@@ -1461,6 +1461,10 @@
 <a href="#1461" id="1461">1461</a>
 <a href="#1462" id="1462">1462</a>
 <a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1680,13 +1684,15 @@
 
 	<span class="attr">#[pallet::error]
 	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
-		<span class="doccomment">/// The specified parachain or parathread is not registered.
+		<span class="doccomment">/// The specified parachain is not registered.
 		</span>ParaDoesntExist,
-		<span class="doccomment">/// Not a parathread.
+		<span class="doccomment">/// Not a parathread (on-demand parachain).
 		</span>NotParathread,
-		<span class="doccomment">/// Cannot upgrade parathread.
+		<span class="doccomment">/// Cannot upgrade on-demand parachain to lease holding
+		/// parachain.
 		</span>CannotUpgrade,
-		<span class="doccomment">/// Cannot downgrade parachain.
+		<span class="doccomment">/// Cannot downgrade lease holding parachain to
+		/// on-demand.
 		</span>CannotDowngrade,
 		<span class="doccomment">/// Permanent or Temporary slot already assigned.
 		</span>SlotAlreadyAssigned,
@@ -1892,7 +1898,7 @@
 				}
 			}
 
-			<span class="comment">// Force downgrade to parathread (if needed) before end of lease period
+			<span class="comment">// Force downgrade to on-demand parachain (if needed) before end of lease period
 			</span><span class="kw">if </span>is_parachain {
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = runtime_parachains::schedule_parachain_downgrade::&lt;T&gt;(id) {
 					<span class="comment">// Treat failed downgrade as warning .. slot lease has been cleared,
@@ -2056,7 +2062,7 @@
 		TemporarySlots::&lt;T&gt;::contains_key(id)
 	}
 
-	<span class="doccomment">/// Returns whether a para is currently a parachain.
+	<span class="doccomment">/// Returns whether a para is currently a lease holding parachain.
 	</span><span class="kw">fn </span>is_parachain(id: ParaId) -&gt; bool {
 		T::Registrar::is_parachain(id)
 	}
@@ -2452,7 +2458,8 @@
 				ParaId::from(<span class="number">1_u32</span>),
 			));
 
-			<span class="comment">// Para is a parachain for PermanentSlotLeasePeriodLength * LeasePeriod blocks
+			<span class="comment">// Para is a lease holding parachain for PermanentSlotLeasePeriodLength * LeasePeriod
+			// blocks
 			</span><span class="kw">while </span>block &lt; <span class="number">9 </span>{
 				<span class="macro">println!</span>(<span class="string">&quot;block #{}&quot;</span>, block);
 
@@ -2468,7 +2475,7 @@
 				run_to_block(block);
 			}
 
-			<span class="comment">// Para lease ended, downgraded back to parathread
+			<span class="comment">// Para lease ended, downgraded back to parathread (on-demand parachain)
 			</span><span class="macro">assert_eq!</span>(TestRegistrar::&lt;Test&gt;::is_parathread(ParaId::from(<span class="number">1_u32</span>)), <span class="bool-val">true</span>);
 			<span class="macro">assert_eq!</span>(Slots::already_leased(ParaId::from(<span class="number">1_u32</span>), <span class="number">0</span>, <span class="number">5</span>), <span class="bool-val">false</span>);
 		});
@@ -2635,7 +2642,8 @@
 			<span class="macro">assert_eq!</span>(AssignedSlots::active_temporary_slot_count(), <span class="number">1</span>);
 
 			<span class="comment">// Block 1-5
-			// Para is a parachain for TemporarySlotLeasePeriodLength * LeasePeriod blocks
+			// Para is a lease holding parachain for TemporarySlotLeasePeriodLength * LeasePeriod
+			// blocks
 			</span><span class="kw">while </span>block &lt; <span class="number">6 </span>{
 				<span class="macro">println!</span>(<span class="string">&quot;block #{}&quot;</span>, block);
 				<span class="macro">println!</span>(<span class="string">&quot;lease period #{}&quot;</span>, AssignedSlots::current_lease_period_index());
@@ -2667,7 +2675,7 @@
 			<span class="macro">println!</span>(<span class="string">&quot;lease period #{}&quot;</span>, AssignedSlots::current_lease_period_index());
 			<span class="macro">println!</span>(<span class="string">&quot;lease {:?}&quot;</span>, Slots::lease(ParaId::from(<span class="number">1_u32</span>)));
 
-			<span class="comment">// Para lease ended, downgraded back to parathread
+			<span class="comment">// Para lease ended, downgraded back to on-demand parachain
 			</span><span class="macro">assert_eq!</span>(TestRegistrar::&lt;Test&gt;::is_parathread(ParaId::from(<span class="number">1_u32</span>)), <span class="bool-val">true</span>);
 			<span class="macro">assert_eq!</span>(Slots::already_leased(ParaId::from(<span class="number">1_u32</span>), <span class="number">0</span>, <span class="number">3</span>), <span class="bool-val">false</span>);
 			<span class="macro">assert_eq!</span>(AssignedSlots::active_temporary_slot_count(), <span class="number">0</span>);

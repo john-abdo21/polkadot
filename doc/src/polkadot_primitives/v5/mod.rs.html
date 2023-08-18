@@ -1924,8 +1924,6 @@
 <a href="#1924" id="1924">1924</a>
 <a href="#1925" id="1925">1925</a>
 <a href="#1926" id="1926">1926</a>
-<a href="#1927" id="1927">1927</a>
-<a href="#1928" id="1928">1928</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -1942,7 +1940,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Polkadot.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! `V1` Primitives.
+</span><span class="doccomment">//! `V2` Primitives.
 
 </span><span class="kw">use </span>bitvec::vec::BitVec;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
@@ -2725,7 +2723,7 @@
 }
 
 <span class="doccomment">/// The unique (during session) index of a validator group.
-</span><span class="attr">#[derive(Encode, Decode, Default, Clone, Copy, Debug, PartialEq, Eq, TypeInfo)]
+</span><span class="attr">#[derive(Encode, Decode, Default, Clone, Copy, Debug, PartialEq, Eq, TypeInfo, PartialOrd, Ord)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Hash))]
 </span><span class="kw">pub struct </span>GroupIndex(<span class="kw">pub </span>u32);
 
@@ -2741,7 +2739,7 @@
 	}
 }
 
-<span class="doccomment">/// A claim on authoring the next block for a given parathread.
+<span class="doccomment">/// A claim on authoring the next block for a given parathread (on-demand parachain).
 </span><span class="attr">#[derive(Clone, Encode, Decode, TypeInfo, PartialEq, RuntimeDebug)]
 </span><span class="kw">pub struct </span>ParathreadClaim(<span class="kw">pub </span>Id, <span class="kw">pub </span><span class="prelude-ty">Option</span>&lt;CollatorId&gt;);
 
@@ -3161,10 +3159,10 @@
 <span class="doccomment">/// A consensus log item for polkadot validation. To be used with [`POLKADOT_ENGINE_ID`].
 </span><span class="attr">#[derive(Decode, Encode, Clone, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ConsensusLog {
-	<span class="doccomment">/// A parachain or parathread upgraded its code.
+	<span class="doccomment">/// A parachain upgraded its code.
 	</span><span class="attr">#[codec(index = <span class="number">1</span>)]
 	</span>ParaUpgradeCode(Id, ValidationCodeHash),
-	<span class="doccomment">/// A parachain or parathread scheduled a code upgrade.
+	<span class="doccomment">/// A parachain scheduled a code upgrade.
 	</span><span class="attr">#[codec(index = <span class="number">2</span>)]
 	</span>ParaScheduleUpgradeCode(Id, ValidationCodeHash, BlockNumber),
 	<span class="doccomment">/// Governance requests to auto-approve every candidate included up to the given block
@@ -3472,7 +3470,7 @@
 
 <span class="doccomment">/// Statements that can be made about parachain candidates. These are the
 /// actual values that are signed.
-</span><span class="attr">#[derive(Clone, PartialEq, Eq, RuntimeDebug)]
+</span><span class="attr">#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, RuntimeDebug)]
 #[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Hash))]
 </span><span class="kw">pub enum </span>CompactStatement {
 	<span class="doccomment">/// Proposal of a parachain candidate.
@@ -3486,6 +3484,13 @@
 	/// of statement.
 	</span><span class="kw">pub fn </span>signing_payload(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span>SigningContext) -&gt; Vec&lt;u8&gt; {
 		(<span class="self">self</span>, context).encode()
+	}
+
+	<span class="doccomment">/// Get the underlying candidate hash this references.
+	</span><span class="kw">pub fn </span>candidate_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CandidateHash {
+		<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+			CompactStatement::Seconded(<span class="kw-2">ref </span>h) | CompactStatement::Valid(<span class="kw-2">ref </span>h) =&gt; h,
+		}
 	}
 }
 
@@ -3532,15 +3537,6 @@
 			CompactStatementInner::Seconded(h) =&gt; CompactStatement::Seconded(h),
 			CompactStatementInner::Valid(h) =&gt; CompactStatement::Valid(h),
 		})
-	}
-}
-
-<span class="kw">impl </span>CompactStatement {
-	<span class="doccomment">/// Get the underlying candidate hash this references.
-	</span><span class="kw">pub fn </span>candidate_hash(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CandidateHash {
-		<span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-			CompactStatement::Seconded(<span class="kw-2">ref </span>h) | CompactStatement::Valid(<span class="kw-2">ref </span>h) =&gt; h,
-		}
 	}
 }
 

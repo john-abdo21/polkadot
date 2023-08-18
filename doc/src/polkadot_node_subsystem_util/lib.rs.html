@@ -428,6 +428,18 @@
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -473,11 +485,11 @@
 <span class="kw">use </span>parity_scale_codec::Encode;
 
 <span class="kw">use </span>polkadot_primitives::{
-	AuthorityDiscoveryId, CandidateEvent, CandidateHash, CommittedCandidateReceipt, CoreState,
-	EncodeAs, GroupIndex, GroupRotationInfo, Hash, Id <span class="kw">as </span>ParaId, OccupiedCoreAssumption,
-	PersistedValidationData, ScrapedOnChainVotes, SessionIndex, SessionInfo, Signed,
-	SigningContext, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
-	ValidatorSignature,
+	vstaging <span class="kw">as </span>vstaging_primitives, AuthorityDiscoveryId, CandidateEvent, CandidateHash,
+	CommittedCandidateReceipt, CoreState, EncodeAs, GroupIndex, GroupRotationInfo, Hash,
+	Id <span class="kw">as </span>ParaId, OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
+	SessionIndex, SessionInfo, Signed, SigningContext, ValidationCode, ValidationCodeHash,
+	ValidatorId, ValidatorIndex, ValidatorSignature,
 };
 <span class="kw">pub use </span>rand;
 <span class="kw">use </span>sp_application_crypto::AppCrypto;
@@ -497,11 +509,17 @@
 	<span class="kw">pub use </span>polkadot_overseer::gen::{SpawnedSubsystem, Spawner, Subsystem, SubsystemContext};
 }
 
-<span class="doccomment">/// Convenient and efficient runtime info access.
-</span><span class="kw">pub mod </span>runtime;
-
+<span class="doccomment">/// A utility for managing the implicit view of the relay-chain derived from active
+/// leaves and the minimum allowed relay-parents that parachain candidates can have
+/// and be backed in those leaves&#39; children.
+</span><span class="kw">pub mod </span>backing_implicit_view;
 <span class="doccomment">/// Database trait for subsystem.
 </span><span class="kw">pub mod </span>database;
+<span class="doccomment">/// An emulator for node-side code to predict the results of on-chain parachain inclusion
+/// and predict future constraints.
+</span><span class="kw">pub mod </span>inclusion_emulator;
+<span class="doccomment">/// Convenient and efficient runtime info access.
+</span><span class="kw">pub mod </span>runtime;
 
 <span class="doccomment">/// Nested message sending
 ///
@@ -630,6 +648,7 @@
 }
 
 <span class="macro">specialize_requests! </span>{
+	<span class="kw">fn </span>request_runtime_api_version() -&gt; u32; Version;
 	<span class="kw">fn </span>request_authorities() -&gt; Vec&lt;AuthorityDiscoveryId&gt;; Authorities;
 	<span class="kw">fn </span>request_validators() -&gt; Vec&lt;ValidatorId&gt;; Validators;
 	<span class="kw">fn </span>request_validator_groups() -&gt; (Vec&lt;Vec&lt;ValidatorIndex&gt;&gt;, GroupRotationInfo); ValidatorGroups;
@@ -649,6 +668,8 @@
 	<span class="kw">fn </span>request_unapplied_slashes() -&gt; Vec&lt;(SessionIndex, CandidateHash, slashing::PendingSlashes)&gt;; UnappliedSlashes;
 	<span class="kw">fn </span>request_key_ownership_proof(validator_id: ValidatorId) -&gt; <span class="prelude-ty">Option</span>&lt;slashing::OpaqueKeyOwnershipProof&gt;; KeyOwnershipProof;
 	<span class="kw">fn </span>request_submit_report_dispute_lost(dp: slashing::DisputeProof, okop: slashing::OpaqueKeyOwnershipProof) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt;; SubmitReportDisputeLost;
+
+	<span class="kw">fn </span>request_staging_async_backing_params() -&gt; vstaging_primitives::AsyncBackingParams; StagingAsyncBackingParams;
 }
 
 <span class="doccomment">/// Requests executor parameters from the runtime effective at given relay-parent. First obtains
@@ -700,17 +721,20 @@
 }
 
 <span class="doccomment">/// From the given set of validators, find the first key we can sign with, if any.
-</span><span class="kw">pub fn </span>signing_key(validators: <span class="kw-2">&amp;</span>[ValidatorId], keystore: <span class="kw-2">&amp;</span>KeystorePtr) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorId&gt; {
+</span><span class="kw">pub fn </span>signing_key&lt;<span class="lifetime">&#39;a</span>&gt;(
+	validators: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ValidatorId&gt;,
+	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
+) -&gt; <span class="prelude-ty">Option</span>&lt;ValidatorId&gt; {
 	signing_key_and_index(validators, keystore).map(|(k, <span class="kw">_</span>)| k)
 }
 
 <span class="doccomment">/// From the given set of validators, find the first key we can sign with, if any, and return it
 /// along with the validator index.
-</span><span class="kw">pub fn </span>signing_key_and_index(
-	validators: <span class="kw-2">&amp;</span>[ValidatorId],
+</span><span class="kw">pub fn </span>signing_key_and_index&lt;<span class="lifetime">&#39;a</span>&gt;(
+	validators: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ValidatorId&gt;,
 	keystore: <span class="kw-2">&amp;</span>KeystorePtr,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(ValidatorId, ValidatorIndex)&gt; {
-	<span class="kw">for </span>(i, v) <span class="kw">in </span>validators.iter().enumerate() {
+	<span class="kw">for </span>(i, v) <span class="kw">in </span>validators.into_iter().enumerate() {
 		<span class="kw">if </span>keystore.has_keys(<span class="kw-2">&amp;</span>[(v.to_raw_vec(), ValidatorId::ID)]) {
 			<span class="kw">return </span><span class="prelude-val">Some</span>((v.clone(), ValidatorIndex(i <span class="kw">as _</span>)))
 		}
