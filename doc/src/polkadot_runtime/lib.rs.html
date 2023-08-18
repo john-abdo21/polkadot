@@ -2587,25 +2587,6 @@
 <a href="#2587" id="2587">2587</a>
 <a href="#2588" id="2588">2588</a>
 <a href="#2589" id="2589">2589</a>
-<a href="#2590" id="2590">2590</a>
-<a href="#2591" id="2591">2591</a>
-<a href="#2592" id="2592">2592</a>
-<a href="#2593" id="2593">2593</a>
-<a href="#2594" id="2594">2594</a>
-<a href="#2595" id="2595">2595</a>
-<a href="#2596" id="2596">2596</a>
-<a href="#2597" id="2597">2597</a>
-<a href="#2598" id="2598">2598</a>
-<a href="#2599" id="2599">2599</a>
-<a href="#2600" id="2600">2600</a>
-<a href="#2601" id="2601">2601</a>
-<a href="#2602" id="2602">2602</a>
-<a href="#2603" id="2603">2603</a>
-<a href="#2604" id="2604">2604</a>
-<a href="#2605" id="2605">2605</a>
-<a href="#2606" id="2606">2606</a>
-<a href="#2607" id="2607">2607</a>
-<a href="#2608" id="2608">2608</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2655,8 +2636,8 @@
 <span class="kw">use </span>frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		ConstU32, EitherOf, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem, LockIdentifier,
-		PrivilegeCmp, ProcessMessage, ProcessMessageError, WithdrawReasons,
+		ConstU32, EitherOf, EitherOfDiverse, InstanceFilter, KeyOwnerProofSystem, PrivilegeCmp,
+		ProcessMessage, ProcessMessageError, WithdrawReasons,
 	},
 	weights::{ConstantMultiplier, WeightMeter},
 	PalletId, RuntimeDebug,
@@ -2693,7 +2674,6 @@
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, test))]
 </span><span class="kw">use </span>sp_version::NativeVersion;
 <span class="kw">use </span>sp_version::RuntimeVersion;
-<span class="kw">use </span>static_assertions::const_assert;
 <span class="kw">use </span>xcm::latest::Junction;
 
 <span class="kw">pub use </span>frame_system::Call <span class="kw">as </span>SystemCall;
@@ -2810,11 +2790,6 @@
 		<span class="kw">match </span>(left, right) {
 			<span class="comment">// Root is greater than anything.
 			</span>(OriginCaller::system(frame_system::RawOrigin::Root), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Ordering::Greater),
-			<span class="comment">// Check which one has more yes votes.
-			</span>(
-				OriginCaller::Council(pallet_collective::RawOrigin::Members(l_yes_votes, l_count)),
-				OriginCaller::Council(pallet_collective::RawOrigin::Members(r_yes_votes, r_count)),
-			) =&gt; <span class="prelude-val">Some</span>((l_yes_votes * r_count).cmp(<span class="kw-2">&amp;</span>(r_yes_votes * l_count))),
 			<span class="comment">// For every other origin we don&#39;t care, as they are not used for `ScheduleOrigin`.
 			</span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		}
@@ -3326,17 +3301,6 @@
 	<span class="kw">type </span>WeightInfo = weights::pallet_child_bounties::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_tips::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>DataDepositPerByte = DataDepositPerByte;
-	<span class="kw">type </span>MaximumReasonLength = MaximumReasonLength;
-	<span class="kw">type </span>Tippers = PhragmenElection;
-	<span class="kw">type </span>TipCountdown = TipCountdown;
-	<span class="kw">type </span>TipFindersFee = TipFindersFee;
-	<span class="kw">type </span>TipReportDepositBase = TipReportDepositBase;
-	<span class="kw">type </span>WeightInfo = weights::pallet_tips::WeightInfo&lt;Runtime&gt;;
-}
-
 <span class="kw">impl </span>pallet_offences::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>IdentificationTuple = pallet_session::historical::IdentificationTuple&lt;<span class="self">Self</span>&gt;;
@@ -3596,15 +3560,9 @@
 				RuntimeCall::Session(..) |
 				RuntimeCall::Grandpa(..) |
 				RuntimeCall::ImOnline(..) |
-				RuntimeCall::Democracy(..) |
-				RuntimeCall::Council(..) |
-				RuntimeCall::TechnicalCommittee(..) |
-				RuntimeCall::PhragmenElection(..) |
-				RuntimeCall::TechnicalMembership(..) |
 				RuntimeCall::Treasury(..) |
 				RuntimeCall::Bounties(..) |
 				RuntimeCall::ChildBounties(..) |
-				RuntimeCall::Tips(..) |
 				RuntimeCall::ConvictionVoting(..) |
 				RuntimeCall::Referenda(..) |
 				RuntimeCall::Whitelist(..) |
@@ -3627,20 +3585,16 @@
 				RuntimeCall::NominationPools(..) |
 				RuntimeCall::FastUnstake(..)
 			),
-			ProxyType::Governance =&gt;
-				<span class="macro">matches!</span>(
-					c,
-					RuntimeCall::Democracy(..) |
-						RuntimeCall::Council(..) | RuntimeCall::TechnicalCommittee(..) |
-						RuntimeCall::PhragmenElection(..) |
-						RuntimeCall::Treasury(..) |
-						RuntimeCall::Bounties(..) |
-						RuntimeCall::Tips(..) | RuntimeCall::Utility(..) |
-						RuntimeCall::ChildBounties(..) |
-						RuntimeCall::ConvictionVoting(..) |
-						RuntimeCall::Referenda(..) |
-						RuntimeCall::Whitelist(..)
-				),
+			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
+				c,
+				RuntimeCall::Treasury(..) |
+					RuntimeCall::Bounties(..) |
+					RuntimeCall::Utility(..) |
+					RuntimeCall::ChildBounties(..) |
+					RuntimeCall::ConvictionVoting(..) |
+					RuntimeCall::Referenda(..) |
+					RuntimeCall::Whitelist(..)
+			),
 			ProxyType::Staking =&gt; {
 				<span class="macro">matches!</span>(
 					c,
@@ -3983,16 +3937,9 @@
 		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event&lt;T&gt;, ValidateUnsigned, Config&lt;T&gt;} = <span class="number">12</span>,
 		AuthorityDiscovery: pallet_authority_discovery::{Pallet, Config&lt;T&gt;} = <span class="number">13</span>,
 
-		<span class="comment">// Old governance stuff.
-		</span>Democracy: pallet_democracy::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">14</span>,
-		Council: pallet_collective::&lt;Instance1&gt;::{Pallet, Call, Storage, Origin&lt;T&gt;, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">15</span>,
-		TechnicalCommittee: pallet_collective::&lt;Instance2&gt;::{Pallet, Call, Storage, Origin&lt;T&gt;, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">16</span>,
-		PhragmenElection: pallet_elections_phragmen::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">17</span>,
-		TechnicalMembership: pallet_membership::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">18</span>,
-		Treasury: pallet_treasury::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">19</span>,
-
 		<span class="comment">// OpenGov stuff.
-		</span>ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">20</span>,
+		</span>Treasury: pallet_treasury::{Pallet, Call, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">19</span>,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">20</span>,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">21</span>,
 		Origins: pallet_custom_origins::{Origin} = <span class="number">22</span>,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">23</span>,
@@ -4016,9 +3963,6 @@
 		<span class="comment">// Bounties modules.
 		</span>Bounties: pallet_bounties::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">34</span>,
 		ChildBounties: pallet_child_bounties = <span class="number">38</span>,
-
-		<span class="comment">// Tips module.
-		</span>Tips: pallet_tips::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">35</span>,
 
 		<span class="comment">// Election pallet. Only works with staking, but placed here to maintain indices.
 		</span>ElectionProviderMultiPhase: pallet_election_provider_multi_phase::{Pallet, Call, Storage, Event&lt;T&gt;, ValidateUnsigned} = <span class="number">36</span>,
@@ -4103,6 +4047,51 @@
 </span><span class="attr">#[allow(deprecated, missing_docs)]
 </span><span class="kw">pub mod </span>migrations {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::traits::LockIdentifier;
+	<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
+
+	<span class="macro">parameter_types! </span>{
+		<span class="kw">pub const </span>DemocracyPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Democracy&quot;</span>;
+		<span class="kw">pub const </span>CouncilPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Council&quot;</span>;
+		<span class="kw">pub const </span>TechnicalCommitteePalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TechnicalCommittee&quot;</span>;
+		<span class="kw">pub const </span>PhragmenElectionPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;PhragmenElection&quot;</span>;
+		<span class="kw">pub const </span>TechnicalMembershipPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;TechnicalMembership&quot;</span>;
+		<span class="kw">pub const </span>TipsPalletName: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Tips&quot;</span>;
+		<span class="kw">pub const </span>PhragmenElectionPalletId: LockIdentifier = <span class="kw-2">*</span><span class="string">b&quot;phrelect&quot;</span>;
+	}
+
+	<span class="comment">// Special Config for Gov V1 pallets, allowing us to run migrations for them without
+	// implementing their configs on [`Runtime`].
+	</span><span class="kw">pub struct </span>UnlockConfig;
+	<span class="kw">impl </span>pallet_democracy::migrations::unlock_and_unreserve_all_funds::UnlockConfig <span class="kw">for </span>UnlockConfig {
+		<span class="kw">type </span>Currency = Balances;
+		<span class="kw">type </span>MaxVotes = ConstU32&lt;<span class="number">100</span>&gt;;
+		<span class="kw">type </span>MaxDeposits = ConstU32&lt;<span class="number">100</span>&gt;;
+		<span class="kw">type </span>AccountId = AccountId;
+		<span class="kw">type </span>BlockNumber = BlockNumberFor&lt;Runtime&gt;;
+		<span class="kw">type </span>DbWeight = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight;
+		<span class="kw">type </span>PalletName = DemocracyPalletName;
+	}
+	<span class="kw">impl </span>pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockConfig
+		<span class="kw">for </span>UnlockConfig
+	{
+		<span class="kw">type </span>Currency = Balances;
+		<span class="kw">type </span>MaxVotesPerVoter = ConstU32&lt;<span class="number">16</span>&gt;;
+		<span class="kw">type </span>PalletId = PhragmenElectionPalletId;
+		<span class="kw">type </span>AccountId = AccountId;
+		<span class="kw">type </span>DbWeight = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight;
+		<span class="kw">type </span>PalletName = PhragmenElectionPalletName;
+	}
+	<span class="kw">impl </span>pallet_tips::migrations::unreserve_deposits::UnlockConfig&lt;()&gt; <span class="kw">for </span>UnlockConfig {
+		<span class="kw">type </span>Currency = Balances;
+		<span class="kw">type </span>Hash = Hash;
+		<span class="kw">type </span>DataDepositPerByte = DataDepositPerByte;
+		<span class="kw">type </span>TipReportDepositBase = TipReportDepositBase;
+		<span class="kw">type </span>AccountId = AccountId;
+		<span class="kw">type </span>BlockNumber = BlockNumberFor&lt;Runtime&gt;;
+		<span class="kw">type </span>DbWeight = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight;
+		<span class="kw">type </span>PalletName = TipsPalletName;
+	}
 
 	<span class="doccomment">/// Unreleased migrations. Add new ones here:
 	</span><span class="kw">pub type </span>Unreleased = (
@@ -4110,6 +4099,20 @@
 		parachains_configuration::migration::v7::MigrateToV7&lt;Runtime&gt;,
 		parachains_scheduler::migration::v1::MigrateToV1&lt;Runtime&gt;,
 		parachains_configuration::migration::v8::MigrateToV8&lt;Runtime&gt;,
+
+		<span class="comment">// Gov v1 storage migrations
+		// https://github.com/paritytech/polkadot/issues/6749
+		</span>pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds&lt;UnlockConfig&gt;,
+		pallet_democracy::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds&lt;UnlockConfig&gt;,
+		pallet_tips::migrations::unreserve_deposits::UnreserveDeposits&lt;UnlockConfig, ()&gt;,
+
+		<span class="comment">// Delete all Gov v1 pallet storage key/values.
+		</span>frame_support::migrations::RemovePallet&lt;DemocracyPalletName, &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight&gt;,
+		frame_support::migrations::RemovePallet&lt;CouncilPalletName, &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight&gt;,
+		frame_support::migrations::RemovePallet&lt;TechnicalCommitteePalletName, &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight&gt;,
+		frame_support::migrations::RemovePallet&lt;PhragmenElectionPalletName, &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight&gt;,
+		frame_support::migrations::RemovePallet&lt;TechnicalMembershipPalletName, &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight&gt;,
+		frame_support::migrations::RemovePallet&lt;TipsPalletName, &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight&gt;,
 	);
 }
 
@@ -4154,17 +4157,12 @@
 		[frame_benchmarking::baseline, Baseline::&lt;Runtime&gt;]
 		[pallet_bounties, Bounties]
 		[pallet_child_bounties, ChildBounties]
-		[pallet_collective, Council]
-		[pallet_collective, TechnicalCommittee]
-		[pallet_democracy, Democracy]
-		[pallet_elections_phragmen, PhragmenElection]
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[frame_election_provider_support, ElectionProviderBench::&lt;Runtime&gt;]
 		[pallet_fast_unstake, FastUnstake]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_indices, Indices]
-		[pallet_membership, TechnicalMembership]
 		[pallet_message_queue, MessageQueue]
 		[pallet_multisig, Multisig]
 		[pallet_nomination_pools, NominationPoolsBench::&lt;Runtime&gt;]
@@ -4176,7 +4174,6 @@
 		[pallet_staking, Staking]
 		[frame_system, SystemBench::&lt;Runtime&gt;]
 		[pallet_timestamp, Timestamp]
-		[pallet_tips, Tips]
 		[pallet_treasury, Treasury]
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
@@ -4789,7 +4786,6 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test_fees {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span><span class="kw">crate</span>::governance::old::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::{dispatch::GetDispatchInfo, weights::WeightToFee <span class="kw">as </span>WeightToFeeT};
 	<span class="kw">use </span>keyring::Sr25519Keyring::{Alice, Charlie};
 	<span class="kw">use </span>pallet_transaction_payment::Multiplier;
@@ -4888,40 +4884,6 @@
 		test_with_multiplier(Multiplier::saturating_from_rational(<span class="number">1u128</span>, <span class="number">1_000u128</span>));
 		test_with_multiplier(Multiplier::saturating_from_rational(<span class="number">1u128</span>, <span class="number">1_000_000u128</span>));
 		test_with_multiplier(Multiplier::saturating_from_rational(<span class="number">1u128</span>, <span class="number">1_000_000_000u128</span>));
-	}
-
-	<span class="attr">#[test]
-	</span><span class="kw">fn </span>full_block_council_election_cost() {
-		<span class="comment">// the number of voters needed to consume almost a full block in council election, and how
-		// much it is going to cost.
-		</span><span class="kw">use </span>pallet_elections_phragmen::WeightInfo;
-
-		<span class="comment">// Loser candidate lose a lot of money; sybil attack by candidates is even more expensive,
-		// and we don&#39;t care about it here. For now, we assume no extra candidates, and only
-		// superfluous voters.
-		</span><span class="kw">let </span>candidates = DesiredMembers::get() + DesiredRunnersUp::get();
-		<span class="kw">let </span><span class="kw-2">mut </span>voters = <span class="number">1u32</span>;
-		<span class="kw">let </span>weight_with = |v| {
-			&lt;Runtime <span class="kw">as </span>pallet_elections_phragmen::Config&gt;::WeightInfo::election_phragmen(
-				candidates,
-				v,
-				v * <span class="number">16</span>,
-			)
-		};
-
-		<span class="kw">while </span>weight_with(voters).all_lte(BlockWeights::get().max_block) {
-			voters += <span class="number">1</span>;
-		}
-
-		<span class="kw">let </span>cost = voters <span class="kw">as </span>Balance * (VotingBondBase::get() + <span class="number">16 </span>* VotingBondFactor::get());
-		<span class="kw">let </span>cost_dollars = cost / DOLLARS;
-		<span class="macro">println!</span>(
-			<span class="string">&quot;can support {} voters in a single block for council elections; total bond {}&quot;</span>,
-			voters, cost_dollars,
-		);
-		<span class="comment">// The minimal number of voters we expect per block.
-		</span><span class="macro">assert!</span>(voters &gt;= <span class="number">1_000</span>);
-		<span class="macro">assert!</span>(cost_dollars &gt;= <span class="number">10_000</span>);
 	}
 
 	<span class="attr">#[test]
