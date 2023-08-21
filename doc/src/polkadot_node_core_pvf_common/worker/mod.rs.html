@@ -430,6 +430,16 @@
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -558,6 +568,16 @@
 			<span class="macro">gum::debug!</span>(target: LOG_TARGET, %worker_pid, <span class="string">&quot;quitting pvf worker({}): {:?}&quot;</span>, debug_id, err);
 			<span class="kw">return
 		</span>}
+	}
+
+	<span class="comment">// Delete all env vars to prevent malicious code from accessing them.
+	</span><span class="kw">for </span>(key, <span class="kw">_</span>) <span class="kw">in </span>std::env::vars() {
+		<span class="comment">// TODO: *theoretically* the value (or mere presence) of `RUST_LOG` can be a source of
+		// randomness for malicious code. In the future we can remove it also and log in the host;
+		// see &lt;https://github.com/paritytech/polkadot/issues/7117&gt;.
+		</span><span class="kw">if </span>key != <span class="string">&quot;RUST_LOG&quot; </span>{
+			std::env::remove_var(key);
+		}
 	}
 
 	<span class="comment">// Run the main worker loop.
