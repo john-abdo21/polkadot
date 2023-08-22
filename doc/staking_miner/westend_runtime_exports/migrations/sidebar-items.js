@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":["Unreleased"]};
+window.SIDEBAR_ITEMS = {"struct":["UpgradeSessionKeys"],"type":["Unreleased"]};

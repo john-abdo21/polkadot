@@ -1438,10 +1438,6 @@
 <a href="#1438" id="1438">1438</a>
 <a href="#1439" id="1439">1439</a>
 <a href="#1440" id="1440">1440</a>
-<a href="#1441" id="1441">1441</a>
-<a href="#1442" id="1442">1442</a>
-<a href="#1443" id="1443">1443</a>
-<a href="#1444" id="1444">1444</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -2197,13 +2193,9 @@
 		<span class="prelude-val">Some</span>(backoff)
 	};
 
-	<span class="comment">// If not on a known test network, warn the user that BEEFY is still experimental.
-	</span><span class="kw">if </span>enable_beefy &amp;&amp;
-		!config.chain_spec.is_rococo() &amp;&amp;
-		!config.chain_spec.is_wococo() &amp;&amp;
-		!config.chain_spec.is_versi()
-	{
-		<span class="macro">gum::warn!</span>(<span class="string">&quot;BEEFY is still experimental, usage on a production network is discouraged.&quot;</span>);
+	<span class="comment">// Warn the user that BEEFY is still experimental for Polkadot.
+	</span><span class="kw">if </span>enable_beefy &amp;&amp; config.chain_spec.is_polkadot() {
+		<span class="macro">gum::warn!</span>(<span class="string">&quot;BEEFY is still experimental, usage on Polkadot network is discouraged.&quot;</span>);
 	}
 
 	<span class="kw">let </span>disable_grandpa = config.disable_grandpa;
@@ -2648,14 +2640,14 @@
 
 		<span class="kw">let </span>gadget = beefy::start_beefy_gadget::&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(beefy_params);
 
-		<span class="comment">// BEEFY currently only runs on testnets, if it fails we&#39;ll
-		// bring the node down with it to make sure it is noticed.
+		<span class="comment">// BEEFY is part of consensus, if it fails we&#39;ll bring the node down with it to make sure it
+		// is noticed.
 		</span>task_manager
 			.spawn_essential_handle()
 			.spawn_blocking(<span class="string">&quot;beefy-gadget&quot;</span>, <span class="prelude-val">None</span>, gadget);
-
-		<span class="kw">if </span>is_offchain_indexing_enabled {
-			task_manager.spawn_handle().spawn_blocking(
+		<span class="comment">// When offchain indexing is enabled, MMR gadget should also run.
+		</span><span class="kw">if </span>is_offchain_indexing_enabled {
+			task_manager.spawn_essential_handle().spawn_blocking(
 				<span class="string">&quot;mmr-gadget&quot;</span>,
 				<span class="prelude-val">None</span>,
 				MmrGadget::start(

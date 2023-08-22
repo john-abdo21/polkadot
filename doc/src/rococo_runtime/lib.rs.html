@@ -2319,7 +2319,6 @@
 <a href="#2319" id="2319">2319</a>
 <a href="#2320" id="2320">2320</a>
 <a href="#2321" id="2321">2321</a>
-<a href="#2322" id="2322">2322</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -3653,8 +3652,8 @@
 	</span><span class="kw">pub </span>LeafVersion: MmrLeafVersion = MmrLeafVersion::new(<span class="number">0</span>, <span class="number">0</span>);
 }
 
-<span class="kw">pub struct </span>ParasProvider;
-<span class="kw">impl </span>BeefyDataProvider&lt;H256&gt; <span class="kw">for </span>ParasProvider {
+<span class="kw">pub struct </span>ParaHeadsRootProvider;
+<span class="kw">impl </span>BeefyDataProvider&lt;H256&gt; <span class="kw">for </span>ParaHeadsRootProvider {
 	<span class="kw">fn </span>extra_data() -&gt; H256 {
 		<span class="kw">let </span><span class="kw-2">mut </span>para_heads: Vec&lt;(u32, Vec&lt;u8&gt;)&gt; = Paras::parachains()
 			.into_iter()
@@ -3672,7 +3671,7 @@
 	<span class="kw">type </span>LeafVersion = LeafVersion;
 	<span class="kw">type </span>BeefyAuthorityToMerkleLeaf = pallet_beefy_mmr::BeefyEcdsaToEthereum;
 	<span class="kw">type </span>LeafExtra = H256;
-	<span class="kw">type </span>BeefyDataProvider = ParasProvider;
+	<span class="kw">type </span>BeefyDataProvider = ParaHeadsRootProvider;
 }
 
 <span class="kw">impl </span>paras_sudo_wrapper::Config <span class="kw">for </span>Runtime {}
@@ -3724,9 +3723,14 @@
 		</span>Authorship: pallet_authorship::{Pallet, Storage} = <span class="number">5</span>,
 		Offences: pallet_offences::{Pallet, Storage, Event} = <span class="number">7</span>,
 		Historical: session_historical::{Pallet} = <span class="number">34</span>,
+
+		<span class="comment">// BEEFY Bridges support.
+		</span>Beefy: pallet_beefy::{Pallet, Call, Storage, Config&lt;T&gt;, ValidateUnsigned} = <span class="number">240</span>,
 		<span class="comment">// MMR leaf construction must be before session in order to have leaf contents
 		// refer to block&lt;N-1&gt; consistently. see substrate issue #11797 for details.
 		</span>Mmr: pallet_mmr::{Pallet, Storage} = <span class="number">241</span>,
+		MmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = <span class="number">242</span>,
+
 		Session: pallet_session::{Pallet, Call, Storage, Event, Config&lt;T&gt;} = <span class="number">8</span>,
 		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config&lt;T&gt;, Event, ValidateUnsigned} = <span class="number">10</span>,
 		ImOnline: pallet_im_online::{Pallet, Call, Storage, Event&lt;T&gt;, ValidateUnsigned, Config&lt;T&gt;} = <span class="number">11</span>,
@@ -3809,12 +3813,6 @@
 
 		<span class="comment">// Pallet for sending XCM.
 		</span>XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">99</span>,
-
-		<span class="comment">// Rococo specific pallets (not included in Kusama). Start indices at 240
-		//
-		// BEEFY Bridges support.
-		</span>Beefy: pallet_beefy::{Pallet, Call, Storage, Config&lt;T&gt;, ValidateUnsigned} = <span class="number">240</span>,
-		MmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = <span class="number">242</span>,
 
 		ParasSudoWrapper: paras_sudo_wrapper::{Pallet, Call} = <span class="number">250</span>,
 		AssignedSlots: assigned_slots::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">251</span>,
