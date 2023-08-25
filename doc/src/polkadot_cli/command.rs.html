@@ -549,6 +549,22 @@
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
 <a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright (C) Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
@@ -568,7 +584,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::cli::{Cli, Subcommand, NODE_VERSION};
 <span class="kw">use </span>frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
 <span class="kw">use </span>futures::future::TryFutureExt;
-<span class="kw">use </span>log::info;
+<span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>sc_cli::SubstrateCli;
 <span class="kw">use </span>service::{
 	<span class="self">self</span>,
@@ -791,8 +807,24 @@
 		.map_err(Error::from)<span class="question-mark">?</span>;
 	<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 
-	<span class="comment">// By default, enable BEEFY on all networks except Polkadot (for now).
-	</span><span class="kw">let </span>enable_beefy = !chain_spec.is_polkadot() &amp;&amp; !cli.run.no_beefy;
+	<span class="comment">// By default, enable BEEFY on all networks except Polkadot (for now), unless
+	// explicitly disabled through CLI.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>enable_beefy = !chain_spec.is_polkadot() &amp;&amp; !cli.run.no_beefy;
+	<span class="comment">// BEEFY doesn&#39;t (yet) support warp sync:
+	// Until we implement https://github.com/paritytech/substrate/issues/14756
+	// - disallow warp sync for validators,
+	// - disable BEEFY when warp sync for non-validators.
+	</span><span class="kw">if </span>enable_beefy &amp;&amp; runner.config().network.sync_mode.is_warp() {
+		<span class="kw">if </span>runner.config().role.is_authority() {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(
+				<span class="string">&quot;Warp sync not supported for validator nodes running BEEFY.&quot;</span>.into(),
+			))
+		} <span class="kw">else </span>{
+			<span class="comment">// disable BEEFY for non-validator nodes that are warp syncing
+			</span><span class="macro">warn!</span>(<span class="string">&quot;🥩 BEEFY not supported when warp syncing. Disabling BEEFY.&quot;</span>);
+			enable_beefy = <span class="bool-val">false</span>;
+		}
+	}
 
 	set_default_ss58_version(chain_spec);
 
