@@ -9,5 +9,5 @@ If you currently have an open pull request in any of the merged repositories, we
 We appreciate your understanding and ongoing support throughout this transition. Should you have any questions or require further assistance, please don't hesitate to [reach out to us](https://forum.polkadot.network/t/psa-parity-is-currently-working-on-merging-the-polkadot-stack-repositories-into-one-single-repository/2883).
 
 Best Regards,
-
 Parity Technologies
+paul bill
